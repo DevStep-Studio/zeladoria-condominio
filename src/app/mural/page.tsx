@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeed } from "@/db/seed";
 import { amenities, announcements, condominiums, reservations } from "@/db/schema";
+import { BrandLogo } from "@/components/brand-logo";
 import { dateBR, isoDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -37,59 +38,64 @@ export default async function MuralPage({ searchParams }: { searchParams: Promis
     <main className="min-h-screen bg-[var(--color-canvas)] p-6 text-[var(--color-ink)] sm:p-8">
       <meta httpEquiv="refresh" content="120" />
       <header className="flex items-center justify-between border-b border-[var(--color-line)] pb-6">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--color-primary-dark)]">Mural digital</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">{condo.name}</h1>
-          <p className="mt-1 text-[var(--color-muted)]">{condo.address} · {condo.city}/{condo.state}</p>
+        <div className="flex items-center gap-4">
+          <BrandLogo size="lg" />
+          <div className="border-l border-[var(--color-line)] pl-4">
+            <h1 className="text-3xl font-black tracking-tight">{condo.name}</h1>
+            <p className="text-sm text-[var(--color-muted)] font-medium">{condo.address} · {condo.city}/{condo.state}</p>
+          </div>
         </div>
         <div className="text-right">
-          <p className="text-5xl font-semibold tabular-nums">{currentDate}</p>
-          <p className="text-[var(--color-muted)]">Atualização automática a cada 2 minutos</p>
+          <p className="text-4xl font-black tabular-nums text-[#0070F3]">{currentDate}</p>
+          <p className="text-xs text-[var(--color-muted)] font-medium">Mural Digital · Atualização em tempo real</p>
         </div>
       </header>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <section className="space-y-4 lg:col-span-2">
-          <h2 className="text-lg font-semibold uppercase tracking-widest text-[var(--color-muted)]">Avisos</h2>
+          <h2 className="text-base font-bold uppercase tracking-wider text-[var(--color-muted)]">Avisos do Condomínio</h2>
           {news.length === 0 ? (
-            <p className="text-[var(--color-muted)]">Nenhum aviso publicado.</p>
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-8 text-center text-[var(--color-muted)]">
+              Nenhum aviso publicado no momento.
+            </div>
           ) : (
             news.map((item) => (
               <article
                 key={item.id}
-                className={`rounded-[12px] border bg-white p-6 ${
-                  item.priority === "alta" ? "border-[#efc9c9]" : "border-[var(--color-line)]"
+                className={`rounded-[16px] border bg-white p-6 shadow-xs ${
+                  item.priority === "alta" ? "border-amber-300 bg-amber-50/40" : "border-[var(--color-line)]"
                 }`}
               >
-                <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-[var(--color-muted)]">
-                  <span>{item.category}</span>
+                <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-[var(--color-muted)] font-bold">
+                  <span className="chip bg-blue-50 text-[#0070F3]">{item.category}</span>
                   <span>{dateBR(item.publishedAt)}</span>
-                  {item.pinned ? <span className="rounded-[6px] bg-[var(--color-primary-soft)] px-2 py-0.5 text-[var(--color-primary-dark)]">fixado</span> : null}
+                  {item.pinned ? <span className="chip bg-[#FEF3C7] text-[#B45309]">fixado</span> : null}
                 </div>
-                <h3 className="mt-2 text-3xl font-semibold tracking-tight">{item.title}</h3>
-                <p className="mt-2 line-clamp-3 text-lg text-[var(--color-muted)]">{item.body}</p>
+                <h3 className="mt-2.5 text-2xl font-bold tracking-tight">{item.title}</h3>
+                <p className="mt-2 line-clamp-3 text-base text-[var(--color-muted)] leading-relaxed">{item.body}</p>
               </article>
             ))
           )}
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold uppercase tracking-widest text-[var(--color-muted)]">Agenda dos espaços</h2>
+          <h2 className="text-base font-bold uppercase tracking-wider text-[var(--color-muted)]">Agenda dos espaços</h2>
           {agenda.length === 0 ? (
-            <p className="text-[var(--color-muted)]">Sem reservas confirmadas.</p>
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-6 text-center text-sm text-[var(--color-muted)]">
+              Sem reservas para hoje.
+            </div>
           ) : (
             agenda.map((item, index) => (
-              <div key={index} className="rounded-[12px] border border-[var(--color-line)] bg-white p-4">
-                <p className="text-xl font-semibold">{item.amenity}</p>
-                <p className="text-[var(--color-muted)]">
+              <div key={index} className="rounded-[14px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
+                <p className="text-lg font-bold text-[var(--color-ink)]">{item.amenity}</p>
+                <p className="text-sm font-semibold text-[#0070F3]">
                   {dateBR(item.date)} · {item.start}–{item.end}
                 </p>
               </div>
             ))
           )}
-          <div className="rounded-[12px] border border-[#dce9b3] bg-[var(--color-primary-soft)] p-4 text-sm font-medium text-[var(--color-primary-dark)]">
-            Encomendas são entregues mediante código de retirada. Visitantes devem apresentar QR Code e documento com
-            foto na portaria.
+          <div className="rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-semibold text-[#0070F3] leading-relaxed">
+            📦 Encomendas são retiradas com o código recebido. Visitantes e prestadores devem apresentar documento na portaria.
           </div>
         </section>
       </div>

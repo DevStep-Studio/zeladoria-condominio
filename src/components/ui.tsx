@@ -57,12 +57,13 @@ export function Card({
 const TONES: Record<string, string> = {
   zinc: "border-[var(--color-line)] bg-[var(--color-surface-muted)] text-[var(--color-muted)]",
   neutral: "border-[var(--color-line)] bg-[var(--color-surface-muted)] text-[var(--color-muted)]",
-  primary: "border-[#E9D5FF] bg-[#FAF5FF] text-[#6D28D9]",
-  purple: "border-[#E9D5FF] bg-[#FAF5FF] text-[#6D28D9]",
-  blue: "border-[#D1E9FF] bg-[#EFF8FF] text-[#175CD3]",
-  green: "border-[#cdebd9] bg-[var(--color-success-soft)] text-[var(--color-success)]",
-  amber: "border-[#f0dfbc] bg-[var(--color-warn-soft)] text-[var(--color-warn)]",
-  red: "border-[#f2caca] bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
+  primary: "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]",
+  blue: "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]",
+  yellow: "border-[#fde68a] bg-[#fffbeb] text-[#b45309]",
+  amber: "border-[#fde68a] bg-[#fffbeb] text-[#b45309]",
+  purple: "border-[#ddd6fe] bg-[#f5f3ff] text-[#6d28d9]",
+  green: "border-[#bbf7d0] bg-[var(--color-success-soft)] text-[var(--color-success)]",
+  red: "border-[#fecaca] bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
 };
 
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: keyof typeof TONES | string }) {
@@ -73,7 +74,7 @@ export function statusTone(status: string) {
   const s = status.toLowerCase().replace(/_/g, " ");
   if (["autorizado", "aprovada", "aprovado", "entregue", "concluida", "concluido", "pago", "paga", "ativo", "vigente", "operacional", "retirado", "finalizado", "fechado", "devolvido", "presente"].includes(s))
     return "green";
-  if (["pendente", "aguardando", "programada", "aberta", "aberto", "convocada", "em andamento", "guardado", "em análise", "convidado"].includes(s)) return "amber";
+  if (["pendente", "aguardando", "programada", "aberta", "aberto", "convocada", "em andamento", "guardado", "em análise", "convidado"].includes(s)) return "yellow";
   if (["negado", "bloqueado", "vencido", "vencida", "atrasado", "cancelado", "rejeitada", "rejeitado", "inativo", "falha", "descartado"].includes(s)) return "red";
   if (["dentro", "em visita"].includes(s)) return "primary";
   return "neutral";
@@ -83,29 +84,38 @@ export function statusLabel(status: string) {
   return status.replace(/_/g, " ");
 }
 
-/* Dashboard indicator — green summary card used at the top of data screens. */
+/* Dashboard indicator — modern summary card used at the top of data screens. */
 export function StatCard({
   label,
   value,
   icon,
   hint,
   href,
+  tone = "blue",
 }: {
   label: string;
   value: ReactNode;
   icon: IconName;
   hint?: string;
   href?: string;
+  tone?: "blue" | "yellow" | "green" | "purple";
 }) {
+  const toneBg = {
+    blue: "bg-gradient-to-br from-[#0070f3] to-[#0b5cd5] text-white border-[#0070f3]/20 shadow-[0_4px_14px_rgba(0,112,243,0.2)]",
+    yellow: "bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-white border-[#f59e0b]/20 shadow-[0_4px_14px_rgba(245,158,11,0.2)]",
+    green: "bg-gradient-to-br from-[#10b981] to-[#059669] text-white border-[#10b981]/20 shadow-[0_4px_14px_rgba(16,185,129,0.2)]",
+    purple: "bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white border-[#8b5cf6]/20 shadow-[0_4px_14px_rgba(139,92,246,0.2)]",
+  }[tone];
+
   const body = (
-    <div className="surface-hover flex h-full min-h-[84px] items-start gap-3 rounded-[10px] border border-[var(--color-primary-hover)] bg-[var(--color-primary)] p-3 text-[var(--color-ink)] shadow-[0_1px_2px_rgba(16,17,20,0.04)] sm:min-h-[94px] sm:p-4">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] bg-white/80 text-[var(--color-primary-dark)] sm:h-9 sm:w-9">
-        <Icon name={icon} size={16} />
+    <div className={`surface-hover flex h-full min-h-[92px] items-start gap-3.5 rounded-[14px] border p-4 transition-all duration-200 hover:-translate-y-0.5 ${toneBg}`}>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-white/20 text-white backdrop-blur-xs">
+        <Icon name={icon} size={18} />
       </span>
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink)]">{label}</p>
-        <p className="mt-1 text-[23px] font-semibold tabular-nums tracking-tight text-[var(--color-ink)] sm:text-[26px]">{value}</p>
-        {hint ? <p className="mt-0.5 text-[12px] font-medium leading-5 text-[var(--color-ink)] sm:text-[13px]">{hint}</p> : null}
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/90">{label}</p>
+        <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight text-white sm:text-[27px]">{value}</p>
+        {hint ? <p className="mt-0.5 text-[12px] font-medium text-white/80">{hint}</p> : null}
       </div>
     </div>
   );
@@ -133,11 +143,11 @@ export function Stat({
   href?: string;
 }) {
   const body = (
-    <div className="surface-hover h-full min-h-[82px] rounded-[10px] border border-[var(--color-primary-hover)] bg-[var(--color-primary)] p-3 text-[var(--color-ink)] shadow-[0_1px_2px_rgba(16,17,20,0.04)] sm:min-h-[92px] sm:p-4">
-      <div className="mb-2 h-1 w-7 rounded-full bg-[var(--color-primary-dark)] sm:mb-3 sm:w-8" />
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-ink)]">{label}</p>
-      <p className="mt-1 text-[23px] font-semibold tabular-nums tracking-tight text-[var(--color-ink)] sm:text-[26px]">{value}</p>
-      {hint ? <p className="mt-0.5 text-[12px] font-medium leading-5 text-[var(--color-ink)] sm:text-[13px]">{hint}</p> : null}
+    <div className="surface-hover h-full min-h-[90px] rounded-[14px] border border-[var(--color-line)] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <div className="mb-2.5 h-1 w-7 rounded-full bg-[var(--color-primary)]" />
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)]">{label}</p>
+      <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight text-[var(--color-ink)] sm:text-[26px]">{value}</p>
+      {hint ? <p className="mt-0.5 text-[12px] font-medium text-[var(--color-muted)]">{hint}</p> : null}
     </div>
   );
   return href ? (

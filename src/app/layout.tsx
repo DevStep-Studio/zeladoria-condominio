@@ -3,17 +3,17 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Portaria+ | Agenda e gestão condominial",
+  title: "Zeladoria Condomínio | Gestão e Operação Condominial",
   description:
-    "Plataforma minimalista para agenda de espaços, atendimentos, portaria, visitantes, encomendas, ocorrências e administração condominial.",
+    "Plataforma completa para zeladoria, controle de portaria, ocorrências, mapa em tempo real, agendamentos e administração condominial.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
-  applicationName: "Portaria+",
-  appleWebApp: { capable: true, title: "Portaria+", statusBarStyle: "default" },
+  applicationName: "Zeladoria Condomínio",
+  appleWebApp: { capable: true, title: "Zeladoria Condomínio", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#90B800",
+  themeColor: "#0070F3",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

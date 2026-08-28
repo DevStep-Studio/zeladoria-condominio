@@ -1,10 +1,26 @@
 import Link from "next/link";
 import { and, asc, count, desc, eq, gte, inArray, isNull, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { amenities, announcements, assemblies, assemblyMinutes, blocks, notifications, parcels, reservations, tickets, units, users, visits } from "@/db/schema";
+import {
+  amenities,
+  announcements,
+  assemblies,
+  assemblyMinutes,
+  blocks,
+  notifications,
+  parcels,
+  reservations,
+  tickets,
+  units,
+  users,
+  visits,
+} from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, StatCard, statusLabel, statusTone } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import { CondoMap } from "@/components/condo-map";
+import { CondoServices } from "@/components/condo-services";
+import { RecentOccurrences, type OccurrenceItem } from "@/components/recent-occurrences";
+import { CondoAssistant } from "@/components/condo-assistant";
 import { dateBR, dateTimeBR, isoDate, money } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -15,42 +31,61 @@ export default async function PainelHome() {
   const isStaff = ["superadmin", "sindico", "conselho", "zelador"].includes(session.role);
   const today = isoDate();
   const unitId = session.unitId;
-  const reservationScope = isResident ? eq(reservations.userId, session.user.id) : undefined;
 
-  const reservationRows = await db
-    .select({
-      id: reservations.id,
-      date: reservations.date,
-      start: reservations.startTime,
-      end: reservations.endTime,
-      status: reservations.status,
-      guests: reservations.guests,
-      amenity: amenities.name,
-      fee: amenities.feeCents,
-      person: users.name,
-      unit: units.number,
-      block: blocks.name,
-    })
-    .from(reservations)
-    .innerJoin(amenities, eq(amenities.id, reservations.amenityId))
-    .leftJoin(users, eq(users.id, reservations.userId))
-    .leftJoin(units, eq(units.id, reservations.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(and(eq(reservations.condoId, condoId), gte(reservations.date, today), reservationScope))
-    .orderBy(asc(reservations.date), asc(reservations.startTime))
-    .limit(12);
-
-  const todayAgenda = reservationRows.filter((item) => item.date === today);
-  const nextReservation = reservationRows.find((item) => ["aprovada", "pendente"].includes(item.status));
-  const pendingReservations = reservationRows.filter((item) => item.status === "pendente");
-  const todayRevenue = todayAgenda
-    .filter((item) => item.status === "aprovada")
-    .reduce((total, item) => total + (item.fee ?? 0), 0);
-
+  // Query occurrences / tickets
   const ticketScope = isResident ? eq(tickets.openedById, session.user.id) : undefined;
-  const parcelScope = isResident && unitId ? eq(parcels.unitId, unitId) : undefined;
+  const recentTicketRows = await db
+    .select({
+      id: tickets.id,
+      code: tickets.code,
+      title: tickets.title,
+      category: tickets.category,
+      priority: tickets.priority,
+      status: tickets.status,
+      createdAt: tickets.createdAt,
+      unitNumber: units.number,
+      blockName: blocks.name,
+      userName: users.name,
+    })
+    .from(tickets)
+    .leftJoin(units, eq(units.id, tickets.unitId))
+    .leftJoin(blocks, eq(blocks.id, units.blockId))
+    .leftJoin(users, eq(users.id, tickets.openedById))
+    .where(and(eq(tickets.condoId, condoId), ticketScope))
+    .orderBy(desc(tickets.createdAt))
+    .limit(10);
 
-  const [openTickets] = await db
+  const formattedOccurrences: OccurrenceItem[] = recentTicketRows.map((t) => {
+    let stat: OccurrenceItem["status"] = "aberto";
+    if (t.status === "concluido") stat = "concluido";
+    else if (t.status === "em_andamento") stat = "em_andamento";
+    else if (t.status === "pendente") stat = "pendente";
+
+    let prio: OccurrenceItem["priority"] = "media";
+    if (t.priority === "urgente") prio = "urgente";
+    else if (t.priority === "alta") prio = "alta";
+    else if (t.priority === "baixa") prio = "baixa";
+
+    const dateStr = t.createdAt ? dateTimeBR(t.createdAt) : "Hoje";
+    const loc = t.unitNumber
+      ? `${t.blockName ? `${t.blockName} · ` : ""}Unidade ${t.unitNumber}`
+      : "Área comum";
+
+    return {
+      id: t.id,
+      protocol: t.code || `OCO-${t.id}`,
+      title: t.title,
+      category: t.category,
+      unit: loc,
+      reporter: t.userName ?? "Morador",
+      status: stat,
+      priority: prio,
+      createdAt: dateStr,
+    };
+  });
+
+  // Query operational metrics
+  const [openTicketsCount] = await db
     .select({ n: count() })
     .from(tickets)
     .where(and(eq(tickets.condoId, condoId), ne(tickets.status, "concluido"), ticketScope));
@@ -58,238 +93,188 @@ export default async function PainelHome() {
   const [pendingParcels] = await db
     .select({ n: count() })
     .from(parcels)
-    .where(and(eq(parcels.condoId, condoId), eq(parcels.status, "pendente"), parcelScope));
+    .where(
+      and(
+        eq(parcels.condoId, condoId),
+        eq(parcels.status, "pendente"),
+        isResident && unitId ? eq(parcels.unitId, unitId) : undefined
+      )
+    );
 
   const [inside] = await db
     .select({ n: count() })
     .from(visits)
     .where(and(eq(visits.condoId, condoId), eq(visits.status, "dentro")));
 
-  const [pinned] = await db
+  const reservationScope = isResident ? eq(reservations.userId, session.user.id) : undefined;
+  const reservationRows = await db
+    .select({
+      id: reservations.id,
+      date: reservations.date,
+      start: reservations.startTime,
+      end: reservations.endTime,
+      status: reservations.status,
+      amenity: amenities.name,
+      fee: amenities.feeCents,
+    })
+    .from(reservations)
+    .innerJoin(amenities, eq(amenities.id, reservations.amenityId))
+    .where(and(eq(reservations.condoId, condoId), gte(reservations.date, today), reservationScope))
+    .orderBy(asc(reservations.date), asc(reservations.startTime))
+    .limit(5);
+
+  const todayAgenda = reservationRows.filter((item) => item.date === today);
+
+  const [pinnedAnnouncement] = await db
     .select()
     .from(announcements)
-    .where(and(eq(announcements.condoId, condoId)))
+    .where(eq(announcements.condoId, condoId))
     .orderBy(desc(announcements.pinned), desc(announcements.priority), desc(announcements.publishedAt))
     .limit(1);
 
-  // Módulo de Assembleias - Dashboard metrics
-  const [nextAssembly] = await db
-    .select()
-    .from(assemblies)
-    .where(and(eq(assemblies.condoId, condoId), inArray(assemblies.status, ["agendada", "convocacao_enviada", "em_andamento"])))
-    .orderBy(asc(assemblies.firstCallAt))
-    .limit(1);
-
-  const [pendingMinutes] = await db
-    .select({ n: count() })
-    .from(assemblies)
-    .where(and(eq(assemblies.condoId, condoId), inArray(assemblies.status, ["finalizada", "ata_em_revisao"])));
-
-  const [unreadAssemblyNotifs] = await db
-    .select({ n: count() })
-    .from(notifications)
-    .where(and(eq(notifications.condoId, condoId), eq(notifications.userId, session.user.id), isNull(notifications.readAt)));
-
-  const [recentMinutes] = await db
-    .select({
-      title: assemblies.title,
-      publishedAt: assemblyMinutes.publishedAt,
-      version: assemblyMinutes.currentVersion,
-    })
-    .from(assemblyMinutes)
-    .innerJoin(assemblies, eq(assemblies.id, assemblyMinutes.assemblyId))
-    .where(and(eq(assemblyMinutes.condoId, condoId), eq(assemblyMinutes.status, "publicada")))
-    .orderBy(desc(assemblyMinutes.publishedAt))
-    .limit(1);
-
   return (
-    <>
-      <PageHeader
-        title={isStaff ? "Agenda de hoje" : "Minha agenda"}
-        subtitle={isStaff ? `${condo.name} · ${dateBR(today)}` : `Seus próximos horários e solicitações · ${dateBR(today)}`}
-        actions={
-          <Link href="/painel/reservas" className="btn-primary">
-            <Icon name="plus" size={16} />
-            Novo agendamento
-          </Link>
-        }
-      />
-
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Agendamentos hoje" value={todayAgenda.length} icon="calendar" hint="reservas e uso de espaços" href="/painel/reservas" />
-        <StatCard
-          label="Próximo horário"
-          value={nextReservation ? nextReservation.start : "—"}
-          icon="clock"
-          hint={nextReservation ? `${dateBR(nextReservation.date)} · ${nextReservation.amenity}` : "agenda livre"}
-          href="/painel/reservas"
-        />
-        <StatCard label="Pendentes" value={pendingReservations.length} icon="bell" hint="aguardando confirmação" href="/painel/reservas" />
-        <StatCard label="Faturamento" value={money(todayRevenue)} icon="wallet" hint="estimado hoje" href={isStaff ? "/painel/financeiro" : "/painel/reservas"} />
-      </section>
-
-      <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
-          <Card
-            title="Linha do tempo"
-            description="Acompanhe somente o que precisa de ação agora. Detalhes completos ficam na tela de agenda."
-            actions={<Link href="/painel/reservas" className="btn-ghost btn-sm">Abrir agenda</Link>}
-          >
-            {todayAgenda.length === 0 ? (
-              <EmptyState
-                title="Nenhum agendamento para hoje"
-                description="Crie uma nova reserva ou consulte a visão semanal da agenda."
-                icon="calendar"
-                action={<Link href="/painel/reservas" className="btn-primary btn-sm">Novo agendamento</Link>}
-              />
-            ) : (
-              <ol className="relative space-y-3">
-                {todayAgenda.map((item, index) => {
-                  const highlight = index === 0 && ["aprovada", "pendente"].includes(item.status);
-                  return (
-                    <li
-                      key={item.id}
-                      className={`grid gap-3 rounded-[12px] border p-4 sm:grid-cols-[92px_minmax(0,1fr)_auto] sm:items-center ${
-                        highlight ? "border-[#d8e8a6] bg-[var(--color-primary-soft)]" : "border-[var(--color-line)] bg-white"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-lg font-semibold tabular-nums text-[var(--color-ink)]">{item.start}</p>
-                        <p className="text-xs text-[var(--color-muted)]">{item.end}</p>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{item.person ?? "Morador"}</p>
-                        <p className="mt-1 text-sm text-[var(--color-muted)]">
-                          {item.amenity} · {item.block ?? ""} {item.unit ?? "área comum"}
-                        </p>
-                      </div>
-                      <Badge tone={statusTone(item.status)}>{statusLabel(item.status)}</Badge>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </Card>
-
-          {/* Bloco compacto de Assembleias no Dashboard */}
-          <Card
-            title="Assembleias"
-            description="Convocação digital, presenças, atas e deliberações."
-            actions={<Link href="/painel/assembleias" className="btn-ghost btn-sm">Acessar assembleias</Link>}
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[10px] border border-[var(--color-line)] bg-[#FDF8FF] p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#6D28D9]">Próxima assembleia</span>
-                  <Badge tone="purple">Digital</Badge>
-                </div>
-                {nextAssembly ? (
-                  <div className="mt-2">
-                    <p className="font-bold text-[var(--color-ink)] line-clamp-1">{nextAssembly.title}</p>
-                    <p className="mt-0.5 text-xs text-[var(--color-muted)]">
-                      {dateTimeBR(nextAssembly.firstCallAt)} · {nextAssembly.kind}
-                    </p>
-                    <Link href="/painel/assembleias" className="mt-2 inline-flex text-xs font-semibold text-[#7C3AED] hover:underline">
-                      Ver convocação e pauta →
-                    </Link>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-xs text-[var(--color-muted)]">Nenhuma assembleia futura agendada.</p>
-                )}
-              </div>
-
-              <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-3.5 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--color-muted)]">Aguardando publicação da ata:</span>
-                  <span className="font-bold text-[var(--color-ink)]">{pendingMinutes?.n ?? 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--color-muted)]">Convocações não lidas:</span>
-                  <span className="font-bold text-[#7C3AED]">{unreadAssemblyNotifs?.n ?? 0}</span>
-                </div>
-                <div className="border-t border-[var(--color-line)] pt-2">
-                  <p className="text-[11px] font-semibold text-[var(--color-muted)] uppercase">Ata publicada recente:</p>
-                  {recentMinutes ? (
-                    <p className="mt-0.5 truncate text-[var(--color-ink)] font-medium">
-                      {recentMinutes.title} (v{recentMinutes.version || "1.0"})
-                    </p>
-                  ) : (
-                    <p className="mt-0.5 text-[var(--color-subtle)]">Nenhuma ata recente.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Card>
+    <div className="space-y-6">
+      {/* Top Banner Card: Registrar Ocorrência matching reference layout */}
+      <div className="flex flex-col justify-between gap-4 rounded-[20px] border border-[var(--color-line)] bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:px-7 sm:py-5.5">
+        <div className="flex items-center gap-3.5">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ECFDF5] text-[#059669] shadow-xs">
+            <Icon name="plus" size={22} strokeWidth={2.5} />
+          </span>
+          <div>
+            <h2 className="text-lg font-bold tracking-tight text-[var(--color-ink)] sm:text-xl">
+              Registrar ocorrência
+            </h2>
+            <p className="text-xs text-[var(--color-muted)] font-medium sm:text-sm">
+              Comunique problemas, manutenções ou emergências do condomínio.
+            </p>
+          </div>
         </div>
 
-        <aside className="space-y-4">
-          <Card title="Próximo agendamento">
-            {nextReservation ? (
-              <div className="space-y-3">
-                <div className="rounded-[12px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">{dateBR(nextReservation.date)}</p>
-                  <p className="mt-2 text-2xl font-semibold text-[var(--color-ink)]">
-                    {nextReservation.start}–{nextReservation.end}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--color-muted)]">{nextReservation.amenity}</p>
-                </div>
-                <Link href="/painel/reservas" className="btn-dark w-full">Ver detalhes</Link>
-              </div>
-            ) : (
-              <p className="text-sm text-[var(--color-muted)]">Nenhum horário futuro encontrado.</p>
-            )}
-          </Card>
-
-          <Card title="Resumo operacional">
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[var(--color-muted)]">Atendimentos abertos</span>
-                <strong>{openTickets.n}</strong>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[var(--color-muted)]">Encomendas pendentes</span>
-                <strong>{pendingParcels.n}</strong>
-              </div>
-              {isStaff ? (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[var(--color-muted)]">Pessoas no condomínio</span>
-                  <strong>{inside.n}</strong>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-
-          {pendingReservations.length > 0 ? (
-            <Card title="Confirmações pendentes">
-              <ul className="space-y-2">
-                {pendingReservations.slice(0, 3).map((item) => (
-                  <li key={item.id} className="rounded-[10px] border border-[var(--color-line)] p-3 text-sm">
-                    <p className="font-semibold text-[var(--color-ink)]">{item.amenity}</p>
-                    <p className="text-xs text-[var(--color-muted)]">{dateBR(item.date)} · {item.start}</p>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ) : null}
-
-          <Card title="Aviso importante">
-            {pinned ? (
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-ink)]">{pinned.title}</p>
-                <p className="mt-1 line-clamp-3 text-xs leading-5 text-[var(--color-muted)]">{pinned.body}</p>
-                <Link href="/painel/comunicados" className="btn-link mt-2 text-xs">Ler comunicado</Link>
-              </div>
-            ) : (
-              <p className="text-sm text-[var(--color-muted)]">Sem avisos no momento.</p>
-            )}
-          </Card>
-
-          <InfoNote>
-            A disponibilidade é confirmada no backend no momento da criação, evitando agendamentos duplicados no mesmo horário.
-          </InfoNote>
-        </aside>
+        <Link
+          href="/painel/chamados"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(16,185,129,0.4)] active:scale-95 shrink-0"
+        >
+          <span>Abrir solicitação</span>
+          <Icon name="arrow-right" size={16} strokeWidth={2.5} />
+        </Link>
       </div>
-    </>
+
+      {/* Main 2-Column Layout matching Reference Image */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[48%_52%] xl:grid-cols-[46%_54%]">
+        {/* Left Column: Condo Map + Operational Metrics */}
+        <div className="space-y-6">
+          {/* Interactive Map with Point of Departure and SOS button */}
+          <CondoMap condoName={condo.name} address="Portaria Principal & Áreas Comuns" />
+
+          {/* Operational Metrics Cards */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-muted)]">
+                  Chamados
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-blue-50 text-[#0070F3]">
+                  <Icon name="wrench" size={14} />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-black tabular-nums text-[var(--color-ink)]">
+                {openTicketsCount?.n ?? 0}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-[var(--color-muted)]">em aberto</p>
+            </div>
+
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-muted)]">
+                  Reservas
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-amber-50 text-[#F59E0B]">
+                  <Icon name="calendar" size={14} />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-black tabular-nums text-[var(--color-ink)]">
+                {todayAgenda.length}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-[var(--color-muted)]">agendadas hoje</p>
+            </div>
+
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-muted)]">
+                  Encomendas
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-purple-50 text-[#8B5CF6]">
+                  <Icon name="package" size={14} />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-black tabular-nums text-[var(--color-ink)]">
+                {pendingParcels?.n ?? 0}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-[var(--color-muted)]">na portaria</p>
+            </div>
+
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-muted)]">
+                  Presentes
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-emerald-50 text-[#10B981]">
+                  <Icon name="user-check" size={14} />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-black tabular-nums text-[var(--color-ink)]">
+                {inside?.n ?? 0}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-[var(--color-muted)]">no condomínio</p>
+            </div>
+          </div>
+
+          {/* Pinned announcement if any */}
+          {pinnedAnnouncement ? (
+            <div className="rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4.5">
+              <div className="flex items-start gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0070F3] text-white">
+                  <Icon name="megaphone" size={15} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="chip bg-blue-100 text-[#0070F3] text-[10px] font-bold">
+                      COMUNICADO OFICIAL
+                    </span>
+                  </div>
+                  <h4 className="mt-1 text-sm font-bold text-[var(--color-ink)]">
+                    {pinnedAnnouncement.title}
+                  </h4>
+                  <p className="mt-1 text-xs text-[var(--color-muted)] line-clamp-2 leading-relaxed">
+                    {pinnedAnnouncement.body}
+                  </p>
+                  <Link
+                    href="/painel/comunicados"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline"
+                  >
+                    <span>Ler comunicado completo</span>
+                    <Icon name="arrow-right" size={12} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Right Column: Serviços do Condomínio (6 Cards) + Ocorrências Recentes */}
+        <div className="space-y-6">
+          {/* 6 Quick Modules Grid matching reference */}
+          <CondoServices />
+
+          {/* Ocorrências Recentes Filter & Table List */}
+          <div className="rounded-[20px] border border-[var(--color-line)] bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+            <RecentOccurrences initialOccurrences={formattedOccurrences} />
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Virtual Assistant Bot matching reference */}
+      <CondoAssistant />
+    </div>
   );
 }
-

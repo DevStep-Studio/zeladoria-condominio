@@ -5,6 +5,7 @@ import { ensureSeed } from "@/db/seed";
 import { amenities, condominiums, reservations } from "@/db/schema";
 import { Badge, EmptyState, InfoNote } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import { BrandLogo } from "@/components/brand-logo";
 import { addDays, dateBR, isoDate, money } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -75,12 +76,9 @@ export default async function PublicBookingPage({
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5 font-semibold">
-            <span className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[var(--color-primary)] text-sm font-semibold text-[var(--color-ink)]">
-              P+
-            </span>
-            Portaria+
+            <BrandLogo size="md" />
           </Link>
-          <Link href="/login" className="btn-ghost btn-sm">Entrar</Link>
+          <Link href="/login" className="btn-primary btn-sm">Entrar</Link>
         </header>
 
         <section className="rounded-[16px] border border-[var(--color-line)] bg-white p-5 sm:p-8">

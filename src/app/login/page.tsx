@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ensureSeed } from "@/db/seed";
-import { Icon } from "@/components/icon";
+import { BrandLogo } from "@/components/brand-logo";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -21,69 +21,67 @@ export default async function LoginPage() {
 
   return (
     <main className="min-h-screen bg-white text-[var(--color-ink)] lg:h-screen lg:overflow-hidden">
-      <section className="grid min-h-screen lg:h-screen lg:min-h-0 lg:grid-cols-[45%_55%]">
-        <div className="flex min-h-screen flex-col px-6 py-7 sm:px-10 lg:h-screen lg:min-h-0 lg:px-16 xl:px-24">
+      <section className="grid min-h-screen lg:h-screen lg:min-h-0 lg:grid-cols-[45%_55%] xl:grid-cols-[42%_58%]">
+        {/* Left Column: Login Form matching reference */}
+        <div className="flex min-h-screen flex-col justify-between px-6 py-6 sm:px-10 lg:h-screen lg:min-h-0 lg:px-14 xl:px-20 z-10 bg-white">
+          {/* Top Logo */}
           <header className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 text-[15px] font-semibold text-[var(--color-ink)]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-[var(--color-primary)] text-sm font-semibold text-[var(--color-ink)]">
-                P+
-              </span>
-              Portaria+
-            </Link>
-            <Link href="/status" className="btn-ghost btn-sm">
-              <Icon name="check" size={15} />
-              Status
+            <Link href="/" className="flex items-center gap-2">
+              <BrandLogo size="md" />
             </Link>
           </header>
 
-          <div className="flex flex-1 items-center py-8 lg:py-4">
-            <div className="w-full max-w-[500px]">
-              <div className="mb-7">
-                <h1 className="text-[36px] font-semibold leading-tight tracking-tight text-[var(--color-ink)] sm:text-[42px]">
-                  Bem-vindo de volta
-                </h1>
-                <p className="mt-3 max-w-md text-[15px] font-medium leading-7 text-[var(--color-muted)]">
-                  Entre na sua conta para acessar agenda, portaria, comunicados e relatórios.
-                </p>
-              </div>
-
-              <LoginForm demos={DEMOS} />
+          {/* Form Center Content */}
+          <div className="my-auto py-6 w-full max-w-[420px] mx-auto">
+            <div className="mb-6">
+              <h1 className="text-[32px] font-black leading-tight tracking-tight text-[var(--color-ink)] sm:text-[36px]">
+                Bem-vindo de volta
+              </h1>
+              <p className="mt-2 text-sm text-[var(--color-muted)] font-medium">
+                Entre na sua conta para acessar seus lançamentos e relatórios.
+              </p>
             </div>
+
+            <LoginForm demos={DEMOS} />
           </div>
 
-          <p className="text-xs text-[var(--color-subtle)]">© 2026 Portaria+</p>
+          {/* Footer matching reference */}
+          <footer className="flex items-center justify-between text-xs text-[var(--color-subtle)] font-medium pt-4 border-t border-[var(--color-line)] lg:border-t-0">
+            <p>© 2026 Zeladoria Condomínio</p>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-[var(--color-ink)] transition-colors">Privacidade</a>
+              <a href="#" className="hover:text-[var(--color-ink)] transition-colors">Termos</a>
+            </div>
+          </footer>
         </div>
 
-        <aside className="relative hidden min-h-screen overflow-hidden bg-[var(--color-primary)] text-[var(--color-ink)] lg:block">
-          <div className="absolute right-10 top-8 flex items-center gap-2.5 text-lg font-semibold">
-            <span className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-white/90 text-sm font-semibold text-[var(--color-primary-dark)]">
-              P+
-            </span>
-            Portaria+
+        {/* Right Column: Full Background Image Login.png covering 100% of the right side */}
+        <aside className="relative hidden min-h-screen overflow-hidden bg-[#0070F3] text-white lg:flex lg:flex-col lg:justify-between p-8 xl:p-12">
+          {/* Full Cover Background Image */}
+          <div className="absolute inset-0 z-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Login.png"
+              alt="Zeladoria Condomínio Background"
+              className="h-full w-full object-cover object-center"
+            />
+            {/* Gradient Overlay for logo & headline readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/35 pointer-events-none" />
           </div>
 
-          <div className="absolute inset-0 opacity-[0.09]" aria-hidden="true">
-            <div className="grid h-full grid-cols-6 grid-rows-6">
-              {Array.from({ length: 36 }).map((_, index) => (
-                <div key={index} className="border border-[var(--color-primary-dark)]" />
-              ))}
+          {/* Top Right White Logo */}
+          <div className="relative z-10 flex justify-end">
+            <div className="rounded-xl bg-black/25 px-3.5 py-2 backdrop-blur-md border border-white/20 shadow-lg">
+              <BrandLogo variant="white" size="md" />
             </div>
           </div>
 
-          <div className="absolute inset-x-16 top-1/2 -translate-y-1/2">
-            <div className="flex aspect-[4/3] items-center justify-center rounded-[24px] border-2 border-dashed border-white/70 bg-white/10 text-center text-white">
-              <div>
-                <Icon name="building" size={84} strokeWidth={1.35} className="mx-auto" />
-                <p className="mt-5 text-sm font-semibold uppercase tracking-wide">Imagem principal</p>
-                <p className="mt-2 text-sm text-white/85">Espaço reservado para sua arte</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute bottom-10 right-10 max-w-[320px] text-right">
-            <p className="text-[38px] font-semibold leading-none tracking-tight text-white xl:text-[46px]">
-              Gestão condominial simples.
-            </p>
+          {/* Bottom Right Slogan matching reference typography */}
+          <div className="relative z-10 flex justify-end text-right">
+            <h2 className="text-[44px] font-black leading-[1.05] tracking-tight text-white xl:text-[56px] drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] max-w-lg">
+              Organize <br />
+              <span className="text-[#FAB800]">seu condomínio</span>
+            </h2>
           </div>
         </aside>
       </section>
