@@ -3,19 +3,19 @@
 @import "@fullcalendar/react/themes/forma/theme.css";
 @import "@fullcalendar/react/themes/forma/palettes/green.css";
 
-/* ============ Design tokens: Zeladoria Condomínio (Azul & Amarelo) ============ */
+/* ============ Design tokens: Zeladoria Condomínio (Branco + Verde/Azul-Petróleo Corporativo) ============ */
 @theme {
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
   --color-surface-muted: #f1f5f9;
-  --color-primary: #0070f3;
-  --color-primary-hover: #005fd6;
-  --color-primary-dark: #074bb3;
-  --color-primary-soft: #eff6ff;
-  --color-secondary: #f59e0b;
-  --color-secondary-hover: #d97706;
-  --color-secondary-dark: #b45309;
-  --color-secondary-soft: #fef3c7;
+  --color-primary: #0d9488;
+  --color-primary-hover: #0f766e;
+  --color-primary-dark: #115e59;
+  --color-primary-soft: #f0fdfa;
+  --color-secondary: #059669;
+  --color-secondary-hover: #047857;
+  --color-secondary-dark: #065f46;
+  --color-secondary-soft: #ecfdf5;
   --color-ink: #0f172a;
   --color-muted: #64748b;
   --color-subtle: #94a3b8;
@@ -47,8 +47,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-secondary-soft);
-  color: var(--color-secondary-dark);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
 }
 
 /* Accessible subtle keyboard focus without harsh borders */
@@ -61,7 +61,7 @@ button:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.35);
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.4);
   border-radius: 8px;
 }
 
@@ -76,11 +76,11 @@ summary::-webkit-details-marker {
 /* Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #93c5fd transparent;
+  scrollbar-color: #99f6e4 transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 *::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -88,6 +88,18 @@ summary::-webkit-details-marker {
 }
 *::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }
 
 @layer components {
@@ -107,9 +119,9 @@ summary::-webkit-details-marker {
     @apply mb-2 block text-[12px] font-bold uppercase tracking-wide text-[var(--color-muted)];
   }
   .input {
-    @apply min-h-12 w-full rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-sm text-[var(--color-ink)] outline-none
+    @apply min-h-11 w-full rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-sm text-[var(--color-ink)] outline-none
       transition-all placeholder:text-[var(--color-subtle)]
-      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100
+      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-teal-100
       disabled:cursor-not-allowed disabled:bg-[var(--color-surface-muted)] disabled:text-[var(--color-subtle)];
   }
   textarea.input {
@@ -117,8 +129,8 @@ summary::-webkit-details-marker {
   }
   select,
   select.input {
-    @apply min-h-11 w-full rounded-[10px] border border-[var(--color-line)] bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230070F3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    @apply min-h-11 w-full rounded-[10px] border border-[var(--color-line)] bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-teal-100;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230D9488' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     appearance: none;
@@ -132,14 +144,14 @@ summary::-webkit-details-marker {
   .btn-dark,
   .btn-danger,
   .btn-success {
-    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-5 py-3 text-sm font-semibold
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-semibold
       transition-[background-color,border-color,color,box-shadow,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
   }
   .btn-primary {
-    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] hover:shadow-[0_6px_20px_rgba(0,112,243,0.25)];
+    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.25)];
   }
   .btn-yellow {
-    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-[#0f172a] hover:bg-[var(--color-secondary-hover)] hover:text-white hover:shadow-[0_6px_20px_rgba(245,158,11,0.25)];
+    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-white hover:bg-[var(--color-secondary-hover)] hover:shadow-[0_4px_16px_rgba(5,150,105,0.25)];
   }
   .btn-ghost {
     @apply border border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-line-strong)] hover:bg-[var(--color-surface-muted)];
@@ -154,7 +166,7 @@ summary::-webkit-details-marker {
     @apply bg-[var(--color-success)] text-white hover:bg-[#059669];
   }
   .btn-sm {
-    @apply min-h-10 px-4 py-2 text-xs rounded-[8px];
+    @apply min-h-9 px-3 py-1.5 text-xs rounded-[8px];
   }
   .btn-link {
     @apply inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline;

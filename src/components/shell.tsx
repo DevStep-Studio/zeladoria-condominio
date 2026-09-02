@@ -10,17 +10,6 @@ import type { NavItem } from "@/lib/rbac";
 export type ShellNav = { primary: NavItem[]; more: NavItem[] };
 export type ShellCondo = { id: number; name: string };
 
-type QuickAction = { href: string; label: string; icon: IconName };
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { href: "/painel/chamados", label: "Registrar ocorrência", icon: "wrench" },
-  { href: "/painel/reservas", label: "Novo agendamento", icon: "calendar" },
-  { href: "/painel/visitantes", label: "Autorizar visitante", icon: "user-check" },
-  { href: "/painel/comunicados", label: "Criar comunicado", icon: "megaphone" },
-  { href: "/painel/encomendas", label: "Receber encomenda", icon: "package" },
-  { href: "/painel/moradores", label: "Cadastrar morador", icon: "users" },
-];
-
 function isActive(pathname: string, href: string) {
   if (href === "/painel") return pathname === "/painel";
   return pathname === href || pathname.startsWith(href + "/");
@@ -48,14 +37,14 @@ function NavItemLink({
         collapsed ? "justify-center" : ""
       } ${
         active
-          ? "bg-[#EFF6FF] text-[#0070F3] shadow-xs"
+          ? "bg-[#F0FDFA] text-[#0D9488] shadow-xs font-bold border-l-2 border-[#0D9488]"
           : "text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
       }`}
     >
       <Icon
         name={item.icon}
-        size={18}
-        className={`shrink-0 transition-colors ${active ? "text-[#0070F3]" : "text-[var(--color-muted)] group-hover:text-[var(--color-ink)]"}`}
+        size={19}
+        className={`shrink-0 transition-colors ${active ? "text-[#0D9488]" : "text-[var(--color-muted)] group-hover:text-[var(--color-ink)]"}`}
       />
       {!collapsed ? <span className="truncate">{item.label}</span> : null}
       {collapsed ? (
@@ -101,9 +90,7 @@ export function Shell({
     }
   });
   const [mobileOpen, setMobileOpen] = useState(false);
-  const anyMoreActive = nav.more.some((i) => isActive(pathname, i.href));
-  const [moreOpen, setMoreOpen] = useState(anyMoreActive);
-  const moreExpanded = moreOpen || anyMoreActive;
+  const [searchQuery, setSearchQuery] = useState("");
 
   const pageTitle = useMemo(() => {
     const all = [...nav.primary, ...nav.more];
@@ -118,9 +105,6 @@ export function Shell({
       localStorage.setItem("zc-nav", next ? "collapsed" : "expanded");
     } catch {}
   };
-
-  const mainNav = nav.primary.filter((item) => item.href !== "/painel/configuracoes");
-  const configNav = nav.primary.filter((item) => item.href === "/painel/configuracoes");
 
   const isSuperOrSindico = ["superadmin", "sindico", "administrador"].some((r) =>
     roleLabel.toLowerCase().includes(r)
@@ -139,13 +123,13 @@ export function Shell({
       {!collapsed ? (
         <form action={switchAction} className="mt-4">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--color-muted)] mb-1">
-            Condomínio Selecionado
+            Condomínio Ativo
           </label>
           <select
             name="condoId"
             defaultValue={activeCondoId}
             onChange={(e) => e.currentTarget.form?.requestSubmit()}
-            className="input min-h-11 py-1.5 text-xs font-medium"
+            className="input min-h-10 py-1 text-xs font-medium"
             aria-label="Selecionar condomínio"
           >
             {condos.map((c) => (
@@ -157,68 +141,36 @@ export function Shell({
         </form>
       ) : null}
 
-      {/* Nav */}
-      <nav className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto pb-4">
-        <div>
-          {!collapsed ? (
-            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
-              Módulos Principais
-            </p>
-          ) : null}
-          <div className="space-y-1">
-            {mainNav.map((item) => (
-              <NavItemLink
-                key={item.href}
-                item={item}
-                pathname={pathname}
-                collapsed={collapsed}
-                onNavigate={() => setMobileOpen(false)}
-              />
-            ))}
-          </div>
+      {/* Nav with 8 Core Modules */}
+      <nav className="mt-5 min-h-0 flex-1 space-y-1 overflow-y-auto pb-4">
+        {!collapsed ? (
+          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
+            Módulos do Sistema
+          </p>
+        ) : null}
+        <div className="space-y-1">
+          {nav.primary.map((item) => (
+            <NavItemLink
+              key={item.href}
+              item={item}
+              pathname={pathname}
+              collapsed={collapsed}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          ))}
         </div>
 
         {nav.more.length > 0 ? (
-          <div>
+          <div className="pt-3">
             {!collapsed ? (
-              <button
-                type="button"
-                onClick={() => setMoreOpen((v) => !v)}
-                className="mb-1.5 flex w-full items-center gap-2 rounded-[8px] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-              >
-                <span className="flex-1 text-left">Mais Serviços</span>
-                <Icon
-                  name="chevron-down"
-                  size={13}
-                  className={`transition-transform ${moreExpanded ? "rotate-180" : ""}`}
-                />
-              </button>
+              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
+                Recursos Extras
+              </p>
             ) : (
               <div className="my-2 border-t border-[var(--color-line)]" />
             )}
-            <div className={`space-y-1 ${moreExpanded || collapsed ? "block" : "hidden"}`}>
-              {nav.more.map((item) => (
-                <NavItemLink
-                  key={item.href}
-                  item={item}
-                  pathname={pathname}
-                  collapsed={collapsed}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {configNav.length > 0 ? (
-          <div>
-            {!collapsed ? (
-              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
-                Administração
-              </p>
-            ) : null}
             <div className="space-y-1">
-              {configNav.map((item) => (
+              {nav.more.map((item) => (
                 <NavItemLink
                   key={item.href}
                   item={item}
@@ -232,28 +184,32 @@ export function Shell({
         ) : null}
       </nav>
 
-      {/* User profile & footer */}
+      {/* User profile card & Logout */}
       <div className={`border-t border-[var(--color-line)] pt-3.5 ${collapsed ? "space-y-2" : "space-y-2.5"}`}>
         {!collapsed ? (
-          <div className="rounded-[12px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-3">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#0070F3] to-[#0B5CD5] text-xs font-bold text-white shadow-xs">
-                {userName.slice(0, 1).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-[var(--color-ink)]">{userName}</p>
-                <p className="truncate text-[11px] text-[var(--color-muted)] font-medium">{roleLabel}</p>
-              </div>
+          <Link
+            href="/painel/perfil"
+            className="flex items-center gap-2.5 rounded-[12px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-2.5 hover:bg-teal-50/50 hover:border-teal-200 transition-colors"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#0D9488] to-[#0F766E] text-xs font-bold text-white shadow-xs">
+              {userName.slice(0, 1).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-[var(--color-ink)]">{userName}</p>
+              <p className="truncate text-[11px] text-[var(--color-muted)] font-medium">
+                {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
+              </p>
             </div>
-          </div>
+          </Link>
         ) : null}
+
         <form action={logout}>
           <button
             type="submit"
             className={`flex min-h-10 w-full items-center gap-2 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-colors ${
               collapsed ? "justify-center" : ""
             }`}
-            title={collapsed ? "Sair" : undefined}
+            title={collapsed ? "Sair da conta" : undefined}
           >
             <Icon name="logout" size={15} />
             {!collapsed ? "Sair da conta" : null}
@@ -269,6 +225,7 @@ export function Shell({
           className={`mt-2 hidden min-h-10 items-center gap-2 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)] lg:flex ${
             collapsed ? "justify-center" : ""
           }`}
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           <Icon name="panel" size={15} className={collapsed ? "rotate-180" : ""} />
           {!collapsed ? "Recolher menu" : null}
@@ -282,7 +239,7 @@ export function Shell({
       {/* Desktop sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 hidden border-r border-[var(--color-line)] bg-white p-4 transition-[width] duration-200 lg:block ${
-          collapsed ? "w-[84px]" : "w-[276px]"
+          collapsed ? "w-[84px]" : "w-[264px]"
         }`}
       >
         {SidebarInner}
@@ -307,102 +264,84 @@ export function Shell({
       ) : null}
 
       {/* Main column */}
-      <div className={`flex min-h-screen flex-col lg:pl-[276px] ${collapsed ? "lg:pl-[84px]" : ""}`}>
-        {/* Top Header matching reference layout */}
-        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-[var(--color-line)] bg-white px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 sm:gap-4">
+      <div className={`flex min-h-screen flex-col lg:pl-[264px] ${collapsed ? "lg:pl-[84px]" : ""}`}>
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between gap-4 border-b border-[var(--color-line)] bg-white/95 backdrop-blur-md px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-xl">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] lg:hidden shrink-0"
               aria-label="Abrir menu"
             >
               <Icon name="menu" size={20} />
             </button>
 
-            {/* In mobile, show logo; in desktop, show page title or condo badge */}
-            <div className="flex items-center gap-3">
-              <div className="lg:hidden">
-                <BrandLogo size="sm" showText={true} />
-              </div>
+            {/* Mobile logo */}
+            <div className="lg:hidden shrink-0">
+              <BrandLogo size="sm" showText={true} />
+            </div>
 
-              {/* Dark Navy Pill Badge from Reference */}
-              <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#0F172A] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                  <Icon name="shield" size={11} />
-                </span>
-                <span>{isSuperOrSindico ? "Painel Super Admin" : "Painel do Condomínio"}</span>
-              </div>
+            {/* Condo pill indicator */}
+            <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#0F172A] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs shrink-0">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                <Icon name="shield" size={11} />
+              </span>
+              <span className="truncate max-w-[200px]">{condoName || "Condomínio"}</span>
+            </div>
+
+            {/* Global Search */}
+            <div className="relative hidden md:block flex-1 max-w-md">
+              <Icon name="search" size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-subtle)]" />
+              <input
+                type="text"
+                placeholder="Buscar ocorrência, morador, reserva..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] pl-9 pr-4 text-xs text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:border-[#0D9488] focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-100 transition-all"
+              />
             </div>
           </div>
 
-          {/* Right Header Navigation Icons from Reference UI */}
+          {/* Right Header Navigation Icons */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Ocorrências Urgentes / Favoritos */}
+            {/* Quick module links */}
             <Link
-              href="/painel/chamados"
-              title="Chamados e Ocorrências"
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
+              href="/painel/agenda"
+              title="Agenda Condominial"
+              className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
             >
-              <Icon name="heart" size={19} />
+              <Icon name="calendar" size={18} />
             </Link>
 
-            {/* Base de Conhecimento / Regulamento */}
-            <Link
-              href="/painel/ajuda"
-              title="Regulamento Interno e Ajuda"
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
-            >
-              <Icon name="graduation" size={19} />
-            </Link>
-
-            {/* Segurança & Portaria */}
             <Link
               href="/painel/portaria"
-              title="Portaria e Segurança"
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
+              title="Portaria e Acesso"
+              className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
             >
-              <Icon name="shield" size={19} />
-            </Link>
-
-            {/* Vistorias e Manutenções */}
-            <Link
-              href="/painel/manutencao"
-              title="Checklists e Manutenção"
-              className="hidden sm:flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
-            >
-              <Icon name="clipboard" size={19} />
-            </Link>
-
-            {/* Portal Externo / Status */}
-            <Link
-              href="/status"
-              title="Status e Portal do Condomínio"
-              className="hidden sm:flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
-            >
-              <Icon name="globe" size={19} />
+              <Icon name="shield" size={18} />
             </Link>
 
             {/* Notifications */}
             <Link
               href="/painel/notificacoes"
-              title="Notificações"
-              className="relative flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0070F3] transition-colors"
+              title="Central de Notificações"
+              className="relative flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
             >
-              <Icon name="bell" size={19} />
+              <Icon name="bell" size={18} />
               {unread > 0 ? (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#F59E0B] px-1 text-[10px] font-black text-[#0F172A]">
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0D9488] px-1 text-[10px] font-black text-white">
                   {unread > 9 ? "9+" : unread}
                 </span>
               ) : null}
             </Link>
 
-            <div className="h-6 w-px bg-[var(--color-line)] mx-1 hidden sm:block" />
+            <div className="h-5 w-px bg-[var(--color-line)] mx-1 hidden sm:block" />
 
             {/* Profile Dropdown */}
             <details className="relative">
               <summary
-                className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-bold text-[#0070F3] hover:shadow-xs transition-shadow"
+                className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full bg-[#F0FDFA] border border-[#99F6E4] text-xs font-bold text-[#0D9488] hover:shadow-xs transition-shadow"
                 aria-label="Perfil"
               >
                 {userName.slice(0, 1).toUpperCase()}
@@ -411,29 +350,27 @@ export function Shell({
                 <div className="border-b border-[var(--color-line)] px-4 py-3 bg-[var(--color-surface-muted)]">
                   <p className="truncate text-sm font-bold text-[var(--color-ink)]">{userName}</p>
                   <p className="truncate text-xs text-[var(--color-muted)] font-medium">
-                    {roleLabel}
-                    {unitLabel ? ` · Unidade ${unitLabel}` : ""}
+                    {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
                   </p>
                 </div>
                 <div className="p-1.5 space-y-0.5">
                   <Link
+                    href="/painel/perfil"
+                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
+                  >
+                    <Icon name="user" size={15} className="text-[#0D9488]" /> Meu Perfil
+                  </Link>
+                  <Link
                     href="/painel/notificacoes"
                     className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
                   >
-                    <Icon name="bell" size={15} className="text-[#0070F3]" /> Notificações
+                    <Icon name="bell" size={15} className="text-[#0D9488]" /> Notificações
                   </Link>
                   <Link
-                    href="/painel/ajuda"
+                    href="/painel/agenda"
                     className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
                   >
-                    <Icon name="help" size={15} className="text-[#F59E0B]" /> Central de Ajuda
-                  </Link>
-                  <Link
-                    href="/mural"
-                    target="_blank"
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
-                  >
-                    <Icon name="tv" size={15} className="text-[#10B981]" /> Mural Digital da Portaria
+                    <Icon name="calendar" size={15} className="text-[#059669]" /> Agenda do Condomínio
                   </Link>
                   <div className="border-t border-[var(--color-line)] my-1" />
                   <form action={logout}>
@@ -455,38 +392,29 @@ export function Shell({
           {children}
         </main>
 
-        {/* Mobile bottom nav */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-[var(--color-line)] bg-white/95 backdrop-blur-md px-2 py-2 lg:hidden shadow-lg">
+        {/* Mobile bottom nav: 5 Core Modules */}
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-[var(--color-line)] bg-white/95 backdrop-blur-md px-2 py-1.5 lg:hidden shadow-lg">
           {[
-            nav.primary.find((item) => item.href === "/painel"),
-            nav.primary.find((item) => item.href === "/painel/chamados") ?? { href: "/painel/chamados", label: "Ocorrências", icon: "wrench" as IconName },
-            { href: "/painel/chamados", label: "Novo", icon: "plus" as IconName },
-            nav.primary.find((item) => item.href === "/painel/reservas"),
-            nav.primary.find((item) => item.href === "/painel/configuracoes") ?? { href: "/painel/ajuda", label: "Mais", icon: "grid" as IconName },
-          ]
-            .filter(Boolean)
-            .slice(0, 5)
-            .map((item) => {
-              const navItem = item as QuickAction;
-              const isCenterAction = navItem.label === "Novo";
-              const active = isActive(pathname, navItem.href) && !isCenterAction;
-              return (
-                <Link
-                  key={`${navItem.href}-${navItem.label}`}
-                  href={navItem.href}
-                  className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-[10px] text-[10px] font-bold transition-all ${
-                    isCenterAction
-                      ? "bg-gradient-to-br from-[#0070F3] to-[#0B5CD5] text-white shadow-[0_4px_12px_rgba(0,112,243,0.3)] -translate-y-2 py-1.5"
-                      : active
-                        ? "text-[#0070F3]"
-                        : "text-[var(--color-muted)]"
-                  }`}
-                >
-                  <Icon name={navItem.icon} size={isCenterAction ? 22 : 18} />
-                  <span>{navItem.label.split(" ")[0]}</span>
-                </Link>
-              );
-            })}
+            { href: "/painel", label: "Início", icon: "grid" as IconName },
+            { href: "/painel/ocorrencias", label: "Ocorrências", icon: "book" as IconName },
+            { href: "/painel/reservas", label: "Reservas", icon: "building" as IconName },
+            { href: "/painel/servicos", label: "Serviços", icon: "wrench" as IconName },
+            { href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
+          ].map((navItem) => {
+            const active = isActive(pathname, navItem.href);
+            return (
+              <Link
+                key={navItem.href}
+                href={navItem.href}
+                className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-[10px] text-[10px] font-bold transition-all ${
+                  active ? "text-[#0D9488]" : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                }`}
+              >
+                <Icon name={navItem.icon} size={20} />
+                <span>{navItem.label}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </div>

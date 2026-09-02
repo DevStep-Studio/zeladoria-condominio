@@ -25,36 +25,22 @@ export type NavItem = {
   primary?: boolean;
 };
 
-/* Primary navigation — core destinations, shown with icon + label. */
+/* Primary navigation — The 8 core system modules */
 const PRIMARY_NAV: NavItem[] = [
   { href: "/painel", label: "Início", icon: "grid", roles: EVERYONE, primary: true },
+  { href: "/painel/agenda", label: "Agenda", icon: "calendar", roles: EVERYONE, primary: true },
+  { href: "/painel/servicos", label: "Serviços", icon: "wrench", roles: EVERYONE, primary: true },
+  { href: "/painel/reservas", label: "Reservas", icon: "building", roles: EVERYONE, primary: true },
+  { href: "/painel/ocorrencias", label: "Ocorrências", icon: "book", roles: EVERYONE, primary: true },
   { href: "/painel/assembleias", label: "Assembleias", icon: "scale", roles: EVERYONE, primary: true },
-  { href: "/painel/reservas", label: "Agenda", icon: "calendar", roles: EVERYONE, primary: true },
-  { href: "/painel/chamados", label: "Atendimentos", icon: "wrench", roles: EVERYONE, primary: true },
-  { href: "/painel/comunicados", label: "Comunicados", icon: "megaphone", roles: EVERYONE, primary: true },
-  { href: "/painel/moradores", label: "Clientes", icon: "users", roles: ALL_STAFF, primary: true },
-  { href: "/painel/financeiro", label: "Financeiro", icon: "wallet", roles: ["superadmin", "sindico", "conselho"], primary: true },
-  { href: "/painel/portaria", label: "Portaria", icon: "shield", roles: GATE, primary: true },
-  { href: "/painel/documentos", label: "Documentos", icon: "folder", roles: EVERYONE, primary: true },
-  { href: "/painel/relatorios", label: "Relatórios", icon: "chart", roles: ["superadmin", "sindico", "conselho"], primary: true },
-  { href: "/painel/configuracoes", label: "Configurações", icon: "settings", roles: ["superadmin", "sindico"], primary: true },
+  { href: "/painel/portaria", label: "Portaria", icon: "shield", roles: EVERYONE, primary: true },
+  { href: "/painel/perfil", label: "Perfil", icon: "user", roles: EVERYONE, primary: true },
 ];
 
-/* Secondary navigation — grouped under "Mais". */
+/* Secondary navigation */
 const MORE_NAV: NavItem[] = [
-  { href: "/painel/visitantes", label: "Visitantes", icon: "user-check", roles: EVERYONE },
-  { href: "/painel/encomendas", label: "Encomendas", icon: "package", roles: EVERYONE },
-  { href: "/painel/livro", label: "Livro de ocorrências", icon: "book", roles: [...GATE, "conselho"] },
-  { href: "/painel/turnos", label: "Passagem de turno", icon: "refresh", roles: GATE },
-  { href: "/painel/enquetes", label: "Enquetes", icon: "vote", roles: EVERYONE },
-  { href: "/painel/achados", label: "Achados e perdidos", icon: "search", roles: EVERYONE },
-  { href: "/painel/mudancas", label: "Mudanças e obras", icon: "truck", roles: EVERYONE },
-  { href: "/painel/manutencao", label: "Manutenção", icon: "wrench", roles: [...ALL_STAFF, "porteiro"] },
-  { href: "/painel/fornecedores", label: "Fornecedores", icon: "briefcase", roles: ALL_STAFF },
-  { href: "/painel/auditoria", label: "Auditoria", icon: "lock", roles: ["superadmin", "sindico", "conselho"] },
-  { href: "/painel/implantacao", label: "Implantação", icon: "sparkles", roles: ["superadmin", "sindico"] },
-  { href: "/painel/adocao", label: "Painel do SaaS", icon: "trending", roles: ["superadmin"] },
-  { href: "/painel/ajuda", label: "Central de ajuda", icon: "help", roles: EVERYONE },
+  { href: "/painel/notificacoes", label: "Notificações", icon: "bell", roles: EVERYONE },
+  { href: "/painel/auditoria", label: "Auditoria", icon: "lock", roles: ["superadmin", "sindico"] },
 ];
 
 export type NavGroup = { primary: NavItem[]; more: NavItem[] };
@@ -72,10 +58,18 @@ export function allNavItems(role: Role): NavItem[] {
   return [...primary, ...more];
 }
 
-/** Mobile bottom-nav subset — the most used destinations. */
+/** Mobile bottom-nav subset — the 5 core destinations: Início, Ocorrências, Reservas, Serviços, Perfil. */
 export function mobileNavItems(role: Role): NavItem[] {
-  const allowed = ["grid", "wrench", "megaphone", "calendar", "shield"];
-  return navFor(role).primary.filter((i) => allowed.includes(i.icon));
+  const orderedHrefs = [
+    "/painel",
+    "/painel/ocorrencias",
+    "/painel/reservas",
+    "/painel/servicos",
+    "/painel/perfil",
+  ];
+  return orderedHrefs
+    .map((h) => PRIMARY_NAV.find((item) => item.href === h))
+    .filter((item): item is NavItem => Boolean(item && item.roles.includes(role)));
 }
 
 export function can(role: Role, roles: Role[]) {

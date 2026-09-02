@@ -2,6 +2,7 @@ import "server-only";
 import { pool } from "@/db";
 
 const EXPECTED_TABLES = [
+  "agenda_events",
   "amenities",
   "announcements",
   "assemblies",
@@ -28,6 +29,7 @@ const EXPECTED_TABLES = [
   "memberships",
   "move_requests",
   "notifications",
+  "occurrence_comments",
   "occurrences",
   "parcels",
   "poll_options",
@@ -701,7 +703,68 @@ ALTER TABLE "condominio_app"."assembly_agenda" ADD COLUMN IF NOT EXISTS "voting_
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "proxy_name" varchar(140);
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "proxy_cpf" varchar(32);
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "history" jsonb DEFAULT '[]'::jsonb;
-ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "created_at" timestamp with time zone DEFAULT now();
+CREATE TABLE IF NOT EXISTS "condominio_app"."agenda_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"title" varchar(200) NOT NULL,
+	"description" text,
+	"category" varchar(40) DEFAULT 'evento' NOT NULL,
+	"date" varchar(12) NOT NULL,
+	"start_time" varchar(8) NOT NULL,
+	"end_time" varchar(8) NOT NULL,
+	"location" varchar(160),
+	"responsible" varchar(140),
+	"audience_scope" varchar(20) DEFAULT 'todos' NOT NULL,
+	"attachments" jsonb DEFAULT '[]'::jsonb,
+	"reminder" varchar(20) DEFAULT '1d',
+	"recurrence" varchar(20) DEFAULT 'nenhuma',
+	"status" varchar(20) DEFAULT 'agendado' NOT NULL,
+	"amenity_id" integer,
+	"created_by_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."occurrence_comments" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"occurrence_id" integer NOT NULL,
+	"user_id" integer,
+	"body" text NOT NULL,
+	"internal" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "avatar_url" text;
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "emergency_contacts" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "dependents" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "vehicles" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "notification_preferences" jsonb DEFAULT '{"email":true,"push":true,"whatsapp":false,"occurrences":true,"reservations":true,"assemblies":true,"parcels":true,"services":true}'::jsonb;
+ALTER TABLE "condominio_app"."users" ADD COLUMN IF NOT EXISTS "two_factor_enabled" boolean DEFAULT false;
+
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "location" varchar(160);
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "preferred_time" varchar(80);
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "vendor_id" integer;
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "scheduled_for" varchar(12);
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "cost_cents" integer DEFAULT 0;
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "report" text;
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "rating" integer;
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "rating_comment" text;
+ALTER TABLE "condominio_app"."tickets" ADD COLUMN IF NOT EXISTS "attachments" jsonb DEFAULT '[]'::jsonb;
+
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "images" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "interval_minutes" integer DEFAULT 30;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "blocked_days" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "max_hours" integer DEFAULT 8;
+
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "rejection_reason" text;
+
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "status" varchar(20) DEFAULT 'recebida';
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "exact_location" varchar(160);
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "assigned_to_id" integer;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "block_id" integer;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "estimated_deadline" timestamp with time zone;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resolved_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_rating" integer;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_comment" text;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "memberships_user_condo_idx" ON "condominio_app"."memberships" USING btree ("user_id","condo_id");
 `;
@@ -714,20 +777,14 @@ export function ensureDatabase() {
 }
 
 async function setupDatabase() {
-  const { rows } = await pool.query<{ count: number }>(
-    `
-      select count(*)::int as count
-      from information_schema.tables
-      where table_schema = 'condominio_app'
-        and table_name = any($1::text[])
-    `,
-    [EXPECTED_TABLES],
-  );
-
-  if (Number(rows[0]?.count ?? 0) === EXPECTED_TABLES.length) return;
-
   for (const statement of SCHEMA_SQL.split(";")) {
     const sql = statement.trim();
-    if (sql) await pool.query(sql + ";");
+    if (sql) {
+      try {
+        await pool.query(sql + ";");
+      } catch (err) {
+        // Continue on non-fatal idempotent statements
+      }
+    }
   }
 }

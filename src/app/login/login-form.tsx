@@ -75,13 +75,13 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
               type="checkbox"
               name="remember"
               defaultChecked
-              className="h-4 w-4 rounded accent-[#0070F3] cursor-pointer"
+              className="h-4 w-4 rounded accent-[#0D9488] cursor-pointer"
             />
             <span>Lembrar de mim</span>
           </label>
           <a
-            href="mailto:suporte@zeladoriacondominio.com.br?subject=Recuperar%20Acesso"
-            className="text-[#0070F3] hover:underline font-bold"
+            href="/esqueci-senha"
+            className="text-[#0D9488] hover:underline font-bold"
           >
             Esqueci a senha
           </a>
@@ -97,7 +97,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         {/* Main Action Button */}
         <button
           type="submit"
-          className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#0070F3] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(0,112,243,0.25)] transition-all hover:bg-[#005FD6] hover:shadow-[0_6px_20px_rgba(0,112,243,0.35)] active:scale-[0.99] disabled:opacity-50 cursor-pointer focus:outline-none"
+          className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#0D9488] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(13,148,136,0.25)] transition-all hover:bg-[#0F766E] hover:shadow-[0_6px_20px_rgba(13,148,136,0.35)] active:scale-[0.99] disabled:opacity-50 cursor-pointer focus:outline-none"
           disabled={pending}
         >
           <span>{pending ? "Entrando..." : "Entrar na conta"}</span>
@@ -108,7 +108,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
       {/* Não tem conta? Criar conta grátis */}
       <div className="text-center text-xs text-[var(--color-muted)] font-medium pt-1">
         <span>Não tem conta? </span>
-        <a href="mailto:contato@zeladoriacondominio.com.br?subject=Criar%20Conta" className="font-bold text-[#0070F3] hover:underline">
+        <a href="mailto:contato@zeladoriacondominio.com.br?subject=Criar%20Conta" className="font-bold text-[#0D9488] hover:underline">
           Criar conta grátis
         </a>
       </div>
@@ -126,9 +126,9 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         <button
           type="button"
           onClick={() => setShowDemoPicker((v) => !v)}
-          className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--color-line)] bg-white px-4 text-xs font-bold text-[var(--color-ink)] shadow-xs transition-all hover:border-[#0070F3]/40 hover:bg-[#EFF6FF] hover:text-[#0070F3] cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--color-line)] bg-white px-4 text-xs font-bold text-[var(--color-ink)] shadow-xs transition-all hover:border-[#0D9488]/40 hover:bg-[#F0FDFA] hover:text-[#0D9488] cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-100"
         >
-          <Icon name="users" size={16} className="text-[#0070F3]" />
+          <Icon name="users" size={16} className="text-[#0D9488]" />
           <span>Preencher Dados de Demonstração</span>
           <Icon name="chevron-down" size={13} className={`transition-transform ${showDemoPicker ? "rotate-180" : ""}`} />
         </button>
@@ -141,13 +141,13 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
                 key={demo.email}
                 type="button"
                 onClick={() => selectDemo(demo)}
-                className="flex w-full items-center justify-between rounded-[10px] p-2.5 text-left text-xs transition-colors hover:bg-[#EFF6FF] focus:outline-none cursor-pointer group"
+                className="flex w-full items-center justify-between rounded-[10px] p-2.5 text-left text-xs transition-colors hover:bg-[#F0FDFA] focus:outline-none cursor-pointer group"
               >
                 <div>
-                  <p className="font-bold text-[var(--color-ink)] group-hover:text-[#0070F3] transition-colors">{demo.label}</p>
+                  <p className="font-bold text-[var(--color-ink)] group-hover:text-[#0D9488] transition-colors">{demo.label}</p>
                   <p className="text-[11px] text-[var(--color-muted)]">{demo.desc}</p>
                 </div>
-                <span className="chip bg-blue-50 text-[#0070F3] text-[10px] font-bold group-hover:bg-[#0070F3] group-hover:text-white transition-colors">
+                <span className="chip bg-teal-50 text-[#0D9488] text-[10px] font-bold group-hover:bg-[#0D9488] group-hover:text-white transition-colors">
                   Usar perfil
                 </span>
               </button>

@@ -61,6 +61,30 @@ export const users = appSchema.table("users", {
   passwordHash: text("password_hash").notNull(),
   phone: varchar("phone", { length: 32 }),
   document: varchar("document", { length: 32 }),
+  avatarUrl: text("avatar_url"),
+  emergencyContacts: jsonb("emergency_contacts").$type<{ name: string; phone: string; relationship: string }[]>().default([]),
+  dependents: jsonb("dependents").$type<{ name: string; document?: string; relationship: string; birthDate?: string }[]>().default([]),
+  vehicles: jsonb("vehicles").$type<{ plate: string; model: string; color?: string; parkingSpot?: string }[]>().default([]),
+  notificationPreferences: jsonb("notification_preferences").$type<{
+    email?: boolean;
+    push?: boolean;
+    whatsapp?: boolean;
+    occurrences?: boolean;
+    reservations?: boolean;
+    assemblies?: boolean;
+    parcels?: boolean;
+    services?: boolean;
+  }>().default({
+    email: true,
+    push: true,
+    whatsapp: false,
+    occurrences: true,
+    reservations: true,
+    assemblies: true,
+    parcels: true,
+    services: true,
+  }),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   isSuperAdmin: boolean("is_super_admin").notNull().default(false),
   status: varchar("status", { length: 20 }).notNull().default("ativo"),
   theme: varchar("theme", { length: 12 }).notNull().default("light"),
@@ -117,7 +141,30 @@ export const notifications = appSchema.table("notifications", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/* ------------------------------------------------------------ CHAMADOS -- */
+/* ------------------------------------------------------------ AGENDA ---- */
+
+export const agendaEvents = appSchema.table("agenda_events", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 40 }).notNull().default("evento"), // reuniao, assembleia, manutencao, inspecao, reserva, evento, administrativo, aviso
+  date: varchar("date", { length: 12 }).notNull(),
+  startTime: varchar("start_time", { length: 8 }).notNull(),
+  endTime: varchar("end_time", { length: 8 }).notNull(),
+  location: varchar("location", { length: 160 }),
+  responsible: varchar("responsible", { length: 140 }),
+  audienceScope: varchar("audience_scope", { length: 20 }).notNull().default("todos"),
+  attachments: jsonb("attachments").$type<{ name: string; url: string }[]>().default([]),
+  reminder: varchar("reminder", { length: 20 }).default("1d"),
+  recurrence: varchar("recurrence", { length: 20 }).default("nenhuma"),
+  status: varchar("status", { length: 20 }).notNull().default("agendado"),
+  amenityId: integer("amenity_id"),
+  createdById: integer("created_by_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ------------------------------------------------------------ SERVIÇOS & CHAMADOS -- */
 
 export const tickets = appSchema.table("tickets", {
   id: serial("id").primaryKey(),
@@ -126,13 +173,20 @@ export const tickets = appSchema.table("tickets", {
   unitId: integer("unit_id"),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description").notNull(),
-  category: varchar("category", { length: 40 }).notNull().default("manutencao"),
-  priority: varchar("priority", { length: 20 }).notNull().default("media"),
-  status: varchar("status", { length: 24 }).notNull().default("aberto"),
+  category: varchar("category", { length: 40 }).notNull().default("manutencao"), // eletrica, hidraulica, limpeza, manutencao, seguranca, jardinagem, pintura, elevador, portao, estrutura, outros
+  priority: varchar("priority", { length: 20 }).notNull().default("media"), // baixa, media, alta, urgente
+  status: varchar("status", { length: 24 }).notNull().default("solicitado"), // solicitado, em_analise, aprovado, agendado, em_execucao, concluido, cancelado
+  location: varchar("location", { length: 160 }),
+  preferredTime: varchar("preferred_time", { length: 80 }),
+  vendorId: integer("vendor_id"),
+  assignedToId: integer("assigned_to_id"),
+  scheduledFor: varchar("scheduled_for", { length: 12 }),
+  costCents: integer("cost_cents").default(0),
+  report: text("report"),
+  attachments: jsonb("attachments").$type<string[]>().default([]),
   aiPriority: varchar("ai_priority", { length: 20 }),
   aiSummary: text("ai_summary"),
   openedById: integer("opened_by_id"),
-  assignedToId: integer("assigned_to_id"),
   dueAt: timestamp("due_at", { withTimezone: true }),
   closedAt: timestamp("closed_at", { withTimezone: true }),
   rating: integer("rating"),
@@ -158,8 +212,12 @@ export const amenities = appSchema.table("amenities", {
   capacity: integer("capacity").default(20),
   feeCents: integer("fee_cents").default(0),
   rules: text("rules"),
+  images: jsonb("images").$type<string[]>().default([]),
   openTime: varchar("open_time", { length: 8 }).default("08:00"),
   closeTime: varchar("close_time", { length: 8 }).default("22:00"),
+  intervalMinutes: integer("interval_minutes").default(30),
+  blockedDays: jsonb("blocked_days").$type<string[]>().default([]),
+  maxHours: integer("max_hours").default(8),
   requiresApproval: boolean("requires_approval").notNull().default(true),
   active: boolean("active").notNull().default(true),
 });
@@ -174,7 +232,8 @@ export const reservations = appSchema.table("reservations", {
   startTime: varchar("start_time", { length: 8 }).notNull(),
   endTime: varchar("end_time", { length: 8 }).notNull(),
   guests: integer("guests").default(0),
-  status: varchar("status", { length: 24 }).notNull().default("pendente"),
+  status: varchar("status", { length: 24 }).notNull().default("pendente"), // pendente, aprovada, rejeitada, cancelada, concluida
+  rejectionReason: text("rejection_reason"),
   qrToken: varchar("qr_token", { length: 40 }),
   checkinAt: timestamp("checkin_at", { withTimezone: true }),
   notes: text("notes"),
@@ -311,19 +370,36 @@ export const occurrences = appSchema.table("occurrences", {
   condoId: integer("condo_id").notNull(),
   shiftId: integer("shift_id"),
   code: varchar("code", { length: 20 }).notNull(),
-  visibility: varchar("visibility", { length: 20 }).notNull().default("publica"),
-  category: varchar("category", { length: 40 }).notNull().default("seguranca"),
-  severity: varchar("severity", { length: 20 }).notNull().default("baixa"),
+  visibility: varchar("visibility", { length: 20 }).notNull().default("publica"), // publica, sigilosa, administrativa
+  category: varchar("category", { length: 40 }).notNull().default("seguranca"), // eletrica, hidraulica, iluminacao, elevador, portao, garagem, limpeza, seguranca, piscina, jardinagem, estrutura, vazamento, infiltracao, ruido, outros
+  severity: varchar("severity", { length: 20 }).notNull().default("media"), // baixa, media, alta, urgente
+  status: varchar("status", { length: 24 }).notNull().default("recebida"), // recebida, em_analise, em_execucao, aguardando_morador, resolvida, cancelada
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description").notNull(),
+  exactLocation: varchar("exact_location", { length: 160 }),
   actionsTaken: text("actions_taken"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
   reportedById: integer("reported_by_id"),
+  assignedToId: integer("assigned_to_id"),
   unitId: integer("unit_id"),
+  blockId: integer("block_id"),
   attachments: jsonb("attachments").$type<string[]>().default([]),
+  estimatedDeadline: timestamp("estimated_deadline", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  residentRating: integer("resident_rating"),
+  residentComment: text("resident_comment"),
   ackById: integer("ack_by_id"),
   ackAt: timestamp("ack_at", { withTimezone: true }),
-  locked: boolean("locked").notNull().default(true),
+  locked: boolean("locked").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const occurrenceComments = appSchema.table("occurrence_comments", {
+  id: serial("id").primaryKey(),
+  occurrenceId: integer("occurrence_id").notNull(),
+  userId: integer("user_id"),
+  body: text("body").notNull(),
+  internal: boolean("internal").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
