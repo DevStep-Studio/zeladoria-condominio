@@ -2,7 +2,7 @@ import Link from "next/link";
 import { and, count, eq, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { charges, contracts, maintenancePlans, transactions } from "@/db/schema";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { Card, EmptyState, PageHeader, Stat, StatCard } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";
 import { addDays, isoDate, money } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { addDays, isoDate, money } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function RelatoriosPage() {
-  const { condoId } = await requireRole(["superadmin", "sindico", "conselho"]);
+  const { condoId } = await requirePermission("report.view");
   const today = isoDate();
   const expiringUntil = isoDate(addDays(45));
 
@@ -52,10 +52,10 @@ export default async function RelatoriosPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatCard label="Receitas" value={money(income)} icon="wallet" href="/painel/financeiro" />
-        <StatCard label="Despesas" value={money(expense)} icon="wallet" href="/painel/financeiro" />
-        <Stat label="Inadimplência" value={money(overdue.total)} tone="red" hint={`${overdue.n} cobranças vencidas`} />
-        <Stat label="Contratos a vencer" value={expiring.n} tone="amber" hint="próximos 45 dias" />
+        <StatCard label="Receitas" value={money(income)} icon="wallet" href="/painel/financeiro" tone="yellow" />
+        <StatCard label="Despesas" value={money(expense)} icon="wallet" href="/painel/financeiro" tone="blue" />
+        <StatCard label="Inadimplência" value={money(overdue.total)} icon="alert" hint={`${overdue.n} cobranças vencidas`} tone="blue" />
+        <StatCard label="Contratos a vencer" value={expiring.n} icon="briefcase" hint="próximos 45 dias" tone="blue" />
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

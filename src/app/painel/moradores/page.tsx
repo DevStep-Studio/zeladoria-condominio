@@ -65,10 +65,10 @@ export default async function MoradoresPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Pessoas cadastradas" value={people.length} />
-        <Stat label="Unidades" value={unitRows.length} hint={`${blockList.length} blocos`} />
-        <Stat label="Convites pendentes" value={invited.length} tone="amber" />
-        <Stat label="Taxa de primeiro acesso" value={`${adoption}%`} tone={adoption > 70 ? "green" : "amber"} hint={`${active.length} ativos`} />
+        <Stat label="Pessoas cadastradas" value={people.length} tone="yellow" icon="users" />
+        <Stat label="Unidades" value={unitRows.length} hint={`${blockList.length} blocos`} icon="building" tone="blue" />
+        <Stat label="Convites pendentes" value={invited.length} icon="mail" tone="blue" />
+        <Stat label="Taxa de primeiro acesso" value={`${adoption}%`} hint={`${active.length} ativos`} icon="trending" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -205,7 +205,7 @@ export default async function MoradoresPage() {
                 </BulkForm>
               </Card>
 
-              <Panel summary="📥 Importar moradores (CSV)">
+              <Panel summary="Importar moradores (CSV)">
                 <form action={importResidentsAction} className="space-y-3">
                   <p className="rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-2 font-mono text-[11px] text-[var(--color-muted)]   ">
                     bloco;unidade;nome;email;telefone

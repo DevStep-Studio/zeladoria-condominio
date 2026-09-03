@@ -60,18 +60,18 @@ export default async function LivroPage({ searchParams }: { searchParams: Promis
         subtitle="Registros por turno, classificação de sigilo, ações tomadas, ciência do síndico e histórico imutável com auditoria."
         actions={
           <>
-            <PrintButton label="🖨 Imprimir / exportar" />
+            <PrintButton label="Imprimir / exportar" />
             <a className="btn-ghost btn-sm" href={`/api/export/ocorrencias`} download>
-              ⬇ CSV
+              Exportar CSV
             </a>
           </>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Registros no período" value={rows.length} />
-        <Stat label="Sem ciência do síndico" value={withoutAck} tone="amber" hint="pendentes" />
-        <Stat label="Gravidade alta" value={high} tone="red" />
+        <Stat label="Registros no período" value={rows.length} tone="yellow" icon="book" />
+        <Stat label="Sem ciência do síndico" value={withoutAck} hint="pendentes" icon="alert" tone="blue" />
+        <Stat label="Gravidade alta" value={high} icon="shield" tone="blue" />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 no-print">

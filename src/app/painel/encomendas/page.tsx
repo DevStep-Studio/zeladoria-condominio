@@ -71,9 +71,9 @@ export default async function EncomendasPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Aguardando retirada" value={pending.length} tone="amber" hint="na portaria" />
-        <Stat label="Atrasadas (7+ dias)" value={late.length} tone="red" hint={staleId ? "cobrar retirada" : "nenhuma"} />
-        <Stat label="Entregues" value={delivered.length} tone="green" hint="com assinatura" />
+        <Stat label="Aguardando retirada" value={pending.length} tone="yellow" icon="package" hint="na portaria" />
+        <Stat label="Atrasadas (7+ dias)" value={late.length} icon="clock" hint={staleId ? "cobrar retirada" : "nenhuma"} tone="blue" />
+        <Stat label="Entregues" value={delivered.length} icon="check-circle" hint="com assinatura" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">

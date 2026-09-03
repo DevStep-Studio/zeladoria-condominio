@@ -254,10 +254,10 @@ export default async function ChamadosPage({
       />
 
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Em aberto" value={open} icon="wrench" hint="em atendimento" />
-        <StatCard label="Fora do prazo" value={late} icon="alert" hint={late ? "ação necessária" : "nenhum atraso"} />
-        <StatCard label="Total no período" value={ticketsWithMeta.length} icon="inbox" />
-        <StatCard label="Satisfação média" value={satisfaction} icon="check" hint={`${rated.length} avaliações`} />
+        <StatCard label="Em aberto" value={open} icon="wrench" hint="em atendimento" tone="yellow" />
+        <StatCard label="Fora do prazo" value={late} icon="alert" hint={late ? "ação necessária" : "nenhum atraso"} tone="blue" />
+        <StatCard label="Total no período" value={ticketsWithMeta.length} icon="inbox" tone="blue" />
+        <StatCard label="Satisfação média" value={satisfaction} icon="check" hint={`${rated.length} avaliações`} tone="blue" />
       </section>
 
       <section className="section-shell mt-6 no-print">

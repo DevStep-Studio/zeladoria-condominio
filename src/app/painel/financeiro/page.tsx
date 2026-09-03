@@ -1,7 +1,7 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blocks, budgets, charges, transactions, units, vendors } from "@/db/schema";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Progress, Stat, TableWrap } from "@/components/ui";
 import { dateBR, isoDate, money, percent } from "@/lib/utils";
 import { payTransactionAction, registerChargePaymentAction, saveTransactionAction } from "@/lib/actions/admin";
@@ -9,7 +9,7 @@ import { payTransactionAction, registerChargePaymentAction, saveTransactionActio
 export const dynamic = "force-dynamic";
 
 export default async function FinanceiroPage() {
-  const { condo, condoId } = await requireRole(["superadmin", "sindico", "conselho"]);
+  const { condo, condoId } = await requirePermission("financial.view");
   const currentYear = new Date().getFullYear();
 
   const txRows = await db
@@ -75,10 +75,10 @@ export default async function FinanceiroPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Receitas (período)" value={money(income)} tone="green" />
-        <Stat label="Despesas (período)" value={money(expense)} tone="red" />
-        <Stat label="Contas a pagar" value={money(payable.reduce((a, t) => a + t.amountCents, 0))} tone="amber" hint={`${payable.length} títulos`} />
-        <Stat label="Fundo de reserva" value={money(reserve)} tone="blue" />
+        <Stat label="Receitas (período)" value={money(income)} tone="yellow" icon="wallet" />
+        <Stat label="Despesas (período)" value={money(expense)} icon="wallet" tone="blue" />
+        <Stat label="Contas a pagar" value={money(payable.reduce((a, t) => a + t.amountCents, 0))} icon="file-text" hint={`${payable.length} títulos`} tone="blue" />
+        <Stat label="Fundo de reserva" value={money(reserve)} icon="shield" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">

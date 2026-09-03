@@ -166,12 +166,12 @@ export function AssembliesClientView({
 
   return (
     <div className="space-y-6">
-      {/* Metrics Row — Exact Home Page StatCard Identity */}
+      {/* Metrics Row — Exact Home Page StatCard Identity with Yellow First Card */}
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Próximas" value={upcomingList.length} icon="scale" hint="assembleias ativas" href="/painel/assembleias" />
-        <StatCard label="Presenças" value={confirmedAttendanceCount} icon="user-check" hint="unidades confirmadas" href="/painel/assembleias" />
-        <StatCard label="Atas publicadas" value={publishedMinutesCount} icon="file-text" hint="documentos ativas" href="/painel/assembleias" />
-        <StatCard label="Convocações" value={assemblies.length} icon="bell" hint="histórico registrado" href="/painel/assembleias" />
+        <StatCard label="Próximas" value={upcomingList.length} icon="scale" hint="assembleias ativas" href="/painel/assembleias" tone="yellow" />
+        <StatCard label="Presenças" value={confirmedAttendanceCount} icon="user-check" hint="unidades confirmadas" href="/painel/assembleias" tone="blue" />
+        <StatCard label="Atas publicadas" value={publishedMinutesCount} icon="file-text" hint="documentos ativas" href="/painel/assembleias" tone="blue" />
+        <StatCard label="Convocações" value={assemblies.length} icon="bell" hint="histórico registrado" href="/painel/assembleias" tone="blue" />
       </section>
 
       {/* Resident Feature Highlight */}

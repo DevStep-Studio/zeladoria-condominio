@@ -1,14 +1,14 @@
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import { auditLogs } from "@/db/schema";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Stat, TableWrap } from "@/components/ui";
 import { dateTimeBR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AuditoriaPage({ searchParams }: { searchParams: Promise<{ q?: string; f?: string }> }) {
-  const { condoId } = await requireRole(["superadmin", "sindico", "conselho"]);
+  const { condoId } = await requirePermission("audit.view");
   const { q, f } = await searchParams;
 
   const search = q
@@ -36,10 +36,10 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Eventos exibidos" value={rows.length} />
-        <Stat label="Eventos críticos" value={critical} tone="red" />
-        <Stat label="Acessos do suporte" value={support} tone="purple" />
-        <Stat label="Acessos negados" value={denied} tone="amber" />
+        <Stat label="Eventos exibidos" value={rows.length} tone="yellow" icon="lock" />
+        <Stat label="Eventos críticos" value={critical} icon="alert" tone="blue" />
+        <Stat label="Acessos do suporte" value={support} icon="user-check" tone="blue" />
+        <Stat label="Acessos negados" value={denied} icon="x-circle" tone="blue" />
       </div>
 
       <Card className="mt-4" title="Filtros">

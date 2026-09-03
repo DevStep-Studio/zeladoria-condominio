@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { ensureSeed } from "@/db/seed";
 import { amenities, announcements, condominiums, reservations } from "@/db/schema";
 import { BrandLogo } from "@/components/brand-logo";
+import { Icon } from "@/components/icon";
 import { dateBR, isoDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -94,8 +95,9 @@ export default async function MuralPage({ searchParams }: { searchParams: Promis
               </div>
             ))
           )}
-          <div className="rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-semibold text-[#0070F3] leading-relaxed">
-            📦 Encomendas são retiradas com o código recebido. Visitantes e prestadores devem apresentar documento na portaria.
+          <div className="flex items-center gap-2 rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-semibold text-[#0070F3] leading-relaxed">
+            <Icon name="package" size={16} className="shrink-0" />
+            <span>Encomendas são retiradas com o código recebido. Visitantes e prestadores devem apresentar documento na portaria.</span>
           </div>
         </section>
       </div>

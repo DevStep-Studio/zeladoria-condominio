@@ -112,6 +112,18 @@ const AMENITY_ICONS: Record<string, IconName> = {
   piscina: "sun",
 };
 
+function getAmenityImage(name: string): string {
+  const lower = name.toLowerCase();
+  if (lower.includes("churrasq")) return "/amenities/churrasqueira.jpg";
+  if (lower.includes("coworking") || lower.includes("reuni") || lower.includes("estudo")) return "/amenities/coworking.jpg";
+  if (lower.includes("quadra") || lower.includes("esporte") || lower.includes("poliesportiva")) return "/amenities/quadra.jpg";
+  if (lower.includes("festa") || lower.includes("salao") || lower.includes("salão")) return "/amenities/salao-festas.jpg";
+  if (lower.includes("piscina")) return "/amenities/piscina.jpg";
+  if (lower.includes("academia") || lower.includes("fitness")) return "/amenities/academia.jpg";
+  if (lower.includes("gourmet")) return "/amenities/churrasqueira.jpg";
+  return "/amenities/salao-festas.jpg";
+}
+
 export function ReservasClient({
   amenities,
   reservations,
@@ -167,11 +179,11 @@ export function ReservasClient({
 
       const res = await createReservationAction(formData);
       if (res?.success) {
+        setBookingAmenity(null);
         setFeedback({
           type: "success",
-          msg: `Reserva para ${bookingAmenity.name} solicitada com sucesso!`,
+          msg: "Reserva solicitada com sucesso! Acompanhe em 'Minhas reservas'.",
         });
-        setBookingAmenity(null);
       } else {
         setFeedback({
           type: "error",
@@ -181,61 +193,114 @@ export function ReservasClient({
     });
   };
 
-  const handleCancelReservation = (id: number) => {
+  const handleApprove = (id: number) => {
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));
-      const res = await cancelReservationAction(formData);
-      if (res?.success) {
-        setFeedback({ type: "success", msg: "Reserva cancelada com sucesso." });
-      } else {
-        setFeedback({ type: "error", msg: res?.error || "Erro ao cancelar reserva." });
-      }
+      await approveReservationAction(formData);
+      setFeedback({ type: "success", msg: "Reserva aprovada!" });
+    });
+  };
+
+  const handleReject = (id: number) => {
+    const reason = window.prompt("Motivo da recusa:") || "Data indisponível";
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set("id", String(id));
+      formData.set("reason", reason);
+      await rejectReservationAction(formData);
+      setFeedback({ type: "success", msg: "Reserva rejeitada." });
+    });
+  };
+
+  const handleCancelReservation = (id: number) => {
+    if (!window.confirm("Deseja realmente cancelar esta reserva?")) return;
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set("id", String(id));
+      await cancelReservationAction(formData);
+      setFeedback({ type: "success", msg: "Reserva cancelada." });
     });
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Page Header + Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-            Reservas
+          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
+            <span>Reservas</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+              {displayAmenities.length} espaços disponíveis
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Reserve áreas comuns do seu condomínio
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            Reserve e aproveite as áreas de lazer e convivência do seu condomínio
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="inline-flex rounded-[8px] border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold text-slate-600 self-start sm:self-auto">
+        {/* Tab Switcher Capsule */}
+        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] self-start sm:self-auto overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setActiveTab("areas")}
-            className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
-              activeTab === "areas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === "areas"
+                ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
-            Áreas disponíveis
+            <Icon name="grid" size={14} strokeWidth={2.2} className={activeTab === "areas" ? "text-white" : "text-slate-400"} />
+            <span>Áreas disponíveis</span>
+            <span
+              className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                activeTab === "areas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {displayAmenities.length}
+            </span>
           </button>
+
           <button
             type="button"
             onClick={() => setActiveTab("minhas")}
-            className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
-              activeTab === "minhas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === "minhas"
+                ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
-            Minhas reservas ({myReservations.length})
+            <Icon name="calendar" size={14} strokeWidth={2.2} className={activeTab === "minhas" ? "text-white" : "text-slate-400"} />
+            <span>Minhas reservas</span>
+            <span
+              className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                activeTab === "minhas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {myReservations.length}
+            </span>
           </button>
+
           {isStaff && (
             <button
               type="button"
               onClick={() => setActiveTab("todas")}
-              className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
-                activeTab === "todas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+                activeTab === "todas"
+                  ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
-              Todas as reservas
+              <Icon name="users" size={14} strokeWidth={2.2} className={activeTab === "todas" ? "text-white" : "text-slate-400"} />
+              <span>Todas as reservas</span>
+              <span
+                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                  activeTab === "todas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {reservations.length}
+              </span>
             </button>
           )}
         </div>
@@ -244,7 +309,7 @@ export function ReservasClient({
       {/* Feedback Banner */}
       {feedback && (
         <div
-          className={`p-3 rounded-[10px] text-xs font-semibold flex items-center justify-between ${
+          className={`p-3.5 rounded-2xl text-xs font-bold flex items-center justify-between ${
             feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
@@ -260,11 +325,16 @@ export function ReservasClient({
       {/* TAB 1: Áreas Disponíveis */}
       {activeTab === "areas" && (
         <div className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
-            Áreas disponíveis
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
+              Espaços de Convivência & Lazer
+            </h2>
+            <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
+              Clique em reservar para escolher data e horário
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {displayAmenities.map((amenity) => {
               const lower = amenity.name.toLowerCase();
               let iconName: IconName = "calendar";
@@ -273,51 +343,91 @@ export function ReservasClient({
               else if (lower.includes("gourmet")) iconName = "coffee";
               else if (lower.includes("academia")) iconName = "activity";
               else if (lower.includes("piscina")) iconName = "sun";
+              else if (lower.includes("quadra") || lower.includes("esporte")) iconName = "activity";
+              else if (lower.includes("coworking")) iconName = "briefcase";
 
+              const imageUrl = getAmenityImage(amenity.name);
               const isFree = !amenity.feeCents || amenity.feeCents === 0;
               const formattedPrice = isFree ? "Grátis" : `R$ ${(amenity.feeCents! / 100).toFixed(0)}`;
 
               return (
                 <div
                   key={amenity.id}
-                  className="rounded-[14px] border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-all"
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-[0_2px_16px_-4px_rgba(15,23,42,0.06)] hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-50 text-[#0070F3]">
-                        <Icon name={iconName} size={20} />
+                  {/* Background Image Header with Zoom & Gradient */}
+                  <div className="relative h-48 w-full overflow-hidden bg-slate-900">
+                    <img
+                      src={imageUrl}
+                      alt={amenity.name}
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+                    />
+                    {/* Dark subtle gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/35" />
+
+                    {/* Floating badges on top */}
+                    <div className="absolute inset-x-3.5 top-3.5 flex items-center justify-between">
+                      {/* Icon badge */}
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 backdrop-blur-md text-[#0055D4] shadow-md transition-transform group-hover:scale-105">
+                        <Icon name={iconName} size={18} />
                       </span>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        isFree ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-800"
+
+                      {/* Price badge with glassmorphism */}
+                      <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black backdrop-blur-md shadow-md ${
+                        isFree
+                          ? "bg-emerald-500/90 text-white border border-emerald-400/40"
+                          : "bg-white/95 text-[#0F172A] border border-white/40"
                       }`}>
                         {formattedPrice}
                       </span>
                     </div>
 
-                    <div>
-                      <h3 className="text-base font-bold text-[#0F172A]">
-                        {amenity.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Capacidade: {amenity.capacity || "Conforme regras"} pessoas
-                      </p>
-                    </div>
+                    {/* Bottom of image: Capacity + Opening Hours */}
+                    <div className="absolute inset-x-3.5 bottom-3 flex items-center justify-between text-white text-[11px] font-semibold">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-md px-2.5 py-1">
+                        <Icon name="users" size={12} className="text-white/80" />
+                        <span>{amenity.capacity || "Conforme regras"} pessoas</span>
+                      </span>
 
-                    {amenity.rules && (
-                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed bg-slate-50 p-2.5 rounded-[8px] border border-slate-100">
-                        {amenity.rules}
-                      </p>
-                    )}
+                      {amenity.openTime && amenity.closeTime && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-md px-2.5 py-1 text-white/90">
+                          <Icon name="clock" size={11} className="text-white/80" />
+                          <span>{amenity.openTime.slice(0, 5)} - {amenity.closeTime.slice(0, 5)}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenBooking(amenity)}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#0070F3] hover:bg-[#005FD6] text-white px-4 py-2 text-xs font-bold transition-colors shadow-xs"
-                  >
-                    <Icon name="calendar" size={14} />
-                    <span>Reservar área</span>
-                  </button>
+                  {/* Card Content */}
+                  <div className="flex flex-1 flex-col justify-between p-5 space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-black text-[#0F172A] tracking-tight group-hover:text-[#0055D4] transition-colors leading-snug">
+                          {amenity.name}
+                        </h3>
+                        {amenity.requiresApproval && (
+                          <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                            Aprovação prévia
+                          </span>
+                        )}
+                      </div>
+
+                      {amenity.rules && (
+                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+                          {amenity.rules}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenBooking(amenity)}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0055D4] to-[#0070F3] hover:from-[#0047BA] hover:to-[#005BD4] text-white px-4 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all hover:scale-[1.01]"
+                    >
+                      <Icon name="calendar" size={14} />
+                      <span>Reservar área</span>
+                    </button>
+                  </div>
                 </div>
               );
             })}

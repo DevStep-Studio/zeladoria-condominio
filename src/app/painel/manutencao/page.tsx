@@ -1,7 +1,7 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { assets, maintenanceOrders, maintenancePlans, vendors } from "@/db/schema";
-import { requireCondo } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
 import { dateBR, daysUntil, isoDate, money } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { completeOrderAction, saveAssetAction, saveOrderAction, savePlanAction }
 export const dynamic = "force-dynamic";
 
 export default async function ManutencaoPage() {
-  const { session, condoId } = await requireCondo();
+  const { session, condoId } = await requirePermission("maintenance.view");
   const isStaff = ALL_STAFF.includes(session.role) || session.role === "porteiro";
 
   const assetRows = await db.select().from(assets).where(eq(assets.condoId, condoId)).orderBy(asc(assets.name));
@@ -56,10 +56,10 @@ export default async function ManutencaoPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Equipamentos" value={assetRows.length} />
-        <Stat label="Planos vencidos" value={late.length} tone="red" hint="ação imediata" />
-        <Stat label="Vencem em 15 dias" value={soon.length} tone="amber" />
-        <Stat label="Custo concluído" value={money(totalCost)} tone="zinc" hint="ordens finalizadas" />
+        <Stat label="Equipamentos" value={assetRows.length} tone="yellow" icon="wrench" />
+        <Stat label="Planos vencidos" value={late.length} icon="alert" hint="ação imediata" tone="blue" />
+        <Stat label="Vencem em 15 dias" value={soon.length} icon="clock" tone="blue" />
+        <Stat label="Custo concluído" value={money(totalCost)} icon="wallet" hint="ordens finalizadas" tone="blue" />
       </div>
 
       <div className={`mt-4 grid gap-4 ${isStaff ? "lg:grid-cols-3" : "lg:grid-cols-1"}`}>
@@ -108,7 +108,7 @@ export default async function ManutencaoPage() {
 
           <Card title="Ordens de serviço">
             {orderRows.length === 0 ? (
-              <EmptyState title="Nenhuma ordem" icon="🧰" />
+              <EmptyState title="Nenhuma ordem" icon="wrench" />
             ) : (
               <ul className="space-y-2">
                 {orderRows.map((o) => (
@@ -235,7 +235,7 @@ export default async function ManutencaoPage() {
               </form>
             </Panel>
 
-            <Panel summary="📆 Criar plano preventivo">
+            <Panel summary="Criar plano preventivo">
               <form action={savePlanAction} className="space-y-2">
                 <input name="title" className="input" placeholder="Título do plano" required />
                 <select name="assetId" className="input">

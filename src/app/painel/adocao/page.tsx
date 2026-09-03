@@ -73,10 +73,10 @@ export default async function AdocaoPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Condomínios" value={condos.length} />
-        <Stat label="Usuários totais" value={totalPeople} />
-        <Stat label="Ativos (7 dias)" value={totalActive} tone="green" hint={`${percent(totalActive, totalPeople)}% da base`} />
-        <Stat label="Contas em risco" value={lowUsage.length} tone="red" hint="baixa utilização" />
+        <Stat label="Condomínios" value={condos.length} tone="yellow" icon="building" />
+        <Stat label="Usuários totais" value={totalPeople} icon="users" tone="blue" />
+        <Stat label="Ativos (7 dias)" value={totalActive} hint={`${percent(totalActive, totalPeople)}% da base`} icon="check-circle" tone="blue" />
+        <Stat label="Contas em risco" value={lowUsage.length} hint="baixa utilização" icon="alert" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -146,7 +146,7 @@ export default async function AdocaoPage() {
 
           <Card title="Erros de importação">
             {imports.length === 0 ? (
-              <EmptyState title="Nenhuma importação" icon="📥" />
+              <EmptyState title="Nenhuma importação" icon="download" />
             ) : (
               <ul className="space-y-2 text-sm">
                 {imports.map((job) => (
@@ -171,7 +171,7 @@ export default async function AdocaoPage() {
         <div className="space-y-4">
           <Card title="Contas com risco de cancelamento">
             {lowUsage.length === 0 ? (
-              <EmptyState title="Todas as contas engajadas" icon="🎯" />
+              <EmptyState title="Todas as contas engajadas" icon="check-circle" />
             ) : (
               <ul className="space-y-2 text-xs">
                 {lowUsage.map((r) => (

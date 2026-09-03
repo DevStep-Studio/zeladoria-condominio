@@ -142,24 +142,45 @@ export function OcorrenciasClient({
     });
   };
 
+  // Real-time status counts for tab badges
+  const counts = useMemo(() => {
+    return {
+      todas: occurrences.length,
+      recebidas: occurrences.filter((occ) => occ.status === "recebida" || occ.status === "em_analise").length,
+      em_execucao: occurrences.filter((occ) => occ.status === "em_execucao" || occ.status === "em_andamento").length,
+      concluidas: occurrences.filter((occ) => occ.status === "resolvida" || occ.status === "concluido").length,
+    };
+  }, [occurrences]);
+
+  const tabs: { key: FilterStatus; label: string; icon: any; count: number }[] = [
+    { key: "todas", label: "Todas", icon: "grid", count: counts.todas },
+    { key: "recebidas", label: "Recebidas", icon: "clock", count: counts.recebidas },
+    { key: "em_execucao", label: "Em execução", icon: "wrench", count: counts.em_execucao },
+    { key: "concluidas", label: "Concluídas", icon: "check-circle", count: counts.concluidas },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-            Ocorrências
+          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
+            <span>Ocorrências</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+              {occurrences.length} registradas
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Acompanhe e registre ocorrências
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            Acompanhe, gerencie e registre ocorrências no condomínio
           </p>
         </div>
 
         <Link
           href="/painel/ocorrencias/nova"
-          className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#0070F3] hover:bg-[#005FD6] text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFD000] hover:bg-[#E6BC00] text-[#12162A] px-4 py-2.5 text-xs sm:text-sm font-black shadow-md shadow-[#FFD000]/25 transition-all hover:scale-[1.02] self-start sm:self-auto"
         >
-          <Icon name="plus" size={16} />
+          <Icon name="plus" size={15} strokeWidth={2.6} />
           <span>Nova ocorrência</span>
         </Link>
       </div>
@@ -178,43 +199,73 @@ export function OcorrenciasClient({
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="rounded-[14px] border border-slate-200 bg-white p-4 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Status Tabs: Todas, Recebidas, Em execução, Concluídas */}
-          <div className="inline-flex rounded-[8px] border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold text-slate-600 overflow-x-auto max-w-full">
-            {[
-              { key: "todas", label: "Todas" },
-              { key: "recebidas", label: "Recebidas" },
-              { key: "em_execucao", label: "Em execução" },
-              { key: "concluidas", label: "Concluídas" },
-            ].map((tab) => (
+      {/* Filter and Search Bar - Minimalista, Fluido e Coeso com a Home */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        {/* Segmented Capsule Tabs */}
+        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] overflow-x-auto max-w-full">
+          {tabs.map((tab) => {
+            const isActive = filter === tab.key;
+            return (
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setFilter(tab.key as FilterStatus)}
-                className={`rounded-[6px] px-3 py-1.5 text-xs font-bold transition-colors whitespace-nowrap ${
-                  filter === tab.key
-                    ? "bg-white text-[#0070F3] shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                onClick={() => setFilter(tab.key)}
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                {tab.label}
+                <Icon
+                  name={tab.icon}
+                  size={14}
+                  strokeWidth={2.2}
+                  className={isActive ? "text-white" : "text-slate-400"}
+                />
+                <span>{tab.label}</span>
+                <span
+                  className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          {/* Search Bar */}
-          <div className="relative w-full md:w-72">
-            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        {/* Search Bar + Occurrences Counter */}
+        <div className="flex items-center gap-3">
+          <div className="relative w-full lg:w-72">
+            <Icon
+              name="search"
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <input
               type="text"
               placeholder="Buscar por código, título ou local..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-8.5 w-full rounded-[8px] border border-slate-200 bg-slate-50 pl-8.5 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0070F3] focus:bg-white transition-colors"
+              className="h-10 w-full rounded-2xl border border-slate-200/80 bg-white pl-9.5 pr-8 text-xs text-slate-900 placeholder:text-slate-400 shadow-2xs outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/15 transition-all"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <Icon name="x" size={13} />
+              </button>
+            )}
           </div>
+
+          <span className="hidden sm:inline text-xs font-bold text-slate-400 whitespace-nowrap">
+            {filteredOccurrences.length} {filteredOccurrences.length === 1 ? "ocorrência" : "ocorrências"}
+          </span>
         </div>
       </div>
 

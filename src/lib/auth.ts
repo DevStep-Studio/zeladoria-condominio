@@ -171,9 +171,23 @@ export async function requireCondo() {
   return { session, condo: session.condo, condoId: session.condo.id };
 }
 
+import { hasPermission, hasAnyPermission, type Permission } from "@/lib/permissions";
+
 export async function requireRole(roles: Role[]) {
   const ctx = await requireCondo();
-  if (!roles.includes(ctx.session.role)) redirect("/painel?erro=sem-permissao");
+  if (!roles.includes(ctx.session.role)) redirect("/painel/403");
+  return ctx;
+}
+
+export async function requirePermission(permission: Permission | Permission[]) {
+  const ctx = await requireCondo();
+  const allowed = Array.isArray(permission)
+    ? hasAnyPermission(ctx.session.role, permission)
+    : hasPermission(ctx.session.role, permission);
+
+  if (!allowed) {
+    redirect("/painel/403");
+  }
   return ctx;
 }
 

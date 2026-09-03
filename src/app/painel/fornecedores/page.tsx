@@ -48,10 +48,10 @@ export default async function FornecedoresPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Fornecedores ativos" value={vendorRows.filter((v) => v.active).length} />
-        <Stat label="Contratos vigentes" value={contractRows.length - expired.length} tone="green" />
-        <Stat label="Vencem em 45 dias" value={expiring.length} tone="amber" hint="renovação" />
-        <Stat label="Custo mensal contratado" value={money(monthly)} tone="zinc" />
+        <Stat label="Fornecedores ativos" value={vendorRows.filter((v) => v.active).length} tone="yellow" icon="briefcase" />
+        <Stat label="Contratos vigentes" value={contractRows.length - expired.length} icon="file-text" tone="blue" />
+        <Stat label="Vencem em 45 dias" value={expiring.length} hint="renovação" icon="clock" tone="blue" />
+        <Stat label="Custo mensal contratado" value={money(monthly)} icon="wallet" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">

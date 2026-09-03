@@ -5,6 +5,7 @@ import { ensureSeed } from "@/db/seed";
 import { blocks, condominiums, units, users, visitors, visits } from "@/db/schema";
 import { dateTimeBR } from "@/lib/utils";
 import { qrDataUrl } from "@/lib/qr";
+import { Icon } from "@/components/icon";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,9 @@ export default async function VisitPassPage({ params }: { params: Promise<{ toke
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <div className="card max-w-md text-center">
-          <p className="text-4xl">🔒</p>
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+            <Icon name="lock" size={28} />
+          </span>
           <h1 className="mt-3 text-xl font-bold text-[var(--color-ink)]">Convite não encontrado</h1>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             O código informado é inválido ou o convite foi cancelado. Procure a portaria.

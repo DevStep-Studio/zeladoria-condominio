@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
+import { StatCard } from "@/components/ui";
 import { dateTimeBR, timeBR, isoDate } from "@/lib/utils";
 import {
   createVisitAction,
@@ -198,35 +199,34 @@ export function PortariaClient({
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="card p-4 border-l-4 border-l-emerald-500">
-          <p className="text-xs font-bold text-[var(--color-muted)] uppercase">Dentro do Condomínio</p>
-          <p className="text-2xl font-black text-[var(--color-ink)] mt-1">
-            {visits.filter((v) => v.status === "dentro").length}
-          </p>
-          <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Visitantes / Prestadores</p>
-        </div>
-
-        <div className="card p-4 border-l-4 border-l-[#0D9488]">
-          <p className="text-xs font-bold text-[var(--color-muted)] uppercase">Aguardados / Autorizados</p>
-          <p className="text-2xl font-black text-[var(--color-ink)] mt-1">
-            {visits.filter((v) => v.status === "autorizado" || v.status === "aguardando").length}
-          </p>
-          <p className="text-[11px] text-teal-600 font-semibold mt-0.5">Com liberação ativa</p>
-        </div>
-
-        <div className="card p-4 border-l-4 border-l-amber-500">
-          <p className="text-xs font-bold text-[var(--color-muted)] uppercase">Encomendas Pendentes</p>
-          <p className="text-2xl font-black text-[var(--color-ink)] mt-1">{pendingParcels.length}</p>
-          <p className="text-[11px] text-amber-600 font-semibold mt-0.5">Aguardando retirada</p>
-        </div>
-
-        <div className="card p-4 border-l-4 border-l-blue-500">
-          <p className="text-xs font-bold text-[var(--color-muted)] uppercase">Total de Entradas Hoje</p>
-          <p className="text-2xl font-black text-[var(--color-ink)] mt-1">
-            {visits.filter((v) => v.checkinAt).length}
-          </p>
-          <p className="text-[11px] text-blue-600 font-semibold mt-0.5">Movimentações no portão</p>
-        </div>
+        <StatCard
+          label="Dentro do Condomínio"
+          value={visits.filter((v) => v.status === "dentro").length}
+          icon="users"
+          hint="Visitantes / Prestadores"
+          tone="yellow"
+        />
+        <StatCard
+          label="Aguardados / Autorizados"
+          value={visits.filter((v) => v.status === "autorizado" || v.status === "aguardando").length}
+          icon="user-check"
+          hint="Com liberação ativa"
+          tone="blue"
+        />
+        <StatCard
+          label="Encomendas Pendentes"
+          value={pendingParcels.length}
+          icon="package"
+          hint="Aguardando retirada"
+          tone="blue"
+        />
+        <StatCard
+          label="Total de Entradas Hoje"
+          value={visits.filter((v) => v.checkinAt).length}
+          icon="shield"
+          hint="Movimentações no portão"
+          tone="blue"
+        />
       </div>
 
       {/* Control Navigation & Search */}

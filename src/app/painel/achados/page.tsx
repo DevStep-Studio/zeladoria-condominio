@@ -26,9 +26,9 @@ export default async function AchadosPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Itens guardados" value={stored.length} tone="amber" />
-        <Stat label="Devolvidos" value={rows.filter((r) => r.status === "devolvido").length} tone="green" />
-        <Stat label="Descartados" value={rows.filter((r) => r.status === "descartado").length} tone="zinc" />
+        <Stat label="Itens guardados" value={stored.length} tone="yellow" icon="inbox" />
+        <Stat label="Devolvidos" value={rows.filter((r) => r.status === "devolvido").length} icon="check-circle" tone="blue" />
+        <Stat label="Descartados" value={rows.filter((r) => r.status === "descartado").length} icon="x-circle" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -59,7 +59,7 @@ export default async function AchadosPage() {
                   </p>
                 ) : null}
                 {canManage && item.status === "guardado" ? (
-                  <Panel summary="📤 Registrar retirada / descarte" tone="ghost">
+                  <Panel summary="Registrar retirada / descarte" tone="ghost">
                     <form action={claimLostItemAction} className="space-y-2">
                       <input type="hidden" name="id" value={item.id} />
                       <label className="block">

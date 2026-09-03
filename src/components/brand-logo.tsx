@@ -11,7 +11,7 @@ export function BrandLogo({
 }) {
   let src = "/6.png"; // Full color official logo (Blue + Yellow building)
   if (variant === "white") {
-    src = showText ? "/4.png" : "/9.png";
+    src = showText ? "/4.png" : "/logo-white.png";
   } else if (variant === "black") {
     src = showText ? "/5.png" : "/10.png";
   } else if (!showText || variant === "icon-only") {

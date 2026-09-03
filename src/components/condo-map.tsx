@@ -72,7 +72,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
   outros: { bg: "#64748B", text: "#FFFFFF", label: "Outros" },
 };
 
-export function CondoMap() {
+export function CondoMap({ onExpand }: { onExpand?: () => void } = {}) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
@@ -240,6 +240,18 @@ export function CondoMap() {
             <Icon name="target" size={13} />
             <span>Recentralizar</span>
           </button>
+
+          {onExpand && (
+            <button
+              type="button"
+              onClick={onExpand}
+              className="inline-flex items-center gap-1 rounded-[8px] border border-blue-200 bg-blue-50/70 hover:bg-blue-100 px-2.5 py-1 text-xs font-bold text-[#0070F3] transition-colors"
+              title="Ver mapa em tela cheia"
+            >
+              <Icon name="arrow-up-right" size={13} />
+              <span>Expandir</span>
+            </button>
+          )}
         </div>
       </div>
 

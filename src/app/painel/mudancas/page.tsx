@@ -56,15 +56,15 @@ export default async function MudancasPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Solicitações" value={visible.length} />
-        <Stat label="Pendentes de aprovação" value={visible.filter((r) => r.status === "pendente").length} tone="amber" />
-        <Stat label="Aprovadas" value={visible.filter((r) => r.status === "aprovada").length} tone="green" />
+        <Stat label="Solicitações" value={visible.length} tone="yellow" icon="truck" />
+        <Stat label="Pendentes de aprovação" value={visible.filter((r) => r.status === "pendente").length} icon="clock" tone="blue" />
+        <Stat label="Aprovadas" value={visible.filter((r) => r.status === "aprovada").length} icon="check-circle" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
           {visible.length === 0 ? (
-            <EmptyState title="Nenhuma solicitação" icon="🚚" />
+            <EmptyState title="Nenhuma solicitação" icon="truck" />
           ) : (
             visible.map((r) => (
               <article key={r.id} className="card-flat p-4">

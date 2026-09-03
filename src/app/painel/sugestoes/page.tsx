@@ -147,28 +147,40 @@ export default function SugestoesPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+      {/* Filters - Minimalista e Fluido */}
+      <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] overflow-x-auto max-w-full">
         {[
-          { key: "todas", label: "Todas" },
-          { key: "recebida", label: "Recebidas" },
-          { key: "em_analise", label: "Em análise" },
-          { key: "aceita", label: "Aceitas" },
-          { key: "concluida", label: "Concluídas" },
-        ].map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => setFilterStatus(f.key)}
-            className={`rounded-[8px] px-3 py-1.5 text-xs font-bold transition-colors whitespace-nowrap ${
-              filterStatus === f.key
-                ? "bg-[#0070F3] text-white shadow-xs"
-                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+          { key: "todas", label: "Todas", count: suggestions.length },
+          { key: "recebida", label: "Recebidas", count: suggestions.filter((s) => s.status === "recebida").length },
+          { key: "em_analise", label: "Em análise", count: suggestions.filter((s) => s.status === "em_analise").length },
+          { key: "aceita", label: "Aceitas", count: suggestions.filter((s) => s.status === "aceita").length },
+          { key: "concluida", label: "Concluídas", count: suggestions.filter((s) => s.status === "concluida").length },
+        ].map((f) => {
+          const isActive = filterStatus === f.key;
+          return (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFilterStatus(f.key)}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+            >
+              <span>{f.label}</span>
+              <span
+                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                  isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {f.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* List */}
@@ -210,7 +222,7 @@ export default function SugestoesPage() {
                     className="inline-flex items-center gap-1.5 rounded-[8px] border border-slate-200 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 transition-colors"
                     title="Apoiar esta sugestão"
                   >
-                    <span>👍</span>
+                    <Icon name="check" size={13} className="text-emerald-600" />
                     <span>{sug.upvotes}</span>
                   </button>
                 </div>

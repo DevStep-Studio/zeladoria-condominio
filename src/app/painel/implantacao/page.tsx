@@ -47,10 +47,10 @@ export default async function ImplantacaoPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Progresso" value={`${progress}%`} tone={condo.onboardingDone ? "green" : "amber"} hint={condo.onboardingDone ? "publicado" : `etapa ${condo.onboardingStep}`} />
-        <Stat label="Blocos / unidades" value={`${blockCount.n}/${unitCount.n}`} />
-        <Stat label="Pessoas vinculadas" value={peopleCount.n} hint={`${accessed} com primeiro acesso`} />
-        <Stat label="Espaços configurados" value={amenityCount.n} />
+        <Stat label="Progresso" value={`${progress}%`} tone="yellow" icon="trending" hint={condo.onboardingDone ? "publicado" : `etapa ${condo.onboardingStep}`} />
+        <Stat label="Blocos / unidades" value={`${blockCount.n}/${unitCount.n}`} icon="building" tone="blue" />
+        <Stat label="Pessoas vinculadas" value={peopleCount.n} hint={`${accessed} com primeiro acesso`} icon="users" tone="blue" />
+        <Stat label="Espaços configurados" value={amenityCount.n} icon="grid" tone="blue" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -98,7 +98,7 @@ export default async function ImplantacaoPage() {
 
           <Card title="Importações e erros de validação">
             {jobs.length === 0 ? (
-              <EmptyState title="Nenhuma importação realizada" icon="📥" />
+              <EmptyState title="Nenhuma importação realizada" icon="download" />
             ) : (
               <ul className="space-y-2">
                 {jobs.map((job) => (
@@ -160,7 +160,7 @@ export default async function ImplantacaoPage() {
             </div>
           </Panel>
 
-          <Panel summary="📥 Importar moradores agora">
+          <Panel summary="Importar moradores agora">
             <form action={importResidentsAction} className="space-y-2">
               <textarea name="csv" rows={6} className="input font-mono text-xs" placeholder="bloco;unidade;nome;email;telefone" required />
               <input name="fileName" className="input" defaultValue="importacao-implantacao.csv" />

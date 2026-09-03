@@ -8,56 +8,7 @@ import { BrandLogo } from "@/components/brand-logo";
 
 export type ShellCondo = { id: number; name: string };
 
-type NavGroupItem = {
-  label: string;
-  href: string;
-  icon: IconName;
-};
-
-type NavGroup = {
-  id: string;
-  title: string;
-  items: NavGroupItem[];
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    id: "gestao",
-    title: "GESTÃO",
-    items: [
-      { label: "Assembleias", href: "/painel/assembleias", icon: "scale" },
-      { label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone" },
-      { label: "Documentos", href: "/painel/documentos", icon: "folder" },
-      { label: "Comunicados", href: "/painel/comunicados", icon: "mail" },
-    ],
-  },
-  {
-    id: "manutencao",
-    title: "MANUTENÇÃO",
-    items: [
-      { label: "Ocorrências", href: "/painel/ocorrencias", icon: "clipboard" },
-      { label: "Ordens", href: "/painel/ordens", icon: "wrench" },
-      { label: "Preventiva", href: "/painel/manutencao", icon: "shield" },
-    ],
-  },
-  {
-    id: "comunidade",
-    title: "COMUNIDADE",
-    items: [
-      { label: "Reservas", href: "/painel/reservas", icon: "calendar" },
-      { label: "Encomendas", href: "/painel/encomendas", icon: "package" },
-      { label: "Visitantes", href: "/painel/visitantes", icon: "users" },
-    ],
-  },
-  {
-    id: "servicos",
-    title: "SERVIÇOS",
-    items: [
-      { label: "Prestadores", href: "/painel/servicos", icon: "briefcase" },
-      { label: "Solicitar orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles" },
-    ],
-  },
-];
+import type { NavGroup, NavItem } from "@/lib/navigation";
 
 type SearchResultItem = {
   title: string;
@@ -128,10 +79,13 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 ];
 
 export function Shell({
+  navigationGroups = [],
+  mobileNav = [],
   condos,
   activeCondoId,
   userName,
   roleLabel,
+  role,
   unitLabel,
   condoName,
   unread: initialUnread,
@@ -141,10 +95,13 @@ export function Shell({
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nav?: any;
+  navigationGroups?: NavGroup[];
+  mobileNav?: NavItem[];
   condos: ShellCondo[];
   activeCondoId: number;
   userName: string;
   roleLabel: string;
+  role?: string;
   unitLabel: string | null;
   condoName: string;
   unread: number;
@@ -258,89 +215,108 @@ export function Shell({
   };
 
   const SidebarContent = (
-    <div className="flex h-full flex-col bg-white select-none">
+    <div className="flex h-full flex-col bg-[#0055D4] text-white rounded-[26px] border border-white/20 shadow-2xl shadow-blue-950/30 select-none overflow-hidden relative">
       {/* Brand Header */}
-      <div className={`flex h-14 items-center justify-between border-b border-slate-100 px-4 ${collapsed ? "justify-center px-2" : ""}`}>
-        <Link href="/painel" className="flex items-center gap-2">
-          <BrandLogo size={collapsed ? "sm" : "md"} showText={!collapsed} />
+      <div className={`flex items-center px-5 pt-5 pb-4 border-b border-white/15 ${collapsed ? "justify-center px-2" : "justify-start"}`}>
+        <Link href="/painel" className="flex items-center group" title="Zeladoria Condomínio">
+          {/* Official White Condo Logo (Symbol Only) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-white.png"
+            alt="Zeladoria Condomínio"
+            className="h-10 w-10 object-contain transition-transform duration-200 group-hover:scale-105"
+          />
         </Link>
       </div>
 
       {/* Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
-        {/* Início / Dashboard */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Dashboard / Início (Primary Top Item) */}
         <div>
           <Link
             href="/painel"
             onClick={() => setMobileOpen(false)}
-            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-colors ${
+            className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs transition-all duration-150 ${
               pathname === "/painel"
-                ? "relative font-bold text-[#0070F3] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0070F3] before:rounded-r"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-            } ${collapsed ? "justify-center" : ""}`}
+                ? "bg-white/18 text-white font-bold border-l-2 border-[#FFD000] shadow-xs"
+                : "text-white/80 hover:text-white hover:bg-white/10 font-medium"
+            } ${collapsed ? "justify-center px-2" : ""}`}
             title={collapsed ? "Início" : undefined}
           >
-            <Icon name="grid" size={16} className={pathname === "/painel" ? "text-[#0070F3]" : "text-slate-400 group-hover:text-slate-600"} />
-            {!collapsed && <span className={pathname === "/painel" ? "font-bold text-[#0070F3]" : "font-medium text-slate-700"}>Início</span>}
+            <Icon
+              name="grid"
+              size={16}
+              strokeWidth={pathname === "/painel" ? 2.2 : 1.8}
+              className={pathname === "/painel" ? "text-[#FFD000]" : "text-blue-100 group-hover:text-white"}
+            />
+            {!collapsed && <span className="truncate flex-1">Início</span>}
 
             {collapsed && (
-              <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
+              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-lg border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-xl group-hover:block">
                 Início
               </span>
             )}
           </Link>
         </div>
 
-        {/* Collapsible Accordion Groups */}
-        {NAV_GROUPS.map((group) => {
+        {/* Collapsible Accordion Groups (Filtered by Permissions) */}
+        {navigationGroups.map((group) => {
           const isExpanded = expandedGroups[group.id] ?? true;
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
 
           return (
-            <div key={group.id} className="space-y-0.5">
+            <div key={group.id} className="pt-2">
               {!collapsed ? (
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-colors"
+                  className="w-full flex items-center justify-between px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-200/80 hover:text-white transition-colors"
                 >
-                  <span className={hasActiveChild ? "text-[#0070F3]" : ""}>{group.title}</span>
+                  <span className={hasActiveChild ? "text-[#FFD000]" : ""}>{group.title}</span>
                   <Icon
                     name="chevron-down"
                     size={11}
-                    className={`transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
+                    className={`text-blue-200 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
                   />
                 </button>
               ) : (
-                <div className="my-1 border-t border-slate-100" />
+                <div className="my-1.5 border-t border-white/15" />
               )}
 
               {(isExpanded || collapsed) && (
-                <div className="space-y-0.5">
+                <div className="mt-1 space-y-0.5">
                   {group.items.map((item) => {
                     const active = isRouteActive(item.href);
 
                     return (
                       <Link
-                        key={item.label}
+                        key={item.id || item.label}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-xs transition-colors ${
+                        className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs transition-all duration-150 ${
                           active
-                            ? "relative font-bold text-[#0070F3] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0070F3] before:rounded-r"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                        } ${collapsed ? "justify-center" : ""}`}
+                            ? "bg-white/18 text-white font-bold border-l-2 border-[#FFD000] shadow-xs"
+                            : "text-white/80 hover:text-white hover:bg-white/10 font-medium"
+                        } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
                       >
                         <Icon
                           name={item.icon}
-                          size={15}
-                          className={active ? "text-[#0070F3]" : "text-slate-400 group-hover:text-slate-600"}
+                          size={16}
+                          strokeWidth={active ? 2.2 : 1.8}
+                          className={active ? "text-[#FFD000]" : "text-blue-100 group-hover:text-white"}
                         />
-                        {!collapsed && <span className={active ? "font-bold text-[#0070F3]" : "font-medium text-slate-700 truncate"}>{item.label}</span>}
+                        {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+
+                        {/* Real dynamic notification badge */}
+                        {!collapsed && item.badge && item.badge > 0 ? (
+                          <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FFD000] px-1 text-[9px] font-black text-[#12162A]">
+                            {item.badge}
+                          </span>
+                        ) : null}
 
                         {collapsed && (
-                          <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
+                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-lg border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-xl group-hover:block">
                             {item.label}
                           </span>
                         )}
@@ -354,63 +330,91 @@ export function Shell({
         })}
       </nav>
 
-      {/* Simplified User Profile Footer */}
-      <div className="border-t border-slate-100 p-2.5">
+      {/* Bottom Section: User Profile Footer */}
+      <div className="p-3 pt-2 space-y-1.5 border-t border-white/15">
+        {/* User Profile Bar */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            className={`w-full flex items-center gap-2.5 rounded-[8px] p-1.5 text-left hover:bg-slate-50 transition-colors ${
+            className={`w-full flex items-center gap-2.5 rounded-2xl p-1.5 text-left hover:bg-white/15 transition-colors ${
               collapsed ? "justify-center" : ""
             }`}
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0070F3] text-white text-xs font-bold">
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFD000] text-[#12162A] text-xs font-extrabold shadow-sm">
               {userName.slice(0, 1).toUpperCase()}
+              <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#0055D4]" />
             </span>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-[#0F172A]">{userName}</p>
-                <p className="truncate text-[10px] text-slate-400 font-medium">
+                <p className="truncate text-xs font-bold text-white">{userName}</p>
+                <p className="truncate text-[10px] text-blue-200 font-medium">
                   {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
                 </p>
               </div>
             )}
-            {!collapsed && (
-              <Icon name="more" size={14} className="text-slate-400" />
-            )}
+            {!collapsed && <Icon name="more" size={14} className="text-blue-200" />}
           </button>
 
           {/* Profile Popup Menu */}
           {profileMenuOpen && (
-            <div className="menu-surface absolute bottom-full left-0 z-50 mb-1 w-52 shadow-xl animate-in fade-in-50 duration-100">
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="text-xs font-bold text-[#0F172A] truncate">{userName}</p>
-                <p className="text-[10px] text-slate-400">{roleLabel}</p>
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-2xl border border-blue-400/30 bg-[#003E99] p-1.5 text-white shadow-2xl animate-in fade-in-50 duration-100">
+              <div className="px-3 py-2 border-b border-white/15">
+                <p className="text-xs font-bold text-white truncate">{userName}</p>
+                <p className="text-[10px] text-blue-200">{roleLabel}</p>
               </div>
-              <div className="p-1 space-y-0.5">
+              <div className="py-1 space-y-0.5">
                 <Link
                   href="/painel/perfil"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
                 >
-                  <Icon name="user" size={13} className="text-[#0070F3]" />
+                  <Icon name="user" size={14} className="text-[#FFD000]" />
                   <span>Meu Perfil</span>
                 </Link>
-                <Link
-                  href="/painel/perfil"
-                  onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  <Icon name="settings" size={13} className="text-slate-400" />
-                  <span>Configurações</span>
-                </Link>
-                <div className="my-1 border-t border-slate-100" />
+
+                {condos.length > 1 && (
+                  <div className="px-3 py-1.5 border-t border-b border-white/10 my-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">Trocar Condomínio</span>
+                    <div className="mt-1 space-y-1">
+                      {condos.map((c) => (
+                        <form key={c.id} action={switchAction}>
+                          <input type="hidden" name="condoId" value={c.id} />
+                          <button
+                            type="submit"
+                            className={`w-full text-left rounded-lg px-2 py-1 text-xs transition-colors flex items-center justify-between ${
+                              c.id === activeCondoId
+                                ? "bg-white/20 font-bold text-white"
+                                : "text-blue-100 hover:bg-white/10"
+                            }`}
+                          >
+                            <span className="truncate">{c.name}</span>
+                            {c.id === activeCondoId && <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />}
+                          </button>
+                        </form>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(role === "sindico" || role === "superadmin") && (
+                  <Link
+                    href="/painel/configuracoes"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
+                  >
+                    <Icon name="settings" size={14} className="text-blue-200" />
+                    <span>Configurações</span>
+                  </Link>
+                )}
+
+                <div className="my-1 border-t border-white/15" />
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="w-full flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
                   >
-                    <Icon name="logout" size={13} />
+                    <Icon name="logout" size={14} />
                     <span>Sair da conta</span>
                   </button>
                 </form>
@@ -420,11 +424,11 @@ export function Shell({
         </div>
 
         {/* Collapse toggle (desktop only) */}
-        <div className="mt-1 pt-1 border-t border-slate-100 flex justify-end">
+        <div className="mt-1 flex justify-end">
           <button
             type="button"
             onClick={toggleCollapse}
-            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors ${
+            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg text-blue-200 hover:bg-white/15 hover:text-white transition-colors ${
               collapsed ? "w-full" : ""
             }`}
             title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
@@ -438,10 +442,10 @@ export function Shell({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar with floating capsule style */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200/60 bg-white transition-[width] duration-200 lg:block ${
-          collapsed ? "w-[64px]" : "w-[240px]"
+        className={`fixed inset-y-0 left-0 z-40 hidden p-3 transition-[width] duration-200 lg:block ${
+          collapsed ? "w-[84px]" : "w-[260px]"
         }`}
       >
         {SidebarContent}
@@ -451,11 +455,11 @@ export function Shell({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <aside className="absolute inset-y-0 left-0 w-[270px] bg-white shadow-2xl animate-in slide-in-from-left duration-200">
+          <aside className="absolute inset-y-0 left-0 w-[280px] p-3 shadow-2xl animate-in slide-in-from-left duration-200">
             {SidebarContent}
           </aside>
         </div>
@@ -464,17 +468,17 @@ export function Shell({
       {/* Main Column Wrapper */}
       <div
         className={`flex min-h-screen flex-col transition-[padding] duration-200 ${
-          collapsed ? "lg:pl-[64px]" : "lg:pl-[240px]"
+          collapsed ? "lg:pl-[84px]" : "lg:pl-[260px]"
         }`}
       >
-        {/* Global Minimalist Header without duplicate logo on desktop */}
-        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/60 bg-white/98 backdrop-blur-md px-4 sm:px-6">
+        {/* Global Minimalist Header - Harmonioso, Executivo e Integrado */}
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/70 bg-white/95 backdrop-blur-md px-4 sm:px-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
           {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="Abrir menu"
             >
               <Icon name="menu" size={18} />
@@ -490,33 +494,35 @@ export function Shell({
               <button
                 type="button"
                 onClick={() => setCondoDropdownOpen(!condoDropdownOpen)}
-                className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1 text-xs font-bold text-[#0F172A] transition-colors"
+                className="group flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50/80 px-3.5 py-1.5 text-xs font-bold text-[#0F172A] shadow-2xs transition-all hover:border-slate-300"
               >
-                <span className="h-2 w-2 rounded-full bg-[#FAB800]" />
+                <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-blue-50 text-[#0055D4]">
+                  <Icon name="building" size={12} strokeWidth={2.2} />
+                </span>
                 <span className="truncate max-w-[170px] sm:max-w-[240px]">
                   {condoName || "Residencial Parque das Águas"}
                 </span>
-                <Icon name="chevron-down" size={11} className="text-slate-400" />
+                <Icon name="chevron-down" size={12} className="text-slate-400 group-hover:text-slate-600 transition-transform" />
               </button>
 
               {condoDropdownOpen && (
-                <div className="menu-surface absolute left-0 z-50 mt-1 w-64 shadow-lg animate-in fade-in-50 duration-100">
-                  <div className="px-3 py-1.5 border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-2xl border border-slate-200/90 animate-in fade-in-50 duration-100 p-1.5">
+                  <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Selecione o Condomínio
                   </div>
-                  <div className="py-1">
+                  <div className="space-y-0.5 mt-1">
                     {condos.map((c) => (
                       <form key={c.id} action={switchAction}>
                         <input type="hidden" name="condoId" value={c.id} />
                         <button
                           type="submit"
                           onClick={() => setCondoDropdownOpen(false)}
-                          className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-blue-50 transition-colors ${
-                            c.id === activeCondoId ? "font-bold text-[#0070F3] bg-blue-50/50" : "text-slate-700"
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors ${
+                            c.id === activeCondoId ? "font-bold text-[#0055D4] bg-blue-50/80" : "text-slate-700 hover:bg-slate-50"
                           }`}
                         >
                           <span className="truncate">{c.name}</span>
-                          {c.id === activeCondoId && <Icon name="check" size={13} className="text-[#0070F3]" />}
+                          {c.id === activeCondoId && <Icon name="check" size={13} className="text-[#0055D4]" />}
                         </button>
                       </form>
                     ))}
@@ -526,32 +532,35 @@ export function Shell({
             </div>
           </div>
 
-          {/* Center: Functional Global Search with grouped autocomplete dropdown */}
-          <div ref={searchRef} className="relative hidden md:block flex-1 max-w-sm mx-4">
-            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          {/* Center: Functional Global Search with command-bar style */}
+          <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md mx-6">
+            <Icon name="search" size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar ocorrência, reserva ou prestador..."
               value={searchQuery}
               onFocus={() => setSearchFocused(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8.5 w-full rounded-full border border-slate-200 bg-slate-50 pl-8.5 pr-4 text-xs text-[#0F172A] placeholder:text-slate-400 outline-none focus:border-[#0070F3] focus:bg-white focus:ring-1 focus:ring-blue-100 transition-all"
+              className="h-10 w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 hover:bg-white pl-9.5 pr-12 text-xs text-[#0F172A] placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
             />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+              <kbd className="text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md shadow-2xs">⌘K</kbd>
+            </span>
 
             {/* Search Autocomplete Results Dropdown */}
             {searchFocused && searchQuery.trim().length > 0 && (
-              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto shadow-xl">
+              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1.5 max-h-80 overflow-y-auto shadow-2xl rounded-2xl border border-slate-200/90 p-2">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-400">
                     Nenhum resultado encontrado para &quot;{searchQuery}&quot;
                   </div>
                 ) : (
-                  <div className="p-1 space-y-2">
+                  <div className="space-y-2">
                     {Object.entries(groupedSearchResults).map(([cat, items]) => {
                       if (items.length === 0) return null;
                       return (
                         <div key={cat} className="space-y-0.5">
-                          <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 rounded">
+                          <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 rounded-lg">
                             {cat}
                           </div>
                           {items.map((item) => (
@@ -562,7 +571,7 @@ export function Shell({
                                 setSearchFocused(false);
                                 setSearchQuery("");
                               }}
-                              className="block p-2 rounded-[6px] hover:bg-blue-50/70 transition-colors"
+                              className="block p-2 rounded-xl hover:bg-blue-50/70 transition-colors"
                             >
                               <p className="text-xs font-bold text-[#0F172A]">{item.title}</p>
                               <p className="text-[11px] text-slate-500">{item.subtitle}</p>
@@ -578,29 +587,29 @@ export function Shell({
           </div>
 
           {/* Right: Notifications Dropdown + User Avatar */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2.5">
             {/* Notifications Dropdown */}
             <div ref={notifRef} className="relative">
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 title="Notificações"
-                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 hover:text-[#0F172A] transition-colors"
+                className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white border border-slate-200/80 text-slate-600 hover:text-[#0F172A] hover:bg-slate-50 shadow-2xs transition-all"
                 aria-label="Abrir notificações"
               >
                 <Icon name="bell" size={16} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#FAB800]" />
+                  <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-[#FFD000] ring-2 ring-white" />
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="menu-surface absolute right-0 z-50 mt-1 w-80 shadow-xl animate-in fade-in-50 duration-100">
-                  <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
+                <div className="menu-surface absolute right-0 z-50 mt-1.5 w-80 shadow-2xl rounded-2xl border border-slate-200/90 animate-in fade-in-50 duration-100 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-[#0F172A]">Notificações</h4>
                       {unreadCount > 0 && (
-                        <span className="rounded-full bg-amber-50 px-1.5 py-0.2 text-[10px] font-black text-[#FAB800]">
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.2 text-[10px] font-black text-amber-800">
                           {unreadCount}
                         </span>
                       )}
@@ -609,7 +618,7 @@ export function Shell({
                       <button
                         type="button"
                         onClick={markAllAsRead}
-                        className="text-[10px] font-bold text-[#0070F3] hover:underline"
+                        className="text-[10px] font-bold text-[#0055D4] hover:underline"
                       >
                         Marcar lidas
                       </button>
@@ -630,8 +639,8 @@ export function Shell({
                         }`}
                       >
                         <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${
-                            !notif.read ? "bg-[#0070F3] text-white" : "bg-slate-100 text-slate-500"
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs ${
+                            !notif.read ? "bg-[#0055D4] text-white" : "bg-slate-100 text-slate-500"
                           }`}
                         >
                           <Icon name={notif.icon} size={13} />
@@ -648,7 +657,7 @@ export function Shell({
                           </span>
                         </div>
                         {!notif.read && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#0070F3] shrink-0 mt-1" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4] shrink-0 mt-1" />
                         )}
                       </Link>
                     ))}
@@ -657,15 +666,16 @@ export function Shell({
               )}
             </div>
 
-            {/* Profile Avatar */}
+            {/* Profile Avatar with Online Status */}
             <Link
               href="/painel/perfil"
               title="Meu Perfil"
-              className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 hover:ring-blue-100 transition-all"
+              className="relative flex items-center justify-center rounded-2xl p-0.5 hover:ring-2 hover:ring-blue-200 transition-all group"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0070F3] text-white text-xs font-bold">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0055D4] to-[#0070F3] text-white text-xs font-black shadow-xs group-hover:scale-105 transition-transform">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
+              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/30" />
             </Link>
           </div>
         </header>
@@ -675,28 +685,31 @@ export function Shell({
           {children}
         </main>
 
-        {/* Mobile Fixed Bottom Navigation (5 Core Actions) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-slate-200 bg-white/98 backdrop-blur-md px-1 py-1 lg:hidden shadow-lg select-none">
-          {[
-            { href: "/painel", label: "Início", icon: "grid" as IconName },
-            { href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
-            { href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
-            { href: "/painel/servicos", label: "Serviços", icon: "briefcase" as IconName },
-            { href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
-          ].map((item) => {
+        {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
+        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/15 bg-[#0055D4]/95 backdrop-blur-md px-1 py-1 lg:hidden shadow-xl select-none text-white">
+          {(mobileNav && mobileNav.length > 0
+            ? mobileNav
+            : [
+                { id: "inicio", href: "/painel", label: "Início", icon: "grid" as IconName },
+                { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
+                { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
+                { id: "servicos", href: "/painel/servicos", label: "Serviços", icon: "briefcase" as IconName },
+                { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
+              ]
+          ).map((item) => {
             const active = isRouteActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex min-h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[10px] font-bold transition-colors ${
-                  active ? "text-[#0070F3]" : "text-slate-400 hover:text-slate-700"
+                className={`flex min-h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-bold transition-colors ${
+                  active ? "text-[#FFD000]" : "text-blue-200 hover:text-white"
                 }`}
               >
                 <div className="relative flex items-center justify-center">
-                  <Icon name={item.icon} size={18} />
+                  <Icon name={item.icon} size={18} strokeWidth={active ? 2.4 : 1.8} />
                   {active && (
-                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#FAB800]" />
+                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
                   )}
                 </div>
                 <span>{item.label}</span>

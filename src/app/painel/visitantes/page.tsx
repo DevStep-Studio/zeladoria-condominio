@@ -72,13 +72,31 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
     qrCodes.set(visit.id, await qrDataUrl(visit.qrToken, 132));
   }
 
-  const filters = [
-    { key: "todos", label: "Todos" },
-    { key: "aguardando", label: "Aguardando" },
-    { key: "autorizado", label: "Autorizados" },
-    { key: "dentro", label: "No condomínio" },
-    { key: "finalizado", label: "Finalizados" },
-    { key: "negado", label: "Negados" },
+  // Query all visits in scope for exact badge counts
+  const allVisitsInScope = await db
+    .select({
+      id: visits.id,
+      status: visits.status,
+    })
+    .from(visits)
+    .where(and(eq(visits.condoId, condoId), scope));
+
+  const counts = {
+    todos: allVisitsInScope.length,
+    aguardando: allVisitsInScope.filter((v) => v.status === "aguardando").length,
+    autorizado: allVisitsInScope.filter((v) => v.status === "autorizado").length,
+    dentro: allVisitsInScope.filter((v) => v.status === "dentro").length,
+    finalizado: allVisitsInScope.filter((v) => v.status === "finalizado").length,
+    negado: allVisitsInScope.filter((v) => v.status === "negado").length,
+  };
+
+  const filters: { key: string; label: string; icon: any }[] = [
+    { key: "todos", label: "Todos", icon: "users" },
+    { key: "aguardando", label: "Aguardando", icon: "clock" },
+    { key: "autorizado", label: "Autorizados", icon: "check-circle" },
+    { key: "dentro", label: "No condomínio", icon: "shield" },
+    { key: "finalizado", label: "Finalizados", icon: "refresh" },
+    { key: "negado", label: "Negados", icon: "alert" },
   ];
 
   return (
@@ -89,20 +107,41 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
         actions={isGate ? <Link href="/painel/portaria" className="btn-dark btn-sm"><Icon name="shield" size={15} />Abrir painel da portaria</Link> : null}
       />
 
-      <div className="mb-4 flex flex-wrap gap-2 no-print">
-        {filters.map((f) => (
-          <Link
-            key={f.key}
-            href={`/painel/visitantes?status=${f.key}`}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-              (status ?? "todos") === f.key
-                ? "bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]"
-                : "bg-white text-[var(--color-muted)] ring-1 ring-[var(--color-line)] hover:bg-[var(--color-surface-muted)]   "
-            }`}
-          >
-            {f.label}
-          </Link>
-        ))}
+      {/* Filter Tabs Capsule - Minimalista e Fluido */}
+      <div className="mb-6 inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] no-print overflow-x-auto max-w-full">
+        {filters.map((f) => {
+          const isActive = (status ?? "todos") === f.key;
+          const count = counts[f.key as keyof typeof counts] ?? 0;
+
+          return (
+            <Link
+              key={f.key}
+              href={`/painel/visitantes?status=${f.key}`}
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+            >
+              <Icon
+                name={f.icon}
+                size={14}
+                strokeWidth={2.2}
+                className={isActive ? "text-white" : "text-slate-400"}
+              />
+              <span>{f.label}</span>
+              <span
+                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                  isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {count}
+              </span>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -304,13 +343,16 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                 <input type="checkbox" name="recurring" className="h-4 w-4" />
                 Prestador recorrente (fica na lista de autorizados)
               </label>
-              <button className="btn-primary w-full">Gerar convite com QR Code</button>
+              <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0055D4] to-[#0070F3] hover:from-[#0047BA] hover:to-[#005BD4] text-white px-4 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 hover:shadow-lg transition-all">
+                <Icon name="shield" size={15} />
+                <span>Gerar convite com QR Code</span>
+              </button>
             </form>
           </Card>
 
           <Card title="Autorizados e bloqueados" description="Prestadores recorrentes e restrições de segurança.">
             {recurring.length === 0 ? (
-              <EmptyState title="Nenhum cadastro recorrente" icon="🔁" />
+              <EmptyState title="Nenhum cadastro recorrente" icon="refresh" />
             ) : (
               <ul className="space-y-2 text-xs">
                 {recurring.map((v) => (

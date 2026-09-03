@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { announcements, blocks, users } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, EmptyState, PageHeader, StatCard } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";
 import { dateBR } from "@/lib/utils";
 import { blockOptions } from "@/lib/queries";
@@ -87,20 +87,15 @@ export default async function ComunicadosPage() {
       />
 
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {summaryCards.map((card) => (
-          <div
+        {summaryCards.map((card, idx) => (
+          <StatCard
             key={card.label}
-            className="surface-hover flex min-h-[96px] items-start justify-between gap-3 rounded-[10px] border border-[var(--color-primary-hover)] bg-[var(--color-primary)] p-4 text-[var(--color-ink)]"
-          >
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide">{card.label}</p>
-              <p className="mt-1 text-[28px] font-semibold leading-none tracking-tight">{card.value}</p>
-              <p className="mt-2 text-[13px] font-medium leading-5">{card.hint}</p>
-            </div>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-white/85 text-[var(--color-primary-dark)]">
-              <Icon name={card.icon} size={17} />
-            </span>
-          </div>
+            label={card.label}
+            value={card.value}
+            hint={card.hint}
+            icon={card.icon}
+            tone={idx === 0 ? "yellow" : "blue"}
+          />
         ))}
       </section>
 

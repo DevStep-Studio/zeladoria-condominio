@@ -95,27 +95,36 @@ export function StatCard({
 }: {
   label: string;
   value: ReactNode;
-  icon: IconName;
+  icon?: IconName;
   hint?: string;
   href?: string;
   tone?: "blue" | "yellow" | "green" | "purple";
 }) {
-  const toneBg = {
-    blue: "bg-gradient-to-br from-[#0070f3] to-[#0b5cd5] text-white border-[#0070f3]/20 shadow-[0_4px_14px_rgba(0,112,243,0.2)]",
-    yellow: "bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-white border-[#f59e0b]/20 shadow-[0_4px_14px_rgba(245,158,11,0.2)]",
-    green: "bg-gradient-to-br from-[#10b981] to-[#059669] text-white border-[#10b981]/20 shadow-[0_4px_14px_rgba(16,185,129,0.2)]",
-    purple: "bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white border-[#8b5cf6]/20 shadow-[0_4px_14px_rgba(139,92,246,0.2)]",
-  }[tone];
+  const isYellow = tone === "yellow";
+
+  const toneBg = isYellow
+    ? "bg-[#FFD000] text-[#12162A] border-[#FFD000]/40 shadow-[0_4px_14px_rgba(255,208,0,0.25)]"
+    : tone === "green"
+    ? "bg-gradient-to-br from-[#10b981] to-[#059669] text-white border-[#10b981]/20 shadow-[0_4px_14px_rgba(16,185,129,0.2)]"
+    : tone === "purple"
+    ? "bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white border-[#8b5cf6]/20 shadow-[0_4px_14px_rgba(139,92,246,0.2)]"
+    : "bg-gradient-to-br from-[#0070f3] to-[#0b5cd5] text-white border-[#0070f3]/20 shadow-[0_4px_14px_rgba(0,112,243,0.2)]";
 
   const body = (
     <div className={`surface-hover flex h-full min-h-[92px] items-start gap-3.5 rounded-[14px] border p-4 transition-all duration-200 hover:-translate-y-0.5 ${toneBg}`}>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-white/20 text-white backdrop-blur-xs">
-        <Icon name={icon} size={18} />
-      </span>
+      {icon ? (
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${
+            isYellow ? "bg-[#12162A]/10 text-[#12162A]" : "bg-white/20 text-white backdrop-blur-xs"
+          }`}
+        >
+          <Icon name={icon} size={18} strokeWidth={isYellow ? 2.2 : 1.8} />
+        </span>
+      ) : null}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-white/90">{label}</p>
-        <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight text-white sm:text-[27px]">{value}</p>
-        {hint ? <p className="mt-0.5 text-[12px] font-medium text-white/80">{hint}</p> : null}
+        <p className={`text-[11px] font-bold uppercase tracking-wider ${isYellow ? "text-[#12162A]/75" : "text-white/90"}`}>{label}</p>
+        <p className={`mt-1 text-[24px] font-bold tabular-nums tracking-tight sm:text-[27px] ${isYellow ? "text-[#12162A]" : "text-white"}`}>{value}</p>
+        {hint ? <p className={`mt-0.5 text-[12px] font-medium ${isYellow ? "text-[#12162A]/80" : "text-white/80"}`}>{hint}</p> : null}
       </div>
     </div>
   );
@@ -128,34 +137,32 @@ export function StatCard({
   );
 }
 
-/* Kept for backward compatibility with existing pages — renders a clean stat. */
+/* Kept for backward compatibility with existing pages — renders in the exact same modern card style */
 export function Stat({
   label,
   value,
   hint,
-  tone = "neutral",
+  tone = "blue",
+  icon,
   href,
 }: {
   label: string;
   value: ReactNode;
   hint?: string;
   tone?: string;
+  icon?: IconName;
   href?: string;
 }) {
-  const body = (
-    <div className="surface-hover h-full min-h-[90px] rounded-[14px] border border-[var(--color-line)] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-      <div className="mb-2.5 h-1 w-7 rounded-full bg-[var(--color-primary)]" />
-      <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)]">{label}</p>
-      <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight text-[var(--color-ink)] sm:text-[26px]">{value}</p>
-      {hint ? <p className="mt-0.5 text-[12px] font-medium text-[var(--color-muted)]">{hint}</p> : null}
-    </div>
-  );
-  return href ? (
-    <Link href={href} className="block">
-      {body}
-    </Link>
-  ) : (
-    body
+  const isYellow = tone === "yellow";
+  return (
+    <StatCard
+      label={label}
+      value={value}
+      hint={hint}
+      icon={icon}
+      href={href}
+      tone={isYellow ? "yellow" : "blue"}
+    />
   );
 }
 
