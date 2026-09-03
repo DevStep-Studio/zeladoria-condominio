@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { amenities, announcements, condominiums, occurrences, parcels, reservations, tickets, units, vendors } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
+import { timeAgoBR } from "@/lib/utils";
 import {
   DashboardClient,
   type AttentionItem,
@@ -252,14 +253,6 @@ export default async function PainelHome() {
     else if (occ.status === "resolvida" || occ.status === "concluido") statusLabel = "Concluída";
     else if (occ.status === "pendente") statusLabel = "Pendente";
 
-    let timeAgo = "Hoje";
-    if (occ.createdAt) {
-      const diffHours = Math.round((Date.now() - new Date(occ.createdAt).getTime()) / (1000 * 60 * 60));
-      if (diffHours < 1) timeAgo = "Há 15 min";
-      else if (diffHours < 24) timeAgo = `Há ${diffHours}h`;
-      else timeAgo = `Há ${Math.round(diffHours / 24)}d`;
-    }
-
     return {
       id: occ.id,
       code: occ.code,
@@ -268,7 +261,7 @@ export default async function PainelHome() {
       category: occ.category,
       severity: occ.severity,
       status: statusLabel,
-      timeAgo,
+      timeAgo: timeAgoBR(occ.createdAt),
     };
   });
 

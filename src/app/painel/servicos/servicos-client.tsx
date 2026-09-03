@@ -174,18 +174,14 @@ export function ServicosClient({
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [sortBy, setSortBy] = useState<"rating" | "experience" | "response">("rating");
 
+  const searchParams = useSearchParams();
   const [selectedProfileVendor, setSelectedProfileVendor] = useState<VendorItem | null>(null);
-  const [budgetVendor, setBudgetVendor] = useState<VendorItem | null>(null);
+  const [budgetVendor, setBudgetVendor] = useState<VendorItem | null>(() => {
+    return searchParams.get("solicitar") === "true" ? SAMPLE_PROVIDERS[0] : null;
+  });
   const [budgetDescription, setBudgetDescription] = useState("");
   const [budgetSuccess, setBudgetSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("solicitar") === "true") {
-      setBudgetVendor(SAMPLE_PROVIDERS[0]);
-    }
-  }, [searchParams]);
 
   // Filter and sort logic
   const filteredVendors = useMemo(() => {

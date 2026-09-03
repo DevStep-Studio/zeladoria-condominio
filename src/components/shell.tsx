@@ -93,7 +93,6 @@ export function Shell({
   logout,
   children,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nav?: any;
   navigationGroups?: NavGroup[];
   mobileNav?: NavItem[];
@@ -103,25 +102,25 @@ export function Shell({
   roleLabel: string;
   role?: string;
   unitLabel: string | null;
+  unreadCount?: number;
   condoName: string;
   unread: number;
-  switchAction: (formData: FormData) => void;
-  logout: () => void;
+  switchAction: (formData: FormData) => Promise<void>;
+  logout: () => Promise<void>;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
 
   // Desktop sidebar collapse with persistent state in localStorage
-  const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => {
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
     try {
-      const saved = localStorage.getItem("zc-sidebar-collapsed");
-      if (saved !== null) {
-        setCollapsed(saved === "true");
-      }
-    } catch {}
-  }, []);
+      return localStorage.getItem("zc-sidebar-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   const toggleCollapse = () => {
     const next = !collapsed;

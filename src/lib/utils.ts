@@ -40,6 +40,15 @@ export function daysUntil(value: string | Date | null | undefined) {
   return Math.ceil((d.getTime() - Date.now()) / 86400000);
 }
 
+export function timeAgoBR(value: Date | string | null | undefined) {
+  if (!value) return "Hoje";
+  const d = typeof value === "string" ? new Date(value) : value;
+  const diffHours = Math.round((Date.now() - d.getTime()) / (1000 * 60 * 60));
+  if (diffHours < 1) return "Há 15 min";
+  if (diffHours < 24) return `Há ${diffHours}h`;
+  return `Há ${Math.round(diffHours / 24)}d`;
+}
+
 export function token(size = 12) {
   return randomBytes(size).toString("base64url");
 }

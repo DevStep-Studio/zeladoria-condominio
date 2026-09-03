@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 
 type Message = {
@@ -34,6 +34,7 @@ export function CondoAssistant({
   const [internalOpen, setInternalOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
+  const nextIdRef = useRef(2);
 
   const handleClose = () => {
     setInternalOpen(false);
@@ -45,7 +46,7 @@ export function CondoAssistant({
     if (!text.trim()) return;
 
     const userMsg: Message = {
-      id: Date.now().toString(),
+      id: String(nextIdRef.current++),
       sender: "user",
       text,
       time: "Agora",
@@ -69,7 +70,7 @@ export function CondoAssistant({
       }
 
       const botReply: Message = {
-        id: (Date.now() + 1).toString(),
+        id: String(nextIdRef.current++),
         sender: "bot",
         text: replyText,
         time: "Agora",

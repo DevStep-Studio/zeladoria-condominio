@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 
 type FilterType = "todos" | "ocorrencias" | "equipamentos";
@@ -18,55 +18,55 @@ type MapMarker = {
 const SAMPLE_MARKERS: MapMarker[] = [
   {
     id: 1,
-    title: "Lâmpada corredor Torre A",
-    category: "eletrica",
+    title: "Vazamento na Garagem G1",
+    category: "hidraulica",
     type: "ocorrencia",
-    lat: -23.5858,
-    lng: -46.6784,
-    status: "Em aberto",
+    lat: -23.5857,
+    lng: -46.6788,
+    status: "Em atendimento",
   },
   {
     id: 2,
-    title: "Vazamento subsolo -1",
-    category: "hidraulica",
+    title: "Lâmpada queimada Hall Bloco B",
+    category: "eletrica",
     type: "ocorrencia",
-    lat: -23.5849,
-    lng: -46.6792,
-    status: "Em execução",
+    lat: -23.5852,
+    lng: -46.6781,
+    status: "Pendente",
   },
   {
     id: 3,
-    title: "Bomba de recalque",
-    category: "hidraulica",
+    title: "Bomba Principal da Piscina",
+    category: "manutencao",
     type: "equipamento",
-    lat: -23.5862,
-    lng: -46.6775,
+    lat: -23.5861,
+    lng: -46.6783,
     status: "Operacional",
   },
   {
     id: 4,
-    title: "Câmera portaria principal",
-    category: "seguranca",
+    title: "Gerador a Diesel - Bloco A",
+    category: "manutencao",
     type: "equipamento",
-    lat: -23.5851,
-    lng: -46.6779,
-    status: "Ativo",
+    lat: -23.5850,
+    lng: -46.6778,
+    status: "Revisão agendada",
   },
   {
     id: 5,
-    title: "Manutenção elevador social",
-    category: "manutencao",
-    type: "ocorrencia",
-    lat: -23.5855,
-    lng: -46.6788,
-    status: "Agendado",
+    title: "Câmera Portaria Principal",
+    category: "seguranca",
+    type: "equipamento",
+    lat: -23.5854,
+    lng: -46.6792,
+    status: "Online",
   },
 ];
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  eletrica: { bg: "#FAB800", text: "#0F172A", label: "Elétrica" },
+  eletrica: { bg: "#FFD000", text: "#12162A", label: "Elétrica" },
   hidraulica: { bg: "#0070F3", text: "#FFFFFF", label: "Hidráulica" },
-  limpeza: { bg: "#0D9488", text: "#FFFFFF", label: "Limpeza" },
+  limpeza: { bg: "#10B981", text: "#FFFFFF", label: "Limpeza" },
   seguranca: { bg: "#EF4444", text: "#FFFFFF", label: "Segurança" },
   manutencao: { bg: "#8B5CF6", text: "#FFFFFF", label: "Manutenção" },
   outros: { bg: "#64748B", text: "#FFFFFF", label: "Outros" },
@@ -74,68 +74,11 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
 
 export function CondoMap({ onExpand }: { onExpand?: () => void } = {}) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markersLayerRef = useRef<any>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !mapContainerRef.current) return;
-
-    let isMounted = true;
-
-    // Dynamically load Leaflet
-    const loadMap = async () => {
-      const L = (await import("leaflet")).default;
-      // Inject CSS if missing
-      if (!document.getElementById("leaflet-css")) {
-        const link = document.createElement("link");
-        link.id = "leaflet-css";
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
-      if (!isMounted || !mapContainerRef.current) return;
-
-      if (!mapInstanceRef.current) {
-        const map = L.map(mapContainerRef.current, {
-          center: [-23.5855, -46.6784],
-          zoom: 16,
-          zoomControl: false,
-        });
-
-        L.control.zoom({ position: "topleft" }).addTo(map);
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 19,
-        }).addTo(map);
-
-        mapInstanceRef.current = map;
-        markersLayerRef.current = L.layerGroup().addTo(map);
-      }
-
-      renderMarkers(L);
-    };
-
-    loadMap();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    import("leaflet").then((module) => {
-      renderMarkers(module.default);
-    });
-  }, [activeFilter]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderMarkers = (L: any) => {
+  const renderMarkers = useCallback((L: any) => {
     if (!mapInstanceRef.current || !markersLayerRef.current) return;
 
     markersLayerRef.current.clearLayers();
@@ -191,7 +134,61 @@ export function CondoMap({ onExpand }: { onExpand?: () => void } = {}) {
         .bindPopup(popupContent)
         .addTo(markersLayerRef.current);
     });
-  };
+  }, [activeFilter]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !mapContainerRef.current) return;
+
+    let isMounted = true;
+
+    // Dynamically load Leaflet
+    const loadMap = async () => {
+      const L = (await import("leaflet")).default;
+      // Inject CSS if missing
+      if (!document.getElementById("leaflet-css")) {
+        const link = document.createElement("link");
+        link.id = "leaflet-css";
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
+
+      if (!isMounted || !mapContainerRef.current) return;
+
+      if (!mapInstanceRef.current) {
+        const map = L.map(mapContainerRef.current, {
+          center: [-23.5855, -46.6784],
+          zoom: 16,
+          zoomControl: false,
+        });
+
+        L.control.zoom({ position: "topleft" }).addTo(map);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        }).addTo(map);
+
+        mapInstanceRef.current = map;
+        markersLayerRef.current = L.layerGroup().addTo(map);
+      }
+
+      renderMarkers(L);
+    };
+
+    loadMap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [renderMarkers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    import("leaflet").then((module) => {
+      renderMarkers(module.default);
+    });
+  }, [renderMarkers]);
 
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
