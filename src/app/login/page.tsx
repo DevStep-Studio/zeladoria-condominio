@@ -65,8 +65,8 @@ export default async function LoginPage() {
               alt="Zeladoria Condomínio Background"
               className="h-full w-full object-cover object-center"
             />
-            {/* Gradient Overlay for logo & headline readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/35 pointer-events-none" />
+            {/* Solid Dark Overlay for logo & headline readability (sem gradiente) */}
+            <div className="absolute inset-0 bg-black/35 pointer-events-none" />
           </div>
 
           {/* Top Right White Logo */}

@@ -103,12 +103,12 @@ export function StatCard({
   const isYellow = tone === "yellow";
 
   const toneBg = isYellow
-    ? "bg-[#FFD000] text-[#12162A] border-[#FFD000]/40 shadow-[0_4px_14px_rgba(255,208,0,0.25)]"
+    ? "bg-[#FFD000] text-[#12162A] border-[#FFD000]/40 shadow-xs"
     : tone === "green"
-    ? "bg-gradient-to-br from-[#10b981] to-[#059669] text-white border-[#10b981]/20 shadow-[0_4px_14px_rgba(16,185,129,0.2)]"
+    ? "bg-[#10b981] text-white border-emerald-600 shadow-xs"
     : tone === "purple"
-    ? "bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] text-white border-[#8b5cf6]/20 shadow-[0_4px_14px_rgba(139,92,246,0.2)]"
-    : "bg-gradient-to-br from-[#0070f3] to-[#0b5cd5] text-white border-[#0070f3]/20 shadow-[0_4px_14px_rgba(0,112,243,0.2)]";
+    ? "bg-[#8b5cf6] text-white border-purple-600 shadow-xs"
+    : "bg-[#0055D4] text-white border-blue-700 shadow-xs";
 
   const body = (
     <div className={`surface-hover flex h-full min-h-[92px] items-start gap-3.5 rounded-[14px] border p-4 transition-all duration-200 hover:-translate-y-0.5 ${toneBg}`}>

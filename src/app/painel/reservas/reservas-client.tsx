@@ -247,7 +247,7 @@ export function ReservasClient({
             onClick={() => setActiveTab("areas")}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === "areas"
-                ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                ? "bg-[#0055D4] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -267,7 +267,7 @@ export function ReservasClient({
             onClick={() => setActiveTab("minhas")}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === "minhas"
-                ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                ? "bg-[#0055D4] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -288,7 +288,7 @@ export function ReservasClient({
               onClick={() => setActiveTab("todas")}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === "todas"
-                  ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                  ? "bg-[#0055D4] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -355,15 +355,15 @@ export function ReservasClient({
                   key={amenity.id}
                   className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-[0_2px_16px_-4px_rgba(15,23,42,0.06)] hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300"
                 >
-                  {/* Background Image Header with Zoom & Gradient */}
+                  {/* Background Image Header with Zoom */}
                   <div className="relative h-48 w-full overflow-hidden bg-slate-900">
                     <img
                       src={imageUrl}
                       alt={amenity.name}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
                     />
-                    {/* Dark subtle gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/35" />
+                    {/* Dark subtle overlay (sem gradiente) */}
+                    <div className="absolute inset-0 bg-black/40" />
 
                     {/* Floating badges on top */}
                     <div className="absolute inset-x-3.5 top-3.5 flex items-center justify-between">
@@ -422,7 +422,7 @@ export function ReservasClient({
                     <button
                       type="button"
                       onClick={() => handleOpenBooking(amenity)}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0055D4] to-[#0070F3] hover:from-[#0047BA] hover:to-[#005BD4] text-white px-4 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all hover:scale-[1.01]"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all hover:scale-[1.01]"
                     >
                       <Icon name="calendar" size={14} />
                       <span>Reservar área</span>

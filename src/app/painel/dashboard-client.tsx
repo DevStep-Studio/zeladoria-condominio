@@ -95,17 +95,13 @@ export function DashboardClient({
     <div className="space-y-7">
       {/* 1. Executive Hero Card (Profissional, Equilibrado e com Indicadores em Tempo Real) */}
       <div className="relative overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)]">
-        {/* Top subtle brand gradient highlight line */}
-        <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-[#0055D4] via-[#0070F3] to-[#FFD000]" />
-
-        {/* Ambient radial glows */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-blue-500/6 blur-3xl" />
-        <div className="pointer-events-none absolute left-1/3 -bottom-16 h-40 w-40 rounded-full bg-amber-500/4 blur-2xl" />
+        {/* Top subtle brand solid blue highlight line */}
+        <div className="absolute top-0 inset-x-0 h-[3px] bg-[#0055D4]" />
 
         <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           {/* Left: User Avatar + Personalized Greeting + Condominium Details */}
           <div className="flex items-center gap-4 min-w-0">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0055D4] to-[#0070F3] text-white font-black text-lg shadow-md shadow-blue-500/20">
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0055D4] text-white font-black text-lg shadow-xs">
               {userName.charAt(0).toUpperCase()}
               <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/30" />
             </div>
@@ -249,7 +245,7 @@ export function DashboardClient({
             <button
               type="button"
               onClick={() => setAssistantOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0055D4] to-[#0070F3] hover:from-[#0047BA] hover:to-[#005BD4] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-md shadow-blue-500/20 hover:scale-[1.02]"
+              className="flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs hover:scale-[1.01]"
             >
               <Icon name="sparkles" size={14} className="text-[#FFD000] animate-pulse" />
               <span>Zeladoria IA</span>

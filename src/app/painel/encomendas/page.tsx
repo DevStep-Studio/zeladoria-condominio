@@ -207,7 +207,7 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
               href={`/painel/encomendas?status=${tab.key}`}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 isActive
-                  ? "bg-gradient-to-r from-[#0055D4] to-[#0070F3] text-white shadow-md shadow-blue-500/20"
+                  ? "bg-[#0055D4] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >

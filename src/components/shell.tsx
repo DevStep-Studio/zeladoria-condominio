@@ -672,7 +672,7 @@ export function Shell({
               title="Meu Perfil"
               className="relative flex items-center justify-center rounded-2xl p-0.5 hover:ring-2 hover:ring-blue-200 transition-all group"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0055D4] to-[#0070F3] text-white text-xs font-black shadow-xs group-hover:scale-105 transition-transform">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0055D4] text-white text-xs font-black shadow-xs group-hover:bg-[#0043A8] transition-colors">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/30" />
