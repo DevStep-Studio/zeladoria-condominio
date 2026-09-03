@@ -84,9 +84,9 @@ export function PerfilClient({
       </div>
 
       {/* 1. User Identity Card */}
-      <div className="rounded-[16px] border border-slate-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-[14px] border border-slate-200/60 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-blue-50 border-2 border-blue-200 text-[#0070F3] text-2xl font-black">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-blue-50 border border-blue-200 text-[#0070F3] text-2xl font-black">
             {user.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
@@ -111,7 +111,7 @@ export function PerfilClient({
       </div>
 
       {/* 2. Card Meu Condomínio (Identidade Azul e Amarela, SEM gradiente) */}
-      <div className="rounded-[16px] border-2 border-blue-100 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="rounded-[14px] border border-blue-100 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#0070F3] text-white">
@@ -134,7 +134,7 @@ export function PerfilClient({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="rounded-[10px] bg-slate-50 p-3 border border-slate-100">
+          <div className="rounded-[10px] bg-slate-50/70 p-3 border border-slate-200/50">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Torre & Unidade
             </span>
@@ -143,7 +143,7 @@ export function PerfilClient({
             </p>
           </div>
 
-          <div className="rounded-[10px] bg-slate-50 p-3 border border-slate-100">
+          <div className="rounded-[10px] bg-slate-50/70 p-3 border border-slate-200/50">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Endereço
             </span>
@@ -166,7 +166,7 @@ export function PerfilClient({
               key={item.label}
               type="button"
               onClick={() => handleShortcutClick(item.label)}
-              className="flex items-center justify-between p-3.5 rounded-[12px] border border-slate-200 bg-white hover:border-[#0070F3] hover:bg-blue-50/20 text-left transition-all group"
+              className="flex items-center justify-between p-3.5 rounded-[12px] border border-slate-200/60 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#0070F3] transition-colors">

@@ -70,41 +70,50 @@ export default async function PainelHome() {
       )
     );
 
+  const [highPriorityOccCount] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(occurrences)
+    .where(
+      and(
+        eq(occurrences.condoId, condoId),
+        eq(occurrences.severity, "alta"),
+        ne(occurrences.status, "resolvida"),
+        ne(occurrences.status, "concluido"),
+        ne(occurrences.status, "cancelada")
+      )
+    );
+
   const attentionItems: AttentionItem[] = [
     {
       id: "occurrences",
       count: openOccCount?.count ?? 0,
       label: "ocorrências abertas",
-      sublabel: "Acompanhe o andamento",
+      detail: (highPriorityOccCount?.count ?? 0) > 0 ? `${highPriorityOccCount?.count} de prioridade alta` : "Acompanhe o andamento",
       href: "/painel/ocorrencias",
-      icon: "clipboard",
-      urgent: (openOccCount?.count ?? 0) > 3,
+      urgent: (highPriorityOccCount?.count ?? 0) > 0,
+    },
+    {
+      id: "reservations",
+      count: pendingReservationsCount?.count ?? 0,
+      label: "reservas aguardando confirmação",
+      detail: "Aguardando aprovação",
+      href: "/painel/reservas",
+      urgent: false,
     },
     {
       id: "tickets",
       count: pendingTicketsCount?.count ?? 0,
       label: "solicitações pendentes",
-      sublabel: "Aguardando análise da equipe",
+      detail: "Aguardando análise da equipe",
       href: "/painel/servicos",
-      icon: "wrench",
-      urgent: false,
-    },
-    {
-      id: "reservations",
-      count: pendingReservationsCount?.count ?? 0,
-      label: "reservas aguardando",
-      sublabel: "Aguardando confirmação",
-      href: "/painel/reservas",
-      icon: "calendar",
       urgent: false,
     },
     {
       id: "parcels",
       count: pendingParcelsCount?.count ?? 0,
       label: "encomendas na portaria",
-      sublabel: "Disponíveis para retirada",
+      detail: "Prontas para retirada",
       href: "/painel/encomendas",
-      icon: "package",
       urgent: false,
     },
   ];

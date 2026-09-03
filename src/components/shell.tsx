@@ -23,7 +23,7 @@ type NavGroup = {
 const NAV_GROUPS: NavGroup[] = [
   {
     id: "gestao",
-    title: "GESTÃO CONDOMINIAL",
+    title: "GESTÃO",
     items: [
       { label: "Assembleias", href: "/painel/assembleias", icon: "scale" },
       { label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone" },
@@ -36,8 +36,8 @@ const NAV_GROUPS: NavGroup[] = [
     title: "MANUTENÇÃO",
     items: [
       { label: "Ocorrências", href: "/painel/ocorrencias", icon: "clipboard" },
-      { label: "Ordens de Serviço", href: "/painel/ordens", icon: "wrench" },
-      { label: "Manutenção Preventiva", href: "/painel/manutencao", icon: "shield" },
+      { label: "Ordens", href: "/painel/ordens", icon: "wrench" },
+      { label: "Preventiva", href: "/painel/manutencao", icon: "shield" },
     ],
   },
   {
@@ -46,7 +46,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Reservas", href: "/painel/reservas", icon: "calendar" },
       { label: "Encomendas", href: "/painel/encomendas", icon: "package" },
-      { label: "Visitantes & Acesso", href: "/painel/visitantes", icon: "users" },
+      { label: "Visitantes", href: "/painel/visitantes", icon: "users" },
     ],
   },
   {
@@ -54,7 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "SERVIÇOS",
     items: [
       { label: "Prestadores", href: "/painel/servicos", icon: "briefcase" },
-      { label: "Solicitar Orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles" },
+      { label: "Solicitar orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles" },
     ],
   },
 ];
@@ -273,15 +273,15 @@ export function Shell({
           <Link
             href="/painel"
             onClick={() => setMobileOpen(false)}
-            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold transition-colors ${
+            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-colors ${
               pathname === "/painel"
-                ? "bg-blue-50 text-[#0070F3]"
+                ? "relative font-bold text-[#0070F3] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0070F3] before:rounded-r"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             } ${collapsed ? "justify-center" : ""}`}
             title={collapsed ? "Início" : undefined}
           >
-            <Icon name="grid" size={16} className={pathname === "/painel" ? "text-[#0070F3]" : "text-slate-400"} />
-            {!collapsed && <span>Início</span>}
+            <Icon name="grid" size={16} className={pathname === "/painel" ? "text-[#0070F3]" : "text-slate-400 group-hover:text-slate-600"} />
+            {!collapsed && <span className={pathname === "/painel" ? "font-bold text-[#0070F3]" : "font-medium text-slate-700"}>Início</span>}
 
             {collapsed && (
               <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
@@ -325,9 +325,9 @@ export function Shell({
                         key={item.label}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-xs transition-colors ${
                           active
-                            ? "bg-blue-50 text-[#0070F3] font-bold"
+                            ? "relative font-bold text-[#0070F3] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0070F3] before:rounded-r"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         } ${collapsed ? "justify-center" : ""}`}
                         title={collapsed ? item.label : undefined}
@@ -337,7 +337,7 @@ export function Shell({
                           size={15}
                           className={active ? "text-[#0070F3]" : "text-slate-400 group-hover:text-slate-600"}
                         />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
+                        {!collapsed && <span className={active ? "font-bold text-[#0070F3]" : "font-medium text-slate-700 truncate"}>{item.label}</span>}
 
                         {collapsed && (
                           <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
@@ -440,7 +440,7 @@ export function Shell({
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* Desktop Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200 bg-white transition-[width] duration-200 lg:block ${
+        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200/60 bg-white transition-[width] duration-200 lg:block ${
           collapsed ? "w-[64px]" : "w-[240px]"
         }`}
       >
@@ -468,7 +468,7 @@ export function Shell({
         }`}
       >
         {/* Global Minimalist Header without duplicate logo on desktop */}
-        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 sm:px-6 shadow-2xs">
+        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/60 bg-white/98 backdrop-blur-md px-4 sm:px-6">
           {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
           <div className="flex items-center gap-2.5">
             <button
