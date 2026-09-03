@@ -166,12 +166,123 @@ export function AssembliesClientView({
 
   return (
     <div className="space-y-6">
-      {/* Metrics Row — Exact Home Page StatCard Identity with Yellow First Card */}
+      {/* Metrics Row — Minimalistas, Elegantes e Alinhados à Home */}
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Próximas" value={upcomingList.length} icon="scale" hint="assembleias ativas" href="/painel/assembleias" tone="yellow" />
-        <StatCard label="Presenças" value={confirmedAttendanceCount} icon="user-check" hint="unidades confirmadas" href="/painel/assembleias" tone="blue" />
-        <StatCard label="Atas publicadas" value={publishedMinutesCount} icon="file-text" hint="documentos ativas" href="/painel/assembleias" tone="blue" />
-        <StatCard label="Convocações" value={assemblies.length} icon="bell" hint="histórico registrado" href="/painel/assembleias" tone="blue" />
+        <button
+          type="button"
+          onClick={() => setTab("proximas")}
+          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+            tab === "proximas"
+              ? "border-[#0055D4] bg-blue-50/20 ring-2 ring-blue-500/10"
+              : "border-slate-200/80 bg-white hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110">
+              <Icon name="scale" size={18} strokeWidth={2.2} />
+            </span>
+            <Icon
+              name="arrow-up-right"
+              size={15}
+              strokeWidth={2.4}
+              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+            />
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              {upcomingList.length}
+            </span>
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+              Próximas
+            </p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Assembleias ativas
+            </p>
+          </div>
+        </button>
+
+        <div className="group relative flex flex-col justify-between text-left rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] transition-transform group-hover:scale-110">
+              <Icon name="user-check" size={18} strokeWidth={2.2} />
+            </span>
+            <Icon
+              name="arrow-up-right"
+              size={15}
+              strokeWidth={2.4}
+              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+            />
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              {confirmedAttendanceCount}
+            </span>
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+              Presenças
+            </p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Unidades confirmadas
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setTab("realizadas")}
+          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+            tab === "realizadas"
+              ? "border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/10"
+              : "border-slate-200/80 bg-white hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
+              <Icon name="file-text" size={18} strokeWidth={2.2} />
+            </span>
+            <Icon
+              name="arrow-up-right"
+              size={15}
+              strokeWidth={2.4}
+              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+            />
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              {publishedMinutesCount}
+            </span>
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-emerald-600 transition-colors">
+              Atas publicadas
+            </p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Documentos ativos
+            </p>
+          </div>
+        </button>
+
+        <div className="group relative flex flex-col justify-between text-left rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-transform group-hover:scale-110">
+              <Icon name="bell" size={18} strokeWidth={2.2} />
+            </span>
+            <Icon
+              name="arrow-up-right"
+              size={15}
+              strokeWidth={2.4}
+              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+            />
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              {assemblies.length}
+            </span>
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-purple-600 transition-colors">
+              Convocações
+            </p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Histórico registrado
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Resident Feature Highlight */}
@@ -179,49 +290,51 @@ export function AssembliesClientView({
         <Card title="Sua próxima assembleia convocada">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-line)] pb-3">
             <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--color-primary-dark)] animate-pulse" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">Convocação digital</p>
+              <span className="flex h-2.5 w-2.5 rounded-full bg-[#0055D4] animate-pulse" />
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Convocação digital</p>
             </div>
-            <Badge tone="purple">{nextAssembly.kind}</Badge>
+            <span className="rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4]">
+              {nextAssembly.kind}
+            </span>
           </div>
           <div className="mt-3 grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <h3 className="text-lg font-bold text-[var(--color-ink)]">{nextAssembly.title}</h3>
-              {nextAssembly.description ? <p className="mt-1 text-xs text-[var(--color-muted)]">{nextAssembly.description}</p> : null}
+              <h3 className="text-lg font-bold text-slate-900">{nextAssembly.title}</h3>
+              {nextAssembly.description ? <p className="mt-1 text-xs text-slate-500">{nextAssembly.description}</p> : null}
               <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3">
-                <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-3">
-                  <p className="label text-[10px]">Data & Horário</p>
-                  <p className="font-bold text-[var(--color-ink)]">{dateTimeBR(nextAssembly.firstCallAt)}</p>
-                  {nextAssembly.startTime ? <p className="text-[11px] text-[var(--color-subtle)]">{nextAssembly.startTime} às {nextAssembly.endTime || "término"}</p> : null}
+                <div className="rounded-[14px] border border-slate-200/80 bg-slate-50/60 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Data & Horário</p>
+                  <p className="font-black text-slate-900 mt-0.5">{dateTimeBR(nextAssembly.firstCallAt)}</p>
+                  {nextAssembly.startTime ? <p className="text-[11px] text-slate-500">{nextAssembly.startTime} às {nextAssembly.endTime || "término"}</p> : null}
                 </div>
-                <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-3">
-                  <p className="label text-[10px]">Local / Formato</p>
-                  <p className="font-bold text-[var(--color-ink)]">{nextAssembly.mode}</p>
-                  <p className="truncate text-[11px] text-[var(--color-subtle)]">{nextAssembly.location || "Online"}</p>
+                <div className="rounded-[14px] border border-slate-200/80 bg-slate-50/60 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Local / Formato</p>
+                  <p className="font-black text-slate-900 mt-0.5">{nextAssembly.mode}</p>
+                  <p className="truncate text-[11px] text-slate-500">{nextAssembly.location || "Online"}</p>
                 </div>
-                <div className="col-span-2 sm:col-span-1 rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-3">
-                  <p className="label text-[10px]">Responsável</p>
-                  <p className="font-bold text-[var(--color-ink)]">{nextAssembly.responsibleName || "Síndico(a)"}</p>
+                <div className="col-span-2 sm:col-span-1 rounded-[14px] border border-slate-200/80 bg-slate-50/60 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Responsável</p>
+                  <p className="font-black text-slate-900 mt-0.5">{nextAssembly.responsibleName || "Síndico(a)"}</p>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col justify-between rounded-[12px] border border-[var(--color-line)] bg-white p-4">
+            <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/80 bg-white p-4 shadow-xs">
               <div>
-                <p className="text-xs font-bold text-[var(--color-ink)]">Confirme sua Participação</p>
-                <p className="mt-0.5 text-xs text-[var(--color-muted)]">Registre se irá comparecer ou se representará por procuração.</p>
+                <p className="text-xs font-bold text-slate-900">Confirme sua Participação</p>
+                <p className="mt-0.5 text-xs text-slate-500">Registre se irá comparecer ou se representará por procuração.</p>
               </div>
               <div className="mt-3 space-y-2">
                 <form action={confirmAttendanceAction}>
                   <input type="hidden" name="assemblyId" value={nextAssembly.id} />
                   <input type="hidden" name="status" value="confirmado" />
-                  <button className="btn-primary btn-sm w-full">
+                  <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2.5 text-xs font-bold shadow-xs transition-all">
                     <Icon name="check-circle" size={14} /> Confirmar presença
                   </button>
                 </form>
                 <form action={confirmAttendanceAction}>
                   <input type="hidden" name="assemblyId" value={nextAssembly.id} />
                   <input type="hidden" name="status" value="ausente" />
-                  <button className="btn-ghost btn-sm w-full text-xs">
+                  <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 px-3.5 py-2 text-xs font-bold transition-all">
                     <Icon name="x-circle" size={14} /> Informar ausência
                   </button>
                 </form>
@@ -231,51 +344,97 @@ export function AssembliesClientView({
         </Card>
       ) : null}
 
-      {/* Navigation Toolbar — Matching System Tab Pills and Buttons */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-[var(--color-line)] pb-4">
-        {/* Tab Pills */}
-        <div className="tabbar">
+      {/* Navigation Toolbar — Floating Capsule Tabs & View Toggles */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Status Filter Tabs Capsule - Minimalista e Fluido */}
+        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] overflow-x-auto max-w-full">
           <button
+            type="button"
             onClick={() => setTab("proximas")}
-            className={`tab ${tab === "proximas" ? "tab-active" : ""}`}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              tab === "proximas"
+                ? "bg-[#0055D4] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
-            <Icon name="clock" size={14} />
-            Próximas ({upcomingList.length})
+            <Icon name="clock" size={14} strokeWidth={2.2} className={tab === "proximas" ? "text-white" : "text-slate-400"} />
+            <span>Próximas</span>
+            <span
+              className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                tab === "proximas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {upcomingList.length}
+            </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setTab("realizadas")}
-            className={`tab ${tab === "realizadas" ? "tab-active" : ""}`}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              tab === "realizadas"
+                ? "bg-[#0055D4] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
-            <Icon name="check-circle" size={14} />
-            Realizadas ({finishedList.length})
+            <Icon name="check-circle" size={14} strokeWidth={2.2} className={tab === "realizadas" ? "text-white" : "text-slate-400"} />
+            <span>Realizadas</span>
+            <span
+              className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                tab === "realizadas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {finishedList.length}
+            </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setTab("canceladas")}
-            className={`tab ${tab === "canceladas" ? "tab-active" : ""}`}
+            className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              tab === "canceladas"
+                ? "bg-[#0055D4] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
-            <Icon name="x-circle" size={14} />
-            Canceladas ({cancelledList.length})
+            <Icon name="x-circle" size={14} strokeWidth={2.2} className={tab === "canceladas" ? "text-white" : "text-slate-400"} />
+            <span>Canceladas</span>
+            <span
+              className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
+                tab === "canceladas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {cancelledList.length}
+            </span>
           </button>
         </div>
 
         {/* View Toggle & New Assembly Primary Action */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="tabbar">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
             <button
+              type="button"
               onClick={() => setView("list")}
-              className={`tab ${view === "list" ? "tab-active" : ""}`}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                view === "list"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
             >
-              <Icon name="grid" size={14} />
-              Lista
+              <Icon name="grid" size={13} strokeWidth={2.2} />
+              <span>Lista</span>
             </button>
             <button
+              type="button"
               onClick={() => setView("calendar")}
-              className={`tab ${view === "calendar" ? "tab-active" : ""}`}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                view === "calendar"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
             >
-              <Icon name="calendar" size={14} />
-              Calendário
+              <Icon name="calendar" size={13} strokeWidth={2.2} />
+              <span>Calendário</span>
             </button>
           </div>
 
@@ -285,10 +444,10 @@ export function AssembliesClientView({
                 setEditingAssembly(null);
                 setNewModalOpen(true);
               }}
-              className="btn-primary"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs"
             >
-              <Icon name="plus" size={16} />
-              Nova assembleia
+              <Icon name="plus" size={15} />
+              <span>Nova assembleia</span>
             </button>
           ) : null}
         </div>
