@@ -45,3 +45,9 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local databases and logs
+*.db
+*.sqlite
+logs/
+.autocommit.pid

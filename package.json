@@ -8,7 +8,14 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:setup": "tsx src/db/setup.ts",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "autocommit": "node scripts/auto-commit.mjs",
+    "autocommit:push": "node scripts/auto-commit.mjs --push",
+    "autocommit:once": "node scripts/auto-commit.mjs --once",
+    "autocommit:start": "./scripts/auto-commit-daemon.sh start",
+    "autocommit:stop": "./scripts/auto-commit-daemon.sh stop",
+    "autocommit:status": "./scripts/auto-commit-daemon.sh status",
+    "autocommit:logs": "./scripts/auto-commit-daemon.sh logs"
   },
   "dependencies": {
     "@aws-sdk/client-rds-data": "^3.1107.0",
