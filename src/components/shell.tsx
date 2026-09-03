@@ -1,75 +1,146 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
-import type { NavItem } from "@/lib/rbac";
 
-export type ShellNav = { primary: NavItem[]; more: NavItem[] };
 export type ShellCondo = { id: number; name: string };
 
-function isActive(pathname: string, href: string) {
-  if (href === "/painel") return pathname === "/painel";
-  return pathname === href || pathname.startsWith(href + "/");
-}
+type NavGroupItem = {
+  label: string;
+  href: string;
+  icon: IconName;
+};
 
-function NavItemLink({
-  item,
-  pathname,
-  collapsed,
-  onNavigate,
-}: {
-  item: NavItem;
-  pathname: string;
-  collapsed: boolean;
-  onNavigate?: () => void;
-}) {
-  const active = isActive(pathname, item.href);
-  return (
-    <Link
-      href={item.href}
-      onClick={onNavigate}
-      aria-label={collapsed ? item.label : undefined}
-      title={collapsed ? item.label : undefined}
-      className={`group relative flex min-h-11 items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 ${
-        collapsed ? "justify-center" : ""
-      } ${
-        active
-          ? "bg-[#F0FDFA] text-[#0D9488] shadow-xs font-bold border-l-2 border-[#0D9488]"
-          : "text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-      }`}
-    >
-      <Icon
-        name={item.icon}
-        size={19}
-        className={`shrink-0 transition-colors ${active ? "text-[#0D9488]" : "text-[var(--color-muted)] group-hover:text-[var(--color-ink)]"}`}
-      />
-      {!collapsed ? <span className="truncate">{item.label}</span> : null}
-      {collapsed ? (
-        <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-[8px] border border-[var(--color-line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--color-ink)] shadow-[0_8px_24px_rgba(15,23,42,0.12)] group-hover:block">
-          {item.label}
-        </span>
-      ) : null}
-    </Link>
-  );
-}
+type NavGroup = {
+  id: string;
+  title: string;
+  items: NavGroupItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: "gestao",
+    title: "GESTÃO CONDOMINIAL",
+    items: [
+      { label: "Assembleias", href: "/painel/assembleias", icon: "scale" },
+      { label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone" },
+      { label: "Documentos", href: "/painel/documentos", icon: "folder" },
+      { label: "Comunicados", href: "/painel/comunicados", icon: "mail" },
+    ],
+  },
+  {
+    id: "manutencao",
+    title: "MANUTENÇÃO",
+    items: [
+      { label: "Ocorrências", href: "/painel/ocorrencias", icon: "clipboard" },
+      { label: "Ordens de Serviço", href: "/painel/ordens", icon: "wrench" },
+      { label: "Manutenção Preventiva", href: "/painel/manutencao", icon: "shield" },
+    ],
+  },
+  {
+    id: "comunidade",
+    title: "COMUNIDADE",
+    items: [
+      { label: "Reservas", href: "/painel/reservas", icon: "calendar" },
+      { label: "Encomendas", href: "/painel/encomendas", icon: "package" },
+      { label: "Visitantes & Acesso", href: "/painel/visitantes", icon: "users" },
+    ],
+  },
+  {
+    id: "servicos",
+    title: "SERVIÇOS",
+    items: [
+      { label: "Prestadores", href: "/painel/servicos", icon: "briefcase" },
+      { label: "Solicitar Orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles" },
+    ],
+  },
+];
+
+type SearchResultItem = {
+  title: string;
+  subtitle: string;
+  category: "Ocorrências" | "Reservas" | "Prestadores";
+  href: string;
+};
+
+const MOCK_SEARCHABLE_ITEMS: SearchResultItem[] = [
+  { title: "Lâmpada corredor Torre A", subtitle: "OC-00001 · Elétrica · Aberto", category: "Ocorrências", href: "/painel/ocorrencias" },
+  { title: "Vazamento subsolo -1", subtitle: "OC-00004 · Hidráulica · Em execução", category: "Ocorrências", href: "/painel/ocorrencias" },
+  { title: "Ruído excessivo salão", subtitle: "OC-00002 · Convivência · Aberto", category: "Ocorrências", href: "/painel/ocorrencias" },
+  { title: "Salão de Festas", subtitle: "Capacidade: 80 pessoas · R$ 200", category: "Reservas", href: "/painel/reservas" },
+  { title: "Churrasqueira Gourmet", subtitle: "Capacidade: 20 pessoas · R$ 80", category: "Reservas", href: "/painel/reservas" },
+  { title: "Espaço Gourmet", subtitle: "Capacidade: 40 pessoas · R$ 150", category: "Reservas", href: "/painel/reservas" },
+  { title: "Carlos Eduardo Silva", subtitle: "Volt & Luz Soluções Elétricas · 4.9 ★", category: "Prestadores", href: "/painel/servicos" },
+  { title: "AquaFix Manutenções", subtitle: "Engenharia Hidráulica · 4.8 ★", category: "Prestadores", href: "/painel/servicos" },
+  { title: "Roberto Marcenaria", subtitle: "Arte em Madeira · 5.0 ★", category: "Prestadores", href: "/painel/servicos" },
+];
+
+type NotificationItem = {
+  id: number;
+  title: string;
+  description: string;
+  time: string;
+  read: boolean;
+  href: string;
+  icon: IconName;
+};
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 1,
+    title: "Nova ocorrência registrada",
+    description: "OC-00001: Lâmpada queimada Torre A",
+    time: "Há 15 min",
+    read: false,
+    href: "/painel/ocorrencias",
+    icon: "clipboard",
+  },
+  {
+    id: 2,
+    title: "Reserva confirmada",
+    description: "Salão de Festas agendado para amanhã às 18h",
+    time: "Há 1 hora",
+    read: false,
+    href: "/painel/reservas",
+    icon: "calendar",
+  },
+  {
+    id: 3,
+    title: "Encomenda na portaria",
+    description: "Pacote recebido da Amazon (Código #9842)",
+    time: "Há 3 horas",
+    read: false,
+    href: "/painel/encomendas",
+    icon: "package",
+  },
+  {
+    id: 4,
+    title: "Edital de Assembleia",
+    description: "Convocação para Assembleia Geral Ordinária",
+    time: "Ontem",
+    read: true,
+    href: "/painel/assembleias",
+    icon: "scale",
+  },
+];
 
 export function Shell({
-  nav,
   condos,
   activeCondoId,
   userName,
   roleLabel,
   unitLabel,
   condoName,
-  unread,
+  unread: initialUnread,
   switchAction,
   logout,
   children,
 }: {
-  nav: ShellNav;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  nav?: any;
   condos: ShellCondo[];
   activeCondoId: number;
   userName: string;
@@ -82,336 +153,553 @@ export function Shell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return typeof window !== "undefined" && localStorage.getItem("zc-nav") === "collapsed";
-    } catch {
-      return false;
-    }
-  });
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
-  const pageTitle = useMemo(() => {
-    const all = [...nav.primary, ...nav.more];
-    const match = all.find((i) => isActive(pathname, i.href));
-    return match?.label ?? "Painel";
-  }, [pathname, nav]);
+  // Desktop sidebar collapse with persistent state in localStorage
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("zc-sidebar-collapsed");
+      if (saved !== null) {
+        setCollapsed(saved === "true");
+      }
+    } catch {}
+  }, []);
 
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
     try {
-      localStorage.setItem("zc-nav", next ? "collapsed" : "expanded");
+      localStorage.setItem("zc-sidebar-collapsed", String(next));
     } catch {}
   };
 
-  const isSuperOrSindico = ["superadmin", "sindico", "administrador"].some((r) =>
-    roleLabel.toLowerCase().includes(r)
-  );
+  // Accordion open/close state for sidebar groups
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    gestao: true,
+    manutencao: true,
+    comunidade: true,
+    servicos: true,
+  });
 
-  const SidebarInner = (
-    <div className="flex h-full flex-col">
-      {/* Brand */}
-      <div className={`flex min-h-12 items-center gap-3 px-1 ${collapsed ? "justify-center" : ""}`}>
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [condoDropdownOpen, setCondoDropdownOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Global Search state with debounce
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Notifications dropdown state
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length;
+  }, [notifications]);
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const markAsRead = (id: number) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? ({ ...n, read: true }) : n)));
+  };
+
+  // Click outside listener for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filtered search results grouped
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return MOCK_SEARCHABLE_ITEMS.filter(
+      (item) => item.title.toLowerCase().includes(q) || item.subtitle.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  const groupedSearchResults = useMemo(() => {
+    const groups: Record<string, SearchResultItem[]> = {
+      Ocorrências: [],
+      Reservas: [],
+      Prestadores: [],
+    };
+    searchResults.forEach((item) => {
+      if (groups[item.category]) {
+        groups[item.category].push(item);
+      }
+    });
+    return groups;
+  }, [searchResults]);
+
+  const isRouteActive = (href: string) => {
+    if (href === "/painel") return pathname === "/painel";
+    return pathname.startsWith(href);
+  };
+
+  const SidebarContent = (
+    <div className="flex h-full flex-col bg-white select-none">
+      {/* Brand Header */}
+      <div className={`flex h-14 items-center justify-between border-b border-slate-100 px-4 ${collapsed ? "justify-center px-2" : ""}`}>
         <Link href="/painel" className="flex items-center gap-2">
           <BrandLogo size={collapsed ? "sm" : "md"} showText={!collapsed} />
         </Link>
       </div>
 
-      {/* Condo switcher */}
-      {!collapsed ? (
-        <form action={switchAction} className="mt-4">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--color-muted)] mb-1">
-            Condomínio Ativo
-          </label>
-          <select
-            name="condoId"
-            defaultValue={activeCondoId}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
-            className="input min-h-10 py-1 text-xs font-medium"
-            aria-label="Selecionar condomínio"
+      {/* Navigation Groups */}
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
+        {/* Início / Dashboard */}
+        <div>
+          <Link
+            href="/painel"
+            onClick={() => setMobileOpen(false)}
+            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold transition-colors ${
+              pathname === "/painel"
+                ? "bg-blue-50 text-[#0070F3]"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            } ${collapsed ? "justify-center" : ""}`}
+            title={collapsed ? "Início" : undefined}
           >
-            {condos.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </form>
-      ) : null}
+            <Icon name="grid" size={16} className={pathname === "/painel" ? "text-[#0070F3]" : "text-slate-400"} />
+            {!collapsed && <span>Início</span>}
 
-      {/* Nav with 8 Core Modules */}
-      <nav className="mt-5 min-h-0 flex-1 space-y-1 overflow-y-auto pb-4">
-        {!collapsed ? (
-          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
-            Módulos do Sistema
-          </p>
-        ) : null}
-        <div className="space-y-1">
-          {nav.primary.map((item) => (
-            <NavItemLink
-              key={item.href}
-              item={item}
-              pathname={pathname}
-              collapsed={collapsed}
-              onNavigate={() => setMobileOpen(false)}
-            />
-          ))}
+            {collapsed && (
+              <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
+                Início
+              </span>
+            )}
+          </Link>
         </div>
 
-        {nav.more.length > 0 ? (
-          <div className="pt-3">
-            {!collapsed ? (
-              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
-                Recursos Extras
-              </p>
-            ) : (
-              <div className="my-2 border-t border-[var(--color-line)]" />
-            )}
-            <div className="space-y-1">
-              {nav.more.map((item) => (
-                <NavItemLink
-                  key={item.href}
-                  item={item}
-                  pathname={pathname}
-                  collapsed={collapsed}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              ))}
+        {/* Collapsible Accordion Groups */}
+        {NAV_GROUPS.map((group) => {
+          const isExpanded = expandedGroups[group.id] ?? true;
+          const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
+
+          return (
+            <div key={group.id} className="space-y-0.5">
+              {!collapsed ? (
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-colors"
+                >
+                  <span className={hasActiveChild ? "text-[#0070F3]" : ""}>{group.title}</span>
+                  <Icon
+                    name="chevron-down"
+                    size={11}
+                    className={`transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
+                  />
+                </button>
+              ) : (
+                <div className="my-1 border-t border-slate-100" />
+              )}
+
+              {(isExpanded || collapsed) && (
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const active = isRouteActive(item.href);
+
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          active
+                            ? "bg-blue-50 text-[#0070F3] font-bold"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        } ${collapsed ? "justify-center" : ""}`}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        <Icon
+                          name={item.icon}
+                          size={15}
+                          className={active ? "text-[#0070F3]" : "text-slate-400 group-hover:text-slate-600"}
+                        />
+                        {!collapsed && <span className="truncate">{item.label}</span>}
+
+                        {collapsed && (
+                          <span className="pointer-events-none absolute left-[calc(100%+8px)] z-50 hidden whitespace-nowrap rounded-[6px] border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-lg group-hover:block">
+                            {item.label}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        ) : null}
+          );
+        })}
       </nav>
 
-      {/* User profile card & Logout */}
-      <div className={`border-t border-[var(--color-line)] pt-3.5 ${collapsed ? "space-y-2" : "space-y-2.5"}`}>
-        {!collapsed ? (
-          <Link
-            href="/painel/perfil"
-            className="flex items-center gap-2.5 rounded-[12px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-2.5 hover:bg-teal-50/50 hover:border-teal-200 transition-colors"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#0D9488] to-[#0F766E] text-xs font-bold text-white shadow-xs">
-              {userName.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-[var(--color-ink)]">{userName}</p>
-              <p className="truncate text-[11px] text-[var(--color-muted)] font-medium">
-                {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
-              </p>
-            </div>
-          </Link>
-        ) : null}
-
-        <form action={logout}>
+      {/* Simplified User Profile Footer */}
+      <div className="border-t border-slate-100 p-2.5">
+        <div className="relative">
           <button
-            type="submit"
-            className={`flex min-h-10 w-full items-center gap-2 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-colors ${
+            type="button"
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+            className={`w-full flex items-center gap-2.5 rounded-[8px] p-1.5 text-left hover:bg-slate-50 transition-colors ${
               collapsed ? "justify-center" : ""
             }`}
-            title={collapsed ? "Sair da conta" : undefined}
           >
-            <Icon name="logout" size={15} />
-            {!collapsed ? "Sair da conta" : null}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0070F3] text-white text-xs font-bold">
+              {userName.slice(0, 1).toUpperCase()}
+            </span>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-[#0F172A]">{userName}</p>
+                <p className="truncate text-[10px] text-slate-400 font-medium">
+                  {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
+                </p>
+              </div>
+            )}
+            {!collapsed && (
+              <Icon name="more" size={14} className="text-slate-400" />
+            )}
           </button>
-        </form>
-      </div>
 
-      {/* Collapse toggle (desktop only) */}
-      {!mobileOpen ? (
-        <button
-          type="button"
-          onClick={toggleCollapse}
-          className={`mt-2 hidden min-h-10 items-center gap-2 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)] lg:flex ${
-            collapsed ? "justify-center" : ""
-          }`}
-          title={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          <Icon name="panel" size={15} className={collapsed ? "rotate-180" : ""} />
-          {!collapsed ? "Recolher menu" : null}
-        </button>
-      ) : null}
+          {/* Profile Popup Menu */}
+          {profileMenuOpen && (
+            <div className="menu-surface absolute bottom-full left-0 z-50 mb-1 w-52 shadow-xl animate-in fade-in-50 duration-100">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <p className="text-xs font-bold text-[#0F172A] truncate">{userName}</p>
+                <p className="text-[10px] text-slate-400">{roleLabel}</p>
+              </div>
+              <div className="p-1 space-y-0.5">
+                <Link
+                  href="/painel/perfil"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  <Icon name="user" size={13} className="text-[#0070F3]" />
+                  <span>Meu Perfil</span>
+                </Link>
+                <Link
+                  href="/painel/perfil"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  <Icon name="settings" size={13} className="text-slate-400" />
+                  <span>Configurações</span>
+                </Link>
+                <div className="my-1 border-t border-slate-100" />
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    className="w-full flex items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                  >
+                    <Icon name="logout" size={13} />
+                    <span>Sair da conta</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Collapse toggle (desktop only) */}
+        <div className="mt-1 pt-1 border-t border-slate-100 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors ${
+              collapsed ? "w-full" : ""
+            }`}
+            title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+          >
+            <Icon name="panel" size={13} className={collapsed ? "rotate-180" : ""} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)]">
-      {/* Desktop sidebar */}
+    <div className="min-h-screen bg-[#F8FAFC]">
+      {/* Desktop Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-[var(--color-line)] bg-white p-4 transition-[width] duration-200 lg:block ${
-          collapsed ? "w-[84px]" : "w-[264px]"
+        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200 bg-white transition-[width] duration-200 lg:block ${
+          collapsed ? "w-[64px]" : "w-[240px]"
         }`}
       >
-        {SidebarInner}
+        {SidebarContent}
       </aside>
 
-      {/* Mobile drawer */}
-      {mobileOpen ? (
+      {/* Mobile Drawer */}
+      {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-[#0f172a]/30 backdrop-blur-xs" onClick={() => setMobileOpen(false)} aria-hidden />
-          <aside className="absolute inset-y-0 left-0 w-[292px] overflow-y-auto border-r border-[var(--color-line)] bg-white p-4">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="mb-2 ml-auto flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)]"
-              aria-label="Fechar menu"
-            >
-              <Icon name="x" size={18} />
-            </button>
-            {SidebarInner}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+          <aside className="absolute inset-y-0 left-0 w-[270px] bg-white shadow-2xl animate-in slide-in-from-left duration-200">
+            {SidebarContent}
           </aside>
         </div>
-      ) : null}
+      )}
 
-      {/* Main column */}
-      <div className={`flex min-h-screen flex-col lg:pl-[264px] ${collapsed ? "lg:pl-[84px]" : ""}`}>
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between gap-4 border-b border-[var(--color-line)] bg-white/95 backdrop-blur-md px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-xl">
+      {/* Main Column Wrapper */}
+      <div
+        className={`flex min-h-screen flex-col transition-[padding] duration-200 ${
+          collapsed ? "lg:pl-[64px]" : "lg:pl-[240px]"
+        }`}
+      >
+        {/* Global Minimalist Header without duplicate logo on desktop */}
+        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 sm:px-6 shadow-2xs">
+          {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] lg:hidden shrink-0"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="Abrir menu"
             >
-              <Icon name="menu" size={20} />
+              <Icon name="menu" size={18} />
             </button>
 
-            {/* Mobile logo */}
-            <div className="lg:hidden shrink-0">
-              <BrandLogo size="sm" showText={true} />
+            {/* Mobile logo only */}
+            <div className="lg:hidden">
+              <BrandLogo size="sm" showText={false} />
             </div>
 
-            {/* Condo pill indicator */}
-            <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#0F172A] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs shrink-0">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                <Icon name="shield" size={11} />
-              </span>
-              <span className="truncate max-w-[200px]">{condoName || "Condomínio"}</span>
-            </div>
+            {/* Condo Selector Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setCondoDropdownOpen(!condoDropdownOpen)}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1 text-xs font-bold text-[#0F172A] transition-colors"
+              >
+                <span className="h-2 w-2 rounded-full bg-[#FAB800]" />
+                <span className="truncate max-w-[170px] sm:max-w-[240px]">
+                  {condoName || "Residencial Parque das Águas"}
+                </span>
+                <Icon name="chevron-down" size={11} className="text-slate-400" />
+              </button>
 
-            {/* Global Search */}
-            <div className="relative hidden md:block flex-1 max-w-md">
-              <Icon name="search" size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-subtle)]" />
-              <input
-                type="text"
-                placeholder="Buscar ocorrência, morador, reserva..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] pl-9 pr-4 text-xs text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:border-[#0D9488] focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-100 transition-all"
-              />
+              {condoDropdownOpen && (
+                <div className="menu-surface absolute left-0 z-50 mt-1 w-64 shadow-lg animate-in fade-in-50 duration-100">
+                  <div className="px-3 py-1.5 border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Selecione o Condomínio
+                  </div>
+                  <div className="py-1">
+                    {condos.map((c) => (
+                      <form key={c.id} action={switchAction}>
+                        <input type="hidden" name="condoId" value={c.id} />
+                        <button
+                          type="submit"
+                          onClick={() => setCondoDropdownOpen(false)}
+                          className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-blue-50 transition-colors ${
+                            c.id === activeCondoId ? "font-bold text-[#0070F3] bg-blue-50/50" : "text-slate-700"
+                          }`}
+                        >
+                          <span className="truncate">{c.name}</span>
+                          {c.id === activeCondoId && <Icon name="check" size={13} className="text-[#0070F3]" />}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Header Navigation Icons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Quick module links */}
-            <Link
-              href="/painel/agenda"
-              title="Agenda Condominial"
-              className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
-            >
-              <Icon name="calendar" size={18} />
-            </Link>
+          {/* Center: Functional Global Search with grouped autocomplete dropdown */}
+          <div ref={searchRef} className="relative hidden md:block flex-1 max-w-sm mx-4">
+            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar ocorrência, reserva ou prestador..."
+              value={searchQuery}
+              onFocus={() => setSearchFocused(true)}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8.5 w-full rounded-full border border-slate-200 bg-slate-50 pl-8.5 pr-4 text-xs text-[#0F172A] placeholder:text-slate-400 outline-none focus:border-[#0070F3] focus:bg-white focus:ring-1 focus:ring-blue-100 transition-all"
+            />
 
-            <Link
-              href="/painel/portaria"
-              title="Portaria e Acesso"
-              className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
-            >
-              <Icon name="shield" size={18} />
-            </Link>
-
-            {/* Notifications */}
-            <Link
-              href="/painel/notificacoes"
-              title="Central de Notificações"
-              className="relative flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[#0D9488] transition-colors"
-            >
-              <Icon name="bell" size={18} />
-              {unread > 0 ? (
-                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0D9488] px-1 text-[10px] font-black text-white">
-                  {unread > 9 ? "9+" : unread}
-                </span>
-              ) : null}
-            </Link>
-
-            <div className="h-5 w-px bg-[var(--color-line)] mx-1 hidden sm:block" />
-
-            {/* Profile Dropdown */}
-            <details className="relative">
-              <summary
-                className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full bg-[#F0FDFA] border border-[#99F6E4] text-xs font-bold text-[#0D9488] hover:shadow-xs transition-shadow"
-                aria-label="Perfil"
-              >
-                {userName.slice(0, 1).toUpperCase()}
-              </summary>
-              <div className="menu-surface absolute right-0 z-50 mt-2 w-64 shadow-[0_16px_36px_rgba(15,23,42,0.12)]">
-                <div className="border-b border-[var(--color-line)] px-4 py-3 bg-[var(--color-surface-muted)]">
-                  <p className="truncate text-sm font-bold text-[var(--color-ink)]">{userName}</p>
-                  <p className="truncate text-xs text-[var(--color-muted)] font-medium">
-                    {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
-                  </p>
-                </div>
-                <div className="p-1.5 space-y-0.5">
-                  <Link
-                    href="/painel/perfil"
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
-                  >
-                    <Icon name="user" size={15} className="text-[#0D9488]" /> Meu Perfil
-                  </Link>
-                  <Link
-                    href="/painel/notificacoes"
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
-                  >
-                    <Icon name="bell" size={15} className="text-[#0D9488]" /> Notificações
-                  </Link>
-                  <Link
-                    href="/painel/agenda"
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
-                  >
-                    <Icon name="calendar" size={15} className="text-[#059669]" /> Agenda do Condomínio
-                  </Link>
-                  <div className="border-t border-[var(--color-line)] my-1" />
-                  <form action={logout}>
-                    <button
-                      type="submit"
-                      className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold text-[#DC2626] hover:bg-[#FEF2F2]"
-                    >
-                      <Icon name="logout" size={15} /> Sair da plataforma
-                    </button>
-                  </form>
-                </div>
+            {/* Search Autocomplete Results Dropdown */}
+            {searchFocused && searchQuery.trim().length > 0 && (
+              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto shadow-xl">
+                {searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    Nenhum resultado encontrado para &quot;{searchQuery}&quot;
+                  </div>
+                ) : (
+                  <div className="p-1 space-y-2">
+                    {Object.entries(groupedSearchResults).map(([cat, items]) => {
+                      if (items.length === 0) return null;
+                      return (
+                        <div key={cat} className="space-y-0.5">
+                          <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 rounded">
+                            {cat}
+                          </div>
+                          {items.map((item) => (
+                            <Link
+                              key={item.title}
+                              href={item.href}
+                              onClick={() => {
+                                setSearchFocused(false);
+                                setSearchQuery("");
+                              }}
+                              className="block p-2 rounded-[6px] hover:bg-blue-50/70 transition-colors"
+                            >
+                              <p className="text-xs font-bold text-[#0F172A]">{item.title}</p>
+                              <p className="text-[11px] text-slate-500">{item.subtitle}</p>
+                            </Link>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </details>
+            )}
+          </div>
+
+          {/* Right: Notifications Dropdown + User Avatar */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Notifications Dropdown */}
+            <div ref={notifRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                title="Notificações"
+                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 hover:text-[#0F172A] transition-colors"
+                aria-label="Abrir notificações"
+              >
+                <Icon name="bell" size={16} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#FAB800]" />
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="menu-surface absolute right-0 z-50 mt-1 w-80 shadow-xl animate-in fade-in-50 duration-100">
+                  <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-[#0F172A]">Notificações</h4>
+                      {unreadCount > 0 && (
+                        <span className="rounded-full bg-amber-50 px-1.5 py-0.2 text-[10px] font-black text-[#FAB800]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllAsRead}
+                        className="text-[10px] font-bold text-[#0070F3] hover:underline"
+                      >
+                        Marcar lidas
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    {notifications.map((notif) => (
+                      <Link
+                        key={notif.id}
+                        href={notif.href}
+                        onClick={() => {
+                          markAsRead(notif.id);
+                          setNotificationsOpen(false);
+                        }}
+                        className={`flex items-start gap-2.5 p-3 text-left transition-colors hover:bg-slate-50 ${
+                          !notif.read ? "bg-blue-50/30" : ""
+                        }`}
+                      >
+                        <span
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${
+                            !notif.read ? "bg-[#0070F3] text-white" : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          <Icon name={notif.icon} size={13} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[#0F172A] leading-tight">
+                            {notif.title}
+                          </p>
+                          <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
+                            {notif.description}
+                          </p>
+                          <span className="text-[10px] text-slate-400 mt-1 block">
+                            {notif.time}
+                          </span>
+                        </div>
+                        {!notif.read && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#0070F3] shrink-0 mt-1" />
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Avatar */}
+            <Link
+              href="/painel/perfil"
+              title="Meu Perfil"
+              className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 hover:ring-blue-100 transition-all"
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0070F3] text-white text-xs font-bold">
+                {userName.slice(0, 1).toUpperCase()}
+              </span>
+            </Link>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 pb-28 sm:px-6 lg:px-8 lg:pb-12">
+        {/* Content Body: Max width 1440px to 1600px, avoiding unbounded stretching on ultra-wide screens */}
+        <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-12 max-w-[1440px] mx-auto">
           {children}
         </main>
 
-        {/* Mobile bottom nav: 5 Core Modules */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-[var(--color-line)] bg-white/95 backdrop-blur-md px-2 py-1.5 lg:hidden shadow-lg">
+        {/* Mobile Fixed Bottom Navigation (5 Core Actions) */}
+        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-slate-200 bg-white/98 backdrop-blur-md px-1 py-1 lg:hidden shadow-lg select-none">
           {[
             { href: "/painel", label: "Início", icon: "grid" as IconName },
-            { href: "/painel/ocorrencias", label: "Ocorrências", icon: "book" as IconName },
-            { href: "/painel/reservas", label: "Reservas", icon: "building" as IconName },
-            { href: "/painel/servicos", label: "Serviços", icon: "wrench" as IconName },
+            { href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
+            { href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
+            { href: "/painel/servicos", label: "Serviços", icon: "briefcase" as IconName },
             { href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
-          ].map((navItem) => {
-            const active = isActive(pathname, navItem.href);
+          ].map((item) => {
+            const active = isRouteActive(item.href);
             return (
               <Link
-                key={navItem.href}
-                href={navItem.href}
-                className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-[10px] text-[10px] font-bold transition-all ${
-                  active ? "text-[#0D9488]" : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                key={item.href}
+                href={item.href}
+                className={`flex min-h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[10px] font-bold transition-colors ${
+                  active ? "text-[#0070F3]" : "text-slate-400 hover:text-slate-700"
                 }`}
               >
-                <Icon name={navItem.icon} size={20} />
-                <span>{navItem.label}</span>
+                <div className="relative flex items-center justify-center">
+                  <Icon name={item.icon} size={18} />
+                  {active && (
+                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#FAB800]" />
+                  )}
+                </div>
+                <span>{item.label}</span>
               </Link>
             );
           })}

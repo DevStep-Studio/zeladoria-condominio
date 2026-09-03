@@ -3,19 +3,19 @@
 @import "@fullcalendar/react/themes/forma/theme.css";
 @import "@fullcalendar/react/themes/forma/palettes/green.css";
 
-/* ============ Design tokens: Zeladoria Condomínio (Branco + Verde/Azul-Petróleo Corporativo) ============ */
+/* ============ Design tokens: Zeladoria Condomínio (Azul #0070F3 + Amarelo #FAB800 Corporativo) ============ */
 @theme {
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
   --color-surface-muted: #f1f5f9;
-  --color-primary: #0d9488;
-  --color-primary-hover: #0f766e;
-  --color-primary-dark: #115e59;
-  --color-primary-soft: #f0fdfa;
-  --color-secondary: #059669;
-  --color-secondary-hover: #047857;
-  --color-secondary-dark: #065f46;
-  --color-secondary-soft: #ecfdf5;
+  --color-primary: #0070f3;
+  --color-primary-hover: #005fd6;
+  --color-primary-dark: #0047ab;
+  --color-primary-soft: #eff6ff;
+  --color-secondary: #fab800;
+  --color-secondary-hover: #e5a700;
+  --color-secondary-dark: #b8860b;
+  --color-secondary-soft: #fffbeb;
   --color-ink: #0f172a;
   --color-muted: #64748b;
   --color-subtle: #94a3b8;
@@ -61,7 +61,7 @@ button:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.4);
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.4);
   border-radius: 8px;
 }
 
@@ -76,11 +76,11 @@ summary::-webkit-details-marker {
 /* Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #99f6e4 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 *::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 *::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -90,47 +90,40 @@ summary::-webkit-details-marker {
   background: #94a3b8;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  background-color: #f1f5f9;
   border-radius: 8px;
 }
 
 @layer components {
   .card {
-    @apply rounded-[16px] border border-[var(--color-line)] bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_1px_2px_rgba(15,23,42,0.02)];
+    @apply rounded-[14px] border border-[var(--color-line)] bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
   }
   .card-flat {
-    @apply rounded-[16px] border border-[var(--color-line)] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04),0_1px_2px_rgba(15,23,42,0.02)];
+    @apply rounded-[14px] border border-[var(--color-line)] bg-white shadow-none;
   }
   .panel-surface {
-    @apply rounded-[16px] border border-[var(--color-line)] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+    @apply rounded-[14px] border border-[var(--color-line)] bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)];
   }
   .page-grid {
     @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px];
   }
   .label {
-    @apply mb-2 block text-[12px] font-bold uppercase tracking-wide text-[var(--color-muted)];
+    @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)];
   }
   .input {
-    @apply min-h-11 w-full rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-sm text-[var(--color-ink)] outline-none
+    @apply min-h-10 w-full rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-xs sm:text-sm text-[var(--color-ink)] outline-none
       transition-all placeholder:text-[var(--color-subtle)]
-      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-teal-100
+      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100
       disabled:cursor-not-allowed disabled:bg-[var(--color-surface-muted)] disabled:text-[var(--color-subtle)];
   }
   textarea.input {
-    @apply min-h-28 py-3 leading-relaxed;
+    @apply min-h-24 py-2.5 leading-relaxed;
   }
   select,
   select.input {
-    @apply min-h-11 w-full rounded-[10px] border border-[var(--color-line)] bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-teal-100;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230D9488' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    @apply min-h-10 w-full rounded-[10px] border border-[var(--color-line)] bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230070F3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     appearance: none;
@@ -144,14 +137,14 @@ summary::-webkit-details-marker {
   .btn-dark,
   .btn-danger,
   .btn-success {
-    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-semibold
+    @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-xs sm:text-sm font-semibold
       transition-[background-color,border-color,color,box-shadow,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
   }
   .btn-primary {
-    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.25)];
+    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] shadow-xs;
   }
   .btn-yellow {
-    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-white hover:bg-[var(--color-secondary-hover)] hover:shadow-[0_4px_16px_rgba(5,150,105,0.25)];
+    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-[#0F172A] hover:bg-[var(--color-secondary-hover)] shadow-xs;
   }
   .btn-ghost {
     @apply border border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-line-strong)] hover:bg-[var(--color-surface-muted)];
@@ -166,19 +159,19 @@ summary::-webkit-details-marker {
     @apply bg-[var(--color-success)] text-white hover:bg-[#059669];
   }
   .btn-sm {
-    @apply min-h-9 px-3 py-1.5 text-xs rounded-[8px];
+    @apply min-h-8.5 px-3 py-1 text-xs rounded-[8px];
   }
   .btn-link {
-    @apply inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline;
+    @apply inline-flex cursor-pointer items-center gap-1.5 text-xs sm:text-sm font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline;
   }
   .table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-left text-xs sm:text-sm;
   }
   .table thead th {
-    @apply border-b border-[var(--color-line)] bg-[var(--color-surface-muted)] px-5 py-4 text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)];
+    @apply border-b border-[var(--color-line)] bg-[var(--color-surface-muted)] px-4 py-3 text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)];
   }
   .table tbody td {
-    @apply border-b border-[var(--color-line)] px-5 py-4 align-middle text-[var(--color-ink)];
+    @apply border-b border-[var(--color-line)] px-4 py-3 align-middle text-[var(--color-ink)];
   }
   .table tbody tr:last-child td {
     @apply border-b-0;
@@ -190,34 +183,34 @@ summary::-webkit-details-marker {
     @apply font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-[8px] border border-transparent px-2.5 py-1 text-[11px] font-semibold leading-5;
+    @apply inline-flex items-center gap-1.5 rounded-[8px] border border-transparent px-2.5 py-0.5 text-[11px] font-semibold leading-5;
   }
   .surface-hover {
-    @apply transition-[border-color,box-shadow,transform] hover:border-[var(--color-line-strong)] hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)];
+    @apply transition-[border-color,box-shadow,transform] hover:border-[var(--color-line-strong)] hover:shadow-xs;
   }
   .menu-surface {
-    @apply overflow-hidden rounded-[14px] border border-[var(--color-line)] bg-white py-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.1)];
+    @apply overflow-hidden rounded-[12px] border border-[var(--color-line)] bg-white py-1 shadow-[0_8px_24px_rgba(15,23,42,0.08)];
   }
   .soft-divider {
     @apply divide-y divide-[var(--color-line)];
   }
   .drawer-panel {
-    @apply fixed inset-y-0 right-0 z-[70] w-full max-w-2xl overflow-y-auto border-l border-[var(--color-line)] bg-white p-6 shadow-[0_12px_34px_rgba(15,23,42,0.15)] sm:p-8;
+    @apply fixed inset-y-0 right-0 z-[70] w-full max-w-xl overflow-y-auto border-l border-[var(--color-line)] bg-white p-6 shadow-[0_12px_34px_rgba(15,23,42,0.12)];
   }
   .drawer-scrim {
     @apply fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs;
   }
   .tabbar {
-    @apply flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[var(--color-line)] bg-white p-1.5;
+    @apply flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[var(--color-line)] bg-white p-1;
   }
   .tab {
-    @apply inline-flex min-h-10 items-center justify-center rounded-[8px] px-3.5 text-xs font-semibold text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)];
+    @apply inline-flex min-h-9 items-center justify-center rounded-[8px] px-3 text-xs font-semibold text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)];
   }
   .tab-active {
     @apply bg-[var(--color-primary-soft)] text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)];
   }
   .section-shell {
-    @apply rounded-[16px] border border-[var(--color-line)] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)];
+    @apply rounded-[14px] border border-[var(--color-line)] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
   }
 }
 
@@ -228,35 +221,16 @@ summary::-webkit-details-marker {
   --fc-forma-primary-foreground: #ffffff;
   --fc-forma-event: var(--color-primary);
   --fc-forma-event-contrast: #ffffff;
-  --fc-forma-highlight: rgba(0, 112, 243, 0.12);
+  --fc-forma-highlight: rgba(0, 112, 243, 0.1);
   --fc-forma-background: #ffffff;
-  --fc-forma-faint: rgba(15, 23, 42, 0.035);
-  --fc-forma-muted: rgba(15, 23, 42, 0.07);
+  --fc-forma-faint: rgba(15, 23, 42, 0.03);
+  --fc-forma-muted: rgba(15, 23, 42, 0.06);
   --fc-forma-foreground: var(--color-ink);
   --fc-forma-muted-foreground: var(--color-muted);
   --fc-forma-border: var(--color-line);
   --fc-forma-muted-border: var(--color-line);
   --fc-forma-strong-border: var(--color-line-strong);
   font-family: var(--font-sans);
-}
-
-.agenda-calendar-shell > div {
-  min-width: 720px;
-}
-
-.agenda-calendar-shell [role="grid"] {
-  border-radius: 12px;
-}
-
-.agenda-calendar-shell [role="button"] {
-  border-radius: 8px !important;
-  border: 1px solid rgba(0, 112, 243, 0.25) !important;
-}
-
-@media (max-width: 767px) {
-  .agenda-calendar-shell > div {
-    min-width: 720px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

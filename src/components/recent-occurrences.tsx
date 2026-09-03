@@ -26,67 +26,7 @@ export function RecentOccurrences({
   const [categoryFilter, setCategoryFilter] = useState("todas");
   const [sortBy, setSortBy] = useState<"recent" | "priority">("recent");
 
-  // Fallback demo occurrences if none are provided
-  const items: OccurrenceItem[] = useMemo(() => {
-    if (initialOccurrences.length > 0) return initialOccurrences;
-    return [
-      {
-        id: 1,
-        protocol: "OCO-2026-0042",
-        title: "Vazamento no registro da garagem",
-        category: "Hidráulica",
-        unit: "Subsolo 1 · Vaga 42",
-        reporter: "Zelador Carlos",
-        status: "em_andamento",
-        priority: "alta",
-        createdAt: "Hoje às 10:30",
-      },
-      {
-        id: 2,
-        protocol: "OCO-2026-0041",
-        title: "Lâmpada queimada no hall do 3º andar",
-        category: "Elétrica",
-        unit: "Bloco A · Apto 302",
-        reporter: "Ana Ribeiro",
-        status: "aberto",
-        priority: "media",
-        createdAt: "Hoje às 08:15",
-      },
-      {
-        id: 3,
-        protocol: "OCO-2026-0040",
-        title: "Barulho excessivo após às 22h",
-        category: "Convivência",
-        unit: "Bloco B · Apto 504",
-        reporter: "Portaria Central",
-        status: "concluido",
-        priority: "alta",
-        createdAt: "Ontem às 23:10",
-      },
-      {
-        id: 4,
-        protocol: "OCO-2026-0039",
-        title: "Portão da garagem com abertura lenta",
-        category: "Segurança",
-        unit: "Entrada Veículos",
-        reporter: "Marcos (Porteiro)",
-        status: "em_andamento",
-        priority: "urgente",
-        createdAt: "Ontem às 16:45",
-      },
-      {
-        id: 5,
-        protocol: "OCO-2026-0038",
-        title: "Higienização dos filtros da piscina",
-        category: "Limpeza",
-        unit: "Área de Lazer",
-        reporter: "Síndico",
-        status: "concluido",
-        priority: "baixa",
-        createdAt: "23/08/2026",
-      },
-    ];
-  }, [initialOccurrences]);
+  const items: OccurrenceItem[] = initialOccurrences;
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
@@ -131,51 +71,54 @@ export function RecentOccurrences({
   };
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-4">
       {/* Header matching reference */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-base font-bold tracking-tight text-[var(--color-ink)]">
-            Ocorrências recentes
-          </h3>
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ECFDF5] px-1.5 text-[11px] font-extrabold text-[#059669]">
-            {items.length}
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold tracking-tight text-[#0F172A]">
+              Ocorrências recentes
+            </h3>
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ECFDF5] px-2 text-[11px] font-extrabold text-[#059669]">
+              {items.length}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Busque e filtre protocolos públicos.
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-muted)]">
-          <span>Ordenar:</span>
-          <button
-            type="button"
-            onClick={() => setSortBy((s) => (s === "recent" ? "priority" : "recent"))}
-            className="text-[var(--color-ink)] font-bold hover:text-[#0070F3] underline-offset-4 hover:underline"
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <span>Ordenar</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "recent" | "priority")}
+            aria-label="Ordenar ocorrências"
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] outline-none cursor-pointer"
           >
-            {sortBy === "recent" ? "Mais recentes" : "Prioridade"}
-          </button>
+            <option value="recent">Mais recente: ↓</option>
+            <option value="priority">Prioridade: ↑</option>
+          </select>
         </div>
       </div>
 
-      <p className="text-xs text-[var(--color-muted)] -mt-1">
-        Busque e filtre protocolos de manutenção e zeladoria.
-      </p>
-
-      {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[minmax(0,1fr)_140px_140px]">
+      {/* Filter and Search Bar matching reference */}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
         {/* Search input */}
         <div className="relative flex items-center">
-          <Icon name="search" size={16} className="absolute left-3.5 text-[var(--color-muted)]" />
+          <Icon name="search" size={16} className="absolute left-3.5 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por protocolo, categoria ou morador..."
-            className="input pl-9.5 min-h-10 text-xs"
+            placeholder="Buscar por protocolo, rua ou categoria"
+            className="w-full rounded-[12px] border border-slate-200 bg-white pl-9.5 pr-4 py-2.5 text-xs text-[#0F172A] placeholder:text-slate-400 outline-none focus:border-[#10B981] transition-colors"
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-3 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+              className="absolute right-3 text-slate-400 hover:text-slate-600"
             >
               <Icon name="x" size={14} />
             </button>
@@ -183,50 +126,66 @@ export function RecentOccurrences({
         </div>
 
         {/* Status Dropdown */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="input min-h-10 py-1 text-xs"
-        >
-          <option value="todos">Todos os status</option>
-          <option value="aberto">Aberto</option>
-          <option value="em_andamento">Em andamento</option>
-          <option value="pendente">Pendente</option>
-          <option value="concluido">Concluído</option>
-        </select>
+        <div className="relative flex items-center">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filtrar por status"
+            className="appearance-none rounded-[12px] border border-slate-200 bg-white pl-4 pr-8 py-2.5 text-xs font-medium text-slate-700 outline-none cursor-pointer hover:border-slate-300 transition-colors"
+          >
+            <option value="todos">Todos os status</option>
+            <option value="aberto">Aberto</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="pendente">Pendente</option>
+            <option value="concluido">Concluído</option>
+          </select>
+          <Icon name="chevron-down" size={13} className="absolute right-3 text-slate-400 pointer-events-none" />
+        </div>
 
-        {/* Category Dropdown */}
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="input min-h-10 py-1 text-xs"
-        >
-          <option value="todas">Todas as categorias</option>
-          <option value="hidraulica">Hidráulica</option>
-          <option value="eletrica">Elétrica</option>
-          <option value="seguranca">Segurança</option>
-          <option value="limpeza">Limpeza</option>
-          <option value="convivencia">Convivência</option>
-        </select>
+        {/* Category Button / Dropdown */}
+        <div className="relative flex items-center">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filtrar por categoria"
+            className="appearance-none rounded-[12px] border border-slate-200 bg-white pl-9 pr-8 py-2.5 text-xs font-medium text-slate-700 outline-none cursor-pointer hover:border-slate-300 transition-colors"
+          >
+            <option value="todas">Todas as categorias</option>
+            <option value="saude">Saúde</option>
+            <option value="educacao">Educação</option>
+            <option value="defesa civil">Defesa Civil</option>
+            <option value="participacao">Participação</option>
+            <option value="transparencia">Transparência</option>
+            <option value="manutencao">Manutenção</option>
+            <option value="seguranca">Segurança</option>
+            <option value="limpeza">Limpeza</option>
+          </select>
+          <Icon name="filter" size={14} className="absolute left-3 text-slate-400 pointer-events-none" />
+          <Icon name="chevron-down" size={13} className="absolute right-3 text-slate-400 pointer-events-none" />
+        </div>
       </div>
 
-      {/* Occurrences List */}
-      <div className="space-y-2">
+      {/* Occurrences List / Empty State */}
+      <div className="space-y-2.5">
         {filtered.length === 0 ? (
-          <div className="rounded-[14px] border border-dashed border-[var(--color-line)] bg-white p-8 text-center">
-            <Icon name="search" size={24} className="mx-auto text-[var(--color-muted)] mb-2" />
-            <p className="text-sm font-semibold text-[var(--color-ink)]">Nenhuma ocorrência encontrada</p>
-            <p className="text-xs text-[var(--color-muted)] mt-1">Tente ajustar os filtros ou termo de busca.</p>
+          <div className="rounded-[16px] border border-dashed border-slate-200 bg-slate-50/60 py-12 px-6 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-[#10B981] mb-3">
+              <Icon name="check-circle" size={24} />
+            </div>
+            <p className="text-sm font-bold text-[#0F172A]">Nenhuma ocorrência encontrada</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Nenhuma solicitação ou protocolo aberto no momento para os filtros selecionados.
+            </p>
           </div>
         ) : (
           filtered.map((item) => (
             <div
               key={item.id}
-              className="group flex flex-col justify-between gap-3 rounded-[14px] border border-[var(--color-line)] bg-white p-4 transition-all duration-150 hover:border-[#0070F3]/40 hover:shadow-sm sm:flex-row sm:items-center"
+              className="group flex flex-col justify-between gap-3 rounded-[14px] border border-slate-200 bg-white p-4 transition-all duration-150 hover:border-[#10B981]/60 hover:shadow-xs sm:flex-row sm:items-center"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-[11px] font-bold font-mono text-[#0070F3] bg-blue-50 px-2 py-0.5 rounded">
+                  <span className="text-[11px] font-bold font-mono text-[#059669] bg-emerald-50 px-2 py-0.5 rounded">
                     {item.protocol}
                   </span>
                   <span className="chip bg-slate-100 text-slate-700 text-[10px] font-semibold">
@@ -235,20 +194,20 @@ export function RecentOccurrences({
                   {getPriorityBadge(item.priority)}
                 </div>
 
-                <h4 className="text-sm font-bold text-[var(--color-ink)] group-hover:text-[#0070F3] transition-colors leading-tight">
+                <h4 className="text-sm font-bold text-[#0F172A] group-hover:text-[#059669] transition-colors leading-tight">
                   {item.title}
                 </h4>
 
-                <p className="mt-1 text-xs text-[var(--color-muted)]">
-                  {item.unit} · Registrado por <strong className="font-semibold text-[var(--color-ink)]">{item.reporter}</strong> · {item.createdAt}
+                <p className="mt-1 text-xs text-slate-500">
+                  {item.unit} · Registrado por <strong className="font-semibold text-slate-700">{item.reporter}</strong> · {item.createdAt}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t border-[var(--color-line)] pt-2.5 sm:border-t-0 sm:pt-0">
+              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t border-slate-100 pt-2.5 sm:border-t-0 sm:pt-0">
                 {getStatusBadge(item.status)}
                 <Link
-                  href={`/painel/chamados`}
-                  className="rounded-[8px] border border-[var(--color-line)] px-2.5 py-1.5 text-xs font-bold text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)] transition-colors"
+                  href={`/painel/ocorrencias`}
+                  className="rounded-[8px] border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Detalhes
                 </Link>

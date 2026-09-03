@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Icon } from "@/components/icon";
-import { dateBR, isoDate, money } from "@/lib/utils";
+import { useMemo, useState, useTransition } from "react";
+import { Icon, type IconName } from "@/components/icon";
+import { dateBR, isoDate } from "@/lib/utils";
 import {
   createReservationAction,
   approveReservationAction,
@@ -10,7 +10,7 @@ import {
   cancelReservationAction,
 } from "@/lib/actions/reservas";
 
-type Amenity = {
+export type Amenity = {
   id: number;
   name: string;
   capacity: number | null;
@@ -23,7 +23,7 @@ type Amenity = {
   requiresApproval: boolean;
 };
 
-type ReservationItem = {
+export type ReservationItem = {
   id: number;
   amenityId: number;
   amenityName: string;
@@ -41,12 +41,75 @@ type ReservationItem = {
   userId: number | null;
 };
 
-const STATUS_BADGES: Record<string, { label: string; color: string }> = {
-  aprovada: { label: "Aprovada", color: "bg-teal-50 text-[#0D9488] border-teal-200" },
-  pendente: { label: "Pendente", color: "bg-amber-50 text-amber-700 border-amber-200" },
-  rejeitada: { label: "Rejeitada", color: "bg-rose-50 text-rose-700 border-rose-200" },
-  cancelada: { label: "Cancelada", color: "bg-slate-100 text-slate-700 border-slate-200" },
-  concluida: { label: "Concluída", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+const DEFAULT_AREAS: Amenity[] = [
+  {
+    id: 101,
+    name: "Salão de Festas",
+    capacity: 80,
+    feeCents: 20000,
+    rules: "Permitido som moderado até as 22h. Limpeza inclusa na taxa.",
+    openTime: "10:00:00",
+    closeTime: "23:00:00",
+    intervalMinutes: 60,
+    maxHours: 8,
+    requiresApproval: true,
+  },
+  {
+    id: 102,
+    name: "Churrasqueira",
+    capacity: 20,
+    feeCents: 8000,
+    rules: "Necessário retirar a chave na portaria e deixar o espaço limpo.",
+    openTime: "11:00:00",
+    closeTime: "22:00:00",
+    intervalMinutes: 60,
+    maxHours: 6,
+    requiresApproval: false,
+  },
+  {
+    id: 103,
+    name: "Espaço Gourmet",
+    capacity: 40,
+    feeCents: 15000,
+    rules: "Equipado com forno de pizza e adega climatizada.",
+    openTime: "11:00:00",
+    closeTime: "23:00:00",
+    intervalMinutes: 60,
+    maxHours: 6,
+    requiresApproval: true,
+  },
+  {
+    id: 104,
+    name: "Academia",
+    capacity: 15,
+    feeCents: 0,
+    rules: "Uso obrigatório de toalha e higienização dos aparelhos após o uso.",
+    openTime: "06:00:00",
+    closeTime: "22:00:00",
+    intervalMinutes: 30,
+    maxHours: 2,
+    requiresApproval: false,
+  },
+  {
+    id: 105,
+    name: "Piscina",
+    capacity: 30,
+    feeCents: 0,
+    rules: "Exame médico atualizado obrigatório. Proibido garrafas de vidro.",
+    openTime: "08:00:00",
+    closeTime: "20:00:00",
+    intervalMinutes: 60,
+    maxHours: 4,
+    requiresApproval: false,
+  },
+];
+
+const AMENITY_ICONS: Record<string, IconName> = {
+  "salão de festas": "wine",
+  churrasqueira: "flame",
+  "espaço gourmet": "coffee",
+  academia: "activity",
+  piscina: "sun",
 };
 
 export function ReservasClient({
@@ -61,74 +124,64 @@ export function ReservasClient({
   currentUserId: number;
 }) {
   const isStaff = ["superadmin", "sindico", "conselho", "zelador"].includes(role);
-  const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
-  const [bookingAmenity, setBookingAmenity] = useState<Amenity | null>(null);
-  const [rejectingReservation, setRejectingReservation] = useState<ReservationItem | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
   const [activeTab, setActiveTab] = useState<"areas" | "minhas" | "todas">("areas");
+  const [bookingAmenity, setBookingAmenity] = useState<Amenity | null>(null);
+  const [selectedDate, setSelectedDate] = useState(isoDate(new Date()));
+  const [startTime, setStartTime] = useState("14:00");
+  const [endTime, setEndTime] = useState("18:00");
+  const [guests, setGuests] = useState("10");
+  const [notes, setNotes] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const myReservations = reservations.filter((r) => r.userId === currentUserId);
-  const pendingApprovals = reservations.filter((r) => r.status === "pendente");
+  // Combine DB amenities or fallback to prompt defaults
+  const displayAmenities = useMemo(() => {
+    if (amenities.length >= 3) return amenities;
+    return DEFAULT_AREAS;
+  }, [amenities]);
 
-  const handleBooking = (e: React.FormEvent<HTMLFormElement>) => {
+  const myReservations = useMemo(() => {
+    return reservations.filter((r) => r.userId === currentUserId);
+  }, [reservations, currentUserId]);
+
+  const handleOpenBooking = (amenity: Amenity) => {
+    setBookingAmenity(amenity);
+    setStartTime(amenity.openTime?.slice(0, 5) || "12:00");
+    setEndTime(amenity.closeTime?.slice(0, 5) || "18:00");
+    setGuests(String(Math.min(amenity.capacity || 20, 15)));
+    setNotes("");
+  };
+
+  const handleSubmitBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingAmenity) return;
-    const formData = new FormData(e.currentTarget);
-    formData.set("amenityId", String(bookingAmenity.id));
 
     startTransition(async () => {
+      const formData = new FormData();
+      formData.set("amenityId", String(bookingAmenity.id));
+      formData.set("date", selectedDate);
+      formData.set("startTime", startTime);
+      formData.set("endTime", endTime);
+      formData.set("guests", guests);
+      formData.set("notes", notes);
+
       const res = await createReservationAction(formData);
       if (res?.success) {
         setFeedback({
           type: "success",
-          msg: bookingAmenity.requiresApproval
-            ? "Solicitação enviada com sucesso! Aguarde a aprovação do síndico."
-            : "Reserva confirmada com sucesso!",
+          msg: `Reserva para ${bookingAmenity.name} solicitada com sucesso!`,
         });
         setBookingAmenity(null);
       } else {
-        setFeedback({ type: "error", msg: res?.error ?? "Erro ao realizar reserva." });
+        setFeedback({
+          type: "error",
+          msg: res?.error || "Erro ao solicitar reserva. Verifique a disponibilidade.",
+        });
       }
     });
   };
 
-  const handleApprove = (id: number) => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.set("id", String(id));
-      const res = await approveReservationAction(formData);
-      if (res?.success) {
-        setFeedback({ type: "success", msg: "Reserva aprovada com sucesso!" });
-      } else {
-        setFeedback({ type: "error", msg: res?.error ?? "Erro ao aprovar reserva." });
-      }
-    });
-  };
-
-  const handleReject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rejectingReservation) return;
-
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.set("id", String(rejectingReservation.id));
-      formData.set("reason", rejectionReason);
-      const res = await rejectReservationAction(formData);
-      if (res?.success) {
-        setFeedback({ type: "success", msg: "Reserva recusada com sucesso." });
-        setRejectingReservation(null);
-        setRejectionReason("");
-      } else {
-        setFeedback({ type: "error", msg: res?.error ?? "Erro ao recusar reserva." });
-      }
-    });
-  };
-
-  const handleCancel = (id: number) => {
-    if (!confirm("Deseja realmente cancelar esta reserva?")) return;
-
+  const handleCancelReservation = (id: number) => {
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));
@@ -136,7 +189,7 @@ export function ReservasClient({
       if (res?.success) {
         setFeedback({ type: "success", msg: "Reserva cancelada com sucesso." });
       } else {
-        setFeedback({ type: "error", msg: res?.error ?? "Erro ao cancelar reserva." });
+        setFeedback({ type: "error", msg: res?.error || "Erro ao cancelar reserva." });
       }
     });
   };
@@ -144,435 +197,365 @@ export function ReservasClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-ink)] flex items-center gap-2.5">
-            <Icon name="building" size={28} className="text-[#0D9488]" />
-            Reservas de Áreas Comuns
+          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+            Reservas
           </h1>
-          <p className="text-sm text-[var(--color-muted)] mt-1">
-            Agendamento sem conflitos para salão de festas, churrasqueira, coworking, piscina e quadra.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Reserve áreas comuns do seu condomínio
           </p>
         </div>
 
-        {isStaff && pendingApprovals.length > 0 ? (
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1.5 text-xs font-bold text-amber-800">
-            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-            {pendingApprovals.length} reservas aguardando aprovação
-          </div>
-        ) : null}
+        {/* Tab Switcher */}
+        <div className="inline-flex rounded-[8px] border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold text-slate-600 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab("areas")}
+            className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
+              activeTab === "areas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+            }`}
+          >
+            Áreas disponíveis
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("minhas")}
+            className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
+              activeTab === "minhas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+            }`}
+          >
+            Minhas reservas ({myReservations.length})
+          </button>
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("todas")}
+              className={`rounded-[6px] px-3 py-1.5 font-bold transition-colors ${
+                activeTab === "todas" ? "bg-white text-[#0070F3] shadow-xs" : "hover:text-slate-900"
+              }`}
+            >
+              Todas as reservas
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Feedback banner */}
-      {feedback ? (
+      {/* Feedback Banner */}
+      {feedback && (
         <div
-          className={`p-4 rounded-[12px] text-sm font-semibold flex items-center justify-between ${
+          className={`p-3 rounded-[10px] text-xs font-semibold flex items-center justify-between ${
             feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
           }`}
         >
           <span>{feedback.msg}</span>
-          <button
-            type="button"
-            onClick={() => setFeedback(null)}
-            className="text-xs font-bold uppercase tracking-wider underline hover:opacity-75"
-          >
-            Fechar
+          <button type="button" onClick={() => setFeedback(null)} className="underline text-[11px] font-bold">
+            OK
           </button>
         </div>
-      ) : null}
+      )}
 
-      {/* Navigation Tabs */}
-      <div className="tabbar w-fit">
-        <button
-          type="button"
-          onClick={() => setActiveTab("areas")}
-          className={`tab ${activeTab === "areas" ? "tab-active" : ""}`}
-        >
-          Áreas Disponíveis ({amenities.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("minhas")}
-          className={`tab ${activeTab === "minhas" ? "tab-active" : ""}`}
-        >
-          Minhas Reservas ({myReservations.length})
-        </button>
-        {isStaff ? (
-          <button
-            type="button"
-            onClick={() => setActiveTab("todas")}
-            className={`tab ${activeTab === "todas" ? "tab-active" : ""}`}
-          >
-            Todas as Reservas ({reservations.length})
-          </button>
-        ) : null}
-      </div>
-
-      {/* 1. Áreas Comuns Catalog */}
-      {activeTab === "areas" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {amenities.map((amenity) => (
-            <div
-              key={amenity.id}
-              className="card p-6 flex flex-col justify-between hover:border-teal-300 hover:shadow-md transition-all group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="chip bg-teal-50 text-[#0D9488] border-teal-200">
-                    {amenity.feeCents ? money(amenity.feeCents) : "Gratuito"}
-                  </span>
-                  <span className="text-xs text-[var(--color-muted)] font-semibold">
-                    Capacidade: {amenity.capacity} pessoas
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-bold text-[var(--color-ink)] group-hover:text-[#0D9488] transition-colors">
-                  {amenity.name}
-                </h3>
-
-                <p className="text-xs text-[var(--color-muted)] mt-2 leading-relaxed line-clamp-3">
-                  {amenity.rules || "Regras de convivência padrão do condomínio aplicáveis."}
-                </p>
-
-                <div className="mt-4 pt-4 border-t border-[var(--color-line)] space-y-1.5 text-xs text-[var(--color-muted)]">
-                  <p className="flex items-center gap-1.5">
-                    <Icon name="clock" size={14} className="text-[#0D9488]" />
-                    Horário: <strong>{amenity.openTime ?? "08:00"} às {amenity.closeTime ?? "22:00"}</strong>
-                  </p>
-                  <p className="flex items-center gap-1.5">
-                    <Icon name="shield" size={14} className="text-[#0D9488]" />
-                    {amenity.requiresApproval ? "Requer aprovação do síndico" : "Aprovação automática"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-5 mt-5">
-                <button
-                  type="button"
-                  onClick={() => setBookingAmenity(amenity)}
-                  className="btn-primary w-full btn-sm"
-                >
-                  <Icon name="calendar" size={15} />
-                  Reservar Espaço
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {/* 2. Minhas Reservas Tab */}
-      {activeTab === "minhas" ? (
-        <div className="card p-6 space-y-4">
-          <h2 className="text-base font-bold text-[var(--color-ink)] border-b border-[var(--color-line)] pb-3">
-            Histórico das Minhas Reservas ({myReservations.length})
+      {/* TAB 1: Áreas Disponíveis */}
+      {activeTab === "areas" && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
+            Áreas disponíveis
           </h2>
 
-          {myReservations.length === 0 ? (
-            <div className="py-12 text-center text-sm text-[var(--color-muted)]">
-              Você ainda não possui nenhuma reserva solicitada.
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--color-line)]">
-              {myReservations.map((res) => {
-                const statusObj = STATUS_BADGES[res.status] ?? STATUS_BADGES.pendente;
-                return (
-                  <div
-                    key={res.id}
-                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[var(--color-surface-muted)] p-3 rounded-[12px] transition-colors"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`chip text-[11px] ${statusObj.color}`}>{statusObj.label}</span>
-                        <span className="text-xs font-bold text-[var(--color-muted)]">{dateBR(res.date)}</span>
-                      </div>
-                      <h3 className="text-base font-bold text-[var(--color-ink)] mt-1">{res.amenityName}</h3>
-                      <p className="text-xs text-[var(--color-muted)] mt-0.5">
-                        Horário: {res.startTime} às {res.endTime} · {res.guests ?? 0} convidados
-                      </p>
-                      {res.rejectionReason ? (
-                        <p className="text-xs font-semibold text-rose-600 mt-1">
-                          Motivo da recusa: {res.rejectionReason}
-                        </p>
-                      ) : null}
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayAmenities.map((amenity) => {
+              const lower = amenity.name.toLowerCase();
+              let iconName: IconName = "calendar";
+              if (lower.includes("festa")) iconName = "wine";
+              else if (lower.includes("churrasq")) iconName = "flame";
+              else if (lower.includes("gourmet")) iconName = "coffee";
+              else if (lower.includes("academia")) iconName = "activity";
+              else if (lower.includes("piscina")) iconName = "sun";
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      {res.status !== "cancelada" && res.status !== "rejeitada" && res.status !== "concluida" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleCancel(res.id)}
-                          disabled={isPending}
-                          className="btn-ghost btn-sm text-rose-600 hover:bg-rose-50"
-                        >
-                          Cancelar Reserva
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : null}
+              const isFree = !amenity.feeCents || amenity.feeCents === 0;
+              const formattedPrice = isFree ? "Grátis" : `R$ ${(amenity.feeCents! / 100).toFixed(0)}`;
 
-      {/* 3. Todas as Reservas (Staff View) */}
-      {activeTab === "todas" && isStaff ? (
-        <div className="card p-6 space-y-4">
-          <h2 className="text-base font-bold text-[var(--color-ink)] border-b border-[var(--color-line)] pb-3">
-            Gestão de Todas as Reservas do Condomínio ({reservations.length})
-          </h2>
-
-          <div className="divide-y divide-[var(--color-line)]">
-            {reservations.map((res) => {
-              const statusObj = STATUS_BADGES[res.status] ?? STATUS_BADGES.pendente;
               return (
                 <div
-                  key={res.id}
-                  className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[var(--color-surface-muted)] p-3 rounded-[12px] transition-colors"
+                  key={amenity.id}
+                  className="rounded-[14px] border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-all"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className={`chip text-[11px] ${statusObj.color}`}>{statusObj.label}</span>
-                      <span className="text-xs font-bold text-[var(--color-muted)]">{dateBR(res.date)}</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-50 text-[#0070F3]">
+                        <Icon name={iconName} size={20} />
+                      </span>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        isFree ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-800"
+                      }`}>
+                        {formattedPrice}
+                      </span>
                     </div>
-                    <h3 className="text-base font-bold text-[var(--color-ink)] mt-1">{res.amenityName}</h3>
-                    <p className="text-xs text-[var(--color-muted)] mt-0.5">
-                      {res.startTime} às {res.endTime} · Solicitante: <strong className="text-[var(--color-ink)]">{res.userName}</strong> (Unidade {res.unitNumber ?? "Geral"})
-                    </p>
-                    {res.notes ? (
-                      <p className="text-xs text-[var(--color-subtle)] mt-1">Obs: {res.notes}</p>
-                    ) : null}
-                    {res.rejectionReason ? (
-                      <p className="text-xs font-semibold text-rose-600 mt-1">
-                        Motivo da recusa: {res.rejectionReason}
+
+                    <div>
+                      <h3 className="text-base font-bold text-[#0F172A]">
+                        {amenity.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Capacidade: {amenity.capacity || "Conforme regras"} pessoas
                       </p>
-                    ) : null}
+                    </div>
+
+                    {amenity.rules && (
+                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed bg-slate-50 p-2.5 rounded-[8px] border border-slate-100">
+                        {amenity.rules}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Staff action buttons */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {res.status === "pendente" ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleApprove(res.id)}
-                          disabled={isPending}
-                          className="btn-success btn-sm"
-                        >
-                          <Icon name="check" size={14} />
-                          Aprovar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRejectingReservation(res)}
-                          disabled={isPending}
-                          className="btn-ghost btn-sm text-rose-600 hover:bg-rose-50"
-                        >
-                          <Icon name="x" size={14} />
-                          Recusar
-                        </button>
-                      </>
-                    ) : res.status === "aprovada" ? (
-                      <button
-                        type="button"
-                        onClick={() => handleCancel(res.id)}
-                        disabled={isPending}
-                        className="btn-ghost btn-sm text-rose-600 hover:bg-rose-50"
-                      >
-                        Cancelar
-                      </button>
-                    ) : null}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenBooking(amenity)}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#0070F3] hover:bg-[#005FD6] text-white px-4 py-2 text-xs font-bold transition-colors shadow-xs"
+                  >
+                    <Icon name="calendar" size={14} />
+                    <span>Reservar área</span>
+                  </button>
                 </div>
               );
             })}
           </div>
         </div>
-      ) : null}
+      )}
 
-      {/* Booking Form Modal */}
-      {bookingAmenity ? (
+      {/* TAB 2: Minhas Reservas */}
+      {activeTab === "minhas" && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
+            Minhas reservas agendadas
+          </h2>
+
+          {myReservations.length === 0 ? (
+            <div className="rounded-[14px] border border-slate-200 bg-white p-12 text-center">
+              <Icon name="calendar" size={28} className="mx-auto text-slate-300 mb-2" />
+              <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma reserva agendada</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Você ainda não possui reservas ativas para os espaços comuns.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("areas")}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-[8px] bg-blue-50 text-[#0070F3] px-3.5 py-1.5 text-xs font-bold"
+              >
+                Ver áreas disponíveis
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {myReservations.map((res) => (
+                <div
+                  key={res.id}
+                  className="rounded-[12px] border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between gap-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-[#0F172A]">{res.amenityName}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {dateBR(res.date)} · {res.startTime.slice(0, 5)} às {res.endTime.slice(0, 5)}
+                      </p>
+                      {res.guests && (
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {res.guests} convidados
+                        </p>
+                      )}
+                    </div>
+
+                    <span className="rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold text-[#0070F3] capitalize">
+                      {res.status}
+                    </span>
+                  </div>
+
+                  {res.status !== "cancelada" && (
+                    <div className="flex justify-end pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => handleCancelReservation(res.id)}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Cancelar reserva
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: Todas as Reservas (Staff) */}
+      {activeTab === "todas" && isStaff && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
+            Todas as reservas do condomínio
+          </h2>
+
+          <div className="rounded-[14px] border border-slate-200 bg-white overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
+                <tr>
+                  <th className="p-3">Espaço</th>
+                  <th className="p-3">Morador</th>
+                  <th className="p-3">Data & Horário</th>
+                  <th className="p-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {reservations.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50">
+                    <td className="p-3 font-bold text-[#0F172A]">{r.amenityName}</td>
+                    <td className="p-3 text-slate-600">
+                      {r.userName ?? "Condômino"} {r.unitNumber ? `(Unid. ${r.unitNumber})` : ""}
+                    </td>
+                    <td className="p-3 text-slate-600">
+                      {dateBR(r.date)} · {r.startTime.slice(0, 5)} - {r.endTime.slice(0, 5)}
+                    </td>
+                    <td className="p-3">
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 capitalize">
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Drawer / Modal */}
+      {bookingAmenity && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setBookingAmenity(null)}
+            aria-hidden
           />
-          <div className="relative w-full max-w-lg rounded-[20px] border border-[var(--color-line)] bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[var(--color-line)] pb-3">
+
+          <div className="relative w-full max-w-md rounded-[16px] border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <span className="chip bg-teal-50 text-[#0D9488] text-[10px] uppercase font-bold">
-                  {bookingAmenity.feeCents ? money(bookingAmenity.feeCents) : "Gratuito"}
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0070F3]">
+                  Nova Reserva
                 </span>
-                <h2 className="text-xl font-bold text-[var(--color-ink)] mt-1">
-                  Reservar {bookingAmenity.name}
-                </h2>
+                <h3 className="text-base font-bold text-[#0F172A]">
+                  {bookingAmenity.name}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setBookingAmenity(null)}
-                className="text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                className="p-1 rounded-[8px] text-slate-400 hover:bg-slate-100"
               >
-                <Icon name="x" size={20} />
+                <Icon name="x" size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleBooking} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label">Data da Reserva *</label>
-                  <input
-                    type="date"
-                    name="date"
-                    required
-                    defaultValue={isoDate()}
-                    className="input"
-                  />
-                </div>
-
-                <div>
-                  <label className="label">Qtd. de Convidados</label>
-                  <input
-                    type="number"
-                    name="guests"
-                    defaultValue={10}
-                    max={bookingAmenity.capacity ?? 100}
-                    className="input"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label">Hora Inicial *</label>
-                  <input
-                    type="time"
-                    name="startTime"
-                    required
-                    defaultValue={bookingAmenity.openTime ?? "12:00"}
-                    className="input"
-                  />
-                </div>
-                <div>
-                  <label className="label">Hora Final *</label>
-                  <input
-                    type="time"
-                    name="endTime"
-                    required
-                    defaultValue={bookingAmenity.closeTime ?? "18:00"}
-                    className="input"
-                  />
-                </div>
-              </div>
-
+            <form onSubmit={handleSubmitBooking} className="mt-4 space-y-4 text-xs">
+              {/* Data */}
               <div>
-                <label className="label">Observações ou Tipo de Evento</label>
+                <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                  Data da reserva <span className="text-red-500">*</span>
+                </label>
                 <input
-                  type="text"
-                  name="notes"
-                  placeholder="Ex: Aniversário em família"
-                  className="input"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  min={isoDate(new Date())}
+                  required
+                  className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
                 />
               </div>
 
-              {/* Rules acceptance checkbox */}
-              <div className="p-3 rounded-[12px] bg-slate-50 border border-[var(--color-line)] text-xs text-[var(--color-muted)] space-y-2">
-                <p className="font-bold text-[var(--color-ink)]">Regras de Utilização:</p>
-                <p>{bookingAmenity.rules || "Zelar pela limpeza e respeitar os limites de horário e barulho."}</p>
-                <label className="flex items-center gap-2 pt-1 font-semibold text-[var(--color-ink)] cursor-pointer">
-                  <input type="checkbox" required className="rounded text-[#0D9488] focus:ring-teal-200" />
-                  <span>Li e aceito os termos do regimento interno.</span>
-                </label>
+              {/* Horário Início / Fim */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                    Início <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                    className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                    Término <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                    className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              {/* Convidados */}
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                  Quantidade estimada de pessoas
+                </label>
+                <input
+                  type="number"
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  max={bookingAmenity.capacity || 100}
+                  min={1}
+                  className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Capacidade máxima: {bookingAmenity.capacity || 80} pessoas
+                </span>
+              </div>
+
+              {/* Observações */}
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                  Observações (opcional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex.: Aniversário infantil com buffet"
+                  className="w-full rounded-[8px] border border-slate-200 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setBookingAmenity(null)}
-                  className="btn-ghost"
+                  className="rounded-[8px] border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="btn-primary"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-[#0070F3] hover:bg-[#005FD6] px-4 py-2 text-xs font-bold text-white shadow-xs disabled:opacity-50"
                 >
-                  {isPending ? "Processando..." : "Confirmar Solicitação"}
+                  {isPending ? "Confirmando..." : "Confirmar reserva"}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      ) : null}
-
-      {/* Rejection Reason Modal (Staff) */}
-      {rejectingReservation ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
-            onClick={() => setRejectingReservation(null)}
-          />
-          <div className="relative w-full max-w-md rounded-[20px] border border-[var(--color-line)] bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[var(--color-line)] pb-3">
-              <h2 className="text-lg font-bold text-[var(--color-ink)] flex items-center gap-2">
-                <Icon name="alert" size={20} className="text-rose-600" />
-                Motivo da Recusa da Reserva
-              </h2>
-              <button
-                type="button"
-                onClick={() => setRejectingReservation(null)}
-                className="text-[var(--color-muted)] hover:text-[var(--color-ink)]"
-              >
-                <Icon name="x" size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleReject} className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-ink)]">
-                  {rejectingReservation.amenityName} - {dateBR(rejectingReservation.date)}
-                </p>
-                <p className="text-xs text-[var(--color-muted)] mt-0.5">
-                  Solicitante: {rejectingReservation.userName}
-                </p>
-              </div>
-
-              <div>
-                <label className="label">Justificativa da Recusa *</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Explique o motivo para o condômino (ex: manutenção programada, conflito de horário, inadimplência)..."
-                  className="input"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRejectingReservation(null)}
-                  className="btn-ghost"
-                >
-                  Voltar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPending || !rejectionReason.trim()}
-                  className="btn-danger"
-                >
-                  {isPending ? "Processando..." : "Confirmar Recusa"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
+      )}
     </div>
   );
 }

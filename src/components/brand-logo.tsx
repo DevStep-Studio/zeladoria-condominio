@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export function BrandLogo({
   size = "md",
   className = "",
@@ -11,8 +9,7 @@ export function BrandLogo({
   showText?: boolean;
   variant?: "default" | "white" | "black" | "icon-only";
 }) {
-  // Determine which image file from public to use
-  let src = "/6.png"; // Full color logo
+  let src = "/6.png"; // Full color official logo (Blue + Yellow building)
   if (variant === "white") {
     src = showText ? "/4.png" : "/9.png";
   } else if (variant === "black") {
@@ -21,19 +18,18 @@ export function BrandLogo({
     src = "/8.png";
   }
 
-  // Dimensions based on size
-  let height = 36;
-  let width = showText && variant !== "icon-only" ? 140 : 36;
+  let height = 34;
+  let width = showText && variant !== "icon-only" ? 140 : 34;
 
   if (size === "sm") {
-    height = 28;
-    width = showText && variant !== "icon-only" ? 110 : 28;
+    height = 26;
+    width = showText && variant !== "icon-only" ? 110 : 26;
   } else if (size === "lg") {
-    height = 46;
-    width = showText && variant !== "icon-only" ? 180 : 46;
+    height = 42;
+    width = showText && variant !== "icon-only" ? 170 : 42;
   } else if (size === "xl") {
-    height = 56;
-    width = showText && variant !== "icon-only" ? 220 : 56;
+    height = 52;
+    width = showText && variant !== "icon-only" ? 210 : 52;
   }
 
   return (

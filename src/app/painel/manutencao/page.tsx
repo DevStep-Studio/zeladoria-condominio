@@ -1,7 +1,7 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { assets, maintenanceOrders, maintenancePlans, vendors } from "@/db/schema";
-import { requireRole } from "@/lib/auth";
+import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
 import { dateBR, daysUntil, isoDate, money } from "@/lib/utils";
@@ -10,7 +10,8 @@ import { completeOrderAction, saveAssetAction, saveOrderAction, savePlanAction }
 export const dynamic = "force-dynamic";
 
 export default async function ManutencaoPage() {
-  const { condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
+  const { session, condoId } = await requireCondo();
+  const isStaff = ALL_STAFF.includes(session.role) || session.role === "porteiro";
 
   const assetRows = await db.select().from(assets).where(eq(assets.condoId, condoId)).orderBy(asc(assets.name));
   const planRows = await db.select().from(maintenancePlans).where(eq(maintenancePlans.condoId, condoId)).orderBy(asc(maintenancePlans.nextDueAt));
@@ -61,8 +62,8 @@ export default async function ManutencaoPage() {
         <Stat label="Custo concluído" value={money(totalCost)} tone="zinc" hint="ordens finalizadas" />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className={`mt-4 grid gap-4 ${isStaff ? "lg:grid-cols-3" : "lg:grid-cols-1"}`}>
+        <div className={`space-y-4 ${isStaff ? "lg:col-span-2" : "lg:col-span-1"}`}>
           <Card title="Calendário de manutenções">
             {planRows.length === 0 ? (
               <EmptyState title="Nenhum plano cadastrado" icon="settings" />
@@ -159,108 +160,110 @@ export default async function ManutencaoPage() {
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <Card title="Nova ordem de serviço">
-            <form action={saveOrderAction} className="space-y-3">
-              <label className="block">
-                <span className="label">Título</span>
-                <input name="title" className="input" required />
-              </label>
-              <label className="block">
-                <span className="label">Equipamento</span>
+        {isStaff && (
+          <div className="space-y-4">
+            <Card title="Nova ordem de serviço">
+              <form action={saveOrderAction} className="space-y-3">
+                <label className="block">
+                  <span className="label">Título</span>
+                  <input name="title" className="input" required />
+                </label>
+                <label className="block">
+                  <span className="label">Equipamento</span>
+                  <select name="assetId" className="input">
+                    <option value="">Área comum</option>
+                    {assetRows.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block">
+                    <span className="label">Tipo</span>
+                    <select name="kind" className="input">
+                      <option value="corretiva">Corretiva</option>
+                      <option value="preventiva">Preventiva</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Data</span>
+                    <input type="date" name="scheduledFor" className="input" defaultValue={today} />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="label">Fornecedor</span>
+                  <select name="vendorId" className="input">
+                    <option value="">Interno</option>
+                    {vendorRows.map((v) => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block">
+                    <span className="label">Técnico</span>
+                    <input name="technician" className="input" />
+                  </label>
+                  <label className="block">
+                    <span className="label">Custo (R$)</span>
+                    <input name="cost" className="input" placeholder="0,00" />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="label">Descrição</span>
+                  <textarea name="description" rows={2} className="input" />
+                </label>
+                <button className="btn-primary w-full">Abrir ordem</button>
+              </form>
+            </Card>
+
+            <Panel summary="Cadastrar equipamento">
+              <form action={saveAssetAction} className="space-y-2">
+                <input name="name" className="input" placeholder="Nome do equipamento" required />
+                <select name="category" className="input">
+                  <option value="elevador">Elevador</option>
+                  <option value="hidraulica">Hidráulica</option>
+                  <option value="portao">Portão</option>
+                  <option value="seguranca">Segurança</option>
+                  <option value="eletrica">Elétrica</option>
+                  <option value="equipamento">Outro</option>
+                </select>
+                <input name="location" className="input" placeholder="Local" />
+                <input name="brand" className="input" placeholder="Marca" />
+                <input name="serial" className="input" placeholder="Nº de série" />
+                <button className="btn-dark btn-sm w-full">Salvar equipamento</button>
+              </form>
+            </Panel>
+
+            <Panel summary="📆 Criar plano preventivo">
+              <form action={savePlanAction} className="space-y-2">
+                <input name="title" className="input" placeholder="Título do plano" required />
                 <select name="assetId" className="input">
-                  <option value="">Área comum</option>
+                  <option value="">Equipamento</option>
                   {assetRows.map((a) => (
                     <option key={a.id} value={a.id}>{a.name}</option>
                   ))}
                 </select>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block">
-                  <span className="label">Tipo</span>
-                  <select name="kind" className="input">
-                    <option value="corretiva">Corretiva</option>
-                    <option value="preventiva">Preventiva</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="label">Data</span>
-                  <input type="date" name="scheduledFor" className="input" defaultValue={today} />
-                </label>
-              </div>
-              <label className="block">
-                <span className="label">Fornecedor</span>
+                <input type="number" name="frequencyDays" className="input" placeholder="Frequência (dias)" defaultValue={30} />
+                <input type="date" name="nextDueAt" className="input" />
                 <select name="vendorId" className="input">
-                  <option value="">Interno</option>
+                  <option value="">Fornecedor</option>
                   {vendorRows.map((v) => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
                 </select>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="block">
-                  <span className="label">Técnico</span>
-                  <input name="technician" className="input" />
-                </label>
-                <label className="block">
-                  <span className="label">Custo (R$)</span>
-                  <input name="cost" className="input" placeholder="0,00" />
-                </label>
-              </div>
-              <label className="block">
-                <span className="label">Descrição</span>
-                <textarea name="description" rows={2} className="input" />
-              </label>
-              <button className="btn-primary w-full">Abrir ordem</button>
-            </form>
-          </Card>
+                <input name="responsible" className="input" placeholder="Responsável" />
+                <textarea name="checklist" rows={3} className="input" placeholder={"Itens do checklist\num por linha"} />
+                <button className="btn-dark btn-sm w-full">Criar plano</button>
+              </form>
+            </Panel>
 
-          <Panel summary="Cadastrar equipamento">
-            <form action={saveAssetAction} className="space-y-2">
-              <input name="name" className="input" placeholder="Nome do equipamento" required />
-              <select name="category" className="input">
-                <option value="elevador">Elevador</option>
-                <option value="hidraulica">Hidráulica</option>
-                <option value="portao">Portão</option>
-                <option value="seguranca">Segurança</option>
-                <option value="eletrica">Elétrica</option>
-                <option value="equipamento">Outro</option>
-              </select>
-              <input name="location" className="input" placeholder="Local" />
-              <input name="brand" className="input" placeholder="Marca" />
-              <input name="serial" className="input" placeholder="Nº de série" />
-              <button className="btn-dark btn-sm w-full">Salvar equipamento</button>
-            </form>
-          </Panel>
-
-          <Panel summary="📆 Criar plano preventivo">
-            <form action={savePlanAction} className="space-y-2">
-              <input name="title" className="input" placeholder="Título do plano" required />
-              <select name="assetId" className="input">
-                <option value="">Equipamento</option>
-                {assetRows.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
-              <input type="number" name="frequencyDays" className="input" placeholder="Frequência (dias)" defaultValue={30} />
-              <input type="date" name="nextDueAt" className="input" />
-              <select name="vendorId" className="input">
-                <option value="">Fornecedor</option>
-                {vendorRows.map((v) => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
-              </select>
-              <input name="responsible" className="input" placeholder="Responsável" />
-              <textarea name="checklist" rows={3} className="input" placeholder={"Itens do checklist\num por linha"} />
-              <button className="btn-dark btn-sm w-full">Criar plano</button>
-            </form>
-          </Panel>
-
-          <InfoNote>
-            Laudos e certificados podem ser anexados às ordens. Alertas de vencimento aparecem no painel inicial e no
-            resumo diário da administração.
-          </InfoNote>
-        </div>
+            <InfoNote>
+              Laudos e certificados podem ser anexados às ordens. Alertas de vencimento aparecem no painel inicial e no
+              resumo diário da administração.
+            </InfoNote>
+          </div>
+        )}
       </div>
     </>
   );

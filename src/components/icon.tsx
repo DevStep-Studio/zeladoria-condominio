@@ -70,7 +70,16 @@ export type IconName =
   | "pencil"
   | "siren"
   | "compass"
-  | "tv";
+  | "tv"
+  | "star"
+  | "camera"
+  | "arrow-left"
+  | "alert-triangle"
+  | "wine"
+  | "flame"
+  | "coffee"
+  | "activity"
+  | "map-pin";
 
 const PATHS: Record<IconName, ReactElement> = {
   grid: (
@@ -453,6 +462,50 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <rect x="2" y="7" width="20" height="15" rx="2" />
       <polyline points="17 2 12 7 7 2" />
+    </>
+  ),
+  star: (
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  ),
+  camera: (
+    <>
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </>
+  ),
+  "arrow-left": (
+    <>
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </>
+  ),
+  "alert-triangle": (
+    <>
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </>
+  ),
+  wine: (
+    <>
+      <path d="M8 22h8M12 15v7M7 2h10l1 7a5 5 0 0 1-5 5 5 5 0 0 1-5-5l1-7z" />
+    </>
+  ),
+  flame: (
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+  ),
+  coffee: (
+    <>
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3" />
+    </>
+  ),
+  activity: (
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+  ),
+  "map-pin": (
+    <>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
     </>
   ),
 };
