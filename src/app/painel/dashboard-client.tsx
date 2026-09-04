@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { CondoMap } from "@/components/condo-map";
-import { CondoAssistant } from "@/components/condo-assistant";
 
 export type AttentionItem = {
   id: string;
@@ -84,9 +83,34 @@ export function DashboardClient({
   recommendedVendors: DashboardVendor[];
 }) {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
   const [indicatorTooltip, setIndicatorTooltip] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+
+  const handleCopyPhone = useCallback((phone: string) => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(phone).catch(() => {});
+      }
+    } catch {
+      // ignore clipboard permission errors in restricted environments
+    }
+    setCopiedPhone(phone);
+    setTimeout(() => {
+      setCopiedPhone((cur) => (cur === phone ? null : cur));
+    }, 2200);
+  }, []);
+
+  useEffect(() => {
+    if (!emergencyModalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setEmergencyModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [emergencyModalOpen]);
 
   // Filter only items with count > 0 for attention section
   const activeAttention = attentionItems.filter((i) => i.count > 0);
@@ -158,24 +182,23 @@ export function DashboardClient({
               </div>
             )}
 
-            {/* Emergency Contacts Button */}
+            {/* SOS Emergency Button (Em Evidência, Alta Visibilidade, Rápido Acesso) */}
             <button
               type="button"
               onClick={() => setEmergencyModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-rose-50/80 hover:bg-rose-100 text-rose-700 border border-rose-200/80 px-3.5 py-2 text-xs font-bold transition-all shadow-xs hover:shadow-sm"
+              aria-label="Abrir contatos e central de emergência 24 horas"
+              title="SOS e Contatos de Emergência 24h"
+              className="group relative flex items-center gap-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border border-red-500 ring-2 ring-red-500/20 hover:ring-red-500/40"
             >
-              <Icon name="phone" size={13} className="text-rose-600" />
-              <span>Contatos de emergência</span>
-            </button>
-
-            {/* Zeladoria IA Copilot Button */}
-            <button
-              type="button"
-              onClick={() => setAssistantOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs hover:scale-[1.01]"
-            >
-              <Icon name="sparkles" size={14} className="text-[#FFD000] animate-pulse" />
-              <span>Zeladoria IA</span>
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+              </span>
+              <Icon name="phone" size={15} className="text-white group-hover:rotate-12 transition-transform shrink-0" />
+              <span className="font-black tracking-tight">SOS Emergência</span>
+              <span className="hidden sm:inline-flex items-center text-[10px] font-black bg-white/20 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
+                24h
+              </span>
             </button>
           </div>
         </div>
@@ -811,58 +834,311 @@ export function DashboardClient({
         </div>
       </section>
 
-      {/* MODAL: Contatos de Emergência */}
+      {/* MODAL: Central de Emergência e SOS */}
       {emergencyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setEmergencyModalOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-[16px] border border-slate-200 bg-white p-6 shadow-xl space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-red-600">
-                <Icon name="phone" size={18} />
-                <h3 className="text-base font-bold text-red-700">Contatos de Emergência</h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Central de Emergência e SOS 24h"
+            className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-[24px] border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden"
+          >
+            {/* Top Red Header */}
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 bg-red-600 text-white select-none">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-inner">
+                  <Icon name="phone" size={22} className="animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black tracking-tight text-white">
+                      Central de Emergência e SOS
+                    </h3>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-white text-red-700 px-2 py-0.5 rounded-full">
+                      24h
+                    </span>
+                  </div>
+                  <p className="text-xs text-red-100 font-medium">
+                    Telefones úteis, apoio predial e resgate público imediato
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-red-200 bg-red-700/80 px-2 py-1 rounded hidden sm:inline-block">
+                  ESC
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEmergencyModalOpen(false)}
+                  className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <Icon name="x" size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+              {/* Alert Callout */}
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-3 text-red-950">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white mt-0.5">
+                  <Icon name="alert-triangle" size={14} />
+                </div>
+                <div className="text-xs leading-relaxed">
+                  <strong className="font-bold text-red-950 block">Risco Imediato à Vida, Incêndio ou Invasão:</strong>
+                  Acione diretamente as linhas gratuitas de utilidade pública: <strong>193 (Bombeiros)</strong>, <strong>192 (SAMU)</strong> ou <strong>190 (Polícia)</strong>. As ligações são gratuitas e funcionam mesmo sem sinal ou créditos.
+                </div>
+              </div>
+
+              {/* 1. Condomínio (Atendimento Interno) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <Icon name="building" size={13} className="text-[#0055D4]" />
+                    Atendimento Interno do Condomínio
+                  </h4>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Portaria e Administração
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Portaria */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                          Plantão 24h
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Ramal 100
+                        </span>
+                      </div>
+                      <h5 className="text-sm font-black text-[#0F172A] mt-1.5">
+                        Portaria Central
+                      </h5>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                        Guarita, controle de portões, interfone e ocorrências de acesso.
+                      </p>
+                    </div>
+
+                    <div className="pt-1 flex items-center gap-2">
+                      <a
+                        href="tel:1134567890"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-sm"
+                      >
+                        <Icon name="phone" size={13} />
+                        <span>Ligar (11) 3456-7890</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyPhone("(11) 3456-7890")}
+                        className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                        title="Copiar número"
+                      >
+                        {copiedPhone === "(11) 3456-7890" ? (
+                          <>
+                            <Icon name="check" size={13} className="text-emerald-600" />
+                            <span className="text-emerald-600 text-[11px]">Copiado!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="copy" size={13} className="text-slate-500" />
+                            <span className="text-[11px]">Copiar</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Síndico / Zeladoria */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">
+                          Apoio Técnico
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Operações
+                        </span>
+                      </div>
+                      <h5 className="text-sm font-black text-[#0F172A] mt-1.5">
+                        Síndico(a) & Zeladoria
+                      </h5>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                        Registros de água/gás, falha em elevadores, portões e emergência predial.
+                      </p>
+                    </div>
+
+                    <div className="pt-1 flex items-center gap-2">
+                      <a
+                        href="tel:11987654321"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-sm"
+                      >
+                        <Icon name="phone" size={13} />
+                        <span>Ligar (11) 98765-4321</span>
+                      </a>
+                      <a
+                        href="https://wa.me/5511987654321?text=Ol%C3%A1%2C%20preciso%20de%20apoio%20urgente%20no%20condom%C3%ADnio."
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-2 text-xs font-bold transition-colors shadow-sm"
+                        title="Falar no WhatsApp"
+                      >
+                        <span className="text-[11px]">WhatsApp</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyPhone("(11) 98765-4321")}
+                        className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                        title="Copiar número"
+                      >
+                        {copiedPhone === "(11) 98765-4321" ? (
+                          <Icon name="check" size={13} className="text-emerald-600" />
+                        ) : (
+                          <Icon name="copy" size={13} className="text-slate-500" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Serviços Públicos de Urgência */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <Icon name="shield" size={13} className="text-red-600" />
+                    Serviços Públicos de Urgência (Gratuito)
+                  </h4>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Ligação gratuita 24h
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    {
+                      name: "SAMU",
+                      phone: "192",
+                      desc: "Emergência médica, ambulância, parada respiratória e socorro urgente.",
+                      badge: "Saúde",
+                    },
+                    {
+                      name: "Corpo de Bombeiros",
+                      phone: "193",
+                      desc: "Incêndio, vazamento de gás, elevador travado e resgates.",
+                      badge: "Resgate",
+                    },
+                    {
+                      name: "Polícia Militar",
+                      phone: "190",
+                      desc: "Segurança pública, invasão, assalto, agressão e roubo.",
+                      badge: "Segurança",
+                    },
+                    {
+                      name: "Defesa Civil",
+                      phone: "199",
+                      desc: "Alagamento, tempestades, desabamento e risco estrutural.",
+                      badge: "Prevenção",
+                    },
+                  ].map((service) => (
+                    <div
+                      key={service.name}
+                      className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black text-[#0F172A]">
+                            {service.name}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-200/70 px-1.5 py-0.2 rounded">
+                            {service.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug mt-0.5 line-clamp-2">
+                          {service.desc}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={`tel:${service.phone}`}
+                          className="flex items-center gap-1 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-black transition-colors shadow-sm"
+                        >
+                          <Icon name="phone" size={12} />
+                          <span>Ligar {service.phone}</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyPhone(service.phone)}
+                          className="p-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors cursor-pointer"
+                          title={`Copiar ${service.phone}`}
+                        >
+                          {copiedPhone === service.phone ? (
+                            <Icon name="check" size={13} className="text-emerald-600" />
+                          ) : (
+                            <Icon name="copy" size={13} className="text-slate-500" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Guia Rápido de Primeiros Passos */}
+              <div className="space-y-2.5 pt-1">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                  O Que Fazer em Emergências Críticas
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <strong className="text-amber-950 font-bold block mb-1">
+                      🛗 Elevador Travado
+                    </strong>
+                    <p className="text-[11px] text-amber-900 leading-relaxed">
+                      Mantenha a calma. Use o alarme/interfone da cabine. Não tente forçar portas nem sair por frestas.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-200/70">
+                    <strong className="text-rose-950 font-bold block mb-1">
+                      🧯 Fogo ou Fumaça
+                    </strong>
+                    <p className="text-[11px] text-rose-900 leading-relaxed">
+                      Acione a botoeira vermelha do hall. Desça pelas escadas (nunca use elevador). Ligue 193.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70">
+                    <strong className="text-blue-950 font-bold block mb-1">
+                      💧 Vazamento de Gás
+                    </strong>
+                    <p className="text-[11px] text-blue-900 leading-relaxed">
+                      Não acenda luzes nem interruptores. Feche o registro geral da unidade, ventile o ambiente e avise a portaria.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50 text-xs">
+              <div className="flex items-center gap-1.5 text-slate-500 font-medium truncate">
+                <Icon name="building" size={13} className="text-[#0055D4] shrink-0" />
+                <span className="truncate">{condoName} · {condoAddress}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setEmergencyModalOpen(false)}
-                className="p-1 rounded-[8px] text-slate-400 hover:bg-slate-100"
-              >
-                <Icon name="x" size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-2.5">
-              {[
-                { title: "Portaria Central", phone: "(11) 3456-7890", desc: "Ramal 100 · 24 Horas" },
-                { title: "Síndico(a) / Zelador", phone: "(11) 98765-4321", desc: "Plantão Operacional" },
-                { title: "SAMU", phone: "192", desc: "Emergência Médica" },
-                { title: "Corpo de Bombeiros", phone: "193", desc: "Incêndio e Resgate" },
-                { title: "Polícia Militar", phone: "190", desc: "Segurança Pública" },
-              ].map((item) => (
-                <div key={item.title} className="flex items-center justify-between p-3 rounded-[8px] bg-slate-50 border border-slate-200/60">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#0F172A]">{item.title}</h4>
-                    <p className="text-[11px] text-slate-500">{item.desc}</p>
-                  </div>
-                  <a
-                    href={`tel:${item.phone.replace(/\D/g, "")}`}
-                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-bold transition-colors"
-                  >
-                    <Icon name="phone" size={12} />
-                    <span>{item.phone}</span>
-                  </a>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setEmergencyModalOpen(false)}
-                className="btn-ghost btn-sm w-full"
+                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 px-4 py-2 text-xs font-bold transition-colors cursor-pointer shadow-2xs shrink-0"
               >
                 Fechar
               </button>
@@ -903,11 +1179,6 @@ export function DashboardClient({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Zeladoria IA Assistant Drawer */}
-      {assistantOpen && (
-        <CondoAssistant onClose={() => setAssistantOpen(false)} />
       )}
     </div>
   );

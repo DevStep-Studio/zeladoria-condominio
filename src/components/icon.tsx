@@ -79,7 +79,8 @@ export type IconName =
   | "flame"
   | "coffee"
   | "activity"
-  | "map-pin";
+  | "map-pin"
+  | "copy";
 
 const PATHS: Record<IconName, ReactElement> = {
   grid: (
@@ -506,6 +507,12 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
       <circle cx="12" cy="10" r="3" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
     </>
   ),
 };
