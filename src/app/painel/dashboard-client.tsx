@@ -182,6 +182,19 @@ export function DashboardClient({
               </div>
             )}
 
+            {/* Quick Access: Serviços & Prestadores (Aba Mais Importante) */}
+            <Link
+              href="/painel/servicos"
+              className="group flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all border border-blue-400/40 hover:scale-[1.01]"
+              title="Acessar Prestadores e Solicitar Serviços"
+            >
+              <Icon name="briefcase" size={15} className="text-[#FFD000] shrink-0 group-hover:scale-110 transition-transform" />
+              <span>Serviços</span>
+              <span className="hidden sm:inline-flex items-center text-[10px] font-black bg-white/20 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
+                Prestadores
+              </span>
+            </Link>
+
             {/* SOS Emergency Button (Em Evidência, Alta Visibilidade, Rápido Acesso) */}
             <button
               type="button"

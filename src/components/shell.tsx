@@ -132,10 +132,13 @@ export function Shell({
 
   // Accordion open/close state for sidebar groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    gestao: true,
-    manutencao: true,
-    comunidade: true,
+    rotina: true,
     servicos: true,
+    condominio: true,
+    gestao: true,
+    operacao: true,
+    comunidade: true,
+    gestao_condominio: true,
   });
 
   const toggleGroup = (groupId: string) => {
@@ -271,7 +274,14 @@ export function Shell({
                   onClick={() => toggleGroup(group.id)}
                   className="w-full flex items-center justify-between px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-200/80 hover:text-white transition-colors"
                 >
-                  <span className={hasActiveChild ? "text-[#FFD000]" : ""}>{group.title}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className={hasActiveChild ? "text-[#FFD000]" : ""}>{group.title}</span>
+                    {group.id === "servicos" && (
+                      <span className="rounded bg-[#FFD000] px-1.5 py-0.2 text-[9px] font-black uppercase text-[#12162A] tracking-wider">
+                        Destaque
+                      </span>
+                    )}
+                  </span>
                   <Icon
                     name="chevron-down"
                     size={11}

@@ -171,6 +171,7 @@ describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
     { path: "/painel/reservas", name: "Reservas de Áreas" },
     { path: "/painel/visitantes", name: "Visitantes e Acessos" },
     { path: "/painel/encomendas", name: "Encomendas e Portaria" },
+    { path: "/painel/servicos", name: "Serviços e Prestadores" },
     { path: "/painel/comunicados", name: "Comunicados e Avisos" },
     { path: "/painel/assembleias", name: "Assembleias Digitais" },
     { path: "/painel/documentos", name: "Biblioteca de Documentos" },

@@ -32,6 +32,14 @@ const MORADOR_NAVIGATION: NavGroup[] = [
     ],
   },
   {
+    id: "servicos",
+    title: "Serviços",
+    items: [
+      { id: "prestadores", label: "Prestadores", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
+      { id: "solicitar_servico", label: "Solicitar serviço", href: "/painel/servicos?solicitar=true", icon: "sparkles", permission: "provider.request" },
+    ],
+  },
+  {
     id: "condominio",
     title: "Condomínio",
     items: [
@@ -39,14 +47,6 @@ const MORADOR_NAVIGATION: NavGroup[] = [
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
       { id: "documentos", label: "Documentos", href: "/painel/documentos", icon: "folder", permission: "document.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_own" },
-    ],
-  },
-  {
-    id: "servicos",
-    title: "Serviços",
-    items: [
-      { id: "prestadores", label: "Prestadores", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
-      { id: "solicitar_servico", label: "Solicitar serviço", href: "/painel/servicos?solicitar=true", icon: "sparkles", permission: "provider.request" },
     ],
   },
 ];
@@ -60,6 +60,14 @@ const SINDICO_NAVIGATION: NavGroup[] = [
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
       { id: "documentos", label: "Documentos", href: "/painel/documentos", icon: "folder", permission: "document.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_all" },
+    ],
+  },
+  {
+    id: "servicos",
+    title: "Serviços",
+    items: [
+      { id: "prestadores", label: "Prestadores", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
+      { id: "solicitar_orcamento", label: "Solicitar orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles", permission: "provider.request" },
     ],
   },
   {
@@ -78,14 +86,6 @@ const SINDICO_NAVIGATION: NavGroup[] = [
       { id: "reservas", label: "Reservas", href: "/painel/reservas", icon: "calendar", permission: "reservation.view_all" },
       { id: "encomendas", label: "Encomendas", href: "/painel/encomendas", icon: "package", permission: "package.view_all" },
       { id: "visitantes", label: "Visitantes", href: "/painel/visitantes", icon: "users", permission: "visitor.view_all" },
-    ],
-  },
-  {
-    id: "servicos",
-    title: "Serviços",
-    items: [
-      { id: "prestadores", label: "Prestadores", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
-      { id: "solicitar_orcamento", label: "Solicitar orçamento", href: "/painel/servicos?solicitar=true", icon: "sparkles", permission: "provider.request" },
     ],
   },
   {
@@ -151,8 +151,8 @@ export function getMobileNavItems(role: Role): NavItem[] {
   return [
     { id: "inicio", href: "/painel", label: "Início", icon: "grid" },
     { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard", permission: "occurrence.view_all" },
+    { id: "servicos", href: "/painel/servicos", label: "Serviços", icon: "briefcase", permission: "provider.view" },
     { id: "ordens", href: "/painel/ordens", label: "Ordens", icon: "wrench", permission: "service_order.view" },
-    { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar", permission: "reservation.view_all" },
     { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" },
   ];
 }
