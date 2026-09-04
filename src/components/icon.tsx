@@ -80,7 +80,12 @@ export type IconName =
   | "coffee"
   | "activity"
   | "map-pin"
-  | "copy";
+  | "copy"
+  | "award"
+  | "zap"
+  | "droplet"
+  | "wind"
+  | "hammer";
 
 const PATHS: Record<IconName, ReactElement> = {
   grid: (
@@ -513,6 +518,31 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
       <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </>
+  ),
+  award: (
+    <>
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </>
+  ),
+  zap: (
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  ),
+  droplet: (
+    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+  ),
+  wind: (
+    <>
+      <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+    </>
+  ),
+  hammer: (
+    <>
+      <path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9" />
+      <path d="M17.64 15 22 10.64" />
+      <path d="m20.91 3.26-6.36 6.36" />
+      <path d="m9 2 4.24 4.24" />
     </>
   ),
 };
