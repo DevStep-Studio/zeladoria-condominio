@@ -2,27 +2,68 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Icon } from "@/components/icon";
+import { useRef, useState, useTransition } from "react";
+import { Icon, type IconName } from "@/components/icon";
 import { createOccurrenceAction } from "@/lib/actions/ocorrencias";
 
-const CATEGORIES = [
-  "Elétrica",
-  "Hidráulica",
-  "Iluminação",
-  "Elevador",
-  "Portão",
-  "Garagem",
-  "Limpeza",
-  "Segurança",
-  "Piscina",
-  "Jardinagem",
-  "Estrutura",
-  "Vazamento",
-  "Infiltração",
-  "Ruído",
-  "Outros",
+const CATEGORIES: { label: string; icon: IconName }[] = [
+  { label: "Elétrica", icon: "zap" },
+  { label: "Hidráulica", icon: "droplet" },
+  { label: "Iluminação", icon: "sun" },
+  { label: "Elevador", icon: "panel" },
+  { label: "Portão", icon: "lock" },
+  { label: "Garagem", icon: "truck" },
+  { label: "Limpeza", icon: "sparkles" },
+  { label: "Segurança", icon: "shield" },
+  { label: "Piscina", icon: "activity" },
+  { label: "Jardinagem", icon: "globe" },
+  { label: "Estrutura", icon: "building" },
+  { label: "Vazamento", icon: "droplet" },
+  { label: "Infiltração", icon: "droplet" },
+  { label: "Ruído", icon: "bell" },
+  { label: "Outros", icon: "more" },
 ];
+
+const MAX_PHOTOS = 4;
+
+// Reduz a imagem no cliente antes de enviar (evita payloads grandes).
+async function compressImage(file: File): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo."));
+    reader.readAsDataURL(file);
+  });
+
+  return new Promise<string>((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const MAX = 1120;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width >= height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.62));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 export default function NovaOcorrenciaPage() {
   const router = useRouter();
@@ -32,24 +73,38 @@ export default function NovaOcorrenciaPage() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("Iluminação");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setPhotoBusy(true);
+    try {
+      const room = MAX_PHOTOS - photos.length;
+      const chosen = Array.from(files).slice(0, room);
+      const encoded: string[] = [];
+      for (const file of chosen) {
+        if (!file.type.startsWith("image/")) continue;
+        encoded.push(await compressImage(file));
+      }
+      if (encoded.length) {
+        setPhotos((prev) => [...prev, ...encoded]);
+      }
+    } catch {
+      setErrors((prev) => ({ ...prev, photos: "Não foi possível processar a imagem." }));
+    } finally {
+      setPhotoBusy(false);
     }
   };
 
-  const handleRemoveImage = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+  const removePhoto = (idx: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -76,6 +131,7 @@ export default function NovaOcorrenciaPage() {
     formData.set("exactLocation", location);
     formData.set("category", category.toLowerCase());
     formData.set("severity", "media");
+    formData.set("attachments", JSON.stringify(photos));
 
     startTransition(async () => {
       const res = await createOccurrenceAction(formData);
@@ -194,63 +250,122 @@ export default function NovaOcorrenciaPage() {
             Categoria <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`rounded-[8px] border px-3 py-2 text-xs font-semibold text-left transition-all ${
-                  category === cat
-                    ? "border-[#0070F3] bg-blue-50/80 text-[#0070F3] font-bold shadow-2xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const active = category === cat.label;
+              return (
+                <button
+                  key={cat.label}
+                  type="button"
+                  onClick={() => setCategory(cat.label)}
+                  className={`flex items-center gap-2 rounded-[8px] border px-3 py-2 text-xs font-semibold transition-all ${
+                    active
+                      ? "border-[#0070F3] bg-blue-50/80 text-[#0070F3] font-bold shadow-2xs"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon
+                    name={cat.icon}
+                    size={15}
+                    strokeWidth={2}
+                    className={`shrink-0 ${active ? "text-[#0070F3]" : "text-slate-400"}`}
+                  />
+                  <span className="truncate">{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Upload de Fotos com Preview e Remoção */}
+        {/* Upload de Fotos: câmera do celular + galeria, com múltiplas imagens */}
         <div>
           <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
             Fotos (opcional)
           </label>
 
-          {previewUrl ? (
-            <div className="relative inline-block mt-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewUrl}
-                alt="Preview da ocorrência"
-                className="h-32 w-32 rounded-[10px] object-cover border border-slate-200"
-              />
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
+              {photos.map((src, idx) => (
+                <div key={idx} className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={`Foto ${idx + 1} da ocorrência`}
+                    className="h-full w-full rounded-[10px] object-cover border border-slate-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white shadow-xs hover:bg-red-700 transition-colors"
+                    title="Remover foto"
+                  >
+                    <Icon name="x" size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {photos.length < MAX_PHOTOS && (
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={handleRemoveImage}
-                className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white shadow-xs hover:bg-red-700 transition-colors"
-                title="Remover foto"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={photoBusy}
+                className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center hover:bg-slate-100/60 hover:border-[#0070F3] transition-colors disabled:opacity-60"
               >
-                <Icon name="x" size={13} />
+                <Icon name="camera" size={22} className="text-[#0070F3]" />
+                <span className="text-xs font-bold text-[#0070F3]">Tirar foto</span>
+                <span className="text-[11px] text-slate-400">Abre a câmera</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={photoBusy}
+                className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center hover:bg-slate-100/60 hover:border-[#0070F3] transition-colors disabled:opacity-60"
+              >
+                <Icon name="folder" size={22} className="text-slate-500" />
+                <span className="text-xs font-bold text-slate-700">Galeria</span>
+                <span className="text-[11px] text-slate-400">PNG ou JPG</span>
               </button>
             </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center rounded-[10px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 text-center cursor-pointer hover:bg-slate-100/60 hover:border-[#0070F3] transition-colors">
-              <Icon name="camera" size={24} className="text-slate-400 mb-1.5" />
-              <span className="text-xs font-bold text-[#0070F3]">
-                Clique para selecionar uma foto
-              </span>
-              <span className="text-[11px] text-slate-400 mt-0.5">
-                PNG, JPG ou WEBP de até 5MB
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
           )}
+
+          {photoBusy && (
+            <p className="mt-2 text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full border-2 border-slate-300 border-t-transparent animate-spin" />
+              Processando imagem...
+            </p>
+          )}
+          {errors.photos && (
+            <p className="mt-1 text-[11px] font-semibold text-red-500">{errors.photos}</p>
+          )}
+          <p className="mt-1 text-[11px] text-slate-400">
+            {photos.length}/{MAX_PHOTOS} fotos adicionadas
+          </p>
+
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+            className="hidden"
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+            className="hidden"
+          />
         </div>
 
         {/* Submit Buttons */}
@@ -263,7 +378,7 @@ export default function NovaOcorrenciaPage() {
           </Link>
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isPending || photoBusy}
             className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#0070F3] hover:bg-[#005FD6] px-5 py-2 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors disabled:opacity-50"
           >
             {isPending ? (

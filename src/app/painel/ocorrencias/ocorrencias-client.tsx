@@ -21,6 +21,7 @@ export type OccurrenceItem = {
   status: string;
   exactLocation: string | null;
   actionsTaken: string | null;
+  attachments: string[] | null;
   residentRating: number | null;
   residentComment: string | null;
   createdAt: Date | null;
@@ -74,6 +75,7 @@ export function OcorrenciasClient({
   const [filter, setFilter] = useState<FilterStatus>("todas");
   const [search, setSearch] = useState("");
   const [activeOccurrence, setActiveOccurrence] = useState<OccurrenceItem | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -334,6 +336,35 @@ export function OcorrenciasClient({
                         <span>{occ.exactLocation}</span>
                       </p>
                     )}
+
+                    {/* Fotos anexadas */}
+                    {occ.attachments && occ.attachments.length > 0 && (
+                      <div className="flex items-center gap-1.5 pt-1.5">
+                        {occ.attachments.slice(0, 4).map((src, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLightbox(src);
+                            }}
+                            className="relative h-12 w-12 overflow-hidden rounded-[8px] border border-slate-200 bg-slate-50 transition-transform hover:scale-105"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={src}
+                              alt={`Foto ${idx + 1} da ocorrência ${occ.code}`}
+                              className="h-full w-full object-cover"
+                            />
+                            {idx === 3 && occ.attachments && occ.attachments.length > 4 && (
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[11px] font-black text-white">
+                                +{occ.attachments.length - 4}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Status Badge */}
@@ -384,6 +415,31 @@ export function OcorrenciasClient({
                   {activeOccurrence.description}
                 </p>
               </div>
+
+              {activeOccurrence.attachments && activeOccurrence.attachments.length > 0 && (
+                <div>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">
+                    Fotos ({activeOccurrence.attachments.length})
+                  </span>
+                  <div className="grid grid-cols-3 gap-2 mt-1.5">
+                    {activeOccurrence.attachments.map((src, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setLightbox(src)}
+                        className="relative aspect-square overflow-hidden rounded-[8px] border border-slate-200 bg-slate-50 transition-transform hover:scale-[1.03]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={src}
+                          alt={`Foto ${idx + 1} da ocorrência ${activeOccurrence.code}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div>
@@ -490,6 +546,30 @@ export function OcorrenciasClient({
               </form>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Lightbox de foto */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+            aria-label="Fechar foto"
+          >
+            <Icon name="x" size={18} />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox}
+            alt="Foto da ocorrência ampliada"
+            className="max-h-full max-w-full rounded-[12px] object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

@@ -45,6 +45,40 @@ export type DashboardVendor = {
   verified: boolean;
 };
 
+export type CondoNotice = {
+  id: string;
+  kind: "assembleia" | "comunicado" | "alerta";
+  title: string;
+  detail: string;
+  date: string;
+  href: string;
+  priority?: "alta" | "normal";
+};
+
+const NOTICE_META: Record<
+  CondoNotice["kind"],
+  { label: string; icon: IconName; badge: string; chip: string }
+> = {
+  assembleia: {
+    label: "Assembleia",
+    icon: "scale",
+    badge: "bg-indigo-100 text-indigo-600",
+    chip: "bg-indigo-50 text-indigo-700",
+  },
+  comunicado: {
+    label: "Comunicado",
+    icon: "megaphone",
+    badge: "bg-blue-100 text-[#0055D4]",
+    chip: "bg-blue-50 text-[#0055D4]",
+  },
+  alerta: {
+    label: "Alerta",
+    icon: "alert-triangle",
+    badge: "bg-rose-100 text-rose-600",
+    chip: "bg-rose-50 text-rose-700",
+  },
+};
+
 export function DashboardClient({
   userName,
   condoName,
@@ -58,6 +92,7 @@ export function DashboardClient({
   recentActivities,
   upcomingReservations,
   recommendedVendors,
+  notices = [],
 }: {
   userName: string;
   condoName: string;
@@ -81,6 +116,7 @@ export function DashboardClient({
   recentActivities: DashboardOccurrence[];
   upcomingReservations: DashboardReservation[];
   recommendedVendors: DashboardVendor[];
+  notices?: CondoNotice[];
 }) {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
@@ -153,9 +189,9 @@ export function DashboardClient({
           </div>
 
           {/* Right: Action Buttons (Contatos de Emergência + Assistente Virtual IA) */}
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto xl:shrink-0">
             {!isResident && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button
                   type="button"
                   onMouseEnter={() => setIndicatorTooltip(true)}
@@ -185,7 +221,7 @@ export function DashboardClient({
             {/* Quick Access: Serviços & Prestadores (Aba Mais Importante) */}
             <Link
               href="/painel/servicos"
-              className="group flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all border border-blue-400/40 hover:scale-[1.01]"
+              className="group flex flex-1 min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all border border-blue-400/40 hover:scale-[1.01] xl:flex-none xl:justify-start"
               title="Acessar Prestadores e Solicitar Serviços"
             >
               <Icon name="briefcase" size={15} className="text-[#FFD000] shrink-0 group-hover:scale-110 transition-transform" />
@@ -201,7 +237,7 @@ export function DashboardClient({
               onClick={() => setEmergencyModalOpen(true)}
               aria-label="Abrir contatos e central de emergência 24 horas"
               title="SOS e Contatos de Emergência 24h"
-              className="group relative flex items-center gap-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border border-red-500 ring-2 ring-red-500/20 hover:ring-red-500/40"
+              className="group relative flex flex-1 min-w-[168px] items-center justify-center gap-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border border-red-500 ring-2 ring-red-500/20 hover:ring-red-500/40 xl:flex-none"
             >
               <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85" />
@@ -228,7 +264,7 @@ export function DashboardClient({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 pb-3 pt-1">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pb-2 pt-1">
           {(isResident
             ? [
                 {
@@ -297,36 +333,36 @@ export function DashboardClient({
               <Link
                 key={action.label}
                 href={action.href}
-                className={`group relative flex min-h-[145px] sm:min-h-[160px] flex-col justify-between rounded-[26px] p-5 sm:p-6 transition-all duration-200 hover:-translate-y-1 ${
+                className={`group relative flex min-h-[112px] sm:min-h-[132px] flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[20px] p-4 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 ${
                   isYellow
-                    ? "bg-[#FFD000] text-[#12162A] shadow-lg shadow-[#FFD000]/25 hover:shadow-xl hover:shadow-[#FFD000]/35"
-                    : "bg-[#0070F3] text-white shadow-lg shadow-[#0070F3]/20 hover:shadow-xl hover:shadow-[#0070F3]/30"
+                    ? "bg-[#FFD000] text-[#12162A] shadow-md shadow-[#FFD000]/25 hover:shadow-lg hover:shadow-[#FFD000]/35"
+                    : "bg-[#0070F3] text-white shadow-md shadow-[#0070F3]/20 hover:shadow-lg hover:shadow-[#0070F3]/30"
                 }`}
               >
                 {/* Top-left Icon */}
                 <div className="flex items-center justify-start">
                   <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110 ${
                       isYellow
                         ? "bg-[#12162A]/10 text-[#12162A]"
                         : "bg-white/15 text-white"
                     }`}
                   >
-                    <Icon name={action.icon} size={20} strokeWidth={2.2} />
+                    <Icon name={action.icon} size={17} strokeWidth={2.2} />
                   </span>
                 </div>
 
                 {/* Bottom-left Content */}
-                <div className="pr-8 pt-4">
+                <div className="pr-11 pt-3">
                   <h3
-                    className={`text-base sm:text-lg font-black tracking-tight leading-snug ${
+                    className={`text-sm sm:text-[15px] font-black tracking-tight leading-tight ${
                       isYellow ? "text-[#12162A]" : "text-white"
                     }`}
                   >
                     {action.label}
                   </h3>
                   <p
-                    className={`mt-1 text-xs font-medium leading-normal ${
+                    className={`mt-0.5 text-[11px] sm:text-xs font-medium leading-snug line-clamp-1 ${
                       isYellow ? "text-[#12162A]/75" : "text-white/80"
                     }`}
                   >
@@ -334,19 +370,83 @@ export function DashboardClient({
                   </p>
                 </div>
 
-                {/* Protruding circular arrow button at bottom-right corner */}
+                {/* Circular arrow button at bottom-right corner */}
                 <div
-                  className={`absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white shadow-md shadow-black/10 border-[3px] border-[#F8FAFC] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg ${
+                  className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
                     isYellow ? "text-[#12162A]" : "text-[#0070F3]"
                   }`}
                 >
-                  <Icon name="arrow-up-right" size={17} strokeWidth={2.6} />
+                  <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
                 </div>
               </Link>
             );
           })}
         </div>
       </section>
+
+      {/* 2b. AVISOS DO CONDOMÍNIO (assembleias, comunicados e alertas) */}
+      {notices.length > 0 && (
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+              Avisos do condomínio
+            </h2>
+            <Link
+              href="/painel/comunicados"
+              className="text-[11px] font-bold text-[#0055D4] hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {notices.map((n) => {
+              const meta = NOTICE_META[n.kind];
+              const urgent = n.priority === "alta" || n.kind === "alerta";
+              return (
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  className={`group flex items-start gap-3 rounded-[16px] border p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
+                    urgent
+                      ? "bg-rose-50/40 border-rose-200/80 hover:border-rose-300"
+                      : "bg-white border-slate-200/80 hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] shadow-xs ${meta.badge}`}
+                  >
+                    <Icon name={meta.icon} size={18} strokeWidth={2.2} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${meta.chip}`}
+                      >
+                        {meta.label}
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-400">
+                        {n.date}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-[#0F172A] group-hover:text-[#0055D4] transition-colors truncate mt-1">
+                      {n.title}
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
+                      {n.detail}
+                    </p>
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={16}
+                    className="text-slate-300 shrink-0 mt-1 group-hover:text-slate-500 transition-colors"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 3. PRECISA DA SUA ATENÇÃO / SUAS PENDÊNCIAS */}
       <section className="space-y-2.5">
@@ -1192,6 +1292,23 @@ export function DashboardClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Botão SOS flutuante (atalho de emergência sempre acessível no mobile) */}
+      {!emergencyModalOpen && !fullMapModalOpen && (
+        <button
+          type="button"
+          onClick={() => setEmergencyModalOpen(true)}
+          aria-label="Abrir central de emergência 24 horas"
+          title="SOS · Emergência 24h"
+          className="lg:hidden fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-600/40 ring-4 ring-red-600/20 active:scale-95 transition-transform"
+        >
+          <span className="absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-60 animate-ping" />
+          <span className="relative flex flex-col items-center justify-center leading-none">
+            <Icon name="phone" size={17} />
+            <span className="mt-0.5 text-[9px] font-black tracking-wide">SOS</span>
+          </span>
+        </button>
       )}
     </div>
   );

@@ -27,6 +27,7 @@ export default async function OcorrenciasPage() {
       status: occurrences.status,
       exactLocation: occurrences.exactLocation,
       actionsTaken: occurrences.actionsTaken,
+      attachments: occurrences.attachments,
       residentRating: occurrences.residentRating,
       residentComment: occurrences.residentComment,
       createdAt: occurrences.createdAt,

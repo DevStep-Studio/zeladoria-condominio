@@ -23,6 +23,23 @@ export async function createOccurrenceAction(formData: FormData) {
   const exactLocation = str(formData, "exactLocation");
   const unitId = session.role === "morador" ? session.unitId : num(formData, "unitId") || session.unitId || null;
 
+  // Fotos anexadas (data URLs ou links), enviadas pelo formulário como JSON.
+  let attachments: string[] = [];
+  const rawAttachments = str(formData, "attachments");
+  if (rawAttachments) {
+    try {
+      const parsed = JSON.parse(rawAttachments);
+      if (Array.isArray(parsed)) {
+        attachments = parsed
+          .filter((v): v is string => typeof v === "string")
+          .filter((v) => /^(data:image\/|https?:\/\/)/.test(v))
+          .slice(0, 4);
+      }
+    } catch {
+      attachments = [];
+    }
+  }
+
   const [countRow] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(occurrences)
@@ -42,6 +59,7 @@ export async function createOccurrenceAction(formData: FormData) {
       visibility,
       exactLocation,
       unitId,
+      attachments,
       status: "recebida",
       reportedById: session.user.id,
       occurredAt: new Date(),

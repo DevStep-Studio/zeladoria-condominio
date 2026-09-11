@@ -1,11 +1,12 @@
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { amenities, announcements, condominiums, occurrences, parcels, reservations, tickets, units, vendors } from "@/db/schema";
+import { amenities, announcements, assemblies, condominiums, occurrences, parcels, reservations, tickets, units, vendors } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
-import { timeAgoBR } from "@/lib/utils";
+import { dateBR, dateTimeBR, timeAgoBR } from "@/lib/utils";
 import {
   DashboardClient,
   type AttentionItem,
+  type CondoNotice,
   type DashboardOccurrence,
   type DashboardReservation,
   type DashboardVendor,
@@ -348,6 +349,69 @@ export default async function PainelHome() {
         },
       ];
 
+  // 6. Avisos do condomínio: próximas assembleias + comunicados recentes
+  const now = new Date();
+
+  const assemblyRows = await db
+    .select({
+      id: assemblies.id,
+      title: assemblies.title,
+      kind: assemblies.kind,
+      location: assemblies.location,
+      onlineLink: assemblies.onlineLink,
+      firstCallAt: assemblies.firstCallAt,
+    })
+    .from(assemblies)
+    .where(and(eq(assemblies.condoId, condoId), gte(assemblies.firstCallAt, now)))
+    .orderBy(assemblies.firstCallAt)
+    .limit(2);
+
+  const announcementRows = await db
+    .select({
+      id: announcements.id,
+      title: announcements.title,
+      body: announcements.body,
+      category: announcements.category,
+      priority: announcements.priority,
+      publishedAt: announcements.publishedAt,
+      createdAt: announcements.createdAt,
+    })
+    .from(announcements)
+    .where(eq(announcements.condoId, condoId))
+    .orderBy(desc(announcements.pinned), desc(announcements.publishedAt))
+    .limit(4);
+
+  const notices: CondoNotice[] = [
+    ...assemblyRows.map((a) => ({
+      id: `assembleia-${a.id}`,
+      kind: "assembleia" as const,
+      title: a.title,
+      detail: a.location
+        ? `${a.kind === "extraordinaria" ? "AGE" : "AGO"} · ${a.location}`
+        : a.onlineLink
+          ? "Assembleia online"
+          : a.kind === "extraordinaria"
+            ? "Assembleia extraordinária"
+            : "Assembleia ordinária",
+      date: dateTimeBR(a.firstCallAt),
+      href: "/painel/assembleias",
+      priority: "alta" as const,
+    })),
+    ...announcementRows.map((c) => {
+      const isAlert =
+        c.category === "alerta" || c.priority === "urgente" || c.priority === "alta";
+      return {
+        id: `comunicado-${c.id}`,
+        kind: (isAlert ? "alerta" : "comunicado") as "alerta" | "comunicado",
+        title: c.title,
+        detail: c.body.replace(/\s+/g, " ").trim().slice(0, 120),
+        date: dateBR(c.publishedAt ?? c.createdAt),
+        href: "/painel/comunicados",
+        priority: (isAlert ? "alta" : "normal") as "alta" | "normal",
+      };
+    }),
+  ].slice(0, 4);
+
   return (
     <DashboardClient
       userName={session.user.name.split(" ")[0]}
@@ -362,6 +426,7 @@ export default async function PainelHome() {
       recentActivities={formattedOccurrences}
       upcomingReservations={formattedReservations}
       recommendedVendors={recommendedVendors}
+      notices={notices}
     />
   );
 }
