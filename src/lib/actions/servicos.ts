@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { tickets, ticketComments, vendors, users, memberships } from "@/db/schema";
+import { tickets, ticketComments, vendors, memberships } from "@/db/schema";
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
@@ -22,6 +22,21 @@ export async function createServiceRequestAction(formData: FormData) {
   const priority = str(formData, "priority") || suggestPriority(`${title} ${description}`) || "media";
   const location = str(formData, "location", "Unidade do Morador");
   const preferredTime = str(formData, "preferredTime");
+
+  const requestedVendorId = num(formData, "vendorId") || null;
+  let vendorId: number | null = null;
+  let vendorName: string | null = null;
+  if (requestedVendorId) {
+    const [vendor] = await db
+      .select({ id: vendors.id, name: vendors.name })
+      .from(vendors)
+      .where(and(eq(vendors.id, requestedVendorId), eq(vendors.condoId, condoId), eq(vendors.active, true)))
+      .limit(1);
+    if (vendor) {
+      vendorId = vendor.id;
+      vendorName = vendor.name;
+    }
+  }
 
   const [countRow] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -43,6 +58,7 @@ export async function createServiceRequestAction(formData: FormData) {
       status: "solicitado",
       location,
       preferredTime,
+      vendorId,
       aiPriority: priority,
       aiSummary: assistNote(priority, category),
       openedById: session.user.id,
@@ -60,7 +76,7 @@ export async function createServiceRequestAction(formData: FormData) {
     condoId,
     sindicos.map((s) => s.userId),
     `Nova solicitação de serviço: ${ticket.code}`,
-    `${title} (${category}) - Solicitado por ${session.user.name}`,
+    `${title} (${category}) - Solicitado por ${session.user.name}${vendorName ? ` - Prestador: ${vendorName}` : ""}`,
     `/painel/servicos`,
   );
 

@@ -1,13 +1,11 @@
 "use client";
 
 import { Icon } from "@/components/icon";
-import { CATEGORIES_CONFIG } from "@/lib/services/providers-data";
+import type { CategoryOption } from "@/lib/services/providers-data";
 
 export interface FilterState {
   category: string;
   minRating: number;
-  availableTodayOnly: boolean;
-  fastResponseOnly: boolean;
   verifiedOnly: boolean;
   maxPrice: number;
 }
@@ -15,6 +13,7 @@ export interface FilterState {
 export function FilterBottomSheet({
   isOpen,
   filters,
+  categories,
   totalResultsCount,
   onClose,
   onChange,
@@ -22,6 +21,7 @@ export function FilterBottomSheet({
 }: {
   isOpen: boolean;
   filters: FilterState;
+  categories: CategoryOption[];
   totalResultsCount: number;
   onClose: () => void;
   onChange: (updated: Partial<FilterState>) => void;
@@ -66,7 +66,7 @@ export function FilterBottomSheet({
               Categoria
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {CATEGORIES_CONFIG.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
@@ -110,7 +110,7 @@ export function FilterBottomSheet({
             </div>
           </div>
 
-          {/* Critérios de Agilidade e Segurança */}
+          {/* Critérios Especiais */}
           <div>
             <label className="block font-bold text-[#0F172A] mb-2 uppercase text-[10px] tracking-wider text-slate-400">
               Critérios Especiais
@@ -118,34 +118,8 @@ export function FilterBottomSheet({
             <div className="space-y-2">
               <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="font-semibold text-slate-800">Disponível hoje</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={filters.availableTodayOnly}
-                  onChange={(e) => onChange({ availableTodayOnly: e.target.checked })}
-                  className="rounded h-4 w-4 text-[#0055D4] focus:ring-[#0055D4]"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                <div className="flex items-center gap-2">
-                  <Icon name="clock" size={14} className="text-[#0055D4]" />
-                  <span className="font-semibold text-slate-800">Resposta rápida (≤ 30 min)</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={filters.fastResponseOnly}
-                  onChange={(e) => onChange({ fastResponseOnly: e.target.checked })}
-                  className="rounded h-4 w-4 text-[#0055D4] focus:ring-[#0055D4]"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                <div className="flex items-center gap-2">
                   <Icon name="check-circle" size={14} className="text-[#0055D4]" />
-                  <span className="font-semibold text-slate-800">Apenas verificados</span>
+                  <span className="font-semibold text-slate-800">Apenas verificados pelo condomínio</span>
                 </div>
                 <input
                   type="checkbox"

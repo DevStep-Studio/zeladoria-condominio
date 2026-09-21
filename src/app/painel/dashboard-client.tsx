@@ -889,63 +889,69 @@ export function DashboardClient({
       </div>
 
       {/* 6. SERVIÇOS RECOMENDADOS (Com Ícones e Estrelas) */}
-      <section className="rounded-[18px] bg-white border border-slate-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-              <Icon name="briefcase" size={17} strokeWidth={2.2} />
-            </span>
-            <div>
-              <h3 className="text-sm font-bold text-[#0F172A]">
-                Serviços recomendados
-              </h3>
-              <p className="text-[11px] text-slate-400">
-                Profissionais avaliados pelo condomínio
-              </p>
+      {recommendedVendors.length > 0 && (
+        <section className="rounded-[18px] bg-white border border-slate-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <Icon name="briefcase" size={17} strokeWidth={2.2} />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-[#0F172A]">
+                  Serviços recomendados
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  Profissionais cadastrados no condomínio
+                </p>
+              </div>
             </div>
-          </div>
-          <Link
-            href="/painel/servicos"
-            className="flex items-center gap-1 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] transition-colors group"
-          >
-            <span>Ver todos</span>
-            <Icon name="chevron-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          {recommendedVendors.map((vendor) => (
-            <div
-              key={vendor.id}
-              className="group flex items-center justify-between p-3.5 rounded-[16px] bg-slate-50/70 border border-slate-200/60 hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all"
+            <Link
+              href="/painel/servicos"
+              className="flex items-center gap-1 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] transition-colors group"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 text-[#0055D4] text-xs font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                  <Icon name="briefcase" size={16} />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
-                      {vendor.name}
-                    </h4>
-                    {vendor.verified && (
-                      <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                    {vendor.category} · {vendor.company}
-                  </p>
-                </div>
-              </div>
+              <span>Ver todos</span>
+              <Icon name="chevron-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
 
-              <div className="flex items-center gap-1 shrink-0 rounded-lg bg-white border border-slate-200/80 px-2 py-1 text-xs font-bold text-slate-700 shadow-2xs">
-                <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                <span>{vendor.rating.toFixed(1)}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {recommendedVendors.map((vendor) => (
+              <div
+                key={vendor.id}
+                className="group flex items-center justify-between p-3.5 rounded-[16px] bg-slate-50/70 border border-slate-200/60 hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 text-[#0055D4] text-xs font-bold shadow-2xs group-hover:scale-105 transition-transform">
+                    <Icon name="briefcase" size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
+                        {vendor.name}
+                      </h4>
+                      {vendor.verified && (
+                        <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {vendor.category} · {vendor.company}
+                    </p>
+                  </div>
+                </div>
+
+                {vendor.reviewsCount > 0 ? (
+                  <div className="flex items-center gap-1 shrink-0 rounded-lg bg-white border border-slate-200/80 px-2 py-1 text-xs font-bold text-slate-700 shadow-2xs">
+                    <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                    <span>{vendor.rating.toFixed(1)}</span>
+                  </div>
+                ) : (
+                  <span className="shrink-0 text-[10px] text-slate-400 font-medium">Sem avaliações</span>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* MODAL: Central de Emergência e SOS */}
       {emergencyModalOpen && (

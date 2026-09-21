@@ -109,13 +109,8 @@ export function ProviderCard({
                 {provider.name}
               </h3>
               {provider.isVerified && (
-                <span title="Profissional com documentação e antecedentes verificados">
+                <span title="Profissional com documentação e antecedentes verificados pelo condomínio">
                   <Icon name="check-circle" size={14} className="text-[#0055D4] shrink-0" />
-                </span>
-              )}
-              {provider.isPremium && (
-                <span className="rounded bg-slate-100 text-slate-700 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider">
-                  Pro
                 </span>
               )}
             </div>
@@ -126,21 +121,29 @@ export function ProviderCard({
 
             {/* Rating & Reviews */}
             <div className="mt-1 flex items-center gap-1.5 text-xs">
-              <div className="flex items-center gap-1 font-black text-[#0F172A]">
-                <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                <span>{provider.rating.toFixed(1)}</span>
-              </div>
-              <span className="text-slate-400 font-medium">
-                ({provider.reviewsCount} avaliações)
-              </span>
+              {provider.reviewsCount > 0 ? (
+                <>
+                  <div className="flex items-center gap-1 font-black text-[#0F172A]">
+                    <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
+                    <span>{provider.rating.toFixed(1)}</span>
+                  </div>
+                  <span className="text-slate-400 font-medium">
+                    ({provider.reviewsCount} avaliações)
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-400 font-medium">Ainda sem avaliações no condomínio</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Bio snippet */}
-        <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
-          {provider.bio}
-        </p>
+        {provider.bio && (
+          <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            {provider.bio}
+          </p>
+        )}
 
         {/* Mini Portfolio Preview (1 or 2 small photos) */}
         {provider.portfolio && provider.portfolio.length > 0 && (
@@ -149,16 +152,16 @@ export function ProviderCard({
               Trabalhos recentes:
             </span>
             <div className="flex items-center gap-2">
-              {provider.portfolio.slice(0, 2).map((item) => (
+              {provider.portfolio.slice(0, 2).map((item, idx) => (
                 <div
-                  key={item.id}
+                  key={idx}
                   className="relative h-14 flex-1 overflow-hidden rounded-lg bg-slate-100 border border-slate-200 cursor-pointer group/photo"
                   onClick={() => onViewProfile(provider)}
-                  title={item.title}
+                  title={item.caption}
                 >
                   <img
-                    src={item.imageUrl}
-                    alt={item.title}
+                    src={item.url}
+                    alt={item.caption}
                     className="h-full w-full object-cover transition-transform duration-200 group-hover/photo:scale-105"
                     loading="lazy"
                   />
@@ -171,37 +174,28 @@ export function ProviderCard({
           </div>
         )}
 
-        {/* Conversion Indicators (Availability, Price, Speed) */}
+        {/* Conversion Indicators (Price, Completion) */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px]">
-          {/* Availability */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`h-2 w-2 rounded-full shrink-0 ${
-                provider.availableToday ? "bg-emerald-500" : "bg-slate-300"
-              }`}
-            />
-            <span
-              className={`truncate font-semibold ${
-                provider.availableToday ? "text-emerald-700" : "text-slate-600"
-              }`}
-            >
-              {provider.availableToday ? "Disponível hoje" : provider.nextAvailableSlot}
+          {/* Starting Price */}
+          <div className="font-bold text-[#0F172A] truncate">
+            <span className="text-[10px] text-slate-400 font-normal">A partir de </span>
+            <span className="text-[#0055D4]">
+              {provider.startingPriceCents != null ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}` : "Sob consulta"}
             </span>
           </div>
 
-          {/* Starting Price */}
-          <div className="text-right font-bold text-[#0F172A] truncate">
-            <span className="text-[10px] text-slate-400 font-normal">A partir de </span>
-            <span className="text-[#0055D4]">R$ {provider.startingPrice}</span>
+          {/* Hired count */}
+          <div className="text-right text-slate-500 truncate">
+            {provider.hiredCount > 0 ? `${provider.hiredCount} contratação(ões) no condomínio` : "Ainda não contratado"}
           </div>
 
-          {/* Response time */}
-          <div className="flex items-center gap-1 text-slate-500 truncate col-span-2">
-            <Icon name="clock" size={11} className="text-slate-400 shrink-0" />
-            <span>Resposta média em ~{provider.responseTime}</span>
-            <span className="mx-1 text-slate-300">·</span>
-            <span>{provider.completionRate}% de conclusão</span>
-          </div>
+          {/* Completion rate */}
+          {provider.completionRate !== null && (
+            <div className="flex items-center gap-1 text-slate-500 truncate col-span-2">
+              <Icon name="check-circle" size={11} className="text-slate-400 shrink-0" />
+              <span>{provider.completionRate}% de conclusão de chamados</span>
+            </div>
+          )}
         </div>
       </div>
 

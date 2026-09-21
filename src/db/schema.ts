@@ -464,6 +464,18 @@ export const vendors = appSchema.table("vendors", {
   rating: integer("rating").default(0),
   active: boolean("active").notNull().default(true),
   notes: text("notes"),
+  // Marketplace (Zeladoria Serviços)
+  photoUrl: text("photo_url"),
+  whatsapp: varchar("whatsapp", { length: 32 }),
+  description: text("description"),
+  serviceArea: varchar("service_area", { length: 160 }),
+  priceFromCents: integer("price_from_cents"),
+  services: jsonb("services").$type<{ id: string; name: string; description: string; priceFromCents: number | null }[]>().default([]),
+  portfolio: jsonb("portfolio").$type<{ url: string; caption: string }[]>().default([]),
+  verified: boolean("verified").notNull().default(false),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  verifiedById: integer("verified_by_id"),
+  sponsored: boolean("sponsored").notNull().default(false),
 });
 
 export const contracts = appSchema.table("contracts", {

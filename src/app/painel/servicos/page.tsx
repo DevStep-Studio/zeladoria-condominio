@@ -2,6 +2,7 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { tickets, ticketComments, vendors, users, units, blocks } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
+import { getMarketplaceProviders } from "@/lib/services/providers-query";
 import { ServicosClient } from "./servicos-client";
 
 export const dynamic = "force-dynamic";
@@ -56,10 +57,13 @@ export default async function ServicosPage() {
     .select({ id: users.id, name: users.name })
     .from(users);
 
+  const providers = await getMarketplaceProviders(condoId);
+
   return (
     <ServicosClient
       services={serviceRows}
       vendors={vendorList}
+      providers={providers}
       staff={staffUsers}
       role={session.role}
       currentUserId={session.user.id}

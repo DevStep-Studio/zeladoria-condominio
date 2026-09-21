@@ -60,16 +60,16 @@ export function ProviderProfileModal({
                   </h2>
                   {provider.isVerified && (
                     <span
-                      title="Profissional com documentação e antecedentes verificados"
+                      title="Profissional com documentação e antecedentes verificados pelo condomínio"
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0055D4] bg-blue-50 px-1.5 py-0.5 rounded-full"
                     >
                       <Icon name="check-circle" size={13} />
                       <span className="hidden sm:inline">Verificado</span>
                     </span>
                   )}
-                  {provider.isPremium && (
-                    <span className="rounded bg-slate-100 text-slate-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
-                      Pro
+                  {provider.isSponsored && (
+                    <span className="rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                      Patrocinado
                     </span>
                   )}
                 </div>
@@ -79,17 +79,19 @@ export function ProviderProfileModal({
                 </p>
 
                 <div className="mt-1 flex items-center gap-2 text-xs flex-wrap">
-                  <div className="flex items-center gap-1 font-black text-[#0F172A]">
-                    <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                    <span>{provider.rating.toFixed(1)}</span>
-                  </div>
-                  <span className="text-slate-400 font-medium">
-                    ({provider.reviewsCount} avaliações no condomínio)
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-emerald-700 font-semibold">
-                    {provider.availableToday ? "Disponível hoje" : provider.nextAvailableSlot}
-                  </span>
+                  {provider.reviewsCount > 0 ? (
+                    <>
+                      <div className="flex items-center gap-1 font-black text-[#0F172A]">
+                        <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
+                        <span>{provider.rating.toFixed(1)}</span>
+                      </div>
+                      <span className="text-slate-400 font-medium">
+                        ({provider.reviewsCount} avaliações no condomínio)
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-slate-400 font-medium">Ainda sem avaliações no condomínio</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -113,22 +115,20 @@ export function ProviderProfileModal({
           )}
 
           {/* Quick Metrics Bar */}
-          <div className="mt-4 grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl text-center text-xs">
+          <div className="mt-4 grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl text-center text-xs">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Experiência</span>
-              <p className="font-black text-[#0F172A] mt-0.5">{provider.experienceYears} anos</p>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Contratações</span>
+              <p className="font-black text-[#0F172A] mt-0.5">{provider.hiredCount}</p>
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase">Conclusão</span>
-              <p className="font-black text-[#0055D4] mt-0.5">{provider.completionRate}%</p>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Resposta</span>
-              <p className="font-black text-[#0F172A] mt-0.5">~{provider.responseTime}</p>
+              <p className="font-black text-[#0055D4] mt-0.5">{provider.completionRate !== null ? `${provider.completionRate}%` : "—"}</p>
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase">Preço Inicial</span>
-              <p className="font-black text-emerald-700 mt-0.5">R$ {provider.startingPrice}</p>
+              <p className="font-black text-emerald-700 mt-0.5">
+                {provider.startingPriceCents != null ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}` : "Sob consulta"}
+              </p>
             </div>
           </div>
 
@@ -186,78 +186,94 @@ export function ProviderProfileModal({
           {/* TAB 1: SERVIÇOS & PREÇOS */}
           {activeTab === "servicos" && (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
-                Selecione um serviço abaixo para orçar diretamente com valores de referência:
-              </p>
-              <div className="space-y-2.5">
-                {provider.servicesOffered.map((svc) => (
-                  <div
-                    key={svc.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-slate-50/50 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-[#0F172A]">
-                        {svc.name}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                        {svc.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <div className="text-left sm:text-right">
-                        <span className="text-[10px] text-slate-400 block">A partir de</span>
-                        <span className="text-xs sm:text-sm font-black text-[#0055D4]">
-                          R$ {svc.priceFrom}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onRequestBudget(provider, svc)}
-                        className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer"
+              {provider.servicesOffered.length === 0 ? (
+                <p className="text-xs text-slate-500 p-4 text-center bg-slate-50 rounded-xl border border-slate-200">
+                  Este prestador ainda não cadastrou uma lista de serviços com preços. Você pode solicitar um orçamento
+                  personalizado mesmo assim.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500">
+                    Selecione um serviço abaixo para orçar diretamente com valores de referência:
+                  </p>
+                  <div className="space-y-2.5">
+                    {provider.servicesOffered.map((svc) => (
+                      <div
+                        key={svc.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-slate-50/50 transition-colors"
                       >
-                        Orçar este
-                      </button>
-                    </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs sm:text-sm font-bold text-[#0F172A]">
+                            {svc.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                            {svc.description}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                          <div className="text-left sm:text-right">
+                            <span className="text-[10px] text-slate-400 block">A partir de</span>
+                            <span className="text-xs sm:text-sm font-black text-[#0055D4]">
+                              {svc.priceFromCents != null ? `R$ ${(svc.priceFromCents / 100).toFixed(0)}` : "Sob consulta"}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onRequestBudget(provider, svc)}
+                            className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Orçar este
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           )}
 
           {/* TAB 2: TRABALHOS REALIZADOS (PORTFÓLIO) */}
           {activeTab === "portfolio" && (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
-                Fotos reais de instalações e manutenções executadas pelo profissional:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {provider.portfolio.map((item, index) => (
-                  <div
-                    key={item.id}
-                    onClick={() => setLightboxIndex(index)}
-                    className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 cursor-pointer"
-                  >
-                    <div className="relative h-44 w-full overflow-hidden">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
-                        <Icon name="search" size={14} />
-                        <span>Ampliar foto</span>
+              {provider.portfolio.length === 0 ? (
+                <p className="text-xs text-slate-500 p-4 text-center bg-slate-50 rounded-xl border border-slate-200">
+                  Este prestador ainda não cadastrou fotos de trabalhos realizados.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500">
+                    Fotos de instalações e manutenções executadas pelo profissional:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {provider.portfolio.map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setLightboxIndex(index)}
+                        className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50 cursor-pointer"
+                      >
+                        <div className="relative h-44 w-full overflow-hidden">
+                          <img
+                            src={item.url}
+                            alt={item.caption}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                            <Icon name="search" size={14} />
+                            <span>Ampliar foto</span>
+                          </div>
+                        </div>
+                        {item.caption && (
+                          <div className="p-3">
+                            <p className="text-[11px] text-slate-500 line-clamp-2">{item.caption}</p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="p-3">
-                      <h4 className="text-xs font-bold text-[#0F172A]">{item.title}</h4>
-                      <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           )}
 
@@ -315,60 +331,66 @@ export function ProviderProfileModal({
               {/* Reviews List */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                  Comentários recentes de condôminos
+                  Comentários de condôminos que já contrataram
                 </h4>
-                {provider.reviews.map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="p-3.5 rounded-xl border border-slate-200 space-y-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 font-bold text-xs text-slate-700">
-                          {rev.authorName.charAt(0)}
-                        </span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-[#0F172A]">
-                              {rev.authorName}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              ({rev.unit})
-                            </span>
-                          </div>
-                          {rev.isVerifiedResident && (
+                {provider.reviews.length === 0 ? (
+                  <p className="text-xs text-slate-500 p-4 text-center bg-slate-50 rounded-xl border border-slate-200">
+                    Ainda não há avaliações registradas para este prestador neste condomínio.
+                  </p>
+                ) : (
+                  provider.reviews.map((rev) => (
+                    <div
+                      key={rev.id}
+                      className="p-3.5 rounded-xl border border-slate-200 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 font-bold text-xs text-slate-700">
+                            {rev.authorName.charAt(0)}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-[#0F172A]">
+                                {rev.authorName}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                ({rev.unit})
+                              </span>
+                            </div>
                             <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700">
                               <Icon name="check-circle" size={10} />
-                              <span>Serviço verificado no condomínio</span>
+                              <span>Serviço registrado neste condomínio</span>
                             </span>
-                          )}
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="flex items-center gap-0.5 justify-end">
+                            {[...Array(rev.rating)].map((_, i) => (
+                              <Icon
+                                key={i}
+                                name="star"
+                                size={11}
+                                className="text-[#FFD000] fill-[#FFD000]"
+                              />
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-slate-400">{rev.date}</span>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <div className="flex items-center gap-0.5 justify-end">
-                          {[...Array(rev.rating)].map((_, i) => (
-                            <Icon
-                              key={i}
-                              name="star"
-                              size={11}
-                              className="text-[#FFD000] fill-[#FFD000]"
-                            />
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-slate-400">{rev.date}</span>
+                      {rev.comment && (
+                        <p className="text-xs text-slate-700 leading-relaxed">
+                          &quot;{rev.comment}&quot;
+                        </p>
+                      )}
+
+                      <div className="text-[11px] text-slate-400">
+                        <span className="font-semibold text-slate-500">Serviço:</span> {rev.serviceDone}
                       </div>
                     </div>
-
-                    <p className="text-xs text-slate-700 leading-relaxed">
-                      "{rev.comment}"
-                    </p>
-
-                    <div className="text-[11px] text-slate-400">
-                      <span className="font-semibold text-slate-500">Serviço:</span> {rev.serviceDone}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -379,35 +401,39 @@ export function ProviderProfileModal({
               <div>
                 <h4 className="text-xs font-bold text-[#0F172A] mb-1.5">Sobre o Profissional</h4>
                 <p className="text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  {provider.bio}
+                  {provider.bio || "O prestador ainda não cadastrou uma descrição profissional."}
                 </p>
               </div>
 
-              <div>
-                <h4 className="text-xs font-bold text-[#0F172A] mb-1.5">Região Atendida</h4>
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600">
-                  <Icon name="pin" size={14} className="text-[#0055D4] shrink-0" />
-                  <span>{provider.regionCoverage}</span>
+              {provider.regionCoverage && (
+                <div>
+                  <h4 className="text-xs font-bold text-[#0F172A] mb-1.5">Região Atendida</h4>
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600">
+                    <Icon name="pin" size={14} className="text-[#0055D4] shrink-0" />
+                    <span>{provider.regionCoverage}</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {provider.phone && (
+              {(provider.whatsapp || provider.phone) && (
                 <div>
                   <h4 className="text-xs font-bold text-[#0F172A] mb-1.5">Contato Direto</h4>
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
                     <div>
                       <span className="font-bold text-emerald-900 block">WhatsApp / Telefone</span>
-                      <span className="text-emerald-700">{provider.phone}</span>
+                      <span className="text-emerald-700">{provider.whatsapp || provider.phone}</span>
                     </div>
-                    <a
-                      href={`https://wa.me/55${provider.phone.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 transition-colors flex items-center gap-1.5"
-                    >
-                      <Icon name="phone" size={13} />
-                      <span>Chamar no WhatsApp</span>
-                    </a>
+                    {provider.whatsapp && (
+                      <a
+                        href={`https://wa.me/55${provider.whatsapp.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 transition-colors flex items-center gap-1.5"
+                      >
+                        <Icon name="phone" size={13} />
+                        <span>Chamar no WhatsApp</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -422,7 +448,7 @@ export function ProviderProfileModal({
               Preços a partir de
             </span>
             <span className="text-sm font-black text-[#0055D4]">
-              R$ {provider.startingPrice}
+              {provider.startingPriceCents != null ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}` : "Sob consulta"}
             </span>
           </div>
 
@@ -461,8 +487,8 @@ export function ProviderProfileModal({
             {/* Photo */}
             <div className="relative max-h-[75vh] w-full overflow-hidden rounded-2xl bg-black">
               <img
-                src={currentPortfolioItem.imageUrl}
-                alt={currentPortfolioItem.title}
+                src={currentPortfolioItem.url}
+                alt={currentPortfolioItem.caption}
                 className="h-full w-full object-contain max-h-[75vh]"
               />
             </div>
@@ -470,8 +496,7 @@ export function ProviderProfileModal({
             {/* Caption & Navigation Controls */}
             <div className="mt-3 flex items-center justify-between w-full text-white text-xs">
               <div>
-                <h4 className="font-bold">{currentPortfolioItem.title}</h4>
-                <p className="text-slate-300 text-[11px]">{currentPortfolioItem.description}</p>
+                <p className="text-slate-300 text-[11px]">{currentPortfolioItem.caption}</p>
               </div>
 
               <div className="flex items-center gap-2">

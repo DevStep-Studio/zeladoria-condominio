@@ -1,7 +1,8 @@
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { amenities, announcements, assemblies, condominiums, occurrences, parcels, reservations, tickets, units, vendors } from "@/db/schema";
+import { amenities, announcements, assemblies, condominiums, occurrences, parcels, reservations, tickets, units } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
+import { getMarketplaceProviders } from "@/lib/services/providers-query";
 import { dateBR, dateTimeBR, timeAgoBR } from "@/lib/utils";
 import {
   DashboardClient,
@@ -302,52 +303,20 @@ export default async function PainelHome() {
     status: r.status,
   }));
 
-  // 5. Query recommended vendors
-  const dbVendors = await db
-    .select()
-    .from(vendors)
-    .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)))
-    .limit(3);
-
-  const recommendedVendors: DashboardVendor[] = dbVendors.length > 0
-    ? dbVendors.map((v) => ({
-        id: v.id,
-        name: v.name,
-        company: v.category || "Prestador",
-        category: v.category || "Geral",
-        rating: 4.9,
-        reviewsCount: 38,
-        verified: true,
-      }))
-    : [
-        {
-          id: 1,
-          name: "Carlos Eduardo Silva",
-          company: "Volt & Luz Soluções Elétricas",
-          category: "Elétrica",
-          rating: 4.9,
-          reviewsCount: 42,
-          verified: true,
-        },
-        {
-          id: 2,
-          name: "AquaFix Manutenções",
-          company: "AquaFix Engenharia Hidráulica",
-          category: "Hidráulica",
-          rating: 4.8,
-          reviewsCount: 35,
-          verified: true,
-        },
-        {
-          id: 3,
-          name: "Diego Pinturas",
-          company: "Color Master",
-          category: "Pintura",
-          rating: 5.0,
-          reviewsCount: 29,
-          verified: true,
-        },
-      ];
+  // 5. Prestadores recomendados — dados reais (rating, avaliações e verificação vêm do cadastro e dos chamados)
+  const marketplaceProviders = await getMarketplaceProviders(condoId);
+  const recommendedVendors: DashboardVendor[] = [...marketplaceProviders]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      company: p.company,
+      category: p.category,
+      rating: p.rating,
+      reviewsCount: p.reviewsCount,
+      verified: p.isVerified,
+    }));
 
   // 6. Avisos do condomínio: próximas assembleias + comunicados recentes
   const now = new Date();

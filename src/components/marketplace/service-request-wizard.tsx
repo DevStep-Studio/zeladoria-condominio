@@ -41,12 +41,13 @@ export function ServiceRequestWizard({
       formData.set("title", `${serviceTitle} (${provider.name})`);
       formData.set(
         "description",
-        `${description.trim()}\n\n[Prestador solicitado: ${provider.name} - ${provider.company}]\n[Preferência: ${preferredDate} - ${preferredTime}]\n[Local: ${location}]`
+        `${description.trim()}\n\n[Preferência: ${preferredDate} - ${preferredTime}]\n[Local: ${location}]`
       );
       formData.set("category", provider.category.toLowerCase());
       formData.set("priority", priority);
       formData.set("location", location);
       formData.set("preferredTime", `${preferredDate} · ${preferredTime}`);
+      formData.set("vendorId", String(provider.id));
 
       const res = await createServiceRequestAction(formData);
       if (res?.success) {
@@ -120,7 +121,8 @@ export function ServiceRequestWizard({
               Solicitação Enviada com Sucesso!
             </h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              O prestador <strong className="text-[#0F172A]">{provider.name}</strong> recebeu os detalhes do seu pedido e entrará em contato em breve (tempo médio ~{provider.responseTime}).
+              O síndico foi notificado e encaminhará os detalhes do seu pedido para{" "}
+              <strong className="text-[#0F172A]">{provider.name}</strong>. Acompanhe o andamento em &quot;Minhas Contratações&quot;.
             </p>
             <div className="pt-3">
               <button
@@ -159,7 +161,7 @@ export function ServiceRequestWizard({
                         <p className="text-[11px] text-slate-500">{svc.description}</p>
                       </div>
                       <span className="text-xs font-black text-[#0055D4] shrink-0 ml-2">
-                        A partir de R$ {svc.priceFrom}
+                        {svc.priceFromCents != null ? `A partir de R$ ${(svc.priceFromCents / 100).toFixed(0)}` : "Sob consulta"}
                       </span>
                     </div>
                   ))}
@@ -346,7 +348,7 @@ export function ServiceRequestWizard({
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-[11px] text-[#0055D4]">
                   <Icon name="clock" size={14} className="shrink-0" />
                   <span>
-                    O prestador costuma responder em ~{provider.responseTime}. Você receberá notificações no painel.
+                    Sua solicitação será enviada ao síndico, que vai agendar o atendimento com o prestador. Você receberá notificações no painel.
                   </span>
                 </div>
               </div>

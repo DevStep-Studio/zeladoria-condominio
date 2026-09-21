@@ -4,8 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/icon";
 import {
-  CATEGORIES_CONFIG,
-  MARKETPLACE_PROVIDERS,
+  buildCategoriesConfig,
   type MarketplaceProvider,
   type ServiceOffering,
 } from "@/lib/services/providers-data";
@@ -19,12 +18,14 @@ import { rateServiceAction } from "@/lib/actions/servicos";
 export function ServicosClient({
   services = [],
   vendors = [],
+  providers = [],
   staff = [],
   role = "morador",
   currentUserId = 1,
 }: {
   services?: any[];
   vendors?: any[];
+  providers?: MarketplaceProvider[];
   staff?: any[];
   role?: string;
   currentUserId?: number;
@@ -45,12 +46,12 @@ export function ServicosClient({
   const [filters, setFilters] = useState<FilterState>({
     category: initialCategory,
     minRating: 0,
-    availableTodayOnly: false,
-    fastResponseOnly: false,
     verifiedOnly: false,
-    maxPrice: 500,
+    maxPrice: 50000,
   });
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  const categoriesConfig = useMemo(() => buildCategoriesConfig(providers), [providers]);
 
   // Favorites (persisted in localStorage)
   const [favorites, setFavorites] = useState<number[]>([]);
@@ -82,10 +83,10 @@ export function ServicosClient({
 
   // Auto-open budget if ?solicitar=true in URL
   useEffect(() => {
-    if (searchParams.get("solicitar") === "true") {
-      setBudgetVendor(MARKETPLACE_PROVIDERS[0]);
+    if (searchParams.get("solicitar") === "true" && providers.length > 0) {
+      setBudgetVendor(providers[0]);
     }
-  }, [searchParams]);
+  }, [searchParams, providers]);
 
   // Autocomplete state
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -145,7 +146,7 @@ export function ServicosClient({
 
   // Filtered & Sorted Providers List
   const filteredVendors = useMemo(() => {
-    return MARKETPLACE_PROVIDERS.filter((v) => {
+    return providers.filter((v) => {
       // Category filter
       const activeCategory = filters.category !== "Todas" ? filters.category : selectedCategory;
       if (activeCategory !== "Todas" && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
@@ -158,10 +159,8 @@ export function ServicosClient({
       }
 
       // Criteria filters
-      if (filters.availableTodayOnly && !v.availableToday) return false;
-      if (filters.fastResponseOnly && !v.fastResponse) return false;
       if (filters.verifiedOnly && !v.isVerified) return false;
-      if (v.startingPrice > filters.maxPrice) return false;
+      if (v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
 
       // Search query (matches name, company, category, bio, or services offered)
       if (search.trim()) {
@@ -169,7 +168,7 @@ export function ServicosClient({
         const matchesName = v.name.toLowerCase().includes(q);
         const matchesCompany = v.company.toLowerCase().includes(q);
         const matchesCategory = v.category.toLowerCase().includes(q);
-        const matchesBio = v.bio.toLowerCase().includes(q);
+        const matchesBio = (v.bio ?? "").toLowerCase().includes(q);
         const matchesServices = v.servicesOffered.some(
           (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
         );
@@ -184,11 +183,10 @@ export function ServicosClient({
       if (sortBy === "score") return b.score - a.score;
       if (sortBy === "rating") return b.rating - a.rating;
       if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount;
-      if (sortBy === "price_asc") return a.startingPrice - b.startingPrice;
-      if (sortBy === "response") return a.responseTimeMinutes - b.responseTimeMinutes;
+      if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
       return 0;
     });
-  }, [search, selectedCategory, filters, sortBy]);
+  }, [providers, search, selectedCategory, filters, sortBy]);
 
   // Section 1: Sponsored Providers (Strictly marked as Ads)
   const sponsoredList = useMemo(() => {
@@ -202,11 +200,11 @@ export function ServicosClient({
 
   // Top 3 Organic in Region (Ranked strictly by ProviderScore)
   const topOrganicRegion = useMemo(() => {
-    return [...MARKETPLACE_PROVIDERS]
+    return [...providers]
       .filter((v) => (selectedCategory === "Todas" ? true : v.category.toLowerCase() === selectedCategory.toLowerCase()))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
-  }, [selectedCategory]);
+  }, [providers, selectedCategory]);
 
   // View state: 'marketplace' or 'minhas-contratacoes'
   const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">("marketplace");
@@ -392,7 +390,7 @@ export function ServicosClient({
                             ))}
                           </div>
                           {ticket.ratingComment && (
-                            <span className="text-slate-400">"{ticket.ratingComment}"</span>
+                            <span className="text-slate-400">&quot;{ticket.ratingComment}&quot;</span>
                           )}
                         </div>
                       ) : (
@@ -499,11 +497,11 @@ export function ServicosClient({
               <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
                 <span className="text-[11px] font-bold text-slate-400">Populares:</span>
                 {[
-                  { tag: "Instalação de Chuveiro", cat: "Elétrica", q: "chuveiro" },
-                  { tag: "Caça-Vazamento", cat: "Hidráulica", q: "vazamento" },
-                  { tag: "Limpeza de Ar", cat: "Climatização", q: "ar-condicionado" },
-                  { tag: "Fechadura Digital", cat: "Segurança", q: "fechadura" },
-                  { tag: "Ajuste de Portas", cat: "Marcenaria", q: "porta" },
+                  { tag: "Instalação de Chuveiro", cat: "eletrica", q: "chuveiro" },
+                  { tag: "Caça-Vazamento", cat: "hidraulica", q: "vazamento" },
+                  { tag: "Limpeza de Ar", cat: "climatizacao", q: "ar-condicionado" },
+                  { tag: "Fechadura Digital", cat: "seguranca", q: "fechadura" },
+                  { tag: "Ajuste de Portas", cat: "marcenaria", q: "porta" },
                 ].map((item) => (
                   <button
                     key={item.tag}
@@ -540,7 +538,7 @@ export function ServicosClient({
 
             {/* Horizontal scroll on mobile / flex wrap on desktop */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {CATEGORIES_CONFIG.map((cat) => {
+              {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 return (
                   <button
@@ -625,13 +623,19 @@ export function ServicosClient({
                           {vendor.category} · {vendor.company}
                         </p>
                         <div className="flex items-center gap-1.5 text-xs mt-0.5">
-                          <div className="flex items-center gap-0.5 font-black text-[#0F172A]">
-                            <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                            <span>{vendor.rating.toFixed(1)}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-400">
-                            ({vendor.reviewsCount} avaliações)
-                          </span>
+                          {vendor.reviewsCount > 0 ? (
+                            <>
+                              <div className="flex items-center gap-0.5 font-black text-[#0F172A]">
+                                <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                                <span>{vendor.rating.toFixed(1)}</span>
+                              </div>
+                              <span className="text-[10px] text-slate-400">
+                                ({vendor.reviewsCount} avaliações)
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-[10px] text-slate-400">Ainda sem avaliações</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -703,10 +707,7 @@ export function ServicosClient({
                 >
                   <Icon name="filter" size={13} className="text-[#0055D4]" />
                   <span>Filtros</span>
-                  {(filters.minRating > 0 ||
-                    filters.availableTodayOnly ||
-                    filters.fastResponseOnly ||
-                    filters.verifiedOnly) && (
+                  {(filters.minRating > 0 || filters.verifiedOnly) && (
                     <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
                   )}
                 </button>
@@ -722,7 +723,6 @@ export function ServicosClient({
                     <option value="score">Pontuação Geral (Score)</option>
                     <option value="rating">Melhor Avaliação</option>
                     <option value="reviews">Mais Avaliados</option>
-                    <option value="response">Resposta Mais Rápida</option>
                     <option value="price_asc">Menor Preço Inicial</option>
                   </select>
                 </div>
@@ -730,7 +730,18 @@ export function ServicosClient({
             </div>
 
             {/* Results Grid */}
-            {filteredVendors.length === 0 ? (
+            {providers.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
+                <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <Icon name="briefcase" size={22} />
+                </div>
+                <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador cadastrado ainda</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  O síndico ou a administração ainda não cadastrou prestadores de serviço para este condomínio em{" "}
+                  <strong>Fornecedores</strong>.
+                </p>
+              </div>
+            ) : filteredVendors.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
                 <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                   <Icon name="search" size={22} />
@@ -747,10 +758,8 @@ export function ServicosClient({
                     setFilters({
                       category: "Todas",
                       minRating: 0,
-                      availableTodayOnly: false,
-                      fastResponseOnly: false,
                       verifiedOnly: false,
-                      maxPrice: 500,
+                      maxPrice: 50000,
                     });
                     updateUrlParams("Todas", "", "score");
                   }}
@@ -809,6 +818,7 @@ export function ServicosClient({
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}
         filters={filters}
+        categories={categoriesConfig}
         totalResultsCount={filteredVendors.length}
         onClose={() => setIsFilterSheetOpen(false)}
         onChange={(updated) => {
@@ -820,10 +830,8 @@ export function ServicosClient({
           setFilters({
             category: "Todas",
             minRating: 0,
-            availableTodayOnly: false,
-            fastResponseOnly: false,
             verifiedOnly: false,
-            maxPrice: 500,
+            maxPrice: 50000,
           });
           setSelectedCategory("Todas");
         }}

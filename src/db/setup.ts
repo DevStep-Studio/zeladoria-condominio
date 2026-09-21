@@ -767,6 +767,18 @@ ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_ra
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_comment" text;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "memberships_user_condo_idx" ON "condominio_app"."memberships" USING btree ("user_id","condo_id");
+
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "photo_url" text;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "whatsapp" varchar(32);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "service_area" varchar(160);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "price_from_cents" integer;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "services" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "portfolio" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified" boolean DEFAULT false NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified_by_id" integer;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "sponsored" boolean DEFAULT false NOT NULL;
 `;
 
 let setup: Promise<void> | null = null;

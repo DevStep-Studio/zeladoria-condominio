@@ -122,6 +122,50 @@ export async function completeOrderAction(formData: FormData) {
 
 /* ---------------------------------------------- FORNECEDORES / CONTRATOS */
 
+/** Formato de linha: "Nome; Descrição; Preço (R$)" — preço opcional. */
+function parseServicesTextarea(raw: string): { id: string; name: string; description: string; priceFromCents: number | null }[] {
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, i) => {
+      const [name, description, price] = line.split(";").map((p) => p.trim());
+      const priceValue = price ? Number(price.replace(/[^\d,.-]/g, "").replace(",", ".")) : NaN;
+      return {
+        id: `svc-${i}`,
+        name: name || "Serviço",
+        description: description || "",
+        priceFromCents: Number.isFinite(priceValue) ? Math.round(priceValue * 100) : null,
+      };
+    });
+}
+
+/** Formato de linha: "URL da foto; Legenda" — legenda opcional. */
+function parsePortfolioTextarea(raw: string): { url: string; caption: string }[] {
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [url, caption] = line.split(";").map((p) => p.trim());
+      return { url: url || "", caption: caption || "" };
+    })
+    .filter((item) => item.url);
+}
+
+function vendorMarketplaceFields(formData: FormData) {
+  const priceFrom = str(formData, "priceFrom");
+  return {
+    photoUrl: str(formData, "photoUrl") || null,
+    whatsapp: str(formData, "whatsapp") || null,
+    description: str(formData, "description") || null,
+    serviceArea: str(formData, "serviceArea") || null,
+    priceFromCents: priceFrom ? Math.round(Number(priceFrom.replace(",", ".")) * 100) : null,
+    services: parseServicesTextarea(str(formData, "servicesText")),
+    portfolio: parsePortfolioTextarea(str(formData, "portfolioText")),
+  };
+}
+
 export async function saveVendorAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const name = str(formData, "name");
@@ -138,10 +182,37 @@ export async function saveVendorAction(formData: FormData) {
       email: str(formData, "email") || null,
       rating: num(formData, "rating", 0),
       notes: str(formData, "notes") || null,
+      ...vendorMarketplaceFields(formData),
     })
     .returning();
   await logAudit({ session, condoId, action: "criar", entity: "fornecedor", entityId: row.id, summary: name });
   revalidatePath("/painel/fornecedores");
+  revalidatePath("/painel/servicos");
+}
+
+export async function updateVendorAction(formData: FormData) {
+  const { session, condoId } = await requireRole(ALL_STAFF);
+  const id = num(formData, "id");
+  const name = str(formData, "name");
+  if (!id || !name) return;
+  const [existing] = await db.select().from(vendors).where(and(eq(vendors.id, id), eq(vendors.condoId, condoId))).limit(1);
+  if (!existing) return;
+  await db
+    .update(vendors)
+    .set({
+      name,
+      cnpj: str(formData, "cnpj") || null,
+      category: str(formData, "category", existing.category),
+      contactName: str(formData, "contactName") || null,
+      phone: str(formData, "phone") || null,
+      email: str(formData, "email") || null,
+      notes: str(formData, "notes") || null,
+      ...vendorMarketplaceFields(formData),
+    })
+    .where(eq(vendors.id, id));
+  await logAudit({ session, condoId, action: "atualizar", entity: "fornecedor", entityId: id, summary: `Atualizou cadastro de ${name}` });
+  revalidatePath("/painel/fornecedores");
+  revalidatePath("/painel/servicos");
 }
 
 export async function rateVendorAction(formData: FormData) {
@@ -151,6 +222,54 @@ export async function rateVendorAction(formData: FormData) {
   await db.update(vendors).set({ rating }).where(and(eq(vendors.id, id), eq(vendors.condoId, condoId)));
   await logAudit({ session, condoId, action: "avaliar", entity: "fornecedor", entityId: id, summary: `Avaliação ${rating}/5` });
   revalidatePath("/painel/fornecedores");
+}
+
+/** Verificação de documentação/antecedentes — decisão sensível, restrita a síndico/superadmin. */
+export async function setVendorVerificationAction(formData: FormData) {
+  const { session, condoId } = await requireRole(["superadmin", "sindico"]);
+  const id = num(formData, "id");
+  const verified = bool(formData, "verified");
+  const [existing] = await db.select().from(vendors).where(and(eq(vendors.id, id), eq(vendors.condoId, condoId))).limit(1);
+  if (!existing) return;
+  await db
+    .update(vendors)
+    .set({
+      verified,
+      verifiedAt: verified ? new Date() : null,
+      verifiedById: verified ? session.user.id : null,
+    })
+    .where(eq(vendors.id, id));
+  await logAudit({
+    session,
+    condoId,
+    action: verified ? "verificar" : "remover_verificacao",
+    entity: "fornecedor",
+    entityId: id,
+    summary: `${verified ? "Verificou" : "Removeu verificação de"} ${existing.name}`,
+    critical: true,
+  });
+  revalidatePath("/painel/fornecedores");
+  revalidatePath("/painel/servicos");
+}
+
+/** Marca o prestador como anúncio patrocinado no marketplace — restrito a síndico/superadmin. */
+export async function setVendorSponsoredAction(formData: FormData) {
+  const { session, condoId } = await requireRole(["superadmin", "sindico"]);
+  const id = num(formData, "id");
+  const sponsored = bool(formData, "sponsored");
+  const [existing] = await db.select().from(vendors).where(and(eq(vendors.id, id), eq(vendors.condoId, condoId))).limit(1);
+  if (!existing) return;
+  await db.update(vendors).set({ sponsored }).where(eq(vendors.id, id));
+  await logAudit({
+    session,
+    condoId,
+    action: sponsored ? "patrocinar" : "remover_patrocinio",
+    entity: "fornecedor",
+    entityId: id,
+    summary: `${sponsored ? "Marcou" : "Removeu marcação de"} ${existing.name} como patrocinado`,
+  });
+  revalidatePath("/painel/fornecedores");
+  revalidatePath("/painel/servicos");
 }
 
 export async function saveContractAction(formData: FormData) {
