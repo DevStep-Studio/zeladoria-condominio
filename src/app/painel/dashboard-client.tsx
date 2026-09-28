@@ -199,7 +199,188 @@ export function DashboardClient({
         </div>
       </header>
 
-      {/* 2. PRECISA DA SUA ATENÇÃO (Lista Operacional Compacta) */}
+      {/* 2. AÇÕES PRINCIPAIS (Zeladoria: 1º amarelo, demais azul) */}
+      <section className="space-y-2.5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pb-2 pt-1">
+          {(isResident
+            ? [
+                {
+                  label: "Registrar ocorrência",
+                  desc: "Relatar problema ou reparo",
+                  href: "/painel/ocorrencias/nova",
+                  icon: "clipboard" as IconName,
+                  variant: "yellow" as const,
+                },
+                {
+                  label: "Nova reserva",
+                  desc: "Salão, churrasqueira e áreas",
+                  href: "/painel/reservas",
+                  icon: "calendar" as IconName,
+                  variant: "blue" as const,
+                },
+                {
+                  label: "Autorizar visitante",
+                  desc: "Liberar acesso na portaria",
+                  href: "/painel/visitantes",
+                  icon: "users" as IconName,
+                  variant: "blue" as const,
+                },
+                {
+                  label: "Prestadores",
+                  desc: "Profissionais avaliados",
+                  href: "/painel/servicos",
+                  icon: "briefcase" as IconName,
+                  variant: "blue" as const,
+                },
+              ]
+            : [
+                {
+                  label: "Registrar ocorrência",
+                  desc: "Relatar problema ou reparo",
+                  href: "/painel/ocorrencias/nova",
+                  icon: "clipboard" as IconName,
+                  variant: "yellow" as const,
+                },
+                {
+                  label: "Nova reserva",
+                  desc: "Salão, churrasqueira e áreas",
+                  href: "/painel/reservas",
+                  icon: "calendar" as IconName,
+                  variant: "blue" as const,
+                },
+                {
+                  label: "Ordens de serviço",
+                  desc: "Acompanhar manutenções",
+                  href: "/painel/ordens",
+                  icon: "wrench" as IconName,
+                  variant: "blue" as const,
+                },
+                {
+                  label: "Prestadores",
+                  desc: "Profissionais avaliados",
+                  href: "/painel/servicos",
+                  icon: "briefcase" as IconName,
+                  variant: "blue" as const,
+                },
+              ]
+          ).map((action) => {
+            const isYellow = action.variant === "yellow";
+
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className={`group relative flex min-h-[112px] sm:min-h-[132px] flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[20px] p-4 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 ${
+                  isYellow
+                    ? "bg-[#FFD000] text-[#12162A] shadow-md shadow-[#FFD000]/25 hover:shadow-lg hover:shadow-[#FFD000]/35"
+                    : "bg-[#0070F3] text-white shadow-md shadow-[#0070F3]/20 hover:shadow-lg hover:shadow-[#0070F3]/30"
+                }`}
+              >
+                {/* Top-left Icon */}
+                <div className="flex items-center justify-start">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110 ${
+                      isYellow
+                        ? "bg-[#12162A]/10 text-[#12162A]"
+                        : "bg-white/15 text-white"
+                    }`}
+                  >
+                    <Icon name={action.icon} size={17} strokeWidth={2.2} />
+                  </span>
+                </div>
+
+                {/* Bottom-left Content */}
+                <div className="pr-11 pt-3">
+                  <h3
+                    className={`text-sm sm:text-[15px] font-black tracking-tight leading-tight ${
+                      isYellow ? "text-[#12162A]" : "text-white"
+                    }`}
+                  >
+                    {action.label}
+                  </h3>
+                  <p
+                    className={`mt-0.5 text-[11px] sm:text-xs font-medium leading-snug line-clamp-1 ${
+                      isYellow ? "text-[#12162A]/75" : "text-white/80"
+                    }`}
+                  >
+                    {action.desc}
+                  </p>
+                </div>
+
+                {/* Circular arrow button at bottom-right corner */}
+                <div
+                  className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
+                    isYellow ? "text-[#12162A]" : "text-[#0070F3]"
+                  }`}
+                >
+                  <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 2b. AVISOS DO CONDOMÍNIO (assembleias, comunicados e alertas) */}
+      {notices.length > 0 && (
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+              Avisos do condomínio
+            </h2>
+            <Link
+              href="/painel/comunicados"
+              className="text-[11px] font-bold text-[#0055D4] hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+
+          <div className="rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] divide-y divide-slate-100">
+            {notices.map((n) => {
+              const meta = NOTICE_META[n.kind];
+              const isUrgent = n.priority === "alta" || n.kind === "alerta";
+              return (
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-[6px] hover:bg-slate-50/80 transition-colors group"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs mt-0.5 ${
+                        isUrgent ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      <Icon name={meta.icon} size={14} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                          {n.title}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {n.date} · {meta.label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                        {n.detail}
+                      </p>
+                    </div>
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-400 group-hover:text-slate-700 transition-colors shrink-0 mt-1"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 3. PRECISA DA SUA ATENÇÃO / SUAS PENDÊNCIAS */}
       {activeAttention.length > 0 && (
         <section className="rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-2">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -252,121 +433,6 @@ export function DashboardClient({
                 </div>
               </Link>
             ))}
-          </div>
-        </section>
-      )}
-
-      {/* 3. AÇÕES PRINCIPAIS (1 CTA Primário em Azul Sólido + Ações Secundárias Neutras) */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Ações Rápidas
-          </h2>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* CTA Primário: Registrar Ocorrência */}
-          <Link
-            href="/painel/ocorrencias/nova"
-            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-semibold shadow-2xs transition-colors"
-          >
-            <Icon name="plus" size={14} strokeWidth={2.5} />
-            <span>Registrar ocorrência</span>
-          </Link>
-
-          {/* Ações Secundárias */}
-          <Link
-            href="/painel/reservas"
-            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
-          >
-            <Icon name="calendar" size={14} className="text-slate-500" />
-            <span>Nova reserva</span>
-          </Link>
-
-          {isResident ? (
-            <Link
-              href="/painel/visitantes"
-              className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
-            >
-              <Icon name="users" size={14} className="text-slate-500" />
-              <span>Autorizar visitante</span>
-            </Link>
-          ) : (
-            <Link
-              href="/painel/ordens"
-              className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
-            >
-              <Icon name="wrench" size={14} className="text-slate-500" />
-              <span>Ordens de serviço</span>
-            </Link>
-          )}
-
-          <Link
-            href="/painel/servicos"
-            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
-          >
-            <Icon name="briefcase" size={14} className="text-slate-500" />
-            <span>Prestadores</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* 4. AVISOS DO CONDOMÍNIO (Lista Limpa com Divisores) */}
-      {notices.length > 0 && (
-        <section className="rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-2">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Avisos do condomínio
-            </h2>
-            <Link
-              href="/painel/comunicados"
-              className="text-xs font-semibold text-[#0055D4] hover:underline"
-            >
-              Ver todos
-            </Link>
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {notices.map((n) => {
-              const meta = NOTICE_META[n.kind];
-              const isUrgent = n.priority === "alta" || n.kind === "alerta";
-              return (
-                <Link
-                  key={n.id}
-                  href={n.href}
-                  className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-[6px] hover:bg-slate-50/80 transition-colors group"
-                >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs mt-0.5 ${
-                        isUrgent ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      <Icon name={meta.icon} size={14} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors">
-                          {n.title}
-                        </span>
-                        <span className="text-[10px] font-medium text-slate-400">
-                          {n.date} · {meta.label}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                        {n.detail}
-                      </p>
-                    </div>
-                  </div>
-
-                  <Icon
-                    name="chevron-right"
-                    size={14}
-                    className="text-slate-400 group-hover:text-slate-700 transition-colors shrink-0 mt-1"
-                  />
-                </Link>
-              );
-            })}
           </div>
         </section>
       )}
