@@ -55,6 +55,13 @@ export type Permission =
   | "provider.view"
   | "provider.request"
   | "provider.manage"
+  | "provider.calls.view"
+  | "provider.calls.accept"
+  | "provider.quote.create"
+  | "provider.job.start"
+  | "provider.job.complete"
+  | "provider.profile.update"
+  | "provider.earnings.view"
 
   // Ordens de Serviço
   | "service_order.view"
@@ -196,6 +203,18 @@ const PORTEIRO_PERMISSIONS: Permission[] = [
   "provider.view",
 ];
 
+const PRESTADOR_PERMISSIONS: Permission[] = [
+  "dashboard.view",
+  "provider.view",
+  "provider.calls.view",
+  "provider.calls.accept",
+  "provider.quote.create",
+  "provider.job.start",
+  "provider.job.complete",
+  "provider.profile.update",
+  "provider.earnings.view",
+];
+
 export const ROLE_PERMISSIONS_MAP: Record<Role, Set<Permission>> = {
   superadmin: new Set([
     ...SINDICO_PERMISSIONS,
@@ -205,6 +224,7 @@ export const ROLE_PERMISSIONS_MAP: Record<Role, Set<Permission>> = {
   zelador: new Set(ZELADOR_PERMISSIONS),
   porteiro: new Set(PORTEIRO_PERMISSIONS),
   morador: new Set(MORADOR_PERMISSIONS),
+  prestador: new Set(PRESTADOR_PERMISSIONS),
 };
 
 /**

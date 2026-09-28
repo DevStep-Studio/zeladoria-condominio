@@ -1,5 +1,6 @@
 import {
   boolean,
+  doublePrecision,
   integer,
   jsonb,
   pgSchema,
@@ -455,8 +456,12 @@ export const maintenanceOrders = appSchema.table("maintenance_orders", {
 export const vendors = appSchema.table("vendors", {
   id: serial("id").primaryKey(),
   condoId: integer("condo_id").notNull(),
+  userId: integer("user_id"), // Vínculo com a conta de autenticação do prestador
+  slug: varchar("slug", { length: 140 }), // URL pública da loja do prestador (ex: /servicos/carlos-eletrica)
   name: varchar("name", { length: 160 }).notNull(),
   cnpj: varchar("cnpj", { length: 32 }),
+  providerType: varchar("provider_type", { length: 24 }).notNull().default("autonomo"), // autonomo | empresa
+  companyName: varchar("company_name", { length: 160 }),
   category: varchar("category", { length: 60 }).notNull().default("servicos"),
   contactName: varchar("contact_name", { length: 120 }),
   phone: varchar("phone", { length: 32 }),
@@ -466,16 +471,127 @@ export const vendors = appSchema.table("vendors", {
   notes: text("notes"),
   // Marketplace (Zeladoria Serviços)
   photoUrl: text("photo_url"),
+  coverUrl: text("cover_url"),
   whatsapp: varchar("whatsapp", { length: 32 }),
   description: text("description"),
   serviceArea: varchar("service_area", { length: 160 }),
+  serviceRadiusKm: integer("service_radius_km").default(15),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  experienceYears: integer("experience_years").default(3),
+  responseTimeMinutes: integer("response_time_minutes").default(15),
+  workingHours: varchar("working_hours", { length: 120 }).default("Seg a Sex 08:00 - 18:00"),
   priceFromCents: integer("price_from_cents"),
-  services: jsonb("services").$type<{ id: string; name: string; description: string; priceFromCents: number | null }[]>().default([]),
-  portfolio: jsonb("portfolio").$type<{ url: string; caption: string }[]>().default([]),
+  services: jsonb("services").$type<{ id: string; name: string; description: string; priceFromCents: number | null; priceType?: "fixo" | "a_partir" | "por_hora" | "sob_consulta" }[]>().default([]),
+  portfolio: jsonb("portfolio").$type<{ url: string; caption: string; category?: string; date?: string }[]>().default([]),
+  documents: jsonb("documents").$type<{ name: string; url: string; verified: boolean; submittedAt?: string }[]>().default([]),
+  onboardingStatus: varchar("onboarding_status", { length: 24 }).notNull().default("aprovado"), // rascunho, enviado, em_analise, pendente_doc, aprovado, rejeitado, suspenso
+  isOnline: boolean("is_online").notNull().default(true), // Prestador online para chamados imediatos
+  availableNow: boolean("available_now").notNull().default(true), // Atendimento imediato hoje
   verified: boolean("verified").notNull().default(false),
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
   verifiedById: integer("verified_by_id"),
-  sponsored: boolean("sponsored").notNull().default(false),
+  sponsored: boolean("sponsored").notNull().default(false), // Anúncio patrocinado (separado de ranking)
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ------------------------------------------- MARKETPLACE ON-DEMAND (SERVIÇOS) --- */
+
+export const serviceRequests = appSchema.table("service_requests", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  code: varchar("code", { length: 24 }).notNull(), // ex: SRV-2026-0001
+  customerId: integer("customer_id").notNull(), // ID do usuário morador solicitante
+  vendorId: integer("vendor_id"), // Prestador selecionado ou aceito (null se em busca ampla)
+  mode: varchar("mode", { length: 24 }).notNull().default("on_demand"), // 'on_demand' (rápido/imediato) | 'quote' (orçamento/propostas)
+  category: varchar("category", { length: 40 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description").notNull(),
+  urgency: varchar("urgency", { length: 20 }).notNull().default("hoje"), // agora, hoje, agendar, media, urgente
+  scheduledDate: varchar("scheduled_date", { length: 20 }),
+  scheduledTimeSlot: varchar("scheduled_time_slot", { length: 60 }),
+  location: varchar("location", { length: 160 }).notNull().default("Unidade do Morador"),
+  unitId: integer("unit_id"),
+  attachments: jsonb("attachments").$type<string[]>().default([]),
+  // State Machine Centralizada:
+  // solicitado -> buscando_prestador -> prestador_encontrado -> aceito -> a_caminho -> chegou -> em_atendimento -> aguardando_orcamento -> orcamento_aprovado -> concluido -> cancelado -> em_disputa
+  status: varchar("status", { length: 36 }).notNull().default("solicitado"),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  arrivedAt: timestamp("arrived_at", { withTimezone: true }),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  cancelledBy: integer("cancelled_by"),
+  cancelReason: text("cancel_reason"),
+  estimatedAmountCents: integer("estimated_amount_cents"),
+  finalAmountCents: integer("final_amount_cents"),
+  platformFeeCents: integer("platform_fee_cents").default(0),
+  commissionRatePercent: integer("commission_rate_percent").default(10), // taxa configurável
+  paymentMethod: varchar("payment_method", { length: 30 }).default("direto_prestador"),
+  isPaid: boolean("is_paid").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceQuotes = appSchema.table("service_quotes", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  laborCents: integer("labor_cents").notNull().default(0),
+  materialsCents: integer("materials_cents").notNull().default(0),
+  totalCents: integer("total_cents").notNull().default(0),
+  description: text("description").notNull(),
+  estimatedDays: integer("estimated_days").default(1),
+  validUntil: timestamp("valid_until", { withTimezone: true }),
+  status: varchar("status", { length: 24 }).notNull().default("pendente"), // pendente, aceito, recusado, expirado
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceMessages = appSchema.table("service_messages", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  senderRole: varchar("sender_role", { length: 20 }).notNull(), // morador, prestador, sistema
+  body: text("body").notNull(),
+  attachmentUrl: text("attachment_url"),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceReviews = appSchema.table("service_reviews", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").notNull().unique(), // Máximo de 1 avaliação oficial por contratação concluída
+  vendorId: integer("vendor_id").notNull(),
+  customerId: integer("customer_id").notNull(),
+  rating: integer("rating").notNull(), // 1 a 5 estrelas
+  punctualityRating: integer("punctuality_rating"), // 1 a 5
+  qualityRating: integer("quality_rating"), // 1 a 5
+  communicationRating: integer("communication_rating"), // 1 a 5
+  costBenefitRating: integer("cost_benefit_rating"), // 1 a 5
+  comment: text("comment"),
+  photos: jsonb("photos").$type<string[]>().default([]),
+  isVerified: boolean("is_verified").notNull().default(true), // Serviço verificado no Zeladoria
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const customerFavorites = appSchema.table("customer_favorites", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceDisputes = appSchema.table("service_disputes", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").notNull(),
+  openedById: integer("opened_by_id").notNull(),
+  reason: varchar("reason", { length: 60 }).notNull(),
+  description: text("description").notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("aberta"), // aberta, em_analise, resolvida, rejeitada
+  resolutionNotes: text("resolution_notes"),
+  resolvedById: integer("resolved_by_id"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const contracts = appSchema.table("contracts", {

@@ -9,6 +9,7 @@ import {
   rateVendorAction,
   saveContractAction,
   saveVendorAction,
+  setVendorOnboardingStatusAction,
   setVendorSponsoredAction,
   setVendorVerificationAction,
   updateVendorAction,
@@ -214,6 +215,21 @@ export default async function FornecedoresPage() {
                             <input type="hidden" name="id" value={v.id} />
                             <input type="hidden" name="sponsored" value={v.sponsored ? "" : "true"} />
                             <button className="btn-ghost btn-sm">{v.sponsored ? "Remover patrocínio" : "Marcar como patrocinado"}</button>
+                          </form>
+                          <form action={setVendorOnboardingStatusAction} className="inline-flex items-center gap-1">
+                            <input type="hidden" name="id" value={v.id} />
+                            <select
+                              name="status"
+                              defaultValue={v.onboardingStatus || "aprovado"}
+                              className="text-xs rounded-lg border border-slate-200 bg-white px-2 py-1 outline-none"
+                            >
+                              <option value="aprovado">Status: Aprovado</option>
+                              <option value="em_analise">Status: Em análise</option>
+                              <option value="pendente_doc">Status: Pendente doc</option>
+                              <option value="suspenso">Status: Suspenso</option>
+                              <option value="rejeitado">Status: Rejeitado</option>
+                            </select>
+                            <button type="submit" className="btn-ghost btn-sm text-[11px]">Atualizar</button>
                           </form>
                         </>
                       )}

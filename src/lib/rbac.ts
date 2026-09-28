@@ -9,6 +9,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   zelador: "Zelador(a)",
   porteiro: "Portaria",
   morador: "Morador(a)",
+  prestador: "Prestador(a) Parceiro",
 };
 
 export const ALL_STAFF: Role[] = ["superadmin", "sindico", "conselho", "zelador"];

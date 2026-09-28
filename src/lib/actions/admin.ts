@@ -272,6 +272,30 @@ export async function setVendorSponsoredAction(formData: FormData) {
   revalidatePath("/painel/servicos");
 }
 
+/** Moderação e aprovação do onboarding de novos prestadores — restrito a síndico/superadmin. */
+export async function setVendorOnboardingStatusAction(formData: FormData) {
+  const { session, condoId } = await requireRole(["superadmin", "sindico"]);
+  const id = num(formData, "id");
+  const status = str(formData, "status", "aprovado");
+  const [existing] = await db.select().from(vendors).where(and(eq(vendors.id, id), eq(vendors.condoId, condoId))).limit(1);
+  if (!existing) return;
+
+  await db.update(vendors).set({ onboardingStatus: status }).where(eq(vendors.id, id));
+
+  await logAudit({
+    session,
+    condoId,
+    action: "moderar_prestador",
+    entity: "fornecedor",
+    entityId: id,
+    summary: `Alterou status de credenciamento de ${existing.name} para ${status}`,
+    critical: true,
+  });
+
+  revalidatePath("/painel/fornecedores");
+  revalidatePath("/painel/servicos");
+}
+
 export async function saveContractAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const title = str(formData, "title");

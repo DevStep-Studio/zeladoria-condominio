@@ -4,14 +4,14 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { condominiums, memberships, units, users } from "@/db/schema";
+import { condominiums, memberships, units, users, vendors } from "@/db/schema";
 
 const SECRET = process.env.SESSION_SECRET ?? "gestao-condominio-dev-secret";
 const SESSION_COOKIE = "gc_session";
 const CONDO_COOKIE = "gc_condo";
 const MAX_AGE = 60 * 60 * 24 * 30;
 
-export type Role = "superadmin" | "sindico" | "conselho" | "zelador" | "porteiro" | "morador";
+export type Role = "superadmin" | "sindico" | "conselho" | "zelador" | "porteiro" | "morador" | "prestador";
 
 export function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -82,6 +82,7 @@ export type Session = {
   condo: typeof condominiums.$inferSelect | null;
   role: Role;
   unitId: number | null;
+  vendorId?: number | null;
 };
 
 export async function getSession(): Promise<Session | null> {
@@ -91,6 +92,13 @@ export async function getSession(): Promise<Session | null> {
 
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!user || user.status === "bloqueado") return null;
+
+  // Check if user has an associated vendor profile
+  const [vendorProfile] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, userId))
+    .limit(1);
 
   const rows = await db
     .select({
@@ -148,14 +156,24 @@ export async function getSession(): Promise<Session | null> {
   if (active) {
     const [c] = await db.select().from(condominiums).where(eq(condominiums.id, active.condoId)).limit(1);
     condo = c ?? null;
+  } else if (vendorProfile) {
+    const [c] = await db.select().from(condominiums).where(eq(condominiums.id, vendorProfile.condoId)).limit(1);
+    condo = c ?? null;
   }
+
+  const role: Role = user.isSuperAdmin
+    ? "superadmin"
+    : vendorProfile && list.length === 0
+    ? "prestador"
+    : ((active?.role ?? (vendorProfile ? "prestador" : "morador")) as Role);
 
   return {
     user,
     memberships: list,
     condo,
-    role: user.isSuperAdmin ? "superadmin" : ((active?.role ?? "morador") as Role),
+    role,
     unitId: active?.unitId ?? null,
+    vendorId: vendorProfile?.id ?? null,
   };
 }
 
@@ -163,6 +181,21 @@ export async function requireSession(): Promise<Session> {
   const session = await getSession();
   if (!session) redirect("/login");
   return session;
+}
+
+export async function requireProvider() {
+  const session = await requireSession();
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, session.user.id))
+    .limit(1);
+
+  if (!vendor && session.role !== "superadmin") {
+    redirect("/prestador/cadastro");
+  }
+
+  return { session, vendor };
 }
 
 export async function requireCondo() {

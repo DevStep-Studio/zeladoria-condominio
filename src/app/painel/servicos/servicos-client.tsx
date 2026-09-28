@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Icon } from "@/components/icon";
 import {
   buildCategoriesConfig,
@@ -13,10 +14,22 @@ import { ProviderCard } from "@/components/marketplace/provider-card";
 import { ProviderProfileModal } from "@/components/marketplace/provider-profile-modal";
 import { ServiceRequestWizard } from "@/components/marketplace/service-request-wizard";
 import { FilterBottomSheet, type FilterState } from "@/components/marketplace/filter-bottom-sheet";
-import { rateServiceAction } from "@/lib/actions/servicos";
+import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
+import {
+  acceptQuoteAction,
+  confirmServiceCompletionAction,
+  createVerifiedReviewAction,
+  sendServiceMessageAction,
+  toggleCustomerFavoriteAction,
+} from "@/lib/actions/marketplace";
 
 export function ServicosClient({
   services = [],
+  marketplaceRequests = [],
+  quotes = [],
+  reviews = [],
+  messages = [],
+  initialFavorites = [],
   vendors = [],
   providers = [],
   staff = [],
@@ -24,6 +37,11 @@ export function ServicosClient({
   currentUserId = 1,
 }: {
   services?: any[];
+  marketplaceRequests?: any[];
+  quotes?: any[];
+  reviews?: any[];
+  messages?: any[];
+  initialFavorites?: number[];
   vendors?: any[];
   providers?: MarketplaceProvider[];
   staff?: any[];
@@ -41,6 +59,8 @@ export function ServicosClient({
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sortBy, setSortBy] = useState<"score" | "rating" | "reviews" | "price_asc" | "response">(initialSort);
+  const [displayMode, setDisplayMode] = useState<"lista" | "mapa">("lista");
+  const [onlyAvailableNow, setOnlyAvailableNow] = useState(false);
 
   // Filters State
   const [filters, setFilters] = useState<FilterState>({
@@ -53,27 +73,12 @@ export function ServicosClient({
 
   const categoriesConfig = useMemo(() => buildCategoriesConfig(providers), [providers]);
 
-  // Favorites (persisted in localStorage)
-  const [favorites, setFavorites] = useState<number[]>([]);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("zeladoria_favorite_providers");
-      if (saved) setFavorites(JSON.parse(saved));
-    } catch {
-      // ignore
-    }
-  }, []);
+  // Favorites
+  const [favorites, setFavorites] = useState<number[]>(initialFavorites);
 
   const toggleFavorite = (id: number) => {
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id];
-      try {
-        localStorage.setItem("zeladoria_favorite_providers", JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+    setFavorites((prev) => (prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]));
+    toggleCustomerFavoriteAction(id);
   };
 
   // Modals state
@@ -103,7 +108,6 @@ export function ServicosClient({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Update URL search parameters smoothly
   const updateUrlParams = (cat: string, q: string, sort: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (cat && cat !== "Todas") params.set("categoria", cat);
@@ -120,85 +124,74 @@ export function ServicosClient({
     window.history.replaceState(null, "", newPath);
   };
 
-  // Sync category change
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     setFilters((prev) => ({ ...prev, category: cat }));
     updateUrlParams(cat, search, sortBy);
   };
 
-  // Sync search change
   const handleSearchChange = (q: string) => {
     setSearch(q);
     updateUrlParams(selectedCategory, q, sortBy);
   };
 
-  // Sync sort change
   const handleSortChange = (newSort: any) => {
     setSortBy(newSort);
     updateUrlParams(selectedCategory, search, newSort);
   };
 
-  // IDs of providers previously hired in this condo / user tickets
   const hiredProviderIds = useMemo(() => {
-    return new Set(services.filter((t) => t.vendorId).map((t) => t.vendorId));
-  }, [services]);
+    const fromTickets = services.filter((t) => t.vendorId).map((t) => t.vendorId);
+    const fromMp = marketplaceRequests.filter((r) => r.vendorId).map((r) => r.vendorId);
+    return new Set([...fromTickets, ...fromMp]);
+  }, [services, marketplaceRequests]);
 
   // Filtered & Sorted Providers List
   const filteredVendors = useMemo(() => {
-    return providers.filter((v) => {
-      // Category filter
-      const activeCategory = filters.category !== "Todas" ? filters.category : selectedCategory;
-      if (activeCategory !== "Todas" && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
-        return false;
-      }
-
-      // Rating filter
-      if (filters.minRating > 0 && v.rating < filters.minRating) {
-        return false;
-      }
-
-      // Criteria filters
-      if (filters.verifiedOnly && !v.isVerified) return false;
-      if (v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
-
-      // Search query (matches name, company, category, bio, or services offered)
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchesName = v.name.toLowerCase().includes(q);
-        const matchesCompany = v.company.toLowerCase().includes(q);
-        const matchesCategory = v.category.toLowerCase().includes(q);
-        const matchesBio = (v.bio ?? "").toLowerCase().includes(q);
-        const matchesServices = v.servicesOffered.some(
-          (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
-        );
-
-        if (!matchesName && !matchesCompany && !matchesCategory && !matchesBio && !matchesServices) {
+    return providers
+      .filter((v) => {
+        const activeCategory = filters.category !== "Todas" ? filters.category : selectedCategory;
+        if (activeCategory !== "Todas" && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
           return false;
         }
-      }
 
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === "score") return b.score - a.score;
-      if (sortBy === "rating") return b.rating - a.rating;
-      if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount;
-      if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
-      return 0;
-    });
-  }, [providers, search, selectedCategory, filters, sortBy]);
+        if (filters.minRating > 0 && v.rating < filters.minRating) return false;
+        if (filters.verifiedOnly && !v.isVerified) return false;
+        if (v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
 
-  // Section 1: Sponsored Providers (Strictly marked as Ads)
-  const sponsoredList = useMemo(() => {
-    return filteredVendors.filter((v) => v.isSponsored);
-  }, [filteredVendors]);
+        if (onlyAvailableNow && !v.isOnline && !v.availableNow) {
+          return false;
+        }
 
-  // Section 2: Organic Providers
-  const organicList = useMemo(() => {
-    return filteredVendors.filter((v) => !v.isSponsored);
-  }, [filteredVendors]);
+        if (search.trim()) {
+          const q = search.toLowerCase();
+          const matchesName = v.name.toLowerCase().includes(q);
+          const matchesCompany = v.company.toLowerCase().includes(q);
+          const matchesCategory = v.category.toLowerCase().includes(q);
+          const matchesBio = (v.bio ?? "").toLowerCase().includes(q);
+          const matchesServices = v.servicesOffered.some(
+            (s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
+          );
 
-  // Top 3 Organic in Region (Ranked strictly by ProviderScore)
+          if (!matchesName && !matchesCompany && !matchesCategory && !matchesBio && !matchesServices) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "score") return b.score - a.score;
+        if (sortBy === "rating") return b.rating - a.rating;
+        if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount;
+        if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
+        return 0;
+      });
+  }, [providers, search, selectedCategory, filters, sortBy, onlyAvailableNow]);
+
+  const sponsoredList = useMemo(() => filteredVendors.filter((v) => v.isSponsored), [filteredVendors]);
+  const organicList = useMemo(() => filteredVendors.filter((v) => !v.isSponsored), [filteredVendors]);
+
   const topOrganicRegion = useMemo(() => {
     return [...providers]
       .filter((v) => (selectedCategory === "Todas" ? true : v.category.toLowerCase() === selectedCategory.toLowerCase()))
@@ -206,34 +199,78 @@ export function ServicosClient({
       .slice(0, 3);
   }, [providers, selectedCategory]);
 
-  // View state: 'marketplace' or 'minhas-contratacoes'
-  const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">("marketplace");
+  const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">(
+    searchParams.get("aba") === "contratacoes" ? "contratacoes" : "marketplace"
+  );
 
-  // Rate service state
-  const [ratingTicketId, setRatingTicketId] = useState<number | null>(null);
-  const [ratingStars, setRatingStars] = useState(5);
-  const [ratingComment, setRatingComment] = useState("");
-  const [isRatingPending, startRatingTransition] = useTransition();
+  // Review Modal State
+  const [reviewRequest, setReviewRequest] = useState<any | null>(null);
+  const [revRating, setRevRating] = useState(5);
+  const [revPunctuality, setRevPunctuality] = useState(5);
+  const [revQuality, setRevQuality] = useState(5);
+  const [revCommunication, setRevCommunication] = useState(5);
+  const [revCostBenefit, setRevCostBenefit] = useState(5);
+  const [revComment, setRevComment] = useState("");
+  const [isActionPending, startActionTransition] = useTransition();
 
-  const handleRateSubmit = (e: React.FormEvent) => {
+  // Chat Drawer State
+  const [activeChatRequest, setActiveChatRequest] = useState<any | null>(null);
+  const [chatInput, setChatInput] = useState("");
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ratingTicketId) return;
+    if (!reviewRequest) return;
 
-    startRatingTransition(async () => {
-      const fd = new FormData();
-      fd.set("id", String(ratingTicketId));
-      fd.set("rating", String(ratingStars));
-      fd.set("ratingComment", ratingComment);
-
-      await rateServiceAction(fd);
-      setRatingTicketId(null);
-      setRatingComment("");
+    startActionTransition(async () => {
+      await createVerifiedReviewAction({
+        requestId: reviewRequest.id,
+        vendorId: reviewRequest.vendorId,
+        rating: revRating,
+        punctualityRating: revPunctuality,
+        qualityRating: revQuality,
+        communicationRating: revCommunication,
+        costBenefitRating: revCostBenefit,
+        comment: revComment,
+      });
+      setReviewRequest(null);
     });
   };
 
+  const handleAcceptQuote = (quoteId: number) => {
+    startActionTransition(async () => {
+      await acceptQuoteAction(quoteId);
+    });
+  };
+
+  const handleConfirmCompletion = (requestId: number) => {
+    startActionTransition(async () => {
+      await confirmServiceCompletionAction(requestId);
+    });
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeChatRequest || !chatInput.trim()) return;
+
+    startActionTransition(async () => {
+      await sendServiceMessageAction(activeChatRequest.id, chatInput.trim());
+      setChatInput("");
+    });
+  };
+
+  const handleRehire = (req: any) => {
+    const target = providers.find((p) => p.id === req.vendorId) || providers[0];
+    if (target) {
+      setBudgetVendor(target);
+      setActiveView("marketplace");
+    }
+  };
+
+  const totalContractedCount = marketplaceRequests.length + services.length;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Top Banner / Navigation Switcher */}
+      {/* Top Banner / Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -244,11 +281,11 @@ export function ServicosClient({
               Zeladoria Serviços
             </h1>
             <span className="rounded-full bg-blue-50 text-[#0055D4] border border-blue-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
-              Marketplace
+              Marketplace On-Demand
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Encontre, compare e contrate os melhores prestadores verificados para seu condomínio
+            Encontre, compare e contrate os melhores profissionais para pequenos reparos ou reformas completas.
           </p>
         </div>
 
@@ -278,9 +315,9 @@ export function ServicosClient({
           >
             <Icon name="clipboard" size={13} />
             <span>Minhas Contratações</span>
-            {services.length > 0 && (
+            {totalContractedCount > 0 && (
               <span className="rounded-full bg-[#0055D4] text-white px-1.5 py-0.2 text-[9px] font-bold">
-                {services.length}
+                {totalContractedCount}
               </span>
             )}
           </button>
@@ -288,29 +325,29 @@ export function ServicosClient({
       </div>
 
       {activeView === "contratacoes" ? (
-        /* MINHAS CONTRATAÇÕES / HISTÓRICO DE SERVIÇOS */
+        /* MINHAS CONTRATAÇÕES & ACOMPANHAMENTO */
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
-              Histórico de Solicitações e Serviços no Condomínio
+              Histórico de Chamados e Contratações Ativas
             </h2>
             <button
               type="button"
               onClick={() => setActiveView("marketplace")}
-              className="text-xs font-bold text-[#0055D4] hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-[#0055D4] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>+ Solicitar novo serviço</span>
             </button>
           </div>
 
-          {services.length === 0 ? (
+          {marketplaceRequests.length === 0 && services.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
               <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto">
                 <Icon name="clipboard" size={22} />
               </div>
               <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma contratação registrada</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Você ainda não solicitou orçamentos ou serviços através do Zeladoria Serviços.
+                Você ainda não solicitou atendimentos pelo Zeladoria Serviços.
               </p>
               <button
                 type="button"
@@ -321,99 +358,204 @@ export function ServicosClient({
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {services.map((ticket) => (
-                <div
-                  key={ticket.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3 hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-md">
-                        {ticket.code}
-                      </span>
-                      <h3 className="text-sm font-bold text-[#0F172A]">{ticket.title}</h3>
-                    </div>
+            <div className="space-y-4">
+              {/* Marketplace Requests */}
+              {marketplaceRequests.map((req) => {
+                const reqQuotes = quotes.filter((q) => q.requestId === req.id);
+                const reqReview = reviews.find((r) => r.requestId === req.id);
+                const isCompleted = req.status === "concluido";
 
-                    <div className="flex items-center gap-2">
+                return (
+                  <div
+                    key={`mp-${req.id}`}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 transition-colors"
+                  >
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-md">
+                          {req.code}
+                        </span>
+                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">{req.title}</h3>
+                        <span className="rounded bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5">
+                          {req.mode === "on_demand" ? "Sob Demanda" : "Orçamento"}
+                        </span>
+                      </div>
+
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                          ticket.status === "concluido"
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                          req.status === "concluido"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : ticket.status === "agendado"
+                            : req.status === "em_atendimento"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+                            : req.status === "a_caminho" || req.status === "chegou"
                             ? "bg-blue-50 text-[#0055D4] border border-blue-200"
-                            : ticket.status === "cancelado"
-                            ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        {ticket.status.replace("_", " ")}
+                        {req.status.replace("_", " ")}
                       </span>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
-                    <div>
-                      <span className="text-slate-400 font-medium">Categoria:</span>{" "}
-                      <strong className="text-slate-800 capitalize">{ticket.category}</strong>
+                    {/* Progress State Machine Indicators */}
+                    <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold text-slate-400 pt-1">
+                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "aceito", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                        1. Solicitado
+                      </div>
+                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                        2. Aceito
+                      </div>
+                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                        3. Deslocamento
+                      </div>
+                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                        4. Atendimento
+                      </div>
+                      <div className={`p-1.5 rounded-lg ${req.status === "concluido" ? "bg-emerald-50 text-emerald-700" : "bg-slate-50"}`}>
+                        5. Concluído
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Local:</span>{" "}
-                      <strong className="text-slate-800">{ticket.location || "Unidade"}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Data solicitada:</span>{" "}
-                      <strong className="text-slate-800">
-                        {ticket.preferredTime || new Date(ticket.createdAt).toLocaleDateString("pt-BR")}
-                      </strong>
-                    </div>
-                  </div>
 
-                  <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    {ticket.description}
-                  </p>
+                    {/* Details Info */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                      <div>
+                        <span className="text-slate-400">Profissional:</span>{" "}
+                        <strong className="text-slate-800">{req.vendorCompany || req.vendorName || "Buscando parceiro..."}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Local:</span>{" "}
+                        <strong className="text-slate-800">{req.location}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Data/Previsão:</span>{" "}
+                        <strong className="text-slate-800">{req.scheduledDate || "Hoje / Imediato"}</strong>
+                      </div>
+                    </div>
 
-                  {/* Rating Section if Completed */}
-                  {ticket.status === "concluido" && (
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                      {ticket.rating ? (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <span className="font-bold text-slate-500">Sua avaliação:</span>
-                          <div className="flex items-center gap-0.5">
-                            {[...Array(ticket.rating)].map((_, i) => (
-                              <Icon
-                                key={i}
-                                name="star"
-                                size={12}
-                                className="text-[#FFD000] fill-[#FFD000]"
-                              />
-                            ))}
-                          </div>
-                          {ticket.ratingComment && (
-                            <span className="text-slate-400">&quot;{ticket.ratingComment}&quot;</span>
-                          )}
+                    <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      {req.description}
+                    </p>
+
+                    {/* Propostas de Orçamento Recebidas */}
+                    {reqQuotes.length > 0 && req.status === "aguardando_orcamento" && (
+                      <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
+                        <span className="text-xs font-bold text-[#0055D4] block">
+                          Propostas de Orçamento Recebidas ({reqQuotes.length}):
+                        </span>
+                        <div className="space-y-2">
+                          {reqQuotes.map((q) => (
+                            <div
+                              key={q.id}
+                              className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                            >
+                              <div>
+                                <div className="font-bold text-[#0F172A]">{q.vendorName}</div>
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  Mão de obra: R$ {(q.laborCents / 100).toFixed(2)} · Materiais: R$ {(q.materialsCents / 100).toFixed(2)} · Prazo: {q.estimatedDays} dia(s)
+                                </div>
+                                <p className="text-slate-600 mt-1 italic">&quot;{q.description}&quot;</p>
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <span className="text-sm font-black text-[#0055D4]">
+                                  R$ {(q.totalCents / 100).toFixed(2)}
+                                </span>
+                                {q.status === "aceito" ? (
+                                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded-lg">
+                                    Proposta Aprovada
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAcceptQuote(q.id)}
+                                    disabled={isActionPending}
+                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 font-bold cursor-pointer transition-colors shadow-xs"
+                                  >
+                                    Aprovar Proposta
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ) : (
+                      </div>
+                    )}
+
+                    {/* Actions and Status Bar */}
+                    <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        {/* Chat button */}
                         <button
                           type="button"
-                          onClick={() => setRatingTicketId(ticket.id)}
-                          className="rounded-lg bg-[#FFD000] hover:bg-[#F0C400] text-[#12162A] px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                          onClick={() => setActiveChatRequest(req)}
+                          className="flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors cursor-pointer"
                         >
-                          <Icon name="star" size={12} />
-                          <span>Avaliar serviço realizado</span>
+                          <Icon name="mail" size={13} />
+                          <span>Mensagens / Chat</span>
                         </button>
-                      )}
+
+                        {/* Confirm Completion Button */}
+                        {["em_atendimento", "chegou", "a_caminho"].includes(req.status) && (
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmCompletion(req.id)}
+                            disabled={isActionPending}
+                            className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                          >
+                            Confirmar Conclusão
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {isCompleted && (
+                          <>
+                            {reqReview ? (
+                              <div className="flex items-center gap-1.5 text-xs">
+                                <span className="font-bold text-slate-500">Sua avaliação:</span>
+                                <div className="flex items-center gap-0.5">
+                                  {[...Array(reqReview.rating)].map((_, i) => (
+                                    <Icon key={i} name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
+                                  ))}
+                                </div>
+                                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-full">
+                                  Verificado
+                                </span>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setReviewRequest(req)}
+                                className="rounded-xl bg-[#FFD000] hover:bg-[#F0C400] text-[#12162A] px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                              >
+                                <Icon name="star" size={12} />
+                                <span>Avaliar serviço</span>
+                              </button>
+                            )}
+
+                            {/* Contratar Novamente */}
+                            <button
+                              type="button"
+                              onClick={() => handleRehire(req)}
+                              className="rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <Icon name="refresh" size={12} />
+                              <span>Contratar novamente</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* SECTION 1: HERO SEARCH BAR WITH AUTOCOMPLETE */}
+          {/* SECTION 1: SEARCH BAR WITH AUTOCOMPLETE */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs space-y-4">
             <div className="max-w-3xl mx-auto space-y-2">
               <label
@@ -423,7 +565,6 @@ export function ServicosClient({
                 Qual serviço você precisa para o seu apartamento?
               </label>
 
-              {/* Input with Autocomplete Container */}
               <div ref={searchContainerRef} className="relative">
                 <div className="relative flex items-center">
                   <Icon
@@ -440,25 +581,24 @@ export function ServicosClient({
                       handleSearchChange(e.target.value);
                       setShowSuggestions(true);
                     }}
-                    placeholder="Ex: chuveiro, vazamento, tomada, ar-condicionado, pintor..."
+                    placeholder="Ex: chuveiro, vazamento, tomada, ar-condicionado, pintor, marcenaria..."
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white transition-all shadow-xs"
                   />
                   {search && (
                     <button
                       type="button"
                       onClick={() => handleSearchChange("")}
-                      className="absolute right-3 p-1 text-slate-400 hover:text-slate-700 rounded-full"
+                      className="absolute right-3 p-1 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer"
                     >
                       <Icon name="x" size={15} />
                     </button>
                   )}
                 </div>
 
-                {/* Autocomplete Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 z-30 mt-1.5 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 block">
-                      Sugestões de serviços rápidos
+                      Sugestões de problemas e serviços
                     </span>
                     <div className="space-y-1">
                       {suggestions.map((sug) => (
@@ -473,14 +613,9 @@ export function ServicosClient({
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <Icon name="search" size={13} className="text-[#0055D4] shrink-0" />
-                            <span className="font-bold text-[#0F172A] truncate">
-                              {sug.serviceTitle}
-                            </span>
-                            <span className="text-[11px] text-slate-400 shrink-0">
-                              em {sug.category}
-                            </span>
+                            <span className="font-bold text-[#0F172A] truncate">{sug.serviceTitle}</span>
+                            <span className="text-[11px] text-slate-400 shrink-0">em {sug.category}</span>
                           </div>
-
                           {sug.badge && (
                             <span className="rounded bg-amber-100 text-amber-900 text-[9px] font-black uppercase px-1.5 py-0.2 shrink-0">
                               {sug.badge}
@@ -493,15 +628,15 @@ export function ServicosClient({
                 )}
               </div>
 
-              {/* Quick Tags underneath search */}
+              {/* Quick Tags */}
               <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
-                <span className="text-[11px] font-bold text-slate-400">Populares:</span>
+                <span className="text-[11px] font-bold text-slate-400">Problemas comuns:</span>
                 {[
-                  { tag: "Instalação de Chuveiro", cat: "eletrica", q: "chuveiro" },
-                  { tag: "Caça-Vazamento", cat: "hidraulica", q: "vazamento" },
-                  { tag: "Limpeza de Ar", cat: "climatizacao", q: "ar-condicionado" },
-                  { tag: "Fechadura Digital", cat: "seguranca", q: "fechadura" },
-                  { tag: "Ajuste de Portas", cat: "marcenaria", q: "porta" },
+                  { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
+                  { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
+                  { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
+                  { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
+                  { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
                 ].map((item) => (
                   <button
                     key={item.tag}
@@ -519,24 +654,23 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 2: CATEGORIES (GRID / CARROSSEL HORIZONTAL) */}
+          {/* SECTION 2: CATEGORIES HORIZONTAL SCROLL */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                Navegar por Categoria
+                Categorias de Serviços
               </h2>
               {selectedCategory !== "Todas" && (
                 <button
                   type="button"
                   onClick={() => handleCategoryChange("Todas")}
-                  className="text-xs font-bold text-[#0055D4] hover:underline"
+                  className="text-xs font-bold text-[#0055D4] hover:underline cursor-pointer"
                 >
                   Ver todas as categorias
                 </button>
               )}
             </div>
 
-            {/* Horizontal scroll on mobile / flex wrap on desktop */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
@@ -570,7 +704,36 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 3: MELHORES DA SUA REGIÃO (RANKING ORGÂNICO #1, #2, #3) */}
+          {/* SECTION 3: PRECISA PARA AGORA? (CHAMADA SOB DEMANDA) */}
+          <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0055D4] text-white shrink-0">
+                <Icon name="zap" size={20} className="text-[#FFD000] fill-[#FFD000]" />
+              </span>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-[#0F172A]">
+                  Precisa de atendimento urgente ou para hoje?
+                </h3>
+                <p className="text-xs text-slate-600">
+                  Filtre apenas os profissionais disponíveis agora para pequenos consertos imediatos.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setOnlyAvailableNow(!onlyAvailableNow)}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 ${
+                onlyAvailableNow
+                  ? "bg-slate-900 text-white"
+                  : "bg-[#0055D4] hover:bg-[#0047BA] text-white"
+              }`}
+            >
+              {onlyAvailableNow ? "✓ Mostrando Disponíveis Agora" : "Ver Disponíveis Agora"}
+            </button>
+          </div>
+
+          {/* SECTION 4: MELHORES DA REGIÃO (#1, #2, #3) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -578,12 +741,11 @@ export function ServicosClient({
                   ★
                 </span>
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Melhores da sua Região{" "}
-                  {selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}
+                  Melhores da sua Região {selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}
                 </h2>
               </div>
               <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                Ranking baseado em avaliações, pontualidade e histórico confiável
+                Ranking mérito: avaliações, conclusão e pontualidade
               </span>
             </div>
 
@@ -597,7 +759,6 @@ export function ServicosClient({
                     onClick={() => setSelectedProfileVendor(vendor)}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      {/* Rank Medal Indicator */}
                       <div
                         className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-xs ${
                           rankNum === 1
@@ -623,19 +784,9 @@ export function ServicosClient({
                           {vendor.category} · {vendor.company}
                         </p>
                         <div className="flex items-center gap-1.5 text-xs mt-0.5">
-                          {vendor.reviewsCount > 0 ? (
-                            <>
-                              <div className="flex items-center gap-0.5 font-black text-[#0F172A]">
-                                <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                                <span>{vendor.rating.toFixed(1)}</span>
-                              </div>
-                              <span className="text-[10px] text-slate-400">
-                                ({vendor.reviewsCount} avaliações)
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-slate-400">Ainda sem avaliações</span>
-                          )}
+                          <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                          <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                          <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
                         </div>
                       </div>
                     </div>
@@ -656,7 +807,7 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 4: PATROCINADOS (ANÚNCIOS CLARAMENTE IDENTIFICADOS) */}
+          {/* SECTION 5: PATROCINADOS (PUBLICIDADE DISTINTA) */}
           {sponsoredList.length > 0 && (
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-2">
@@ -664,7 +815,7 @@ export function ServicosClient({
                   Patrocinados
                 </h2>
                 <span className="rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider">
-                  Anúncio
+                  Publicidade
                 </span>
               </div>
 
@@ -684,22 +835,48 @@ export function ServicosClient({
             </div>
           )}
 
-          {/* SECTION 5: TODOS OS PRESTADORES (VITRINE COM FILTROS E ORDENAÇÃO) */}
+          {/* SECTION 6: VITRINE COMPLETA COM SELETOR LISTA / MAPA */}
           <div className="space-y-4 pt-2">
-            {/* Filter and Sort Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Todos os Prestadores
+                  Prestadores Disponíveis
                 </h2>
                 <span className="rounded-full bg-slate-200 text-slate-700 px-2 py-0.5 text-[10px] font-black">
                   {filteredVendors.length}
                 </span>
               </div>
 
-              {/* Controls */}
               <div className="flex items-center gap-2 justify-between sm:justify-end">
-                {/* Mobile Filter Button (Bottom Sheet Trigger) */}
+                {/* View Switcher: Lista vs Mapa */}
+                <div className="flex items-center gap-1 bg-white p-0.5 rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setDisplayMode("lista")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      displayMode === "lista"
+                        ? "bg-[#0055D4] text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Icon name="grid" size={12} />
+                    <span>Lista</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayMode("mapa")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      displayMode === "mapa"
+                        ? "bg-[#0055D4] text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Icon name="map-pin" size={12} />
+                    <span>Mapa</span>
+                  </button>
+                </div>
+
+                {/* Filter Sheet Trigger */}
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(true)}
@@ -707,99 +884,100 @@ export function ServicosClient({
                 >
                   <Icon name="filter" size={13} className="text-[#0055D4]" />
                   <span>Filtros</span>
-                  {(filters.minRating > 0 || filters.verifiedOnly) && (
-                    <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
-                  )}
                 </button>
 
                 {/* Sort selector */}
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-slate-400 font-bold hidden sm:inline">Ordenar:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => handleSortChange(e.target.value)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer"
-                  >
-                    <option value="score">Pontuação Geral (Score)</option>
-                    <option value="rating">Melhor Avaliação</option>
-                    <option value="reviews">Mais Avaliados</option>
-                    <option value="price_asc">Menor Preço Inicial</option>
-                  </select>
-                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="score">Pontuação Geral (Score)</option>
+                  <option value="rating">Melhor Avaliação</option>
+                  <option value="reviews">Mais Avaliados</option>
+                  <option value="price_asc">Menor Preço Inicial</option>
+                </select>
               </div>
             </div>
 
-            {/* Results Grid */}
-            {providers.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                  <Icon name="briefcase" size={22} />
-                </div>
-                <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador cadastrado ainda</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  O síndico ou a administração ainda não cadastrou prestadores de serviço para este condomínio em{" "}
-                  <strong>Fornecedores</strong>.
-                </p>
-              </div>
-            ) : filteredVendors.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                  <Icon name="search" size={22} />
-                </div>
-                <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador encontrado</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Não encontramos nenhum profissional com os termos e filtros selecionados.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
-                    setSelectedCategory("Todas");
-                    setFilters({
-                      category: "Todas",
-                      minRating: 0,
-                      verifiedOnly: false,
-                      maxPrice: 50000,
-                    });
-                    updateUrlParams("Todas", "", "score");
-                  }}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Limpar todos os filtros
-                </button>
-              </div>
+            {/* Display Mode: MAPA */}
+            {displayMode === "mapa" ? (
+              <MarketplaceMap
+                providers={filteredVendors}
+                onSelectProvider={(p) => setSelectedProfileVendor(p)}
+                onRequestBudget={(p) => setBudgetVendor(p)}
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredVendors.map((vendor) => (
-                  <ProviderCard
-                    key={vendor.id}
-                    provider={vendor}
-                    isFavorite={favorites.includes(vendor.id)}
-                    hasHiredBefore={hiredProviderIds.has(vendor.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onViewProfile={(p) => setSelectedProfileVendor(p)}
-                    onRequestBudget={(p) => setBudgetVendor(p)}
-                  />
-                ))}
-              </div>
+              /* Display Mode: LISTA */
+              <>
+                {providers.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
+                    <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                      <Icon name="briefcase" size={22} />
+                    </div>
+                    <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador cadastrado ainda</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Ainda não há prestadores credenciados disponíveis para este condomínio.
+                    </p>
+                  </div>
+                ) : filteredVendors.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
+                    <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                      <Icon name="search" size={22} />
+                    </div>
+                    <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador encontrado com estes filtros</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Tente alterar os termos de busca ou selecionar outra categoria.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch("");
+                        setSelectedCategory("Todas");
+                        setOnlyAvailableNow(false);
+                      }}
+                      className="rounded-xl bg-[#0055D4] text-white px-4 py-2 text-xs font-bold cursor-pointer"
+                    >
+                      Limpar Filtros
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredVendors.map((vendor, index) => (
+                      <ProviderCard
+                        key={vendor.id}
+                        provider={vendor}
+                        rankingPosition={index < 3 ? index + 1 : undefined}
+                        isFavorite={favorites.includes(vendor.id)}
+                        hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                        onToggleFavorite={toggleFavorite}
+                        onViewProfile={(p) => setSelectedProfileVendor(p)}
+                        onRequestBudget={(p) => setBudgetVendor(p)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </>
       )}
 
-      {/* MODAL: VER PERFIL COMPLETO COM PORTFÓLIO E AVALIAÇÕES */}
-      <ProviderProfileModal
-        provider={selectedProfileVendor}
-        hasHiredBefore={selectedProfileVendor ? hiredProviderIds.has(selectedProfileVendor.id) : false}
-        onClose={() => setSelectedProfileVendor(null)}
-        onRequestBudget={(prov, svc) => {
-          setSelectedProfileVendor(null);
-          setBudgetInitialService(svc);
-          setBudgetVendor(prov);
-        }}
-      />
+      {/* Profile Storefront Modal */}
+      {selectedProfileVendor && (
+        <ProviderProfileModal
+          provider={selectedProfileVendor}
+          hasHiredBefore={hiredProviderIds.has(selectedProfileVendor.id)}
+          onClose={() => setSelectedProfileVendor(null)}
+          onRequestBudget={(p, svc) => {
+            setSelectedProfileVendor(null);
+            setBudgetVendor(p);
+            setBudgetInitialService(svc);
+          }}
+        />
+      )}
 
-      {/* MODAL: WIZARD DE SOLICITAÇÃO DE ORÇAMENTO EM 4 ETAPAS */}
+      {/* Service Request Wizard */}
       {budgetVendor && (
         <ServiceRequestWizard
           provider={budgetVendor}
@@ -809,12 +987,14 @@ export function ServicosClient({
             setBudgetInitialService(undefined);
           }}
           onSuccess={() => {
-            router.refresh();
+            setBudgetVendor(null);
+            setBudgetInitialService(undefined);
+            setActiveView("contratacoes");
           }}
         />
       )}
 
-      {/* BOTTOM SHEET DE FILTROS (MOBILE FIRST) */}
+      {/* Filter Bottom Sheet */}
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}
         filters={filters}
@@ -822,90 +1002,239 @@ export function ServicosClient({
         totalResultsCount={filteredVendors.length}
         onClose={() => setIsFilterSheetOpen(false)}
         onChange={(updated) => {
-          const next = { ...filters, ...updated };
-          setFilters(next);
-          if (updated.category) setSelectedCategory(updated.category);
+          setFilters((prev) => {
+            const next = { ...prev, ...updated };
+            if (updated.category) {
+              setSelectedCategory(updated.category);
+              updateUrlParams(updated.category, search, sortBy);
+            }
+            return next;
+          });
         }}
         onReset={() => {
-          setFilters({
-            category: "Todas",
-            minRating: 0,
-            verifiedOnly: false,
-            maxPrice: 50000,
-          });
+          setFilters({ category: "Todas", minRating: 0, verifiedOnly: false, maxPrice: 50000 });
           setSelectedCategory("Todas");
+          updateUrlParams("Todas", search, sortBy);
         }}
       />
 
-      {/* MODAL DE AVALIAÇÃO DE SERVIÇO CONCLUÍDO */}
-      {ratingTicketId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Review Modal (4 Criteria) */}
+      {reviewRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
-            onClick={() => setRatingTicketId(null)}
+            onClick={() => setReviewRequest(null)}
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl z-10 space-y-4 animate-in zoom-in-95">
-            <h3 className="text-base font-bold text-[#0F172A]">Avaliar Serviço Concluído</h3>
-            <p className="text-xs text-slate-500">
-              Sua avaliação ajuda a manter o ranking transparente e confiável para todos os vizinhos do condomínio.
-            </p>
+          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl z-10 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
+                  Avaliação Verificada
+                </span>
+                <h3 className="text-base font-bold text-[#0F172A]">
+                  Como foi o atendimento de {reviewRequest.vendorCompany || reviewRequest.vendorName}?
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReviewRequest(null)}
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 cursor-pointer"
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </div>
 
-            <form onSubmit={handleRateSubmit} className="space-y-4">
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              {/* Nota Geral */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Nota do atendimento:
+                  Nota Geral do Serviço (1 a 5 estrelas):
                 </label>
                 <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((s) => (
+                  {[1, 2, 3, 4, 5].map((star) => (
                     <button
-                      key={s}
+                      key={star}
                       type="button"
-                      onClick={() => setRatingStars(s)}
-                      className="p-1 text-slate-300 hover:text-[#FFD000] cursor-pointer"
+                      onClick={() => setRevRating(star)}
+                      className="p-1 text-2xl transition-transform hover:scale-110 cursor-pointer"
                     >
                       <Icon
                         name="star"
                         size={24}
-                        className={
-                          s <= ratingStars
-                            ? "text-[#FFD000] fill-[#FFD000]"
-                            : "text-slate-300"
-                        }
+                        className={revRating >= star ? "text-[#FFD000] fill-[#FFD000]" : "text-slate-300"}
                       />
                     </button>
                   ))}
+                  <span className="text-xs font-black text-[#0F172A] ml-2">{revRating} de 5</span>
                 </div>
               </div>
 
+              {/* 4 Critérios Opcionais */}
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                <div>
+                  <span className="text-slate-600 font-medium">Pontualidade:</span>
+                  <select
+                    value={revPunctuality}
+                    onChange={(e) => setRevPunctuality(Number(e.target.value))}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white p-1.5 text-xs outline-none"
+                  >
+                    <option value={5}>5 - Excelente / No horário</option>
+                    <option value={4}>4 - Bom</option>
+                    <option value={3}>3 - Regular</option>
+                    <option value={2}>2 - Atrasou</option>
+                    <option value={1}>1 - Muito atrasado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-slate-600 font-medium">Qualidade da Execução:</span>
+                  <select
+                    value={revQuality}
+                    onChange={(e) => setRevQuality(Number(e.target.value))}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white p-1.5 text-xs outline-none"
+                  >
+                    <option value={5}>5 - Impecável</option>
+                    <option value={4}>4 - Muito boa</option>
+                    <option value={3}>3 - Adequada</option>
+                    <option value={2}>2 - Deixou a desejar</option>
+                    <option value={1}>1 - Ruim</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-slate-600 font-medium">Comunicação e Educação:</span>
+                  <select
+                    value={revCommunication}
+                    onChange={(e) => setRevCommunication(Number(e.target.value))}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white p-1.5 text-xs outline-none"
+                  >
+                    <option value={5}>5 - Muito atencioso</option>
+                    <option value={4}>4 - Boa</option>
+                    <option value={3}>3 - Normal</option>
+                    <option value={2}>2 - Pouco comunicativo</option>
+                    <option value={1}>1 - Inadequada</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-slate-600 font-medium">Custo-Benefício:</span>
+                  <select
+                    value={revCostBenefit}
+                    onChange={(e) => setRevCostBenefit(Number(e.target.value))}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white p-1.5 text-xs outline-none"
+                  >
+                    <option value={5}>5 - Justo e vantajoso</option>
+                    <option value={4}>4 - Bom</option>
+                    <option value={3}>3 - Razoável</option>
+                    <option value={2}>2 - Caro</option>
+                    <option value={1}>1 - Muito caro</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Comentário */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Comentário sobre o serviço:
+                  Seu Comentário Público:
                 </label>
                 <textarea
                   rows={3}
-                  value={ratingComment}
-                  onChange={(e) => setRatingComment(e.target.value)}
-                  placeholder="Ex: O profissional foi pontual, realizou o reparo com rapidez e deixou tudo limpo."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] leading-relaxed resize-none"
+                  value={revComment}
+                  onChange={(e) => setRevComment(e.target.value)}
+                  placeholder="Conte para outros moradores como foi a sua experiência com este prestador..."
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setRatingTicketId(null)}
-                  className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition-colors"
+                  onClick={() => setReviewRequest(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={isRatingPending}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-colors shadow-xs disabled:opacity-50"
+                  disabled={isActionPending}
+                  className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
-                  {isRatingPending ? "Enviando..." : "Publicar Avaliação"}
+                  {isActionPending ? "Enviando avaliação..." : "Publicar Avaliação"}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contextual Chat Drawer */}
+      {activeChatRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setActiveChatRequest(null)}
+          />
+          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl z-10 flex flex-col h-[520px]">
+            {/* Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase text-[#0055D4]">Chat do Atendimento</span>
+                <h3 className="text-sm font-bold text-[#0F172A]">{activeChatRequest.title}</h3>
+                <p className="text-[11px] text-slate-400">Chamado: {activeChatRequest.code}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveChatRequest(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </div>
+
+            {/* Messages Body */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-2.5 bg-slate-50">
+              {messages.filter((m) => m.requestId === activeChatRequest.id).length === 0 ? (
+                <div className="text-center text-xs text-slate-400 py-8">
+                  Nenhuma mensagem trocada ainda neste chamado.
+                </div>
+              ) : (
+                messages
+                  .filter((m) => m.requestId === activeChatRequest.id)
+                  .map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`p-3 rounded-2xl max-w-[85%] text-xs ${
+                        msg.senderRole === "sistema"
+                          ? "bg-slate-200 text-slate-700 mx-auto text-center"
+                          : msg.senderRole === "morador"
+                          ? "bg-[#0055D4] text-white ml-auto rounded-tr-xs"
+                          : "bg-white text-slate-800 border border-slate-200 mr-auto rounded-tl-xs"
+                      }`}
+                    >
+                      <div className="text-[10px] opacity-75 mb-0.5 capitalize">{msg.senderRole}</div>
+                      <div>{msg.body}</div>
+                    </div>
+                  ))
+              )}
+            </div>
+
+            {/* Input Bar */}
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 bg-white flex items-center gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Escreva uma mensagem para o prestador..."
+                className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#0055D4]"
+              />
+              <button
+                type="submit"
+                disabled={isActionPending || !chatInput.trim()}
+                className="h-10 px-4 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-xs"
+              >
+                <Icon name="send" size={13} />
+                <span>Enviar</span>
+              </button>
             </form>
           </div>
         </div>

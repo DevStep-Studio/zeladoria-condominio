@@ -36,6 +36,12 @@ export interface MarketplaceProvider {
   hiredCount: number;
   startingPriceCents: number | null;
   regionCoverage: string | null;
+  slug?: string | null;
+  isOnline?: boolean;
+  availableNow?: boolean;
+  serviceRadiusKm?: number | null;
+  coverUrl?: string | null;
+  workingHours?: string | null;
   phone: string | null;
   whatsapp: string | null;
   bio: string | null;

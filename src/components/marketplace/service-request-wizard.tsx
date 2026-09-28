@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
-import { createServiceRequestAction } from "@/lib/actions/servicos";
+import { createMarketplaceRequestAction } from "@/lib/actions/marketplace";
 import type { MarketplaceProvider, ServiceOffering } from "@/lib/services/providers-data";
 
 export function ServiceRequestWizard({
@@ -17,6 +17,7 @@ export function ServiceRequestWizard({
   onSuccess?: () => void;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(initialService ? 2 : 1);
+  const [mode, setMode] = useState<"on_demand" | "quote">("on_demand");
   const [selectedServiceId, setSelectedServiceId] = useState<string>(initialService?.id || "");
   const [customServiceName, setCustomServiceName] = useState<string>("");
   const [description, setDescription] = useState("");
@@ -31,25 +32,24 @@ export function ServiceRequestWizard({
   const serviceTitle =
     selectedService?.name ||
     customServiceName.trim() ||
-    `Serviço geral de ${provider.category}`;
+    `Serviço de ${provider.category}`;
 
   const handleSubmit = () => {
     if (!description.trim()) return;
 
     startTransition(async () => {
-      const formData = new FormData();
-      formData.set("title", `${serviceTitle} (${provider.name})`);
-      formData.set(
-        "description",
-        `${description.trim()}\n\n[Preferência: ${preferredDate} - ${preferredTime}]\n[Local: ${location}]`
-      );
-      formData.set("category", provider.category.toLowerCase());
-      formData.set("priority", priority);
-      formData.set("location", location);
-      formData.set("preferredTime", `${preferredDate} · ${preferredTime}`);
-      formData.set("vendorId", String(provider.id));
+      const res = await createMarketplaceRequestAction({
+        vendorId: provider.id,
+        mode,
+        category: provider.category.toLowerCase(),
+        title: `${serviceTitle} (${provider.name})`,
+        description: description.trim(),
+        urgency: mode === "on_demand" ? "agora" : (priority === "urgente" ? "urgente" : "hoje"),
+        scheduledDate: preferredDate,
+        scheduledTimeSlot: preferredTime,
+        location,
+      });
 
-      const res = await createServiceRequestAction(formData);
       if (res?.success) {
         setIsSuccess(true);
         onSuccess?.();
@@ -138,7 +138,51 @@ export function ServiceRequestWizard({
           <div className="space-y-4">
             {/* ETAPA 1: ESCOLHER SERVIÇO */}
             {step === 1 && (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* DOIS MODOS DE CONTRATAÇÃO */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
+                    Modo de Atendimento:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMode("on_demand")}
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                        mode === "on_demand"
+                          ? "border-[#0055D4] bg-blue-50/70 text-[#0055D4] shadow-xs"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5">
+                        <Icon name="zap" size={13} className="text-[#FFD000] fill-[#FFD000]" />
+                        <span>Rápido / Sob Demanda</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Para agora ou hoje. Atendimento imediato.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMode("quote")}
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                        mode === "quote"
+                          ? "border-[#0055D4] bg-blue-50/70 text-[#0055D4] shadow-xs"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5">
+                        <Icon name="clipboard" size={13} className="text-[#0055D4]" />
+                        <span>Orçamento & Propostas</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Para reformas, pintura ou comparar valores.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
                 <label className="block text-xs font-bold text-[#0F172A]">
                   1. Qual serviço você precisa?
                 </label>

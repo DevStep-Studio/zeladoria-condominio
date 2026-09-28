@@ -39,6 +39,27 @@ export async function loginAction(_prev: string | null, formData: FormData): Pro
   redirect("/painel");
 }
 
+export async function providerLoginAction(_prev: string | null, formData: FormData): Promise<string | null> {
+  const email = str(formData, "email");
+  const password = str(formData, "password");
+  if (!email || !password) return "Informe e-mail e senha.";
+  const user = await authenticate(email, password);
+  if (!user) {
+    return "Credenciais inválidas. Verifique e tente novamente.";
+  }
+  const session = await getSession();
+  await logAudit({
+    session,
+    condoId: session?.condo?.id ?? null,
+    action: "login_prestador",
+    entity: "auth",
+    entityId: user.id,
+    summary: `${user.name} acessou a área do prestador`,
+    origin: "login_prestador",
+  });
+  redirect("/prestador");
+}
+
 export async function logoutAction() {
   const session = await getSession();
   if (session) {
