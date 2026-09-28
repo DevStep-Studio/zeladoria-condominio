@@ -63,6 +63,15 @@ export type Permission =
   | "provider.profile.update"
   | "provider.earnings.view"
 
+  // Marketplace & Contratações
+  | "marketplace.request.create"
+  | "marketplace.request.view_own"
+  | "marketplace.quote.accept"
+  | "marketplace.job.confirm"
+  | "marketplace.review.create"
+  | "marketplace.favorite.toggle"
+  | "vendors.onboarding.moderate"
+
   // Ordens de Serviço
   | "service_order.view"
   | "service_order.create"
@@ -104,6 +113,12 @@ const MORADOR_PERMISSIONS: Permission[] = [
   "suggestion.create",
   "provider.view",
   "provider.request",
+  "marketplace.request.create",
+  "marketplace.request.view_own",
+  "marketplace.quote.accept",
+  "marketplace.job.confirm",
+  "marketplace.review.create",
+  "marketplace.favorite.toggle",
 ];
 
 const SINDICO_PERMISSIONS: Permission[] = [
@@ -142,6 +157,13 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "provider.view",
   "provider.request",
   "provider.manage",
+  "vendors.onboarding.moderate",
+  "marketplace.request.create",
+  "marketplace.request.view_own",
+  "marketplace.quote.accept",
+  "marketplace.job.confirm",
+  "marketplace.review.create",
+  "marketplace.favorite.toggle",
   "service_order.view",
   "service_order.create",
   "service_order.manage",
