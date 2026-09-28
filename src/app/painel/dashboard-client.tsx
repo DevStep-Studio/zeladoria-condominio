@@ -427,72 +427,72 @@ export function DashboardClient({
               </div>
             </Link>
 
-            {/* 2. Nova reserva (Secundária - Branco) */}
+            {/* 2. Nova reserva (Azul) */}
             <Link
               href="/painel/reservas"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-white border border-slate-200/90 p-4 sm:p-5 text-slate-900 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xs"
+              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
             >
               <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4] transition-transform group-hover:scale-110">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
                   <Icon name="calendar" size={17} strokeWidth={2.2} />
                 </span>
               </div>
               <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-bold tracking-tight leading-tight text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
                   Nova reserva
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-slate-500 line-clamp-1">
+                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
                   Reserve áreas comuns
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-slate-100 text-[#0055D4] transition-all duration-150 group-hover:bg-[#0055D4] group-hover:text-white">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.4} />
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
 
-            {/* 3. Autorizar visitante (Secundária - Branco) */}
+            {/* 3. Autorizar visitante (Azul) */}
             <Link
               href="/painel/visitantes"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-white border border-slate-200/90 p-4 sm:p-5 text-slate-900 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xs"
+              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
             >
               <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
                   <Icon name="users" size={17} strokeWidth={2.2} />
                 </span>
               </div>
               <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-bold tracking-tight leading-tight text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
                   Autorizar visitante
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-slate-500 line-clamp-1">
+                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
                   Libere um acesso rápido
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-slate-100 text-indigo-600 transition-all duration-150 group-hover:bg-indigo-600 group-hover:text-white">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.4} />
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
 
-            {/* 4. Contratar serviço (Secundária - Branco) */}
+            {/* 4. Contratar serviço (Azul) */}
             <Link
               href="/painel/servicos"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-white border border-slate-200/90 p-4 sm:p-5 text-slate-900 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xs"
+              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
             >
               <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
                   <Icon name="briefcase" size={17} strokeWidth={2.2} />
                 </span>
               </div>
               <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-bold tracking-tight leading-tight text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
                   Contratar serviço
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-slate-500 line-clamp-1">
+                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
                   Encontre profissionais
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-slate-100 text-emerald-600 transition-all duration-150 group-hover:bg-emerald-600 group-hover:text-white">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.4} />
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
           </div>
