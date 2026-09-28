@@ -93,12 +93,18 @@ export async function getSession(): Promise<Session | null> {
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!user || user.status === "bloqueado") return null;
 
-  // Check if user has an associated vendor profile
-  const [vendorProfile] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, userId))
-    .limit(1);
+  // Check if user has an associated vendor profile safely
+  let vendorProfile: { id: number; condoId: number } | null = null;
+  try {
+    const vendorRows = await db
+      .select({ id: vendors.id, condoId: vendors.condoId })
+      .from(vendors)
+      .where(eq(vendors.userId, userId))
+      .limit(1);
+    vendorProfile = vendorRows[0] ?? null;
+  } catch {
+    vendorProfile = null;
+  }
 
   const rows = await db
     .select({
@@ -185,11 +191,17 @@ export async function requireSession(): Promise<Session> {
 
 export async function requireProvider() {
   const session = await requireSession();
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, session.user.id))
-    .limit(1);
+  let vendor: typeof vendors.$inferSelect | null = null;
+  try {
+    const [row] = await db
+      .select()
+      .from(vendors)
+      .where(eq(vendors.userId, session.user.id))
+      .limit(1);
+    vendor = row ?? null;
+  } catch {
+    vendor = null;
+  }
 
   if (!vendor && session.role !== "superadmin") {
     redirect("/prestador/cadastro");

@@ -1,4 +1,3 @@
-import "server-only";
 import { pool } from "@/db";
 
 const EXPECTED_TABLES = [
@@ -20,6 +19,7 @@ const EXPECTED_TABLES = [
   "charges",
   "condominiums",
   "contracts",
+  "customer_favorites",
   "documents",
   "help_articles",
   "import_jobs",
@@ -36,6 +36,11 @@ const EXPECTED_TABLES = [
   "poll_votes",
   "polls",
   "reservations",
+  "service_disputes",
+  "service_messages",
+  "service_quotes",
+  "service_requests",
+  "service_reviews",
   "shifts",
   "support_tickets",
   "ticket_comments",
@@ -779,6 +784,118 @@ ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified" boole
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified_at" timestamp with time zone;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "verified_by_id" integer;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "sponsored" boolean DEFAULT false NOT NULL;
+
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "user_id" integer;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "slug" varchar(140);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "cnpj" varchar(32);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "provider_type" varchar(24) DEFAULT 'autonomo' NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "company_name" varchar(160);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "cover_url" text;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "service_radius_km" integer DEFAULT 15;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "lng" double precision;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "experience_years" integer DEFAULT 3;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "response_time_minutes" integer DEFAULT 15;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "working_hours" varchar(120) DEFAULT 'Seg a Sex 08:00 - 18:00';
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "documents" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "onboarding_status" varchar(24) DEFAULT 'aprovado' NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "is_online" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "available_now" boolean DEFAULT true NOT NULL;
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_requests" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"code" varchar(24) NOT NULL,
+	"customer_id" integer NOT NULL,
+	"vendor_id" integer,
+	"mode" varchar(24) DEFAULT 'on_demand' NOT NULL,
+	"category" varchar(40) NOT NULL,
+	"title" varchar(200) NOT NULL,
+	"description" text NOT NULL,
+	"urgency" varchar(20) DEFAULT 'hoje' NOT NULL,
+	"scheduled_date" varchar(20),
+	"scheduled_time_slot" varchar(60),
+	"location" varchar(160) DEFAULT 'Unidade do Morador' NOT NULL,
+	"unit_id" integer,
+	"attachments" jsonb DEFAULT '[]'::jsonb,
+	"status" varchar(36) DEFAULT 'solicitado' NOT NULL,
+	"accepted_at" timestamp with time zone,
+	"arrived_at" timestamp with time zone,
+	"started_at" timestamp with time zone,
+	"completed_at" timestamp with time zone,
+	"cancelled_at" timestamp with time zone,
+	"cancelled_by" integer,
+	"cancel_reason" text,
+	"estimated_amount_cents" integer,
+	"final_amount_cents" integer,
+	"platform_fee_cents" integer DEFAULT 0,
+	"commission_rate_percent" integer DEFAULT 10,
+	"payment_method" varchar(30) DEFAULT 'direto_prestador',
+	"is_paid" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_quotes" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"labor_cents" integer DEFAULT 0 NOT NULL,
+	"materials_cents" integer DEFAULT 0 NOT NULL,
+	"total_cents" integer DEFAULT 0 NOT NULL,
+	"description" text NOT NULL,
+	"estimated_days" integer DEFAULT 1,
+	"valid_until" timestamp with time zone,
+	"status" varchar(24) DEFAULT 'pendente' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_messages" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"sender_id" integer NOT NULL,
+	"sender_role" varchar(20) NOT NULL,
+	"body" text NOT NULL,
+	"attachment_url" text,
+	"read_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_reviews" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL UNIQUE,
+	"vendor_id" integer NOT NULL,
+	"customer_id" integer NOT NULL,
+	"rating" integer NOT NULL,
+	"punctuality_rating" integer,
+	"quality_rating" integer,
+	"communication_rating" integer,
+	"cost_benefit_rating" integer,
+	"comment" text,
+	"photos" jsonb DEFAULT '[]'::jsonb,
+	"is_verified" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."customer_favorites" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"customer_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_disputes" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"opened_by_id" integer NOT NULL,
+	"reason" varchar(60) NOT NULL,
+	"description" text NOT NULL,
+	"status" varchar(24) DEFAULT 'aberta' NOT NULL,
+	"resolution_notes" text,
+	"resolved_by_id" integer,
+	"resolved_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
 `;
 
 let setup: Promise<void> | null = null;
@@ -788,7 +905,7 @@ export function ensureDatabase() {
   return setup;
 }
 
-async function setupDatabase() {
+export async function setupDatabase() {
   for (const statement of SCHEMA_SQL.split(";")) {
     const sql = statement.trim();
     if (sql) {
@@ -799,4 +916,16 @@ async function setupDatabase() {
       }
     }
   }
+}
+
+if (process.argv[1]?.includes("setup.ts")) {
+  setupDatabase()
+    .then(() => {
+      console.log("Database schema setup complete.");
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Database schema setup error:", err);
+      process.exit(1);
+    });
 }

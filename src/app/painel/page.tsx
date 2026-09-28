@@ -304,19 +304,24 @@ export default async function PainelHome() {
   }));
 
   // 5. Prestadores recomendados — dados reais (rating, avaliações e verificação vêm do cadastro e dos chamados)
-  const marketplaceProviders = await getMarketplaceProviders(condoId);
-  const recommendedVendors: DashboardVendor[] = [...marketplaceProviders]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      company: p.company,
-      category: p.category,
-      rating: p.rating,
-      reviewsCount: p.reviewsCount,
-      verified: p.isVerified,
-    }));
+  let recommendedVendors: DashboardVendor[] = [];
+  try {
+    const marketplaceProviders = await getMarketplaceProviders(condoId);
+    recommendedVendors = [...marketplaceProviders]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        company: p.company,
+        category: p.category,
+        rating: p.rating,
+        reviewsCount: p.reviewsCount,
+        verified: p.isVerified,
+      }));
+  } catch (err) {
+    console.warn("Could not load marketplace providers for dashboard:", err);
+  }
 
   // 6. Avisos do condomínio: próximas assembleias + comunicados recentes
   const now = new Date();

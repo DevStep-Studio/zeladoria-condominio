@@ -18,13 +18,14 @@ function timeAgo(date: Date): string {
 
 /** Carrega os prestadores reais de um condomínio (tabela vendors) com métricas calculadas a partir dos tickets. */
 export async function getMarketplaceProviders(condoId: number): Promise<MarketplaceProvider[]> {
-  const vendorRows = await db
-    .select()
-    .from(vendors)
-    .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)))
-    .orderBy(desc(vendors.sponsored), desc(vendors.verified), vendors.name);
+  try {
+    const vendorRows = await db
+      .select()
+      .from(vendors)
+      .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)))
+      .orderBy(desc(vendors.sponsored), desc(vendors.verified), vendors.name);
 
-  if (vendorRows.length === 0) return [];
+    if (vendorRows.length === 0) return [];
 
   const vendorIds = vendorRows.map((v) => v.id);
 
@@ -132,4 +133,8 @@ export async function getMarketplaceProviders(condoId: number): Promise<Marketpl
     };
     return provider;
   });
+  } catch (error) {
+    console.warn("Could not load marketplace providers from database:", error);
+    return [];
+  }
 }

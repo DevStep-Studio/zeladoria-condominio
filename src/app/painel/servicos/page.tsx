@@ -26,83 +26,100 @@ export default async function ServicosPage() {
   // 1. Marketplace Requests (Nova Arquitetura On-Demand & Orçamentos)
   const mpScope = isResident ? eq(serviceRequests.customerId, session.user.id) : undefined;
 
-  const mpRequests = await db
-    .select({
-      id: serviceRequests.id,
-      code: serviceRequests.code,
-      mode: serviceRequests.mode,
-      category: serviceRequests.category,
-      title: serviceRequests.title,
-      description: serviceRequests.description,
-      urgency: serviceRequests.urgency,
-      scheduledDate: serviceRequests.scheduledDate,
-      scheduledTimeSlot: serviceRequests.scheduledTimeSlot,
-      location: serviceRequests.location,
-      status: serviceRequests.status,
-      vendorId: serviceRequests.vendorId,
-      finalAmountCents: serviceRequests.finalAmountCents,
-      estimatedAmountCents: serviceRequests.estimatedAmountCents,
-      createdAt: serviceRequests.createdAt,
-      completedAt: serviceRequests.completedAt,
-      vendorName: vendors.name,
-      vendorCompany: vendors.companyName,
-      vendorPhoto: vendors.photoUrl,
-      vendorPhone: vendors.phone,
-    })
-    .from(serviceRequests)
-    .leftJoin(vendors, eq(vendors.id, serviceRequests.vendorId))
-    .where(and(eq(serviceRequests.condoId, condoId), mpScope))
-    .orderBy(desc(serviceRequests.createdAt));
+  let mpRequests: any[] = [];
+  try {
+    mpRequests = await db
+      .select({
+        id: serviceRequests.id,
+        code: serviceRequests.code,
+        mode: serviceRequests.mode,
+        category: serviceRequests.category,
+        title: serviceRequests.title,
+        description: serviceRequests.description,
+        urgency: serviceRequests.urgency,
+        scheduledDate: serviceRequests.scheduledDate,
+        scheduledTimeSlot: serviceRequests.scheduledTimeSlot,
+        location: serviceRequests.location,
+        status: serviceRequests.status,
+        vendorId: serviceRequests.vendorId,
+        finalAmountCents: serviceRequests.finalAmountCents,
+        estimatedAmountCents: serviceRequests.estimatedAmountCents,
+        createdAt: serviceRequests.createdAt,
+        completedAt: serviceRequests.completedAt,
+        vendorName: vendors.name,
+        vendorCompany: vendors.companyName,
+        vendorPhoto: vendors.photoUrl,
+        vendorPhone: vendors.phone,
+      })
+      .from(serviceRequests)
+      .leftJoin(vendors, eq(vendors.id, serviceRequests.vendorId))
+      .where(and(eq(serviceRequests.condoId, condoId), mpScope))
+      .orderBy(desc(serviceRequests.createdAt));
+  } catch (err) {
+    console.warn("Could not query service_requests:", err);
+  }
 
   // 2. Propostas e Orçamentos recebidos
   const requestIds = mpRequests.map((r) => r.id);
-  const quotesList =
-    requestIds.length > 0
-      ? await db
-          .select({
-            id: serviceQuotes.id,
-            requestId: serviceQuotes.requestId,
-            vendorId: serviceQuotes.vendorId,
-            laborCents: serviceQuotes.laborCents,
-            materialsCents: serviceQuotes.materialsCents,
-            totalCents: serviceQuotes.totalCents,
-            description: serviceQuotes.description,
-            estimatedDays: serviceQuotes.estimatedDays,
-            status: serviceQuotes.status,
-            vendorName: vendors.name,
-            vendorPhoto: vendors.photoUrl,
-            vendorRating: vendors.rating,
-          })
-          .from(serviceQuotes)
-          .leftJoin(vendors, eq(vendors.id, serviceQuotes.vendorId))
-          .where(inArray(serviceQuotes.requestId, requestIds))
-      : [];
+  let quotesList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      quotesList = await db
+        .select({
+          id: serviceQuotes.id,
+          requestId: serviceQuotes.requestId,
+          vendorId: serviceQuotes.vendorId,
+          laborCents: serviceQuotes.laborCents,
+          materialsCents: serviceQuotes.materialsCents,
+          totalCents: serviceQuotes.totalCents,
+          description: serviceQuotes.description,
+          estimatedDays: serviceQuotes.estimatedDays,
+          status: serviceQuotes.status,
+          vendorName: vendors.name,
+          vendorPhoto: vendors.photoUrl,
+          vendorRating: vendors.rating,
+        })
+        .from(serviceQuotes)
+        .leftJoin(vendors, eq(vendors.id, serviceQuotes.vendorId))
+        .where(inArray(serviceQuotes.requestId, requestIds));
+    } catch (err) {
+      console.warn("Could not query service_quotes:", err);
+    }
+  }
 
   // 3. Avaliações oficiais já submetidas
-  const reviewsList =
-    requestIds.length > 0
-      ? await db
-          .select()
-          .from(serviceReviews)
-          .where(inArray(serviceReviews.requestId, requestIds))
-      : [];
+  let reviewsList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      reviewsList = await db
+        .select()
+        .from(serviceReviews)
+        .where(inArray(serviceReviews.requestId, requestIds));
+    } catch (err) {
+      console.warn("Could not query service_reviews:", err);
+    }
+  }
 
   // 4. Mensagens recentes de chat
-  const messagesList =
-    requestIds.length > 0
-      ? await db
-          .select({
-            id: serviceMessages.id,
-            requestId: serviceMessages.requestId,
-            senderId: serviceMessages.senderId,
-            senderRole: serviceMessages.senderRole,
-            body: serviceMessages.body,
-            createdAt: serviceMessages.createdAt,
-          })
-          .from(serviceMessages)
-          .where(inArray(serviceMessages.requestId, requestIds))
-          .orderBy(desc(serviceMessages.createdAt))
-      : [];
+  let messagesList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      messagesList = await db
+        .select({
+          id: serviceMessages.id,
+          requestId: serviceMessages.requestId,
+          senderId: serviceMessages.senderId,
+          senderRole: serviceMessages.senderRole,
+          body: serviceMessages.body,
+          createdAt: serviceMessages.createdAt,
+        })
+        .from(serviceMessages)
+        .where(inArray(serviceMessages.requestId, requestIds))
+        .orderBy(desc(serviceMessages.createdAt));
+    } catch (err) {
+      console.warn("Could not query service_messages:", err);
+    }
+  }
 
   // 5. Chamados internos do condomínio (tabela tickets para manutenção predial interna)
   const ticketScope = isResident ? eq(tickets.openedById, session.user.id) : undefined;
@@ -139,18 +156,28 @@ export default async function ServicosPage() {
     .orderBy(desc(tickets.createdAt));
 
   // 6. Lista de Prestadores e Favoritos
-  const vendorList = await db
-    .select()
-    .from(vendors)
-    .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)));
+  let vendorList: any[] = [];
+  try {
+    vendorList = await db
+      .select()
+      .from(vendors)
+      .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)));
+  } catch (err) {
+    console.warn("Could not query vendors:", err);
+  }
 
   const providers = await getMarketplaceProviders(condoId);
 
-  const favoriteRows = await db
-    .select({ vendorId: customerFavorites.vendorId })
-    .from(customerFavorites)
-    .where(eq(customerFavorites.customerId, session.user.id));
-  const userFavoriteIds = favoriteRows.map((f) => f.vendorId);
+  let userFavoriteIds: number[] = [];
+  try {
+    const favoriteRows = await db
+      .select({ vendorId: customerFavorites.vendorId })
+      .from(customerFavorites)
+      .where(eq(customerFavorites.customerId, session.user.id));
+    userFavoriteIds = favoriteRows.map((f) => f.vendorId);
+  } catch (err) {
+    console.warn("Could not query customerFavorites:", err);
+  }
 
   return (
     <ServicosClient

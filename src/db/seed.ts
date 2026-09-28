@@ -1,4 +1,3 @@
-import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureDatabase } from "@/db/setup";
