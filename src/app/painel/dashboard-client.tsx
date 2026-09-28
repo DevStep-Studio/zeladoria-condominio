@@ -221,18 +221,15 @@ export function DashboardClient({
               <div className="p-3.5 rounded-[8px] bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-2.5">
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
-                      Plantão 24h
-                    </span>
+                    <h5 className="text-xs font-bold text-slate-900">
+                      Portaria Central
+                    </h5>
                     <span className="text-[11px] font-semibold text-slate-500">
                       Ramal 100
                     </span>
                   </div>
-                  <h5 className="text-xs font-bold text-slate-900 mt-1">
-                    Portaria Central
-                  </h5>
-                  <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                    Guarita, controle de portões e ocorrências de acesso.
+                  <p className="text-[11px] text-slate-500 leading-snug mt-1">
+                    Guarita, controle de portões e ocorrências de acesso. Plantão 24h.
                   </p>
                 </div>
 
@@ -263,18 +260,15 @@ export function DashboardClient({
               <div className="p-3.5 rounded-[8px] bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-2.5">
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
-                      Apoio Técnico
-                    </span>
+                    <h5 className="text-xs font-bold text-slate-900">
+                      Síndico(a) & Zeladoria
+                    </h5>
                     <span className="text-[11px] font-semibold text-slate-500">
                       Operações
                     </span>
                   </div>
-                  <h5 className="text-xs font-bold text-slate-900 mt-1">
-                    Síndico(a) & Zeladoria
-                  </h5>
-                  <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                    Falhas de água/gás, elevadores e emergência predial.
+                  <p className="text-[11px] text-slate-500 leading-snug mt-1">
+                    Falhas de água/gás, elevadores e apoio técnico predial.
                   </p>
                 </div>
 
@@ -372,11 +366,6 @@ export function DashboardClient({
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div className="space-y-1.5 max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
-                <span className="h-2 w-2 rounded-full bg-[#FFD000]" />
-                <span>Painel do Morador</span>
-              </div>
-
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
                 Olá, {userName} 👋
               </h1>
@@ -821,10 +810,6 @@ export function DashboardClient({
         <section className="rounded-[16px] bg-white border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1.5 max-w-xl">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0055D4]">
-                <Icon name="briefcase" size={13} />
-                <span>Zeladoria Serviços</span>
-              </div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 Precisa de um profissional para sua casa?
               </h3>

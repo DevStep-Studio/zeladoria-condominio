@@ -13,10 +13,6 @@ export default function ForbiddenPage() {
         </span>
       </div>
 
-      <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-        Código 403 · Restrito
-      </span>
-
       <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F172A]">
         Acesso não permitido
       </h1>
