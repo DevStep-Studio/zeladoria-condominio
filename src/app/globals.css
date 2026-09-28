@@ -3,17 +3,17 @@
 @import "@fullcalendar/react/themes/forma/theme.css";
 @import "@fullcalendar/react/themes/forma/palettes/green.css";
 
-/* ============ Design tokens: Zeladoria Condomínio (Azul #0070F3 + Amarelo #FAB800 Corporativo) ============ */
+/* ============ Design tokens: Zeladoria Condomínio (Azul #0055D4 + Amarelo #FFD000 Corporativo) ============ */
 @theme {
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
   --color-surface-muted: #f1f5f9;
-  --color-primary: #0070f3;
-  --color-primary-hover: #005fd6;
-  --color-primary-dark: #0047ab;
+  --color-primary: #0055d4;
+  --color-primary-hover: #0047ba;
+  --color-primary-dark: #003e99;
   --color-primary-soft: #eff6ff;
-  --color-secondary: #fab800;
-  --color-secondary-hover: #e5a700;
+  --color-secondary: #ffd000;
+  --color-secondary-hover: #e6bc00;
   --color-secondary-dark: #b8860b;
   --color-secondary-soft: #fffbeb;
   --color-ink: #0f172a;
@@ -25,7 +25,7 @@
   --color-success-soft: #ecfdf5;
   --color-warn: #f59e0b;
   --color-warn-soft: #fffbeb;
-  --color-danger: #ef4444;
+  --color-danger: #dc2626;
   --color-danger-soft: #fef2f2;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -61,7 +61,7 @@ button:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.4);
+  box-shadow: 0 0 0 2px rgba(0, 85, 212, 0.35);
   border-radius: 8px;
 }
 
@@ -97,25 +97,25 @@ summary::-webkit-details-marker {
 
 @layer components {
   .card {
-    @apply rounded-[14px] border border-[var(--color-line)] bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+    @apply rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)];
   }
   .subtle-card {
-    @apply rounded-[14px] border border-slate-200/60 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.02)];
+    @apply rounded-[12px] border border-slate-200/70 bg-white p-4 sm:p-5 shadow-[0_1px_2px_rgba(15,23,42,0.02)];
   }
   .card-flat {
-    @apply rounded-[14px] border border-[var(--color-line)] bg-white shadow-none;
+    @apply rounded-[12px] border border-slate-200/80 bg-white shadow-none;
   }
   .panel-surface {
-    @apply rounded-[14px] border border-[var(--color-line)] bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)];
+    @apply rounded-[12px] border border-slate-200/80 bg-white shadow-[0_2px_6px_rgba(15,23,42,0.04)];
   }
   .action-tile {
-    @apply flex items-center gap-3 rounded-[12px] bg-white border border-slate-200/60 p-3 hover:border-blue-200 hover:bg-blue-50/20 transition-all text-left;
+    @apply flex items-center gap-3 rounded-[10px] bg-white border border-slate-200/80 p-3 hover:border-blue-200 hover:bg-blue-50/20 transition-all text-left;
   }
   .action-icon-box {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-blue-50 text-[#0070F3];
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4];
   }
   .nav-item-active {
-    @apply relative font-bold text-[#0070F3] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0070F3] before:rounded-r;
+    @apply relative font-bold text-[#0055D4] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0055D4] before:rounded-r;
   }
   .page-grid {
     @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px];
@@ -124,9 +124,9 @@ summary::-webkit-details-marker {
     @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-[var(--color-muted)];
   }
   .input {
-    @apply min-h-10 w-full rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-xs sm:text-sm text-[var(--color-ink)] outline-none
+    @apply min-h-10 w-full rounded-[8px] border border-slate-200 bg-white px-3.5 text-xs sm:text-sm text-[var(--color-ink)] outline-none
       transition-all placeholder:text-[var(--color-subtle)]
-      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100
+      focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-500/15
       disabled:cursor-not-allowed disabled:bg-[var(--color-surface-muted)] disabled:text-[var(--color-subtle)];
   }
   textarea.input {
@@ -134,8 +134,8 @@ summary::-webkit-details-marker {
   }
   select,
   select.input {
-    @apply min-h-10 w-full rounded-[10px] border border-[var(--color-line)] bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-100;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230070F3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    @apply min-h-10 w-full rounded-[8px] border border-slate-200 bg-white pl-3.5 pr-9 text-xs sm:text-sm text-[var(--color-ink)] outline-none cursor-pointer transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-blue-500/15;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230055D4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     appearance: none;
@@ -144,34 +144,38 @@ summary::-webkit-details-marker {
   }
   .btn,
   .btn-primary,
+  .btn-secondary,
   .btn-yellow,
   .btn-ghost,
   .btn-dark,
   .btn-danger,
   .btn-success {
-    @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-xs sm:text-sm font-semibold
-      transition-[background-color,border-color,color,box-shadow,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
+    @apply inline-flex min-h-9.5 cursor-pointer items-center justify-center gap-2 rounded-[8px] px-3.5 py-2 text-xs sm:text-sm font-semibold
+      transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] shadow-xs;
+    @apply border border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] shadow-2xs;
+  }
+  .btn-secondary {
+    @apply border border-slate-200 bg-white text-[var(--color-ink)] hover:border-slate-300 hover:bg-slate-50 shadow-2xs;
   }
   .btn-yellow {
-    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-[#0F172A] hover:bg-[var(--color-secondary-hover)] shadow-xs;
+    @apply border border-[var(--color-secondary)] bg-[var(--color-secondary)] text-[#0F172A] hover:bg-[var(--color-secondary-hover)] shadow-2xs;
   }
   .btn-ghost {
-    @apply border border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-line-strong)] hover:bg-[var(--color-surface-muted)];
+    @apply border border-transparent bg-transparent text-[var(--color-ink)] hover:bg-slate-100;
   }
   .btn-dark {
     @apply border border-[#0f172a] bg-[#0f172a] text-white hover:bg-[#1e293b];
   }
   .btn-danger {
-    @apply bg-[var(--color-danger)] text-white hover:bg-[#dc2626];
+    @apply border border-[var(--color-danger)] bg-[var(--color-danger)] text-white hover:bg-[#b91c1c] shadow-2xs;
   }
   .btn-success {
-    @apply bg-[var(--color-success)] text-white hover:bg-[#059669];
+    @apply border border-[var(--color-success)] bg-[var(--color-success)] text-white hover:bg-[#059669] shadow-2xs;
   }
   .btn-sm {
-    @apply min-h-8.5 px-3 py-1 text-xs rounded-[8px];
+    @apply min-h-8 px-2.5 py-1 text-xs rounded-[6px];
   }
   .btn-link {
     @apply inline-flex cursor-pointer items-center gap-1.5 text-xs sm:text-sm font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline;

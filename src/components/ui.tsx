@@ -100,36 +100,31 @@ export function StatCard({
   href?: string;
   tone?: "blue" | "yellow" | "green" | "purple";
 }) {
-  const isYellow = tone === "yellow";
-
-  const toneBg = isYellow
-    ? "bg-[#FFD000] text-[#12162A] border-[#FFD000]/40 shadow-xs"
-    : tone === "green"
-    ? "bg-[#10b981] text-white border-emerald-600 shadow-xs"
-    : tone === "purple"
-    ? "bg-[#8b5cf6] text-white border-purple-600 shadow-xs"
-    : "bg-[#0055D4] text-white border-blue-700 shadow-xs";
+  const iconBox =
+    tone === "yellow"
+      ? "bg-amber-50 text-amber-600"
+      : tone === "green"
+      ? "bg-emerald-50 text-emerald-600"
+      : tone === "purple"
+      ? "bg-indigo-50 text-indigo-600"
+      : "bg-blue-50 text-[#0055D4]";
 
   const body = (
-    <div className={`surface-hover flex h-full min-h-[92px] items-start gap-3.5 rounded-[14px] border p-4 transition-all duration-200 hover:-translate-y-0.5 ${toneBg}`}>
+    <div className="flex h-full min-h-[92px] items-start gap-3.5 rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition-all duration-150 hover:border-slate-300 hover:shadow-xs">
       {icon ? (
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${
-            isYellow ? "bg-[#12162A]/10 text-[#12162A]" : "bg-white/20 text-white backdrop-blur-xs"
-          }`}
-        >
-          <Icon name={icon} size={18} strokeWidth={isYellow ? 2.2 : 1.8} />
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] ${iconBox}`}>
+          <Icon name={icon} size={17} strokeWidth={2} />
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className={`text-[11px] font-bold uppercase tracking-wider ${isYellow ? "text-[#12162A]/75" : "text-white/90"}`}>{label}</p>
-        <p className={`mt-1 text-[24px] font-bold tabular-nums tracking-tight sm:text-[27px] ${isYellow ? "text-[#12162A]" : "text-white"}`}>{value}</p>
-        {hint ? <p className={`mt-0.5 text-[12px] font-medium ${isYellow ? "text-[#12162A]/80" : "text-white/80"}`}>{hint}</p> : null}
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight sm:text-[26px] text-slate-900">{value}</p>
+        {hint ? <p className="mt-0.5 text-[11px] font-medium text-slate-400 truncate">{hint}</p> : null}
       </div>
     </div>
   );
   return href ? (
-    <Link href={href} className="block">
+    <Link href={href} className="block group">
       {body}
     </Link>
   ) : (

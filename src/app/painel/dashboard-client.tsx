@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { CondoMap } from "@/components/condo-map";
+import { CondoAssistant } from "@/components/condo-assistant";
 
 export type AttentionItem = {
   id: string;
@@ -62,20 +63,20 @@ const NOTICE_META: Record<
   assembleia: {
     label: "Assembleia",
     icon: "scale",
-    badge: "bg-indigo-100 text-indigo-600",
+    badge: "bg-indigo-50 text-indigo-700",
     chip: "bg-indigo-50 text-indigo-700",
   },
   comunicado: {
     label: "Comunicado",
     icon: "megaphone",
-    badge: "bg-blue-100 text-[#0055D4]",
+    badge: "bg-blue-50 text-[#0055D4]",
     chip: "bg-blue-50 text-[#0055D4]",
   },
   alerta: {
     label: "Alerta",
     icon: "alert-triangle",
-    badge: "bg-rose-100 text-rose-600",
-    chip: "bg-rose-50 text-rose-700",
+    badge: "bg-red-50 text-red-600",
+    chip: "bg-red-50 text-red-700",
   },
 };
 
@@ -120,6 +121,7 @@ export function DashboardClient({
 }) {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [indicatorTooltip, setIndicatorTooltip] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
 
@@ -129,7 +131,7 @@ export function DashboardClient({
         navigator.clipboard.writeText(phone).catch(() => {});
       }
     } catch {
-      // ignore clipboard permission errors in restricted environments
+      // ignore clipboard permission errors
     }
     setCopiedPhone(phone);
     setTimeout(() => {
@@ -138,308 +140,229 @@ export function DashboardClient({
   }, []);
 
   useEffect(() => {
-    if (!emergencyModalOpen) return;
+    if (!emergencyModalOpen && !fullMapModalOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setEmergencyModalOpen(false);
+        setFullMapModalOpen(false);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [emergencyModalOpen]);
+  }, [emergencyModalOpen, fullMapModalOpen]);
 
   // Filter only items with count > 0 for attention section
   const activeAttention = attentionItems.filter((i) => i.count > 0);
+  const totalPending = activeAttention.reduce((acc, curr) => acc + curr.count, 0);
 
   return (
-    <div className="space-y-7">
-      {/* 1. Executive Hero Card (Profissional, Equilibrado e com Indicadores em Tempo Real) */}
-      <div className="relative overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)]">
-        {/* Top subtle brand solid blue highlight line */}
-        <div className="absolute top-0 inset-x-0 h-[3px] bg-[#0055D4]" />
-
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          {/* Left: User Avatar + Personalized Greeting + Condominium Details */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0055D4] text-white font-black text-lg shadow-xs">
-              {userName.charAt(0).toUpperCase()}
-              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/30" />
-            </div>
-
-            <div className="space-y-1 min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0F172A]">
-                  Olá, {userName}
-                </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
-                  {isResident ? (unitLabel ? `Unidade ${unitLabel}` : "Espaço do Morador") : "Painel do Condomínio"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
-                <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                  <Icon name="building" size={13} className="text-[#0055D4]" />
-                  {condoName}
-                </span>
-                <span className="text-slate-300">·</span>
-                <span className="truncate text-slate-400 font-medium">{condoAddress}</span>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* 1. Topo da Home: Limpo, Direto e Profissional */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-slate-900">
+              Olá, {userName}
+            </h1>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-[#0055D4]">
+              {isResident ? (unitLabel ? `Unidade ${unitLabel}` : "Morador") : "Gestão do Condomínio"}
+            </span>
           </div>
-
-          {/* Right: Action Buttons (Contatos de Emergência + Assistente Virtual IA) */}
-          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto xl:shrink-0">
-            {!isResident && (
-              <div className="relative shrink-0">
-                <button
-                  type="button"
-                  onMouseEnter={() => setIndicatorTooltip(true)}
-                  onMouseLeave={() => setIndicatorTooltip(false)}
-                  onClick={() => setIndicatorTooltip(!indicatorTooltip)}
-                  className="group flex items-center gap-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-3.5 py-2 text-xs transition-colors"
-                >
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />
-                  <div className="text-left">
-                    <div className="flex items-baseline gap-0.5 font-bold tabular-nums text-slate-800">
-                      <span className="text-xs">87</span>
-                      <span className="text-[10px] text-slate-400 font-medium">/100</span>
-                    </div>
-                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Conformidade</p>
-                  </div>
-                </button>
-
-                {indicatorTooltip && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600 shadow-xl leading-relaxed animate-in fade-in-50 duration-100">
-                    <span className="font-bold text-[#0F172A] block mb-1">Índice de Conformidade</span>
-                    Média ponderada baseada no SLA de chamados, manutenções preventivas e conformidade técnica do condomínio.
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Quick Access: Serviços & Prestadores (Aba Mais Importante) */}
-            <Link
-              href="/painel/servicos"
-              className="group flex flex-1 min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all border border-blue-400/40 hover:scale-[1.01] xl:flex-none xl:justify-start"
-              title="Acessar Prestadores e Solicitar Serviços"
-            >
-              <Icon name="briefcase" size={15} className="text-[#FFD000] shrink-0 group-hover:scale-110 transition-transform" />
-              <span>Serviços</span>
-              <span className="hidden sm:inline-flex items-center text-[10px] font-black bg-white/20 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
-                Prestadores
-              </span>
-            </Link>
-
-            {/* SOS Emergency Button (Em Evidência, Alta Visibilidade, Rápido Acesso) */}
-            <button
-              type="button"
-              onClick={() => setEmergencyModalOpen(true)}
-              aria-label="Abrir contatos e central de emergência 24 horas"
-              title="SOS e Contatos de Emergência 24h"
-              className="group relative flex flex-1 min-w-[168px] items-center justify-center gap-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white px-4 py-2.5 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border border-red-500 ring-2 ring-red-500/20 hover:ring-red-500/40 xl:flex-none"
-            >
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
-              </span>
-              <Icon name="phone" size={15} className="text-white group-hover:rotate-12 transition-transform shrink-0" />
-              <span className="font-black tracking-tight">SOS Emergência</span>
-              <span className="hidden sm:inline-flex items-center text-[10px] font-black bg-white/20 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
-                24h
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. AÇÕES PRINCIPAIS (Zeladoria Cidades: 1º amarelo, demais azul) */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-            Ações Principais
-          </h2>
-          <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
-            Acesso rápido aos módulos
-          </span>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            {condoName}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pb-2 pt-1">
-          {(isResident
-            ? [
-                {
-                  label: "Registrar ocorrência",
-                  desc: "Relatar problema ou reparo",
-                  href: "/painel/ocorrencias/nova",
-                  icon: "clipboard" as IconName,
-                  variant: "yellow" as const,
-                },
-                {
-                  label: "Nova reserva",
-                  desc: "Salão, churrasqueira e áreas",
-                  href: "/painel/reservas",
-                  icon: "calendar" as IconName,
-                  variant: "blue" as const,
-                },
-                {
-                  label: "Autorizar visitante",
-                  desc: "Liberar acesso na portaria",
-                  href: "/painel/visitantes",
-                  icon: "users" as IconName,
-                  variant: "blue" as const,
-                },
-                {
-                  label: "Solicitar serviço",
-                  desc: "Manutenções e orçamentos",
-                  href: "/painel/servicos?solicitar=true",
-                  icon: "sparkles" as IconName,
-                  variant: "blue" as const,
-                },
-              ]
-            : [
-                {
-                  label: "Registrar ocorrência",
-                  desc: "Relatar problema ou reparo",
-                  href: "/painel/ocorrencias/nova",
-                  icon: "clipboard" as IconName,
-                  variant: "yellow" as const,
-                },
-                {
-                  label: "Nova reserva",
-                  desc: "Salão, churrasqueira e áreas",
-                  href: "/painel/reservas",
-                  icon: "calendar" as IconName,
-                  variant: "blue" as const,
-                },
-                {
-                  label: "Ordens de serviço",
-                  desc: "Acompanhar manutenções",
-                  href: "/painel/ordens",
-                  icon: "wrench" as IconName,
-                  variant: "blue" as const,
-                },
-                {
-                  label: "Prestadores",
-                  desc: "Profissionais avaliados",
-                  href: "/painel/servicos",
-                  icon: "briefcase" as IconName,
-                  variant: "blue" as const,
-                },
-              ]
-          ).map((action) => {
-            const isYellow = action.variant === "yellow";
+        {/* Ações de Suporte no Topo */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Botão de Emergência Compacto */}
+          <button
+            type="button"
+            onClick={() => setEmergencyModalOpen(true)}
+            title="Central de Emergência e Telefones Úteis 24h"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+          >
+            <Icon name="phone" size={14} className="shrink-0" />
+            <span>Emergência</span>
+          </button>
 
-            return (
+          {/* Botão Zeladoria IA */}
+          <button
+            type="button"
+            onClick={() => setAssistantOpen(true)}
+            title="Assistente Virtual de Dúvidas e Regras do Condomínio"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#0055D4] px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+          >
+            <Icon name="sparkles" size={14} className="text-[#0055D4] shrink-0" />
+            <span>Zeladoria IA</span>
+          </button>
+        </div>
+      </header>
+
+      {/* 2. PRECISA DA SUA ATENÇÃO (Lista Operacional Compacta) */}
+      {activeAttention.length > 0 && (
+        <section className="rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-2">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {isResident ? "Suas Pendências" : "Precisa da sua atenção"}
+            </h2>
+            <span className="rounded-full bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+              {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
+            </span>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {activeAttention.map((item) => (
               <Link
-                key={action.label}
-                href={action.href}
-                className={`group relative flex min-h-[112px] sm:min-h-[132px] flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[20px] p-4 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 ${
-                  isYellow
-                    ? "bg-[#FFD000] text-[#12162A] shadow-md shadow-[#FFD000]/25 hover:shadow-lg hover:shadow-[#FFD000]/35"
-                    : "bg-[#0070F3] text-white shadow-md shadow-[#0070F3]/20 hover:shadow-lg hover:shadow-[#0070F3]/30"
-                }`}
+                key={item.id}
+                href={item.href}
+                className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 rounded-[6px] hover:bg-slate-50/80 transition-colors group"
               >
-                {/* Top-left Icon */}
-                <div className="flex items-center justify-start">
+                <div className="flex items-center gap-3 min-w-0">
                   <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110 ${
-                      isYellow
-                        ? "bg-[#12162A]/10 text-[#12162A]"
-                        : "bg-white/15 text-white"
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs ${
+                      item.urgent ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
                     }`}
                   >
-                    <Icon name={action.icon} size={17} strokeWidth={2.2} />
+                    <Icon name={item.urgent ? "alert-triangle" : "clipboard"} size={14} />
                   </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors truncate">
+                      {item.count} {item.label}
+                    </p>
+                    {item.detail && (
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {item.detail}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Bottom-left Content */}
-                <div className="pr-11 pt-3">
-                  <h3
-                    className={`text-sm sm:text-[15px] font-black tracking-tight leading-tight ${
-                      isYellow ? "text-[#12162A]" : "text-white"
-                    }`}
-                  >
-                    {action.label}
-                  </h3>
-                  <p
-                    className={`mt-0.5 text-[11px] sm:text-xs font-medium leading-snug line-clamp-1 ${
-                      isYellow ? "text-[#12162A]/75" : "text-white/80"
-                    }`}
-                  >
-                    {action.desc}
-                  </p>
-                </div>
-
-                {/* Circular arrow button at bottom-right corner */}
-                <div
-                  className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
-                    isYellow ? "text-[#12162A]" : "text-[#0070F3]"
-                  }`}
-                >
-                  <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <div className="flex items-center gap-2 shrink-0">
+                  {item.urgent && (
+                    <span className="rounded-full bg-red-50 px-2 py-0.2 text-[9px] font-bold uppercase text-red-700">
+                      Alta prioridade
+                    </span>
+                  )}
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-400 group-hover:text-slate-700 transition-colors"
+                  />
                 </div>
               </Link>
-            );
-          })}
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 3. AÇÕES PRINCIPAIS (1 CTA Primário em Azul Sólido + Ações Secundárias Neutras) */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Ações Rápidas
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* CTA Primário: Registrar Ocorrência */}
+          <Link
+            href="/painel/ocorrencias/nova"
+            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Icon name="plus" size={14} strokeWidth={2.5} />
+            <span>Registrar ocorrência</span>
+          </Link>
+
+          {/* Ações Secundárias */}
+          <Link
+            href="/painel/reservas"
+            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Icon name="calendar" size={14} className="text-slate-500" />
+            <span>Nova reserva</span>
+          </Link>
+
+          {isResident ? (
+            <Link
+              href="/painel/visitantes"
+              className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
+            >
+              <Icon name="users" size={14} className="text-slate-500" />
+              <span>Autorizar visitante</span>
+            </Link>
+          ) : (
+            <Link
+              href="/painel/ordens"
+              className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
+            >
+              <Icon name="wrench" size={14} className="text-slate-500" />
+              <span>Ordens de serviço</span>
+            </Link>
+          )}
+
+          <Link
+            href="/painel/servicos"
+            className="inline-flex min-h-9.5 items-center justify-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Icon name="briefcase" size={14} className="text-slate-500" />
+            <span>Prestadores</span>
+          </Link>
         </div>
       </section>
 
-      {/* 2b. AVISOS DO CONDOMÍNIO (assembleias, comunicados e alertas) */}
+      {/* 4. AVISOS DO CONDOMÍNIO (Lista Limpa com Divisores) */}
       {notices.length > 0 && (
-        <section className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+        <section className="rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-2">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Avisos do condomínio
             </h2>
             <Link
               href="/painel/comunicados"
-              className="text-[11px] font-bold text-[#0055D4] hover:underline"
+              className="text-xs font-semibold text-[#0055D4] hover:underline"
             >
               Ver todos
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="divide-y divide-slate-100">
             {notices.map((n) => {
               const meta = NOTICE_META[n.kind];
-              const urgent = n.priority === "alta" || n.kind === "alerta";
+              const isUrgent = n.priority === "alta" || n.kind === "alerta";
               return (
                 <Link
                   key={n.id}
                   href={n.href}
-                  className={`group flex items-start gap-3 rounded-[16px] border p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
-                    urgent
-                      ? "bg-rose-50/40 border-rose-200/80 hover:border-rose-300"
-                      : "bg-white border-slate-200/80 hover:border-slate-300"
-                  }`}
+                  className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-[6px] hover:bg-slate-50/80 transition-colors group"
                 >
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] shadow-xs ${meta.badge}`}
-                  >
-                    <Icon name={meta.icon} size={18} strokeWidth={2.2} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${meta.chip}`}
-                      >
-                        {meta.label}
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-400">
-                        {n.date}
-                      </span>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs mt-0.5 ${
+                        isUrgent ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      <Icon name={meta.icon} size={14} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                          {n.title}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {n.date} · {meta.label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                        {n.detail}
+                      </p>
                     </div>
-                    <p className="text-sm font-bold text-[#0F172A] group-hover:text-[#0055D4] transition-colors truncate mt-1">
-                      {n.title}
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
-                      {n.detail}
-                    </p>
                   </div>
+
                   <Icon
                     name="chevron-right"
-                    size={16}
-                    className="text-slate-300 shrink-0 mt-1 group-hover:text-slate-500 transition-colors"
+                    size={14}
+                    className="text-slate-400 group-hover:text-slate-700 transition-colors shrink-0 mt-1"
                   />
                 </Link>
               );
@@ -448,339 +371,228 @@ export function DashboardClient({
         </section>
       )}
 
-      {/* 3. PRECISA DA SUA ATENÇÃO / SUAS PENDÊNCIAS */}
+      {/* 5. RESUMO OPERACIONAL (Cards Métricos Minimalistas) */}
       <section className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              {isResident ? "Suas Pendências" : "Precisa da sua atenção"}
-            </h2>
-            {activeAttention.length > 0 && (
-              <span className="flex h-5 items-center justify-center rounded-full bg-rose-500/10 px-2 text-[10px] font-black text-rose-600">
-                {activeAttention.reduce((acc, curr) => acc + curr.count, 0)} pendências
-              </span>
-            )}
-          </div>
-          <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
-            {isResident
-              ? "Acompanhe seus registros, reservas e encomendas"
-              : "Ações prioritárias para manter o condomínio em dia"}
-          </span>
-        </div>
-
-        {activeAttention.length === 0 ? (
-          <div className="flex items-center gap-2.5 rounded-[16px] bg-emerald-50/60 border border-emerald-200/60 px-4 py-3 text-xs font-semibold text-emerald-800">
-            <Icon name="check-circle" size={16} className="text-emerald-600 shrink-0" />
-            <span>
-              {isResident
-                ? "Tudo em ordem! Nenhuma ocorrência ou encomenda pendente no momento."
-                : "Tudo em ordem! Nenhuma ocorrência ou pendência imediata no condomínio."}
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {activeAttention.map((item) => {
-              const isUrgent = item.urgent;
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={`group flex items-center justify-between rounded-[18px] border p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
-                    isUrgent
-                      ? "bg-rose-50/40 border-rose-200/80 hover:border-rose-300"
-                      : "bg-amber-50/40 border-amber-200/80 hover:border-amber-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] shadow-xs ${
-                        isUrgent
-                          ? "bg-rose-100 text-rose-600"
-                          : "bg-amber-100 text-amber-600"
-                      }`}
-                    >
-                      <Icon
-                        name={isUrgent ? "alert" : "calendar"}
-                        size={18}
-                        strokeWidth={2.2}
-                      />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-[#0F172A] group-hover:text-[#0055D4] transition-colors truncate">
-                          {item.count} {item.label}
-                        </p>
-                        {isUrgent && (
-                          <span className="rounded-full bg-rose-100 px-1.5 py-0.2 text-[9px] font-extrabold uppercase text-rose-700">
-                            Alta prioridade
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                        {item.detail || item.sublabel || "Aguardando ação"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white transition-transform group-hover:translate-x-0.5 shadow-xs border ${
-                      isUrgent
-                        ? "text-rose-600 border-rose-100"
-                        : "text-amber-600 border-amber-100"
-                    }`}
-                  >
-                    <Icon name="arrow-right" size={13} strokeWidth={2.5} />
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* 4. RESUMO (Minimalista, Moderno e Elegante) */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             {isResident ? "Meu Resumo" : "Resumo do Condomínio"}
           </h2>
-          <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
-            {isResident ? "Visão rápida da sua unidade" : "Indicadores operacionais consolidados"}
-          </span>
+
+          {/* Indicador de Conformidade Discreto para Gestão */}
+          {!isResident && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIndicatorTooltip(!indicatorTooltip)}
+                onMouseEnter={() => setIndicatorTooltip(true)}
+                onMouseLeave={() => setIndicatorTooltip(false)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 transition-colors"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span>87% Conformidade</span>
+              </button>
+              {indicatorTooltip && (
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-60 rounded-[8px] border border-slate-200 bg-white p-2.5 text-xs text-slate-600 shadow-xl leading-relaxed animate-in fade-in-50 duration-100">
+                  <strong className="font-bold text-slate-900 block mb-0.5">Índice de Conformidade: 87/100</strong>
+                  Média ponderada baseada no SLA de atendimento e vistorias preventivas.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {isResident ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Link
               href="/painel/ocorrencias"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] transition-transform group-hover:scale-110">
-                  <Icon name="clipboard" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                  <Icon name="clipboard" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {residentStats.myOccurrences}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#0055D4] transition-colors">
                   Minhas ocorrências
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Solicitações ativas
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Ativas</p>
               </div>
             </Link>
 
             <Link
               href="/painel/reservas"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
-                  <Icon name="calendar" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-indigo-50 text-indigo-600">
+                  <Icon name="calendar" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {residentStats.myReservations}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-indigo-600 transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-indigo-600 transition-colors">
                   Minhas reservas
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Espaços agendados
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Agendadas</p>
               </div>
             </Link>
 
             <Link
               href="/painel/encomendas"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110">
-                  <Icon name="package" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-amber-50 text-amber-600">
+                  <Icon name="package" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {residentStats.myParcels}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-amber-600 transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-amber-600 transition-colors">
                   Encomendas
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Disponíveis na portaria
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Na portaria</p>
               </div>
             </Link>
 
             <Link
               href="/painel/comunicados"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
-                  <Icon name="bell" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-emerald-50 text-emerald-600">
+                  <Icon name="bell" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {residentStats.announcements}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-emerald-600 transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-emerald-600 transition-colors">
                   Comunicados
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Informativos no mural
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">No mural</p>
               </div>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Link
               href="/painel/ocorrencias"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] transition-transform group-hover:scale-110">
-                  <Icon name="alert" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                  <Icon name="alert" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {stats.openOccurrences}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#0055D4] transition-colors">
                   Ocorrências abertas
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Demandas do condomínio
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Demandas ativas</p>
               </div>
             </Link>
 
             <Link
               href="/painel/ordens"
-              className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
-                  <Icon name="wrench" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-indigo-50 text-indigo-600">
+                  <Icon name="wrench" size={16} />
                 </span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {stats.executingOrders}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-indigo-600 transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-indigo-600 transition-colors">
                   Ordens em execução
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Manutenções ativas
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Manutenções</p>
               </div>
             </Link>
 
-            <div className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)]">
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <Icon name="clock" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-emerald-50 text-emerald-600">
+                  <Icon name="clock" size={16} />
                 </span>
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-600 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-emerald-600 tabular-nums">
                   {stats.slaPercent}%
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5">
                   SLA cumprimento
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Índice de pontualidade
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Pontualidade</p>
               </div>
             </div>
 
-            <div className="group relative flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)]">
+            <div className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)]">
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                  <Icon name="wallet" size={17} strokeWidth={2.2} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-slate-100 text-slate-700">
+                  <Icon name="wallet" size={16} />
                 </span>
               </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {stats.monthlyExpenses}
                 </span>
-                <p className="text-xs font-bold text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5">
                   Gastos este mês
                 </p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
-                  Previsão orçamentária
-                </p>
+                <p className="text-[11px] text-slate-400 truncate">Previsão</p>
               </div>
             </div>
           </div>
         )}
       </section>
 
-      {/* 6. MAPA DO CONDOMÍNIO (Apenas para Gestão/Síndico) */}
-      {!isResident && (
-        <section className="space-y-2">
-          <CondoMap onExpand={() => setFullMapModalOpen(true)} />
-        </section>
-      )}
-
-      {/* 5. ATIVIDADES RECENTES & PRÓXIMAS RESERVAS (Lista com divisores sutis + Empty State Inteligente com Ícones) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      {/* 6. ATIVIDADES RECENTES & PRÓXIMAS RESERVAS (2 Colunas Limpas com Divisores) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Atividades Recentes */}
-        <div className="rounded-[18px] bg-white border border-slate-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4]">
-                <Icon name="clock" size={17} strokeWidth={2.2} />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-[#0F172A]">
-                  {isResident ? "Minhas atividades recentes" : "Atividades recentes"}
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  {isResident
-                    ? "Acompanhe o andamento de suas solicitações"
-                    : "Movimentações e registros no condomínio"}
-                </p>
-              </div>
-            </div>
+        <div className="rounded-[12px] bg-white border border-slate-200/80 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {isResident ? "Minhas atividades recentes" : "Atividades recentes"}
+            </h3>
             <Link
               href="/painel/ocorrencias"
-              className="flex items-center gap-1 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] transition-colors group"
+              className="text-xs font-semibold text-[#0055D4] hover:underline"
             >
-              <span>Ver todas</span>
-              <Icon name="chevron-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+              Ver todas
             </Link>
           </div>
 
           <div className="divide-y divide-slate-100">
             {recentActivities.length === 0 ? (
-              <div className="py-8 flex flex-col items-center justify-center text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 mb-2.5 shadow-2xs">
-                  <Icon name="clipboard" size={22} strokeWidth={1.8} />
-                </span>
-                <p className="text-xs font-bold text-slate-700">
-                  {isResident ? "Nenhuma atividade recente registrada" : "Nenhuma atividade recente"}
+              <div className="py-6 flex flex-col items-center justify-center text-center">
+                <Icon name="clipboard" size={20} className="text-slate-300 mb-1.5" />
+                <p className="text-xs font-semibold text-slate-700">
+                  Nenhuma atividade recente
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs">
-                  {isResident
-                    ? "Novas ocorrências e solicitações aparecerão listadas aqui."
-                    : "Novas movimentações no condomínio aparecerão aqui."}
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Novas movimentações aparecerão listadas aqui.
                 </p>
               </div>
             ) : (
@@ -788,18 +600,18 @@ export function DashboardClient({
                 <Link
                   key={item.id}
                   href="/painel/ocorrencias"
-                  className="py-2.5 first:pt-1 last:pb-0 flex items-center justify-between gap-3 hover:bg-slate-50/60 -mx-2 px-2 rounded-[10px] transition-colors group"
+                  className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 hover:bg-slate-50/80 rounded-[6px] transition-colors group"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-mono text-[11px] font-bold text-[#0055D4]">
+                      <span className="font-mono text-[11px] font-semibold text-[#0055D4]">
                         {item.code}
                       </span>
                       <span className="text-[10px] text-slate-400">
                         {item.timeAgo}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#0055D4] transition-colors truncate">
+                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors truncate">
                       {item.title}
                     </p>
                     <p className="text-[11px] text-slate-500 truncate mt-0.5">
@@ -807,7 +619,7 @@ export function DashboardClient({
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 shrink-0">
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 shrink-0">
                     {item.status}
                   </span>
                 </Link>
@@ -816,68 +628,53 @@ export function DashboardClient({
           </div>
         </div>
 
-        {/* Próximas Reservas & Empty State com Ícones */}
-        <div className="rounded-[18px] bg-white border border-slate-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                <Icon name="calendar" size={17} strokeWidth={2.2} />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-[#0F172A]">
-                  {isResident ? "Minhas próximas reservas" : "Próximas reservas"}
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  {isResident
-                    ? "Espaços agendados pela sua unidade"
-                    : "Áreas comuns reservadas pelos moradores"}
-                </p>
-              </div>
-            </div>
+        {/* Próximas Reservas */}
+        <div className="rounded-[12px] bg-white border border-slate-200/80 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {isResident ? "Minhas próximas reservas" : "Próximas reservas"}
+            </h3>
             <Link
               href="/painel/reservas"
-              className="flex items-center gap-1 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] transition-colors group"
+              className="text-xs font-semibold text-[#0055D4] hover:underline"
             >
-              <span>Ver todas</span>
-              <Icon name="chevron-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+              Ver todas
             </Link>
           </div>
 
           <div>
             {upcomingReservations.length === 0 ? (
-              <div className="py-7 flex flex-col items-center justify-center text-center space-y-2.5">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50/80 border border-indigo-100/60 text-indigo-600 shadow-2xs">
-                  <Icon name="calendar" size={22} strokeWidth={1.8} />
-                </span>
+              <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
+                <Icon name="calendar" size={20} className="text-slate-300 mb-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-[#0F172A]">
+                  <p className="text-xs font-semibold text-slate-700">
                     Nenhuma reserva próxima
                   </p>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Que tal planejar um momento no salão de festas ou churrasqueira?
+                    Reserve áreas comuns como salão de festas ou churrasqueira.
                   </p>
                 </div>
                 <Link
                   href="/painel/reservas"
-                  className="flex items-center gap-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold px-4 py-2 shadow-xs transition-all hover:scale-[1.02] mt-1"
+                  className="inline-flex items-center gap-1 rounded-[6px] bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 transition-colors"
                 >
-                  <Icon name="plus" size={13} strokeWidth={2.6} />
+                  <Icon name="plus" size={12} />
                   <span>Nova reserva</span>
                 </Link>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
                 {upcomingReservations.map((res) => (
-                  <div key={res.id} className="py-2.5 first:pt-1 last:pb-0 flex items-center justify-between gap-3">
+                  <div key={res.id} className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-xs font-bold text-[#0F172A]">
+                      <h4 className="text-xs font-semibold text-slate-900">
                         {res.amenityName}
                       </h4>
                       <p className="text-[11px] text-slate-500 mt-0.5">
                         {res.date} · {res.time} ({res.unit})
                       </p>
                     </div>
-                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       Confirmada
                     </span>
                   </div>
@@ -888,64 +685,65 @@ export function DashboardClient({
         </div>
       </div>
 
-      {/* 6. SERVIÇOS RECOMENDADOS (Com Ícones e Estrelas) */}
+      {/* 7. MAPA DO CONDOMÍNIO (Apenas para Gestão/Síndico) */}
+      {!isResident && (
+        <section className="space-y-2">
+          <CondoMap onExpand={() => setFullMapModalOpen(true)} />
+        </section>
+      )}
+
+      {/* 8. PRESTADORES RECOMENDADOS (Secundário, no final da página) */}
       {recommendedVendors.length > 0 && (
-        <section className="rounded-[18px] bg-white border border-slate-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                <Icon name="briefcase" size={17} strokeWidth={2.2} />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-[#0F172A]">
-                  Serviços recomendados
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  Profissionais cadastrados no condomínio
-                </p>
-              </div>
+        <section className="rounded-[12px] bg-white border border-slate-200/80 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Prestadores recomendados
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Profissionais avaliados no condomínio
+              </p>
             </div>
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-1 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] transition-colors group"
+              className="text-xs font-semibold text-[#0055D4] hover:underline"
             >
-              <span>Ver todos</span>
-              <Icon name="chevron-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+              Ver todos
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {recommendedVendors.map((vendor) => (
               <div
                 key={vendor.id}
-                className="group flex items-center justify-between p-3.5 rounded-[16px] bg-slate-50/70 border border-slate-200/60 hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all"
+                className="group flex items-center justify-between p-3 rounded-[8px] bg-slate-50/70 border border-slate-200/80 hover:bg-white hover:border-slate-300 transition-all"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200/80 text-[#0055D4] text-xs font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <Icon name="briefcase" size={16} />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-white border border-slate-200 text-[#0055D4] text-xs font-semibold">
+                    <Icon name="briefcase" size={15} />
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
+                      <h4 className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#0055D4] transition-colors">
                         {vendor.name}
                       </h4>
                       {vendor.verified && (
-                        <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
+                        <Icon name="check-circle" size={12} className="text-[#0055D4] shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
                       {vendor.category} · {vendor.company}
                     </p>
                   </div>
                 </div>
 
                 {vendor.reviewsCount > 0 ? (
-                  <div className="flex items-center gap-1 shrink-0 rounded-lg bg-white border border-slate-200/80 px-2 py-1 text-xs font-bold text-slate-700 shadow-2xs">
+                  <div className="flex items-center gap-1 shrink-0 rounded-[4px] bg-white border border-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-700">
                     <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
                     <span>{vendor.rating.toFixed(1)}</span>
                   </div>
                 ) : (
-                  <span className="shrink-0 text-[10px] text-slate-400 font-medium">Sem avaliações</span>
+                  <span className="shrink-0 text-[10px] text-slate-400">Sem avaliações</span>
                 )}
               </div>
             ))}
@@ -953,48 +751,46 @@ export function DashboardClient({
         </section>
       )}
 
+      {/* ASSISTENTE VIRTUAL ZELADORIA IA */}
+      {assistantOpen && <CondoAssistant onClose={() => setAssistantOpen(false)} />}
+
       {/* MODAL: Central de Emergência e SOS */}
       {emergencyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setEmergencyModalOpen(false)}
             aria-hidden
           />
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Central de Emergência e SOS 24h"
-            className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-[24px] border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden"
+            aria-label="Central de Emergência e Telefones Úteis 24h"
+            className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-[14px] border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden"
           >
-            {/* Top Red Header */}
-            <div className="flex items-center justify-between px-5 sm:px-6 py-4 bg-red-600 text-white select-none">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-inner">
-                  <Icon name="phone" size={22} className="animate-pulse" />
-                </div>
+            {/* Header Vermelho Sólido Executivo */}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-red-600 text-white select-none">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-white/15 text-white">
+                  <Icon name="phone" size={16} />
+                </span>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-black tracking-tight text-white">
-                      Central de Emergência e SOS
-                    </h3>
-                    <span className="text-[10px] font-black uppercase tracking-wider bg-white text-red-700 px-2 py-0.5 rounded-full">
-                      24h
-                    </span>
-                  </div>
-                  <p className="text-xs text-red-100 font-medium">
-                    Telefones úteis, apoio predial e resgate público imediato
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    Central de Emergência 24h
+                  </h3>
+                  <p className="text-[11px] text-red-100">
+                    Telefones úteis, apoio predial e resgate imediato
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-red-200 bg-red-700/80 px-2 py-1 rounded hidden sm:inline-block">
+                <span className="text-[10px] font-bold text-red-200 bg-red-700 px-2 py-0.5 rounded-[4px] hidden sm:inline-block">
                   ESC
                 </span>
                 <button
                   type="button"
                   onClick={() => setEmergencyModalOpen(false)}
-                  className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+                  className="p-1 rounded-[6px] text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
                   aria-label="Fechar"
                 >
                   <Icon name="x" size={18} />
@@ -1002,262 +798,156 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-              {/* Alert Callout */}
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-3 text-red-950">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white mt-0.5">
-                  <Icon name="alert-triangle" size={14} />
-                </div>
+            {/* Corpo do Modal */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {/* Aviso Inicial */}
+              <div className="p-3 rounded-[8px] bg-red-50 border border-red-200/80 flex items-start gap-2.5 text-red-950">
+                <Icon name="alert-triangle" size={16} className="text-red-600 shrink-0 mt-0.5" />
                 <div className="text-xs leading-relaxed">
                   <strong className="font-bold text-red-950 block">Risco Imediato à Vida, Incêndio ou Invasão:</strong>
-                  Acione diretamente as linhas gratuitas de utilidade pública: <strong>193 (Bombeiros)</strong>, <strong>192 (SAMU)</strong> ou <strong>190 (Polícia)</strong>. As ligações são gratuitas e funcionam mesmo sem sinal ou créditos.
+                  Ligue diretamente para as linhas públicas gratuitas: <strong>193 (Bombeiros)</strong>, <strong>192 (SAMU)</strong> ou <strong>190 (Polícia)</strong>. As chamadas funcionam mesmo sem créditos.
                 </div>
               </div>
 
-              {/* 1. Condomínio (Atendimento Interno) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Icon name="building" size={13} className="text-[#0055D4]" />
-                    Atendimento Interno do Condomínio
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    Portaria e Administração
-                  </span>
-                </div>
+              {/* 1. Atendimento Interno do Condomínio */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Atendimento Interno do Condomínio
+                </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Portaria */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                  <div className="p-3.5 rounded-[8px] bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-2.5">
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
                           Plantão 24h
                         </span>
-                        <span className="text-[11px] font-bold text-slate-500">
+                        <span className="text-[11px] font-semibold text-slate-500">
                           Ramal 100
                         </span>
                       </div>
-                      <h5 className="text-sm font-black text-[#0F172A] mt-1.5">
+                      <h5 className="text-xs font-bold text-slate-900 mt-1">
                         Portaria Central
                       </h5>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-snug">
-                        Guarita, controle de portões, interfone e ocorrências de acesso.
+                      <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                        Guarita, controle de portões e ocorrências de acesso.
                       </p>
                     </div>
 
-                    <div className="pt-1 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <a
                         href="tel:1134567890"
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-sm"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-[6px] bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors"
                       >
-                        <Icon name="phone" size={13} />
+                        <Icon name="phone" size={12} />
                         <span>Ligar (11) 3456-7890</span>
                       </a>
                       <button
                         type="button"
                         onClick={() => handleCopyPhone("(11) 3456-7890")}
-                        className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                        className="flex items-center justify-center gap-1 rounded-[6px] bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                         title="Copiar número"
                       >
                         {copiedPhone === "(11) 3456-7890" ? (
-                          <>
-                            <Icon name="check" size={13} className="text-emerald-600" />
-                            <span className="text-emerald-600 text-[11px]">Copiado!</span>
-                          </>
+                          <span className="text-emerald-600 text-[11px]">Copiado!</span>
                         ) : (
-                          <>
-                            <Icon name="copy" size={13} className="text-slate-500" />
-                            <span className="text-[11px]">Copiar</span>
-                          </>
+                          <Icon name="copy" size={12} className="text-slate-500" />
                         )}
                       </button>
                     </div>
                   </div>
 
                   {/* Síndico / Zeladoria */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                  <div className="p-3.5 rounded-[8px] bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-2.5">
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
                           Apoio Técnico
                         </span>
-                        <span className="text-[11px] font-bold text-slate-500">
+                        <span className="text-[11px] font-semibold text-slate-500">
                           Operações
                         </span>
                       </div>
-                      <h5 className="text-sm font-black text-[#0F172A] mt-1.5">
+                      <h5 className="text-xs font-bold text-slate-900 mt-1">
                         Síndico(a) & Zeladoria
                       </h5>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-snug">
-                        Registros de água/gás, falha em elevadores, portões e emergência predial.
+                      <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                        Falhas de água/gás, elevadores e emergência predial.
                       </p>
                     </div>
 
-                    <div className="pt-1 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <a
                         href="tel:11987654321"
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 text-xs font-bold transition-all shadow-sm"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-[6px] bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors"
                       >
-                        <Icon name="phone" size={13} />
+                        <Icon name="phone" size={12} />
                         <span>Ligar (11) 98765-4321</span>
                       </a>
                       <a
                         href="https://wa.me/5511987654321?text=Ol%C3%A1%2C%20preciso%20de%20apoio%20urgente%20no%20condom%C3%ADnio."
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-2 text-xs font-bold transition-colors shadow-sm"
-                        title="Falar no WhatsApp"
+                        className="flex items-center justify-center rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 text-xs font-semibold transition-colors"
+                        title="WhatsApp"
                       >
-                        <span className="text-[11px]">WhatsApp</span>
+                        <span>WhatsApp</span>
                       </a>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyPhone("(11) 98765-4321")}
-                        className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
-                        title="Copiar número"
-                      >
-                        {copiedPhone === "(11) 98765-4321" ? (
-                          <Icon name="check" size={13} className="text-emerald-600" />
-                        ) : (
-                          <Icon name="copy" size={13} className="text-slate-500" />
-                        )}
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 2. Serviços Públicos de Urgência */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Icon name="shield" size={13} className="text-red-600" />
-                    Serviços Públicos de Urgência (Gratuito)
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    Ligação gratuita 24h
-                  </span>
-                </div>
+              {/* 2. Serviços Públicos Gratuitos */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Serviços Públicos de Urgência (Gratuito)
+                </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {[
-                    {
-                      name: "SAMU",
-                      phone: "192",
-                      desc: "Emergência médica, ambulância, parada respiratória e socorro urgente.",
-                      badge: "Saúde",
-                    },
-                    {
-                      name: "Corpo de Bombeiros",
-                      phone: "193",
-                      desc: "Incêndio, vazamento de gás, elevador travado e resgates.",
-                      badge: "Resgate",
-                    },
-                    {
-                      name: "Polícia Militar",
-                      phone: "190",
-                      desc: "Segurança pública, invasão, assalto, agressão e roubo.",
-                      badge: "Segurança",
-                    },
-                    {
-                      name: "Defesa Civil",
-                      phone: "199",
-                      desc: "Alagamento, tempestades, desabamento e risco estrutural.",
-                      badge: "Prevenção",
-                    },
+                    { name: "SAMU", phone: "192", desc: "Emergência médica e ambulância", badge: "Saúde" },
+                    { name: "Bombeiros", phone: "193", desc: "Incêndio, gás e resgates", badge: "Resgate" },
+                    { name: "Polícia Militar", phone: "190", desc: "Segurança e ocorrências graves", badge: "Segurança" },
+                    { name: "Defesa Civil", phone: "199", desc: "Tempestades e risco estrutural", badge: "Prevenção" },
                   ].map((service) => (
                     <div
                       key={service.name}
-                      className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3"
+                      className="p-3 rounded-[8px] bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2.5"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-black text-[#0F172A]">
-                            {service.name}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 bg-slate-200/70 px-1.5 py-0.2 rounded">
+                          <span className="text-xs font-bold text-slate-900">{service.name}</span>
+                          <span className="text-[10px] text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded">
                             {service.badge}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-snug mt-0.5 line-clamp-2">
-                          {service.desc}
-                        </p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">{service.desc}</p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <a
-                          href={`tel:${service.phone}`}
-                          className="flex items-center gap-1 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-black transition-colors shadow-sm"
-                        >
-                          <Icon name="phone" size={12} />
-                          <span>Ligar {service.phone}</span>
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyPhone(service.phone)}
-                          className="p-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors cursor-pointer"
-                          title={`Copiar ${service.phone}`}
-                        >
-                          {copiedPhone === service.phone ? (
-                            <Icon name="check" size={13} className="text-emerald-600" />
-                          ) : (
-                            <Icon name="copy" size={13} className="text-slate-500" />
-                          )}
-                        </button>
-                      </div>
+                      <a
+                        href={`tel:${service.phone}`}
+                        className="flex items-center gap-1 rounded-[6px] bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 text-xs font-bold transition-colors shrink-0"
+                      >
+                        <Icon name="phone" size={11} />
+                        <span>Ligar {service.phone}</span>
+                      </a>
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* 3. Guia Rápido de Primeiros Passos */}
-              <div className="space-y-2.5 pt-1">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
-                  O Que Fazer em Emergências Críticas
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                  <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <strong className="text-amber-950 font-bold block mb-1">
-                      🛗 Elevador Travado
-                    </strong>
-                    <p className="text-[11px] text-amber-900 leading-relaxed">
-                      Mantenha a calma. Use o alarme/interfone da cabine. Não tente forçar portas nem sair por frestas.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-200/70">
-                    <strong className="text-rose-950 font-bold block mb-1">
-                      🧯 Fogo ou Fumaça
-                    </strong>
-                    <p className="text-[11px] text-rose-900 leading-relaxed">
-                      Acione a botoeira vermelha do hall. Desça pelas escadas (nunca use elevador). Ligue 193.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70">
-                    <strong className="text-blue-950 font-bold block mb-1">
-                      💧 Vazamento de Gás
-                    </strong>
-                    <p className="text-[11px] text-blue-900 leading-relaxed">
-                      Não acenda luzes nem interruptores. Feche o registro geral da unidade, ventile o ambiente e avise a portaria.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50 text-xs">
-              <div className="flex items-center gap-1.5 text-slate-500 font-medium truncate">
-                <Icon name="building" size={13} className="text-[#0055D4] shrink-0" />
-                <span className="truncate">{condoName} · {condoAddress}</span>
-              </div>
+            {/* Rodapé do Modal */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50 text-xs">
+              <span className="text-slate-500 font-medium truncate">
+                {condoName} · {condoAddress}
+              </span>
               <button
                 type="button"
                 onClick={() => setEmergencyModalOpen(false)}
-                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 px-4 py-2 text-xs font-bold transition-colors cursor-pointer shadow-2xs shrink-0"
+                className="rounded-[6px] border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
               >
                 Fechar
               </button>
@@ -1268,53 +958,36 @@ export function DashboardClient({
 
       {/* MODAL: Mapa Completo Expandido */}
       {fullMapModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setFullMapModalOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-5xl rounded-[16px] border border-slate-200 bg-white p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="relative w-full max-w-5xl rounded-[12px] border border-slate-200 bg-white p-5 shadow-2xl space-y-3 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-[#0F172A]">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
                   Mapa Completo do Condomínio
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Visualização ampliada com todas as camadas e pontos de interesse
+                  Visualização ampliada de áreas comuns e pontos de interesse
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setFullMapModalOpen(false)}
-                className="p-1.5 rounded-[8px] text-slate-400 hover:bg-slate-100"
+                className="p-1 rounded-[6px] text-slate-400 hover:bg-slate-100"
               >
                 <Icon name="x" size={18} />
               </button>
             </div>
 
-            <div className="h-[600px] w-full overflow-hidden rounded-[10px] border border-slate-200">
+            <div className="h-[550px] w-full overflow-hidden rounded-[8px] border border-slate-200">
               <CondoMap />
             </div>
           </div>
         </div>
-      )}
-
-      {/* Botão SOS flutuante (atalho de emergência sempre acessível no mobile) */}
-      {!emergencyModalOpen && !fullMapModalOpen && (
-        <button
-          type="button"
-          onClick={() => setEmergencyModalOpen(true)}
-          aria-label="Abrir central de emergência 24 horas"
-          title="SOS · Emergência 24h"
-          className="lg:hidden fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-600/40 ring-4 ring-red-600/20 active:scale-95 transition-transform"
-        >
-          <span className="absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-60 animate-ping" />
-          <span className="relative flex flex-col items-center justify-center leading-none">
-            <Icon name="phone" size={17} />
-            <span className="mt-0.5 text-[9px] font-black tracking-wide">SOS</span>
-          </span>
-        </button>
       )}
     </div>
   );

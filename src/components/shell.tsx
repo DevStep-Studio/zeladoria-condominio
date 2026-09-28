@@ -130,16 +130,27 @@ export function Shell({
     } catch {}
   };
 
-  // Accordion open/close state for sidebar groups
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    rotina: true,
-    servicos: true,
-    condominio: true,
-    gestao: true,
-    operacao: true,
-    comunidade: true,
-    gestao_condominio: true,
+  // Accordion open/close state: only open group of active page by default
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    navigationGroups.forEach((group) => {
+      initial[group.id] = group.items.some((item) =>
+        item.href === "/painel" ? pathname === "/painel" : pathname.startsWith(item.href)
+      );
+    });
+    return initial;
   });
+
+  useEffect(() => {
+    navigationGroups.forEach((group) => {
+      const isCurrent = group.items.some((item) =>
+        item.href === "/painel" ? pathname === "/painel" : pathname.startsWith(item.href)
+      );
+      if (isCurrent) {
+        setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
+      }
+    });
+  }, [pathname, navigationGroups]);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => ({
@@ -217,31 +228,31 @@ export function Shell({
   };
 
   const SidebarContent = (
-    <div className="flex h-full flex-col bg-[#0055D4] text-white rounded-[26px] border border-white/20 shadow-2xl shadow-blue-950/30 select-none overflow-hidden relative">
+    <div className="flex h-full flex-col bg-[#0055D4] text-white rounded-[14px] border border-white/10 shadow-lg shadow-blue-950/20 select-none overflow-hidden relative">
       {/* Brand Header */}
-      <div className={`flex items-center px-5 pt-5 pb-4 border-b border-white/15 ${collapsed ? "justify-center px-2" : "justify-start"}`}>
+      <div className={`flex items-center px-4 pt-4 pb-3.5 border-b border-white/10 ${collapsed ? "justify-center px-2" : "justify-start"}`}>
         <Link href="/painel" className="flex items-center group" title="Zeladoria Condomínio">
           {/* Official White Condo Logo (Symbol Only) */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo-white.png"
             alt="Zeladoria Condomínio"
-            className="h-10 w-10 object-contain transition-transform duration-200 group-hover:scale-105"
+            className="h-9 w-9 object-contain transition-transform duration-200 group-hover:scale-105"
           />
         </Link>
       </div>
 
       {/* Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Dashboard / Início (Primary Top Item) */}
         <div>
           <Link
             href="/painel"
             onClick={() => setMobileOpen(false)}
-            className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs transition-all duration-150 ${
+            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
               pathname === "/painel"
-                ? "bg-white/18 text-white font-bold border-l-2 border-[#FFD000] shadow-xs"
-                : "text-white/80 hover:text-white hover:bg-white/10 font-medium"
+                ? "bg-white/14 text-white font-bold border-l-2 border-[#FFD000] shadow-2xs"
+                : "text-white/80 hover:text-white hover:bg-white/8 font-medium"
             } ${collapsed ? "justify-center px-2" : ""}`}
             title={collapsed ? "Início" : undefined}
           >
@@ -254,7 +265,7 @@ export function Shell({
             {!collapsed && <span className="truncate flex-1">Início</span>}
 
             {collapsed && (
-              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-lg border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-xl group-hover:block">
+              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
                 Início
               </span>
             )}
@@ -263,24 +274,19 @@ export function Shell({
 
         {/* Collapsible Accordion Groups (Filtered by Permissions) */}
         {navigationGroups.map((group) => {
-          const isExpanded = expandedGroups[group.id] ?? true;
+          const isExpanded = expandedGroups[group.id] ?? false;
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
 
           return (
-            <div key={group.id} className="pt-2">
+            <div key={group.id} className="pt-1.5">
               {!collapsed ? (
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-200/80 hover:text-white transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-200/75 hover:text-white transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
                     <span className={hasActiveChild ? "text-[#FFD000]" : ""}>{group.title}</span>
-                    {group.id === "servicos" && (
-                      <span className="rounded bg-[#FFD000] px-1.5 py-0.2 text-[9px] font-black uppercase text-[#12162A] tracking-wider">
-                        Destaque
-                      </span>
-                    )}
                   </span>
                   <Icon
                     name="chevron-down"
@@ -289,11 +295,11 @@ export function Shell({
                   />
                 </button>
               ) : (
-                <div className="my-1.5 border-t border-white/15" />
+                <div className="my-1.5 border-t border-white/10" />
               )}
 
               {(isExpanded || collapsed) && (
-                <div className="mt-1 space-y-0.5">
+                <div className="mt-0.5 space-y-0.5">
                   {group.items.map((item) => {
                     const active = isRouteActive(item.href);
 
@@ -302,10 +308,10 @@ export function Shell({
                         key={item.id || item.label}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs transition-all duration-150 ${
+                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
                           active
-                            ? "bg-white/18 text-white font-bold border-l-2 border-[#FFD000] shadow-xs"
-                            : "text-white/80 hover:text-white hover:bg-white/10 font-medium"
+                            ? "bg-white/14 text-white font-bold border-l-2 border-[#FFD000] shadow-2xs"
+                            : "text-white/80 hover:text-white hover:bg-white/8 font-medium"
                         } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
                       >
@@ -325,7 +331,7 @@ export function Shell({
                         ) : null}
 
                         {collapsed && (
-                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-lg border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-xl group-hover:block">
+                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
                             {item.label}
                           </span>
                         )}
@@ -340,17 +346,17 @@ export function Shell({
       </nav>
 
       {/* Bottom Section: User Profile Footer */}
-      <div className="p-3 pt-2 space-y-1.5 border-t border-white/15">
+      <div className="p-2.5 pt-2 space-y-1 border-t border-white/10">
         {/* User Profile Bar */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            className={`w-full flex items-center gap-2.5 rounded-2xl p-1.5 text-left hover:bg-white/15 transition-colors ${
+            className={`w-full flex items-center gap-2 rounded-[8px] p-1.5 text-left hover:bg-white/10 transition-colors ${
               collapsed ? "justify-center" : ""
             }`}
           >
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFD000] text-[#12162A] text-xs font-extrabold shadow-sm">
+            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFD000] text-[#12162A] text-xs font-extrabold shadow-2xs">
               {userName.slice(0, 1).toUpperCase()}
               <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#0055D4]" />
             </span>
@@ -367,7 +373,7 @@ export function Shell({
 
           {/* Profile Popup Menu */}
           {profileMenuOpen && (
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-2xl border border-blue-400/30 bg-[#003E99] p-1.5 text-white shadow-2xl animate-in fade-in-50 duration-100">
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-[12px] border border-blue-400/30 bg-[#003E99] p-1.5 text-white shadow-xl animate-in fade-in-50 duration-100">
               <div className="px-3 py-2 border-b border-white/15">
                 <p className="text-xs font-bold text-white truncate">{userName}</p>
                 <p className="text-[10px] text-blue-200">{roleLabel}</p>
@@ -376,7 +382,7 @@ export function Shell({
                 <Link
                   href="/painel/perfil"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
                 >
                   <Icon name="user" size={14} className="text-[#FFD000]" />
                   <span>Meu Perfil</span>
@@ -391,7 +397,7 @@ export function Shell({
                           <input type="hidden" name="condoId" value={c.id} />
                           <button
                             type="submit"
-                            className={`w-full text-left rounded-lg px-2 py-1 text-xs transition-colors flex items-center justify-between ${
+                            className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between ${
                               c.id === activeCondoId
                                 ? "bg-white/20 font-bold text-white"
                                 : "text-blue-100 hover:bg-white/10"
@@ -410,7 +416,7 @@ export function Shell({
                   <Link
                     href="/painel/configuracoes"
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
+                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
                   >
                     <Icon name="settings" size={14} className="text-blue-200" />
                     <span>Configurações</span>
@@ -421,7 +427,7 @@ export function Shell({
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
+                    className="w-full flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
                   >
                     <Icon name="logout" size={14} />
                     <span>Sair da conta</span>
@@ -433,11 +439,11 @@ export function Shell({
         </div>
 
         {/* Collapse toggle (desktop only) */}
-        <div className="mt-1 flex justify-end">
+        <div className="mt-0.5 flex justify-end">
           <button
             type="button"
             onClick={toggleCollapse}
-            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg text-blue-200 hover:bg-white/15 hover:text-white transition-colors ${
+            className={`hidden lg:flex h-6.5 w-6.5 items-center justify-center rounded-[6px] text-blue-200 hover:bg-white/15 hover:text-white transition-colors ${
               collapsed ? "w-full" : ""
             }`}
             title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
@@ -480,14 +486,14 @@ export function Shell({
           collapsed ? "lg:pl-[84px]" : "lg:pl-[260px]"
         }`}
       >
-        {/* Global Minimalist Header - Harmonioso, Executivo e Integrado */}
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/70 bg-white/95 backdrop-blur-md px-4 sm:px-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
+        {/* Global Minimalist Header - Executivo, Compacto e Integrado */}
+        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-6 shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
           {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="Abrir menu"
             >
               <Icon name="menu" size={18} />
@@ -503,20 +509,20 @@ export function Shell({
               <button
                 type="button"
                 onClick={() => setCondoDropdownOpen(!condoDropdownOpen)}
-                className="group flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50/80 px-3.5 py-1.5 text-xs font-bold text-[#0F172A] shadow-2xs transition-all hover:border-slate-300"
+                className="group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300"
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-blue-50 text-[#0055D4]">
-                  <Icon name="building" size={12} strokeWidth={2.2} />
+                <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#0055D4]">
+                  <Icon name="building" size={12} strokeWidth={2} />
                 </span>
                 <span className="truncate max-w-[170px] sm:max-w-[240px]">
                   {condoName || "Residencial Parque das Águas"}
                 </span>
-                <Icon name="chevron-down" size={12} className="text-slate-400 group-hover:text-slate-600 transition-transform" />
+                <Icon name="chevron-down" size={11} className="text-slate-400 group-hover:text-slate-600 transition-transform" />
               </button>
 
               {condoDropdownOpen && (
-                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-2xl border border-slate-200/90 animate-in fade-in-50 duration-100 p-1.5">
-                  <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Selecione o Condomínio
                   </div>
                   <div className="space-y-0.5 mt-1">
@@ -526,8 +532,8 @@ export function Shell({
                         <button
                           type="submit"
                           onClick={() => setCondoDropdownOpen(false)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors ${
-                            c.id === activeCondoId ? "font-bold text-[#0055D4] bg-blue-50/80" : "text-slate-700 hover:bg-slate-50"
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors ${
+                            c.id === activeCondoId ? "font-bold text-[#0055D4] bg-blue-50" : "text-slate-700 hover:bg-slate-50"
                           }`}
                         >
                           <span className="truncate">{c.name}</span>
@@ -543,33 +549,33 @@ export function Shell({
 
           {/* Center: Functional Global Search with command-bar style */}
           <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md mx-6">
-            <Icon name="search" size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar ocorrência, reserva ou prestador..."
               value={searchQuery}
               onFocus={() => setSearchFocused(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 hover:bg-white pl-9.5 pr-12 text-xs text-[#0F172A] placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
+              className="h-9 w-full rounded-[8px] border border-slate-200 bg-slate-50/70 hover:bg-white pl-9 pr-12 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-              <kbd className="text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md shadow-2xs">⌘K</kbd>
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+              <kbd className="text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-[4px] shadow-2xs">⌘K</kbd>
             </span>
 
             {/* Search Autocomplete Results Dropdown */}
             {searchFocused && searchQuery.trim().length > 0 && (
-              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1.5 max-h-80 overflow-y-auto shadow-2xl rounded-2xl border border-slate-200/90 p-2">
+              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto shadow-xl rounded-[10px] border border-slate-200 p-1.5">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-400">
                     Nenhum resultado encontrado para &quot;{searchQuery}&quot;
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {Object.entries(groupedSearchResults).map(([cat, items]) => {
                       if (items.length === 0) return null;
                       return (
                         <div key={cat} className="space-y-0.5">
-                          <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 rounded-lg">
+                          <div className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-[4px]">
                             {cat}
                           </div>
                           {items.map((item) => (
@@ -580,9 +586,9 @@ export function Shell({
                                 setSearchFocused(false);
                                 setSearchQuery("");
                               }}
-                              className="block p-2 rounded-xl hover:bg-blue-50/70 transition-colors"
+                              className="block p-2 rounded-[6px] hover:bg-blue-50/70 transition-colors"
                             >
-                              <p className="text-xs font-bold text-[#0F172A]">{item.title}</p>
+                              <p className="text-xs font-bold text-slate-900">{item.title}</p>
                               <p className="text-[11px] text-slate-500">{item.subtitle}</p>
                             </Link>
                           ))}
@@ -596,29 +602,29 @@ export function Shell({
           </div>
 
           {/* Right: Notifications Dropdown + User Avatar */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Notifications Dropdown */}
             <div ref={notifRef} className="relative">
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 title="Notificações"
-                className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white border border-slate-200/80 text-slate-600 hover:text-[#0F172A] hover:bg-slate-50 shadow-2xs transition-all"
+                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-colors"
                 aria-label="Abrir notificações"
               >
-                <Icon name="bell" size={16} />
+                <Icon name="bell" size={15} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-[#FFD000] ring-2 ring-white" />
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#FFD000] ring-2 ring-white" />
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="menu-surface absolute right-0 z-50 mt-1.5 w-80 shadow-2xl rounded-2xl border border-slate-200/90 animate-in fade-in-50 duration-100 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
+                <div className="menu-surface absolute right-0 z-50 mt-1.5 w-80 shadow-xl rounded-[10px] border border-slate-200 overflow-hidden">
+                  <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/70">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-[#0F172A]">Notificações</h4>
+                      <h4 className="text-xs font-bold text-slate-900">Notificações</h4>
                       {unreadCount > 0 && (
-                        <span className="rounded-full bg-amber-100 px-1.5 py-0.2 text-[10px] font-black text-amber-800">
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.2 text-[9px] font-bold text-amber-800">
                           {unreadCount}
                         </span>
                       )}
@@ -648,14 +654,14 @@ export function Shell({
                         }`}
                       >
                         <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs ${
+                          className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[6px] text-xs ${
                             !notif.read ? "bg-[#0055D4] text-white" : "bg-slate-100 text-slate-500"
                           }`}
                         >
                           <Icon name={notif.icon} size={13} />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#0F172A] leading-tight">
+                          <p className="text-xs font-semibold text-slate-900 leading-tight">
                             {notif.title}
                           </p>
                           <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
@@ -679,12 +685,12 @@ export function Shell({
             <Link
               href="/painel/perfil"
               title="Meu Perfil"
-              className="relative flex items-center justify-center rounded-2xl p-0.5 hover:ring-2 hover:ring-blue-200 transition-all group"
+              className="relative flex items-center justify-center rounded-[8px] p-0.5 hover:ring-2 hover:ring-blue-100 transition-all group"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0055D4] text-white text-xs font-black shadow-xs group-hover:bg-[#0043A8] transition-colors">
+              <span className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#0055D4] text-white text-xs font-bold shadow-2xs group-hover:bg-[#0043A8] transition-colors">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
-              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/30" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/20" />
             </Link>
           </div>
         </header>
@@ -695,7 +701,7 @@ export function Shell({
         </main>
 
         {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/15 bg-[#0055D4]/95 backdrop-blur-md px-1 py-1 lg:hidden shadow-xl select-none text-white">
+        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#0055D4] px-1 py-1 lg:hidden shadow-lg select-none text-white">
           {(mobileNav && mobileNav.length > 0
             ? mobileNav
             : [
@@ -711,12 +717,12 @@ export function Shell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex min-h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-bold transition-colors ${
-                  active ? "text-[#FFD000]" : "text-blue-200 hover:text-white"
+                className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors ${
+                  active ? "text-[#FFD000]" : "text-blue-100/80 hover:text-white"
                 }`}
               >
                 <div className="relative flex items-center justify-center">
-                  <Icon name={item.icon} size={18} strokeWidth={active ? 2.4 : 1.8} />
+                  <Icon name={item.icon} size={17} strokeWidth={active ? 2.2 : 1.8} />
                   {active && (
                     <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
                   )}
