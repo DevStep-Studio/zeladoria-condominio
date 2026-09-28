@@ -392,20 +392,10 @@ export function DashboardClient({
                 type="button"
                 onClick={() => setEmergencyModalOpen(true)}
                 title="Telefones úteis e emergência 24h"
-                className="inline-flex min-h-[42px] items-center gap-1.5 rounded-[10px] bg-white/15 hover:bg-white/25 active:bg-white/30 text-white px-3.5 py-2 text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
               >
-                <Icon name="phone" size={14} />
-                <span className="hidden sm:inline">Emergência</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAssistantOpen(true)}
-                title="Assistente Virtual Zeladoria IA"
-                className="inline-flex min-h-[42px] items-center gap-1.5 rounded-[10px] bg-white/10 hover:bg-white/20 active:bg-white/25 text-white px-3.5 py-2 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                <Icon name="sparkles" size={14} className="text-[#FFD000]" />
-                <span className="hidden sm:inline">Zeladoria IA</span>
+                <Icon name="phone" size={15} strokeWidth={2.4} />
+                <span>Emergência</span>
               </button>
             </div>
           </div>
