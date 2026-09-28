@@ -228,18 +228,26 @@ export function Shell({
   };
 
   const SidebarContent = (
-    <div className="flex h-full flex-col bg-[#0055D4] text-white rounded-[14px] border border-white/10 shadow-lg shadow-blue-950/20 select-none overflow-hidden relative">
+    <div className="flex h-full flex-col bg-white text-slate-800 select-none overflow-hidden relative">
       {/* Brand Header */}
-      <div className={`flex items-center px-4 pt-4 pb-3.5 border-b border-white/10 ${collapsed ? "justify-center px-2" : "justify-start"}`}>
-        <Link href="/painel" className="flex items-center group" title="Zeladoria Condomínio">
-          {/* Official White Condo Logo (Symbol Only) */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-white.png"
-            alt="Zeladoria Condomínio"
-            className="h-9 w-9 object-contain transition-transform duration-200 group-hover:scale-105"
-          />
+      <div className={`flex items-center px-4 h-14 border-b border-slate-200/80 ${collapsed ? "justify-center px-2" : "justify-between"}`}>
+        <Link href="/painel" className="flex items-center gap-2 group min-w-0" title="Zeladoria Condomínio">
+          {!collapsed ? (
+            <BrandLogo size="sm" variant="default" showText={true} />
+          ) : (
+            <BrandLogo size="sm" variant="icon-only" showText={false} />
+          )}
         </Link>
+        {!collapsed && (
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            title="Recolher menu lateral"
+          >
+            <Icon name="panel" size={14} />
+          </button>
+        )}
       </div>
 
       {/* Navigation Groups */}
@@ -251,8 +259,8 @@ export function Shell({
             onClick={() => setMobileOpen(false)}
             className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
               pathname === "/painel"
-                ? "bg-white/14 text-white font-bold border-l-2 border-[#FFD000] shadow-2xs"
-                : "text-white/80 hover:text-white hover:bg-white/8 font-medium"
+                ? "bg-[#0055D4] text-white font-semibold shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
             } ${collapsed ? "justify-center px-2" : ""}`}
             title={collapsed ? "Início" : undefined}
           >
@@ -260,12 +268,15 @@ export function Shell({
               name="grid"
               size={16}
               strokeWidth={pathname === "/painel" ? 2.2 : 1.8}
-              className={pathname === "/painel" ? "text-[#FFD000]" : "text-blue-100 group-hover:text-white"}
+              className={pathname === "/painel" ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
             />
             {!collapsed && <span className="truncate flex-1">Início</span>}
+            {!collapsed && pathname === "/painel" && (
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
+            )}
 
             {collapsed && (
-              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
+              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
                 Início
               </span>
             )}
@@ -278,24 +289,24 @@ export function Shell({
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
 
           return (
-            <div key={group.id} className="pt-1.5">
+            <div key={group.id} className="pt-2">
               {!collapsed ? (
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-200/75 hover:text-white transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className={hasActiveChild ? "text-[#FFD000]" : ""}>{group.title}</span>
+                    <span className={hasActiveChild ? "text-[#0055D4]" : ""}>{group.title}</span>
                   </span>
                   <Icon
                     name="chevron-down"
                     size={11}
-                    className={`text-blue-200 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
+                    className={`text-slate-400 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
                   />
                 </button>
               ) : (
-                <div className="my-1.5 border-t border-white/10" />
+                <div className="my-1.5 border-t border-slate-100" />
               )}
 
               {(isExpanded || collapsed) && (
@@ -310,8 +321,8 @@ export function Shell({
                         onClick={() => setMobileOpen(false)}
                         className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
                           active
-                            ? "bg-white/14 text-white font-bold border-l-2 border-[#FFD000] shadow-2xs"
-                            : "text-white/80 hover:text-white hover:bg-white/8 font-medium"
+                            ? "bg-[#0055D4] text-white font-semibold shadow-xs"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
                         } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
                       >
@@ -319,19 +330,27 @@ export function Shell({
                           name={item.icon}
                           size={16}
                           strokeWidth={active ? 2.2 : 1.8}
-                          className={active ? "text-[#FFD000]" : "text-blue-100 group-hover:text-white"}
+                          className={active ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
                         />
                         {!collapsed && <span className="truncate flex-1">{item.label}</span>}
 
                         {/* Real dynamic notification badge */}
                         {!collapsed && item.badge && item.badge > 0 ? (
-                          <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FFD000] px-1 text-[9px] font-black text-[#12162A]">
+                          <span
+                            className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black ${
+                              active ? "bg-white text-[#0055D4]" : "bg-[#FFD000] text-[#12162A]"
+                            }`}
+                          >
                             {item.badge}
                           </span>
                         ) : null}
 
+                        {!collapsed && active && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
+                        )}
+
                         {collapsed && (
-                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-blue-400/30 bg-[#003E99] px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
+                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
                             {item.label}
                           </span>
                         )}
@@ -346,51 +365,55 @@ export function Shell({
       </nav>
 
       {/* Bottom Section: User Profile Footer */}
-      <div className="p-2.5 pt-2 space-y-1 border-t border-white/10">
+      <div className="p-2.5 pt-2 space-y-1 border-t border-slate-200/80 bg-white">
         {/* User Profile Bar */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            className={`w-full flex items-center gap-2 rounded-[8px] p-1.5 text-left hover:bg-white/10 transition-colors ${
+            className={`w-full flex items-center gap-2 rounded-[8px] p-1.5 text-left hover:bg-slate-100/80 transition-colors ${
               collapsed ? "justify-center" : ""
             }`}
           >
-            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFD000] text-[#12162A] text-xs font-extrabold shadow-2xs">
+            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#0055D4] text-xs font-extrabold border border-blue-200/60 shadow-2xs">
               {userName.slice(0, 1).toUpperCase()}
-              <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#0055D4]" />
+              <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
             </span>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-white">{userName}</p>
-                <p className="truncate text-[10px] text-blue-200 font-medium">
+                <p className="truncate text-xs font-bold text-slate-800">{userName}</p>
+                <p className="truncate text-[10px] text-slate-500 font-medium">
                   {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
                 </p>
               </div>
             )}
-            {!collapsed && <Icon name="more" size={14} className="text-blue-200" />}
+            {!collapsed && <Icon name="more" size={14} className="text-slate-400" />}
           </button>
 
           {/* Profile Popup Menu */}
           {profileMenuOpen && (
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-[12px] border border-blue-400/30 bg-[#003E99] p-1.5 text-white shadow-xl animate-in fade-in-50 duration-100">
-              <div className="px-3 py-2 border-b border-white/15">
-                <p className="text-xs font-bold text-white truncate">{userName}</p>
-                <p className="text-[10px] text-blue-200">{roleLabel}</p>
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-[12px] border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl animate-in fade-in-50 duration-100">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
+                <p className="text-[10px] text-slate-500">
+                  {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
+                </p>
               </div>
               <div className="py-1 space-y-0.5">
                 <Link
                   href="/painel/perfil"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0055D4] transition-colors"
                 >
-                  <Icon name="user" size={14} className="text-[#FFD000]" />
+                  <Icon name="user" size={14} className="text-[#0055D4]" />
                   <span>Meu Perfil</span>
                 </Link>
 
                 {condos.length > 1 && (
-                  <div className="px-3 py-1.5 border-t border-b border-white/10 my-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">Trocar Condomínio</span>
+                  <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Trocar Condomínio
+                    </span>
                     <div className="mt-1 space-y-1">
                       {condos.map((c) => (
                         <form key={c.id} action={switchAction}>
@@ -399,12 +422,14 @@ export function Shell({
                             type="submit"
                             className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between ${
                               c.id === activeCondoId
-                                ? "bg-white/20 font-bold text-white"
-                                : "text-blue-100 hover:bg-white/10"
+                                ? "bg-blue-50 font-bold text-[#0055D4]"
+                                : "text-slate-600 hover:bg-slate-50"
                             }`}
                           >
                             <span className="truncate">{c.name}</span>
-                            {c.id === activeCondoId && <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />}
+                            {c.id === activeCondoId && (
+                              <Icon name="check" size={12} className="text-[#0055D4]" />
+                            )}
                           </button>
                         </form>
                       ))}
@@ -416,18 +441,18 @@ export function Shell({
                   <Link
                     href="/painel/configuracoes"
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/15 hover:text-white transition-colors"
+                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0055D4] transition-colors"
                   >
-                    <Icon name="settings" size={14} className="text-blue-200" />
+                    <Icon name="settings" size={14} className="text-slate-500" />
                     <span>Configurações</span>
                   </Link>
                 )}
 
-                <div className="my-1 border-t border-white/15" />
+                <div className="my-1 border-t border-slate-100" />
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="w-full flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
+                    className="w-full flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                   >
                     <Icon name="logout" size={14} />
                     <span>Sair da conta</span>
@@ -443,7 +468,7 @@ export function Shell({
           <button
             type="button"
             onClick={toggleCollapse}
-            className={`hidden lg:flex h-6.5 w-6.5 items-center justify-center rounded-[6px] text-blue-200 hover:bg-white/15 hover:text-white transition-colors ${
+            className={`hidden lg:flex h-6.5 w-6.5 items-center justify-center rounded-[6px] text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors ${
               collapsed ? "w-full" : ""
             }`}
             title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
@@ -457,10 +482,10 @@ export function Shell({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Desktop Sidebar with floating capsule style */}
+      {/* Desktop Sidebar with clean full-height style */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden p-3 transition-[width] duration-200 lg:block ${
-          collapsed ? "w-[84px]" : "w-[260px]"
+        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200/90 bg-white transition-[width] duration-200 lg:block ${
+          collapsed ? "w-[72px]" : "w-[240px]"
         }`}
       >
         {SidebarContent}
@@ -470,11 +495,11 @@ export function Shell({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <aside className="absolute inset-y-0 left-0 w-[280px] p-3 shadow-2xl animate-in slide-in-from-left duration-200">
+          <aside className="absolute inset-y-0 left-0 w-[260px] bg-white shadow-2xl animate-in slide-in-from-left duration-200 border-r border-slate-200">
             {SidebarContent}
           </aside>
         </div>
@@ -483,7 +508,7 @@ export function Shell({
       {/* Main Column Wrapper */}
       <div
         className={`flex min-h-screen flex-col transition-[padding] duration-200 ${
-          collapsed ? "lg:pl-[84px]" : "lg:pl-[260px]"
+          collapsed ? "lg:pl-[72px]" : "lg:pl-[240px]"
         }`}
       >
         {/* Global Minimalist Header - Executivo, Compacto e Integrado */}

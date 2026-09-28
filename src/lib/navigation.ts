@@ -32,14 +32,6 @@ const MORADOR_NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    id: "servicos",
-    title: "Serviços",
-    items: [
-      { id: "prestadores", label: "Prestadores", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
-      { id: "solicitar_servico", label: "Solicitar serviço", href: "/painel/servicos?solicitar=true", icon: "sparkles", permission: "provider.request" },
-    ],
-  },
-  {
     id: "condominio",
     title: "Condomínio",
     items: [
@@ -47,6 +39,14 @@ const MORADOR_NAVIGATION: NavGroup[] = [
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
       { id: "documentos", label: "Documentos", href: "/painel/documentos", icon: "folder", permission: "document.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_own" },
+    ],
+  },
+  {
+    id: "servicos",
+    title: "Serviços",
+    items: [
+      { id: "prestadores", label: "Encontrar prestador", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
+      { id: "minhas_contratacoes", label: "Minhas contratações", href: "/painel/servicos?tab=minhas-contratacoes", icon: "sparkles", permission: "provider.request" },
     ],
   },
 ];

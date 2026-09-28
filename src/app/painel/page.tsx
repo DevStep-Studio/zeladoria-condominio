@@ -100,38 +100,51 @@ export default async function PainelHome() {
     };
 
     attentionItems = [
-      {
-        id: "my_occurrences",
-        count: myOpenOccCount?.count ?? 0,
-        label: "minhas ocorrências em aberto",
-        detail: "Acompanhe o andamento e reparo",
-        href: "/painel/ocorrencias",
-        urgent: false,
-      },
-      {
-        id: "my_parcels",
-        count: myParcelsCount?.count ?? 0,
-        label: "encomendas na portaria",
-        detail: "Prontas para retirada",
-        href: "/painel/encomendas",
-        urgent: (myParcelsCount?.count ?? 0) > 0,
-      },
-      {
-        id: "my_reservations",
-        count: myPendingResCount?.count ?? 0,
-        label: "minhas reservas ativas",
-        detail: "Espaços agendados",
-        href: "/painel/reservas",
-        urgent: false,
-      },
-      {
-        id: "announcements",
-        count: annCount?.count ?? 0,
-        label: "comunicados recentes",
-        detail: "Informes do condomínio",
-        href: "/painel/comunicados",
-        urgent: false,
-      },
+      ...(myParcelsCount?.count && myParcelsCount.count > 0
+        ? [
+            {
+              id: "my_parcels",
+              count: myParcelsCount.count,
+              label:
+                myParcelsCount.count === 1
+                  ? "encomenda aguardando retirada na portaria"
+                  : "encomendas aguardando retirada na portaria",
+              detail: "Disponível para retirada",
+              href: "/painel/encomendas",
+              urgent: true,
+            },
+          ]
+        : []),
+      ...(myOpenOccCount?.count && myOpenOccCount.count > 0
+        ? [
+            {
+              id: "my_occurrences",
+              count: myOpenOccCount.count,
+              label:
+                myOpenOccCount.count === 1
+                  ? "ocorrência sua em andamento"
+                  : "ocorrências suas em andamento",
+              detail: "Acompanhe a resolução",
+              href: "/painel/ocorrencias",
+              urgent: false,
+            },
+          ]
+        : []),
+      ...(myPendingResCount?.count && myPendingResCount.count > 0
+        ? [
+            {
+              id: "my_reservations",
+              count: myPendingResCount.count,
+              label:
+                myPendingResCount.count === 1
+                  ? "reserva confirmada"
+                  : "reservas confirmadas",
+              detail: "Espaço agendado",
+              href: "/painel/reservas",
+              urgent: false,
+            },
+          ]
+        : []),
     ];
   } else {
     // Síndico / Gestão View: Full operational metrics
