@@ -64,12 +64,10 @@ export function MarketplaceMap({
               display: flex;
               align-items: center;
               justify-content: center;
-              font-size: 14px;
-              font-weight: 900;
               border: 3px solid #FFFFFF;
               box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             ">
-              🏢
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8.01" y2="6"/><line x1="16" y1="6" x2="16.01" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/></svg>
             </div>
           `,
           iconSize: [32, 32],
@@ -100,13 +98,11 @@ export function MarketplaceMap({
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 11px;
-                font-weight: 800;
                 border: 2px solid #FFD000;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.25);
                 cursor: pointer;
               ">
-                ★
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD000" stroke="#FFD000" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </div>
             `,
             iconSize: [28, 28],
@@ -136,11 +132,12 @@ export function MarketplaceMap({
       {/* Map Legend */}
       <div className="absolute top-3 left-3 z-20 bg-white/95 backdrop-blur-xs p-2.5 rounded-xl border border-slate-200 text-xs shadow-xs space-y-1">
         <div className="flex items-center gap-1.5 font-bold text-[#0F172A]">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#0055D4]" />
-          <span>🏢 Seu Condomínio (Ponto de Atendimento)</span>
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#0055D4]" />
+          <Icon name="building" size={13} className="text-[#0055D4]" />
+          <span>Seu Condomínio (Ponto de Atendimento)</span>
         </div>
         <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-          <span className="h-2 w-2 rounded-sm bg-slate-900 border border-amber-400" />
+          <span className="h-2 w-2 rounded-[2px] bg-slate-900 border border-amber-400" />
           <span>Profissionais credenciados na região</span>
         </div>
       </div>

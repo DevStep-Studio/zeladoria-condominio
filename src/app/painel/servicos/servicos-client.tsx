@@ -280,7 +280,7 @@ export function ServicosClient({
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
               Zeladoria Serviços
             </h1>
-            <span className="rounded-full bg-blue-50 text-[#0055D4] border border-blue-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
+            <span className="rounded-[4px] bg-blue-50 text-[#0055D4] border border-blue-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
               Marketplace On-Demand
             </span>
           </div>
@@ -316,7 +316,7 @@ export function ServicosClient({
             <Icon name="clipboard" size={13} />
             <span>Minhas Contratações</span>
             {totalContractedCount > 0 && (
-              <span className="rounded-full bg-[#0055D4] text-white px-1.5 py-0.2 text-[9px] font-bold">
+              <span className="rounded-[4px] bg-[#0055D4] text-white px-1.5 py-0.2 text-[9px] font-bold">
                 {totalContractedCount}
               </span>
             )}
@@ -383,7 +383,7 @@ export function ServicosClient({
                       </div>
 
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-[4px] ${
                           req.status === "concluido"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : req.status === "em_atendimento"
@@ -518,7 +518,7 @@ export function ServicosClient({
                                     <Icon key={i} name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
                                   ))}
                                 </div>
-                                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-full">
+                                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-[4px]">
                                   Verificado
                                 </span>
                               </div>
@@ -645,7 +645,7 @@ export function ServicosClient({
                       handleSearchChange(item.q);
                       setSelectedCategory(item.cat);
                     }}
-                    className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] text-slate-600 px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
+                    className="rounded-[6px] bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] text-slate-600 px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
                   >
                     {item.tag}
                   </button>
@@ -692,7 +692,7 @@ export function ServicosClient({
                     />
                     <span>{cat.name}</span>
                     <span
-                      className={`text-[10px] font-black rounded-full px-1.5 py-0.2 ${
+                      className={`text-[10px] font-black rounded-[4px] px-1.5 py-0.2 ${
                         isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
                       }`}
                     >
@@ -723,13 +723,20 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => setOnlyAvailableNow(!onlyAvailableNow)}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
                 onlyAvailableNow
                   ? "bg-slate-900 text-white"
                   : "bg-[#0055D4] hover:bg-[#0047BA] text-white"
               }`}
             >
-              {onlyAvailableNow ? "✓ Mostrando Disponíveis Agora" : "Ver Disponíveis Agora"}
+              {onlyAvailableNow ? (
+                <>
+                  <Icon name="check" size={13} strokeWidth={2.4} />
+                  <span>Mostrando Disponíveis Agora</span>
+                </>
+              ) : (
+                <span>Ver Disponíveis Agora</span>
+              )}
             </button>
           </div>
 
@@ -737,8 +744,8 @@ export function ServicosClient({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFD000] text-[#12162A] text-xs font-black">
-                  ★
+                <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#FFD000] text-[#12162A]">
+                  <Icon name="star" size={12} strokeWidth={2.4} />
                 </span>
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
                   Melhores da sua Região {selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}
@@ -842,7 +849,7 @@ export function ServicosClient({
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
                   Prestadores Disponíveis
                 </h2>
-                <span className="rounded-full bg-slate-200 text-slate-700 px-2 py-0.5 text-[10px] font-black">
+                <span className="rounded-[4px] bg-slate-200 text-slate-700 px-2 py-0.5 text-[10px] font-black">
                   {filteredVendors.length}
                 </span>
               </div>

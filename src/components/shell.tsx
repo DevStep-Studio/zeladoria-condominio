@@ -24,9 +24,9 @@ const MOCK_SEARCHABLE_ITEMS: SearchResultItem[] = [
   { title: "Salão de Festas", subtitle: "Capacidade: 80 pessoas · R$ 200", category: "Reservas", href: "/painel/reservas" },
   { title: "Churrasqueira Gourmet", subtitle: "Capacidade: 20 pessoas · R$ 80", category: "Reservas", href: "/painel/reservas" },
   { title: "Espaço Gourmet", subtitle: "Capacidade: 40 pessoas · R$ 150", category: "Reservas", href: "/painel/reservas" },
-  { title: "Carlos Eduardo Silva", subtitle: "Volt & Luz Soluções Elétricas · 4.9 ★", category: "Prestadores", href: "/painel/servicos" },
-  { title: "AquaFix Manutenções", subtitle: "Engenharia Hidráulica · 4.8 ★", category: "Prestadores", href: "/painel/servicos" },
-  { title: "Roberto Marcenaria", subtitle: "Arte em Madeira · 5.0 ★", category: "Prestadores", href: "/painel/servicos" },
+  { title: "Carlos Eduardo Silva", subtitle: "Volt & Luz Soluções Elétricas · 4.9 estrelas", category: "Prestadores", href: "/painel/servicos" },
+  { title: "AquaFix Manutenções", subtitle: "Engenharia Hidráulica · 4.8 estrelas", category: "Prestadores", href: "/painel/servicos" },
+  { title: "Roberto Marcenaria", subtitle: "Arte em Madeira · 5.0 estrelas", category: "Prestadores", href: "/painel/servicos" },
 ];
 
 type NotificationItem = {

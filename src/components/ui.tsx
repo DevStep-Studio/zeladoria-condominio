@@ -332,9 +332,9 @@ export function Drawer({
           <h2 className="text-lg font-bold tracking-tight text-[var(--color-ink)]">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] cursor-pointer"
           >
-            ✕
+            <Icon name="x" size={16} />
           </button>
         </div>
         {children}

@@ -6,6 +6,7 @@ import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Progress, Stat } 
 import { dateTimeBR, percent } from "@/lib/utils";
 import { importResidentsAction } from "@/lib/actions/gestao";
 import { saveCondoSettingsAction, updateOnboardingAction } from "@/lib/actions/admin";
+import { Icon } from "@/components/icon";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,11 @@ export default async function ImplantacaoPage() {
                   >
                     <div className="flex gap-3">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs font-bold ${
                           done ? "bg-[var(--color-success)] text-white" : current ? "bg-[var(--color-primary)] text-[var(--color-ink)]" : "bg-[var(--color-surface-muted)] text-[var(--color-muted)]"
                         }`}
                       >
-                        {done ? "✓" : step.n}
+                        {done ? <Icon name="check" size={13} strokeWidth={2.6} /> : step.n}
                       </span>
                       <div>
                         <p className="font-semibold text-[var(--color-ink)]">{step.title}</p>

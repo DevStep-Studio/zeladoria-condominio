@@ -91,8 +91,8 @@ export function FilterBottomSheet({
             <div className="grid grid-cols-3 gap-2">
               {[
                 { val: 0, label: "Todas" },
-                { val: 4.5, label: "4.5+ ★" },
-                { val: 4.8, label: "4.8+ ★ (Top)" },
+                { val: 4.5, label: "4.5+ estrelas" },
+                { val: 4.8, label: "4.8+ estrelas (Top)" },
               ].map((item) => (
                 <button
                   key={item.val}

@@ -314,7 +314,7 @@ export async function createVerifiedReviewAction(payload: {
     await notify(
       condoId,
       [vendor.userId],
-      `Você recebeu uma nova avaliação ${payload.rating}★!`,
+      `Você recebeu uma nova avaliação: ${payload.rating} estrelas!`,
       `${session.user.name} avaliou o serviço com nota ${payload.rating}/5.`,
       `/prestador/avaliacoes`
     );

@@ -88,14 +88,14 @@ export function ProviderDashboardClient({
               Olá, {vendor.name.split(" ")[0]}
             </h1>
             <span
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[6px] text-[11px] font-bold ${
                 vendor.isOnline
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   : "bg-slate-100 text-slate-600"
               }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
+                className={`h-1.5 w-1.5 rounded-[2px] ${
                   vendor.isOnline ? "bg-emerald-500" : "bg-slate-400"
                 }`}
               />
@@ -161,7 +161,7 @@ export function ProviderDashboardClient({
           </div>
           <div className="text-2xl font-black text-[#0F172A] flex items-center gap-1">
             <span>{vendor.rating ? `${vendor.rating}.0` : "5.0"}</span>
-            <span className="text-xs text-slate-400 font-normal">★</span>
+            <Icon name="star" size={14} className="text-[#FFD000] fill-[#FFD000]" />
           </div>
           <div className="text-[11px] text-slate-500">{completedRequests.length} serviços finalizados</div>
         </div>

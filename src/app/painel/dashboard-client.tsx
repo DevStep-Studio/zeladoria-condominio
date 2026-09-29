@@ -367,7 +367,7 @@ export function DashboardClient({
           <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div className="space-y-1.5 max-w-xl">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                Olá, {userName} 👋
+                Olá, {userName}
               </h1>
 
               <p className="text-xs sm:text-sm text-blue-100 font-medium">
@@ -422,7 +422,7 @@ export function DashboardClient({
                   Relatar problema ou manutenção
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#12162A] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#12162A] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
                 <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
@@ -445,7 +445,7 @@ export function DashboardClient({
                   Reserve áreas comuns
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
                 <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
@@ -468,7 +468,7 @@ export function DashboardClient({
                   Libere um acesso rápido
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
                 <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
@@ -491,7 +491,7 @@ export function DashboardClient({
                   Encontre profissionais
                 </p>
               </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
                 <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
               </div>
             </Link>
@@ -524,7 +524,7 @@ export function DashboardClient({
                       <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
                         {residentStats.myOccurrences}
                       </span>
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
                         em andamento
                       </span>
                     </div>
@@ -535,7 +535,7 @@ export function DashboardClient({
                 ) : (
                   <>
                     <span className="text-base sm:text-lg font-bold text-slate-800">
-                      Tudo certo por aqui 👍
+                      Tudo certo por aqui
                     </span>
                     <p className="text-xs text-slate-500 leading-snug">
                       Nenhum chamado aberto na sua unidade.
@@ -571,7 +571,7 @@ export function DashboardClient({
                       <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 truncate">
                         {upcomingReservations[0].amenityName}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px]">
                         Confirmada
                       </span>
                     </div>
@@ -618,7 +618,7 @@ export function DashboardClient({
                       <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
                         {residentStats.myParcels}
                       </span>
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-[6px]">
                         {residentStats.myParcels === 1 ? "pronta para retirada" : "prontas para retirada"}
                       </span>
                     </div>
@@ -664,7 +664,7 @@ export function DashboardClient({
                 </h3>
               </div>
               {activeAttention.length > 0 && (
-                <span className="rounded-full bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                <span className="rounded-[6px] bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                   {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
                 </span>
               )}
@@ -673,7 +673,7 @@ export function DashboardClient({
             <div className="divide-y divide-slate-100">
               {activeAttention.length === 0 ? (
                 <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-1">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-emerald-50 text-emerald-600 mb-1">
                     <Icon name="check-circle" size={20} />
                   </span>
                   <p className="text-xs font-bold text-slate-800">
@@ -810,18 +810,19 @@ export function DashboardClient({
               {/* Categorias Rápidas */}
               <div className="pt-2 flex items-center gap-2 flex-wrap">
                 {[
-                  { label: "⚡ Elétrica", href: "/painel/servicos?categoria=Eletricista" },
-                  { label: "🚿 Hidráulica", href: "/painel/servicos?categoria=Encanador" },
-                  { label: "❄️ Ar-condicionado", href: "/painel/servicos?categoria=Climatização" },
-                  { label: "🎨 Pintura", href: "/painel/servicos?categoria=Pintura" },
-                  { label: "🔨 Pequenos reparos", href: "/painel/servicos?categoria=Reformas" },
+                  { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
+                  { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
+                  { label: "Ar-condicionado", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
+                  { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
+                  { label: "Pequenos reparos", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
                 ].map((cat) => (
                   <Link
                     key={cat.label}
                     href={cat.href}
-                    className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] px-3 py-1 text-xs font-semibold text-slate-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors"
                   >
-                    {cat.label}
+                    <Icon name={cat.icon} size={13} className="text-slate-500" />
+                    <span>{cat.label}</span>
                   </Link>
                 ))}
               </div>
@@ -858,7 +859,7 @@ export function DashboardClient({
             <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-slate-900">
               Olá, {userName}
             </h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-[#0055D4]">
+            <span className="inline-flex items-center gap-1.5 rounded-[6px] bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-[#0055D4]">
               Gestão do Condomínio
             </span>
           </div>
@@ -1003,7 +1004,7 @@ export function DashboardClient({
 
                 {/* Circular arrow button at bottom-right corner */}
                 <div
-                  className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
+                  className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[8px] bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
                     isYellow ? "text-[#12162A]" : "text-[#0070F3]"
                   }`}
                 >
@@ -1081,7 +1082,7 @@ export function DashboardClient({
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               {isResident ? "Suas Pendências" : "Precisa da sua atenção"}
             </h2>
-            <span className="rounded-full bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+            <span className="rounded-[6px] bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
               {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
             </span>
           </div>
@@ -1115,7 +1116,7 @@ export function DashboardClient({
 
                 <div className="flex items-center gap-2 shrink-0">
                   {item.urgent && (
-                    <span className="rounded-full bg-red-50 px-2 py-0.2 text-[9px] font-bold uppercase text-red-700">
+                    <span className="rounded-[4px] bg-red-50 px-2 py-0.2 text-[9px] font-bold uppercase text-red-700">
                       Alta prioridade
                     </span>
                   )}
@@ -1146,9 +1147,9 @@ export function DashboardClient({
                 onClick={() => setIndicatorTooltip(!indicatorTooltip)}
                 onMouseEnter={() => setIndicatorTooltip(true)}
                 onMouseLeave={() => setIndicatorTooltip(false)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-[6px] bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 transition-colors"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 rounded-[2px] bg-emerald-500" />
                 <span>87% Conformidade</span>
               </button>
               {indicatorTooltip && (
@@ -1379,7 +1380,7 @@ export function DashboardClient({
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 shrink-0">
+                  <span className="rounded-[4px] bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 shrink-0">
                     {item.status}
                   </span>
                 </Link>
@@ -1434,7 +1435,7 @@ export function DashboardClient({
                         {res.date} · {res.time} ({res.unit})
                       </p>
                     </div>
-                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    <span className="rounded-[4px] bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       Confirmada
                     </span>
                   </div>

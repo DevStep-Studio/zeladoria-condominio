@@ -8,8 +8,8 @@ export default function ForbiddenPage() {
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-50 text-amber-600 border border-amber-200/80 shadow-sm">
         <Icon name="shield" size={36} strokeWidth={2.2} />
-        <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-black shadow-xs">
-          ✕
+        <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-[6px] bg-rose-500 text-white shadow-xs">
+          <Icon name="x" size={14} strokeWidth={2.6} />
         </span>
       </div>
 

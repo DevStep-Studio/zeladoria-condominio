@@ -115,7 +115,7 @@ export function StorefrontClient({
                       {vendor.companyName || vendor.name}
                     </h1>
                     {vendor.verified && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 text-[#0055D4] px-2 py-0.5 text-[10px] font-bold">
+                      <span className="inline-flex items-center gap-1 rounded-[4px] bg-blue-50 border border-blue-200 text-[#0055D4] px-2 py-0.5 text-[10px] font-bold">
                         <Icon name="check-circle" size={12} />
                         <span>Verificado</span>
                       </span>
@@ -310,8 +310,9 @@ export function StorefrontClient({
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                       <div className="flex items-center gap-1.5 font-bold text-xs text-[#0F172A]">
                         <span>{rev.authorName}</span>
-                        <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                          ✓ Serviço Verificado
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-[4px]">
+                          <Icon name="check" size={11} strokeWidth={2.4} />
+                          <span>Serviço Verificado</span>
                         </span>
                       </div>
                       <div className="flex items-center gap-0.5">
