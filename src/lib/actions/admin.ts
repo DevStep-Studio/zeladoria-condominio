@@ -34,21 +34,48 @@ export async function saveAssetAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const name = str(formData, "name");
   if (!name) return;
-  const [row] = await db
-    .insert(assets)
-    .values({
-      condoId,
-      name,
-      category: str(formData, "category", "equipamento"),
-      location: str(formData, "location") || null,
-      brand: str(formData, "brand") || null,
-      serial: str(formData, "serial") || null,
-      installedAt: str(formData, "installedAt") || null,
-      status: str(formData, "status", "operacional"),
-      notes: str(formData, "notes") || null,
-    })
-    .returning();
-  await logAudit({ session, condoId, action: "criar", entity: "equipamento", entityId: row.id, summary: `Cadastrou ${name}` });
+  const id = num(formData, "id");
+  if (id) {
+    await db
+      .update(assets)
+      .set({
+        name,
+        category: str(formData, "category", "equipamento"),
+        location: str(formData, "location") || null,
+        brand: str(formData, "brand") || null,
+        serial: str(formData, "serial") || null,
+        installedAt: str(formData, "installedAt") || null,
+        status: str(formData, "status", "operacional"),
+        notes: str(formData, "notes") || null,
+      })
+      .where(and(eq(assets.id, id), eq(assets.condoId, condoId)));
+    await logAudit({ session, condoId, action: "atualizar", entity: "equipamento", entityId: id, summary: `Atualizou ${name}` });
+  } else {
+    const [row] = await db
+      .insert(assets)
+      .values({
+        condoId,
+        name,
+        category: str(formData, "category", "equipamento"),
+        location: str(formData, "location") || null,
+        brand: str(formData, "brand") || null,
+        serial: str(formData, "serial") || null,
+        installedAt: str(formData, "installedAt") || null,
+        status: str(formData, "status", "operacional"),
+        notes: str(formData, "notes") || null,
+      })
+      .returning();
+    await logAudit({ session, condoId, action: "criar", entity: "equipamento", entityId: row.id, summary: `Cadastrou ${name}` });
+  }
+  revalidatePath("/painel/manutencao");
+}
+
+export async function deleteAssetAction(formData: FormData) {
+  const { session, condoId } = await requireRole(ALL_STAFF);
+  const id = num(formData, "id");
+  if (!id) return;
+  await db.delete(assets).where(and(eq(assets.id, id), eq(assets.condoId, condoId)));
+  await logAudit({ session, condoId, action: "excluir", entity: "equipamento", entityId: id, summary: `Excluiu equipamento #${id}` });
   revalidatePath("/painel/manutencao");
 }
 
@@ -57,20 +84,48 @@ export async function savePlanAction(formData: FormData) {
   const title = str(formData, "title");
   if (!title) return;
   const frequency = num(formData, "frequencyDays", 30);
-  const [row] = await db
-    .insert(maintenancePlans)
-    .values({
-      condoId,
-      assetId: num(formData, "assetId") || null,
-      title,
-      frequencyDays: frequency,
-      vendorId: num(formData, "vendorId") || null,
-      responsible: str(formData, "responsible") || null,
-      nextDueAt: str(formData, "nextDueAt") || isoDate(addDays(frequency)),
-      checklist: str(formData, "checklist") ? str(formData, "checklist").split("\n").map((s) => s.trim()).filter(Boolean) : [],
-    })
-    .returning();
-  await logAudit({ session, condoId, action: "criar", entity: "plano_manutencao", entityId: row.id, summary: title });
+  const id = num(formData, "id");
+  const checklist = str(formData, "checklist") ? str(formData, "checklist").split("\n").map((s) => s.trim()).filter(Boolean) : [];
+
+  if (id) {
+    await db
+      .update(maintenancePlans)
+      .set({
+        assetId: num(formData, "assetId") || null,
+        title,
+        frequencyDays: frequency,
+        vendorId: num(formData, "vendorId") || null,
+        responsible: str(formData, "responsible") || null,
+        nextDueAt: str(formData, "nextDueAt") || isoDate(addDays(frequency)),
+        checklist,
+      })
+      .where(and(eq(maintenancePlans.id, id), eq(maintenancePlans.condoId, condoId)));
+    await logAudit({ session, condoId, action: "atualizar", entity: "plano_manutencao", entityId: id, summary: `Atualizou plano ${title}` });
+  } else {
+    const [row] = await db
+      .insert(maintenancePlans)
+      .values({
+        condoId,
+        assetId: num(formData, "assetId") || null,
+        title,
+        frequencyDays: frequency,
+        vendorId: num(formData, "vendorId") || null,
+        responsible: str(formData, "responsible") || null,
+        nextDueAt: str(formData, "nextDueAt") || isoDate(addDays(frequency)),
+        checklist,
+      })
+      .returning();
+    await logAudit({ session, condoId, action: "criar", entity: "plano_manutencao", entityId: row.id, summary: title });
+  }
+  revalidatePath("/painel/manutencao");
+}
+
+export async function deletePlanAction(formData: FormData) {
+  const { session, condoId } = await requireRole(ALL_STAFF);
+  const id = num(formData, "id");
+  if (!id) return;
+  await db.delete(maintenancePlans).where(and(eq(maintenancePlans.id, id), eq(maintenancePlans.condoId, condoId)));
+  await logAudit({ session, condoId, action: "excluir", entity: "plano_manutencao", entityId: id, summary: `Excluiu plano #${id}` });
   revalidatePath("/painel/manutencao");
 }
 
@@ -78,23 +133,84 @@ export async function saveOrderAction(formData: FormData) {
   const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
   const title = str(formData, "title");
   if (!title) return;
-  const [row] = await db
+  const id = num(formData, "id");
+  if (id) {
+    await db
+      .update(maintenanceOrders)
+      .set({
+        assetId: num(formData, "assetId") || null,
+        planId: num(formData, "planId") || null,
+        kind: str(formData, "kind", "corretiva"),
+        title,
+        description: str(formData, "description") || null,
+        scheduledFor: str(formData, "scheduledFor") || isoDate(),
+        status: str(formData, "status", "programada"),
+        vendorId: num(formData, "vendorId") || null,
+        technician: str(formData, "technician") || null,
+        costCents: cents(formData, "cost"),
+      })
+      .where(and(eq(maintenanceOrders.id, id), eq(maintenanceOrders.condoId, condoId)));
+    await logAudit({ session, condoId, action: "atualizar", entity: "ordem_manutencao", entityId: id, summary: `Atualizou OS ${title}` });
+  } else {
+    const [row] = await db
+      .insert(maintenanceOrders)
+      .values({
+        condoId,
+        assetId: num(formData, "assetId") || null,
+        planId: num(formData, "planId") || null,
+        kind: str(formData, "kind", "corretiva"),
+        title,
+        description: str(formData, "description") || null,
+        scheduledFor: str(formData, "scheduledFor") || isoDate(),
+        status: str(formData, "status", "programada"),
+        vendorId: num(formData, "vendorId") || null,
+        technician: str(formData, "technician") || null,
+        costCents: cents(formData, "cost"),
+      })
+      .returning();
+    await logAudit({ session, condoId, action: "criar", entity: "ordem_manutencao", entityId: row.id, summary: title });
+  }
+  revalidatePath("/painel/manutencao");
+}
+
+export async function updateOrderStatusAction(formData: FormData) {
+  const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
+  const id = num(formData, "id");
+  const newStatus = str(formData, "status", "em_andamento");
+  if (!id) return;
+  await db
+    .update(maintenanceOrders)
+    .set({ status: newStatus })
+    .where(and(eq(maintenanceOrders.id, id), eq(maintenanceOrders.condoId, condoId)));
+  await logAudit({ session, condoId, action: "atualizar", entity: "ordem_manutencao", entityId: id, summary: `Alterou status para ${newStatus}` });
+  revalidatePath("/painel/manutencao");
+}
+
+export async function generateOrderFromPlanAction(formData: FormData) {
+  const { session, condoId } = await requireRole(ALL_STAFF);
+  const planId = num(formData, "planId");
+  if (!planId) return;
+  const [plan] = await db.select().from(maintenancePlans).where(and(eq(maintenancePlans.id, planId), eq(maintenancePlans.condoId, condoId))).limit(1);
+  if (!plan) return;
+
+  const [order] = await db
     .insert(maintenanceOrders)
     .values({
       condoId,
-      assetId: num(formData, "assetId") || null,
-      planId: num(formData, "planId") || null,
-      kind: str(formData, "kind", "corretiva"),
-      title,
-      description: str(formData, "description") || null,
-      scheduledFor: str(formData, "scheduledFor") || isoDate(),
+      assetId: plan.assetId,
+      planId: plan.id,
+      kind: "preventiva",
+      title: `Manutenção Preventiva: ${plan.title}`,
+      description: plan.checklist && plan.checklist.length > 0 ? `Checklist:\n- ${plan.checklist.join("\n- ")}` : "Execução periódica de rotina preventiva.",
+      scheduledFor: plan.nextDueAt || isoDate(),
       status: "programada",
-      vendorId: num(formData, "vendorId") || null,
-      technician: str(formData, "technician") || null,
-      costCents: cents(formData, "cost"),
+      vendorId: plan.vendorId,
+      technician: plan.responsible || null,
+      costCents: 0,
     })
     .returning();
-  await logAudit({ session, condoId, action: "criar", entity: "ordem_manutencao", entityId: row.id, summary: title });
+
+  await logAudit({ session, condoId, action: "criar", entity: "ordem_manutencao", entityId: order.id, summary: `Gerou OS do plano #${plan.id}` });
   revalidatePath("/painel/manutencao");
 }
 
@@ -103,9 +219,15 @@ export async function completeOrderAction(formData: FormData) {
   const id = num(formData, "id");
   const [order] = await db.select().from(maintenanceOrders).where(eq(maintenanceOrders.id, id)).limit(1);
   if (!order || order.condoId !== condoId) return;
+  const cost = cents(formData, "cost");
   await db
     .update(maintenanceOrders)
-    .set({ status: "concluida", completedAt: isoDate(), report: str(formData, "report") || null })
+    .set({
+      status: "concluida",
+      completedAt: isoDate(),
+      report: str(formData, "report") || null,
+      costCents: cost > 0 ? cost : order.costCents,
+    })
     .where(eq(maintenanceOrders.id, id));
   if (order.planId) {
     const [plan] = await db.select().from(maintenancePlans).where(eq(maintenancePlans.id, order.planId)).limit(1);
@@ -117,6 +239,15 @@ export async function completeOrderAction(formData: FormData) {
     }
   }
   await logAudit({ session, condoId, action: "concluir", entity: "ordem_manutencao", entityId: id, summary: `Concluiu ${order.title}` });
+  revalidatePath("/painel/manutencao");
+}
+
+export async function deleteOrderAction(formData: FormData) {
+  const { session, condoId } = await requireRole(ALL_STAFF);
+  const id = num(formData, "id");
+  if (!id) return;
+  await db.delete(maintenanceOrders).where(and(eq(maintenanceOrders.id, id), eq(maintenanceOrders.condoId, condoId)));
+  await logAudit({ session, condoId, action: "excluir", entity: "ordem_manutencao", entityId: id, summary: `Excluiu OS #${id}` });
   revalidatePath("/painel/manutencao");
 }
 
