@@ -25,9 +25,9 @@ type AssemblyRow = {
   title: string;
   kind: string;
   mode: string;
-  noticeAt: Date | null;
-  firstCallAt: Date;
-  secondCallAt: Date | null;
+  noticeAt: Date | string | null;
+  firstCallAt: Date | string;
+  secondCallAt: Date | string | null;
   startTime: string | null;
   endTime: string | null;
   location: string | null;
@@ -43,11 +43,11 @@ type AssemblyRow = {
   targetBlockId: number | null;
   targetUnitId: number | null;
   responsibleName: string | null;
-  confirmationDeadline: Date | null;
+  confirmationDeadline: Date | string | null;
   remindersConfig: string[] | null;
   attachments: { name: string; url: string; sizeKb?: number }[] | null;
   noticeDocumentUrl: string | null;
-  createdAt: Date;
+  createdAt: Date | string;
 };
 
 type AgendaItem = {
@@ -77,7 +77,7 @@ type AttendanceItem = {
   proxyDoc: string | null;
   proxyName: string | null;
   proxyCpf: string | null;
-  checkinAt: Date | null;
+  checkinAt: Date | string | null;
 };
 
 type MinutesItem = {
@@ -93,7 +93,7 @@ type MinutesItem = {
   summary: string | null;
   aiSuggestedSummary: string | null;
   summaryStatus: string;
-  publishedAt: Date | null;
+  publishedAt: Date | string | null;
 };
 
 type MinuteVersionItem = {
@@ -104,7 +104,7 @@ type MinuteVersionItem = {
   fileName: string | null;
   summary: string | null;
   changeReason: string | null;
-  createdAt: Date;
+  createdAt: Date | string;
 };
 
 type UnitOption = { id: number; label: string };
@@ -489,7 +489,7 @@ export function AssembliesClientView({
                   <Badge tone={a.status === "cancelada" ? "red" : a.status === "ata_publicada" ? "green" : "purple"}>
                     {a.status.replace("_", " ")}
                   </Badge>
-                  <span className="text-xs font-bold text-[var(--color-primary-dark)]">{dateBR(a.firstCallAt.toISOString().split("T")[0])}</span>
+                  <span className="text-xs font-bold text-[var(--color-primary-dark)]">{dateBR(a.firstCallAt)}</span>
                 </div>
                 <h4 className="font-bold text-[var(--color-ink)]">{a.title}</h4>
                 <p className="text-xs text-[var(--color-muted)]">{a.kind} · {a.mode} · {a.location || "Online"}</p>
@@ -738,7 +738,7 @@ export function AssembliesClientView({
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                         <div className="text-xs text-[var(--color-muted)]">
                           Documento: <strong className="text-[var(--color-ink)]">{minutes.fileName || "ata.pdf"}</strong> · Tamanho: {minutes.fileSizeKb || 320} KB
-                          {minutes.publishedAt ? ` · Publicado em ${dateBR(minutes.publishedAt.toISOString().split("T")[0])}` : ""}
+                          {minutes.publishedAt ? ` · Publicado em ${dateBR(minutes.publishedAt)}` : ""}
                         </div>
                         <a
                           href={`/api/assemblies/${a.id}/minutes/download`}
@@ -916,11 +916,34 @@ export function AssembliesClientView({
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
               <span className="label">Data e Hora 1ª Convocação *</span>
-              <input type="datetime-local" name="firstCallAt" className="input" required />
+              <input
+                type="datetime-local"
+                name="firstCallAt"
+                defaultValue={
+                  editingAssembly?.firstCallAt
+                    ? typeof editingAssembly.firstCallAt === "string"
+                      ? editingAssembly.firstCallAt.slice(0, 16)
+                      : new Date(editingAssembly.firstCallAt).toISOString().slice(0, 16)
+                    : ""
+                }
+                className="input"
+                required
+              />
             </label>
             <label className="block">
               <span className="label">2ª Convocação</span>
-              <input type="datetime-local" name="secondCallAt" className="input" />
+              <input
+                type="datetime-local"
+                name="secondCallAt"
+                defaultValue={
+                  editingAssembly?.secondCallAt
+                    ? typeof editingAssembly.secondCallAt === "string"
+                      ? editingAssembly.secondCallAt.slice(0, 16)
+                      : new Date(editingAssembly.secondCallAt).toISOString().slice(0, 16)
+                    : ""
+                }
+                className="input"
+              />
             </label>
           </div>
 
@@ -977,7 +1000,21 @@ export function AssembliesClientView({
 
           <label className="block">
             <span className="label">Itens de Pauta (um por linha)</span>
-            <textarea name="agenda" rows={4} className="input" placeholder="1. Aprovação de contas 2025&#10;2. Previsão orçamentária 2026&#10;3. Obras da fachada" required />
+            <textarea
+              name="agenda"
+              rows={4}
+              defaultValue={
+                editingAssembly
+                  ? agendaItems
+                      .filter((i) => i.assemblyId === editingAssembly.id)
+                      .map((i) => i.title)
+                      .join("\n")
+                  : ""
+              }
+              className="input"
+              placeholder="1. Aprovação de contas 2025&#10;2. Previsão orçamentária 2026&#10;3. Obras da fachada"
+              required
+            />
           </label>
 
           <div className="flex items-center gap-3 pt-3">

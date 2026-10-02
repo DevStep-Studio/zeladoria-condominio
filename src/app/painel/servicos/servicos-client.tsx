@@ -85,13 +85,30 @@ export function ServicosClient({
   const [selectedProfileVendor, setSelectedProfileVendor] = useState<MarketplaceProvider | null>(null);
   const [budgetVendor, setBudgetVendor] = useState<MarketplaceProvider | null>(null);
   const [budgetInitialService, setBudgetInitialService] = useState<ServiceOffering | undefined>(undefined);
+  const [isGeneralBudgetOpen, setIsGeneralBudgetOpen] = useState(false);
 
   // Auto-open budget if ?solicitar=true in URL
   useEffect(() => {
-    if (searchParams.get("solicitar") === "true" && providers.length > 0) {
-      setBudgetVendor(providers[0]);
+    if (searchParams.get("solicitar") === "true") {
+      setIsGeneralBudgetOpen(true);
+      if (providers.length > 0 && !budgetVendor) {
+        setBudgetVendor(providers[0]);
+      }
     }
   }, [searchParams, providers]);
+
+  const handleCloseBudget = () => {
+    setIsGeneralBudgetOpen(false);
+    setBudgetVendor(null);
+    setBudgetInitialService(undefined);
+    if (searchParams.get("solicitar") === "true") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("solicitar");
+      const queryStr = params.toString();
+      const newPath = queryStr ? `/painel/servicos?${queryStr}` : `/painel/servicos`;
+      window.history.replaceState(null, "", newPath);
+    }
+  };
 
   // Autocomplete state
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -333,7 +350,10 @@ export function ServicosClient({
             </h2>
             <button
               type="button"
-              onClick={() => setActiveView("marketplace")}
+              onClick={() => {
+                setIsGeneralBudgetOpen(true);
+                setBudgetVendor(providers.length > 0 ? providers[0] : null);
+              }}
               className="text-xs font-bold text-[#0055D4] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>+ Solicitar novo serviço</span>
@@ -985,17 +1005,14 @@ export function ServicosClient({
       )}
 
       {/* Service Request Wizard */}
-      {budgetVendor && (
+      {(isGeneralBudgetOpen || budgetVendor) && (
         <ServiceRequestWizard
           provider={budgetVendor}
+          availableProviders={providers}
           initialService={budgetInitialService}
-          onClose={() => {
-            setBudgetVendor(null);
-            setBudgetInitialService(undefined);
-          }}
+          onClose={handleCloseBudget}
           onSuccess={() => {
-            setBudgetVendor(null);
-            setBudgetInitialService(undefined);
+            handleCloseBudget();
             setActiveView("contratacoes");
           }}
         />

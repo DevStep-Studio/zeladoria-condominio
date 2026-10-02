@@ -11,6 +11,7 @@ import {
   units,
 } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
+import { ensureSeed } from "@/db/seed";
 import { PageHeader } from "@/components/ui";
 import { unitOptions } from "@/lib/queries";
 import { PrintButton } from "@/components/client-bits";
@@ -19,6 +20,7 @@ import { AssembliesClientView } from "@/components/assembly-client";
 export const dynamic = "force-dynamic";
 
 export default async function AssembleiasPage() {
+  await ensureSeed();
   const { session, condoId } = await requireCondo();
 
   // Buscar assembleias do condomínio

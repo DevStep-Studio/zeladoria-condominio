@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -162,6 +162,33 @@ export function Shell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [condoDropdownOpen, setCondoDropdownOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [isSwitchingCondo, startSwitchTransition] = useTransition();
+  const [switchingCondoId, setSwitchingCondoId] = useState<number | null>(null);
+
+  const condoRef = useRef<HTMLDivElement>(null);
+  const profileContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCondoSwitch = (targetCondoId: number) => {
+    if (targetCondoId === activeCondoId) {
+      setCondoDropdownOpen(false);
+      setProfileMenuOpen(false);
+      return;
+    }
+    setSwitchingCondoId(targetCondoId);
+    startSwitchTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("condoId", String(targetCondoId));
+        await switchAction(formData);
+      } catch (err) {
+        console.error("Erro ao alternar condomínio:", err);
+      } finally {
+        setCondoDropdownOpen(false);
+        setProfileMenuOpen(false);
+        setSwitchingCondoId(null);
+      }
+    });
+  };
 
   // Global Search state with debounce
   const [searchQuery, setSearchQuery] = useState("");
@@ -188,11 +215,18 @@ export function Shell({
   // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (searchRef.current && !searchRef.current.contains(target)) {
         setSearchFocused(false);
       }
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      if (notifRef.current && !notifRef.current.contains(target)) {
         setNotificationsOpen(false);
+      }
+      if (condoRef.current && !condoRef.current.contains(target)) {
+        setCondoDropdownOpen(false);
+      }
+      if (profileContainerRef.current && !profileContainerRef.current.contains(target)) {
+        setProfileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -367,7 +401,7 @@ export function Shell({
       {/* Bottom Section: User Profile Footer */}
       <div className="p-2.5 pt-2 space-y-1 border-t border-slate-200/80 bg-white">
         {/* User Profile Bar */}
-        <div className="relative">
+        <div ref={profileContainerRef} className="relative">
           <button
             type="button"
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
@@ -414,25 +448,31 @@ export function Shell({
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Trocar Condomínio
                     </span>
-                    <div className="mt-1 space-y-1">
-                      {condos.map((c) => (
-                        <form key={c.id} action={switchAction}>
-                          <input type="hidden" name="condoId" value={c.id} />
+                    <div className="mt-1 space-y-0.5">
+                      {condos.map((c) => {
+                        const isActive = c.id === activeCondoId;
+                        const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
+                        return (
                           <button
-                            type="submit"
-                            className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between ${
-                              c.id === activeCondoId
+                            key={c.id}
+                            type="button"
+                            disabled={isSwitchingCondo}
+                            onClick={() => handleCondoSwitch(c.id)}
+                            className={`w-full text-left rounded-[6px] px-2 py-1.5 text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                              isActive
                                 ? "bg-blue-50 font-bold text-[#0055D4]"
-                                : "text-slate-600 hover:bg-slate-50"
+                                : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
                             <span className="truncate">{c.name}</span>
-                            {c.id === activeCondoId && (
+                            {isSwitchingThis ? (
+                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
+                            ) : isActive ? (
                               <Icon name="check" size={12} className="text-[#0055D4]" />
-                            )}
+                            ) : null}
                           </button>
-                        </form>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -530,42 +570,67 @@ export function Shell({
             </div>
 
             {/* Condo Selector Dropdown */}
-            <div className="relative">
+            <div ref={condoRef} className="relative">
               <button
                 type="button"
-                onClick={() => setCondoDropdownOpen(!condoDropdownOpen)}
-                className="group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300"
+                onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
+                disabled={isSwitchingCondo}
+                className={`group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
+                  condos.length > 1 ? "cursor-pointer" : "cursor-default"
+                }`}
+                title={condos.length > 1 ? "Trocar condomínio" : condoName}
               >
                 <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#0055D4]">
-                  <Icon name="building" size={12} strokeWidth={2} />
+                  {isSwitchingCondo ? (
+                    <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
+                  ) : (
+                    <Icon name="building" size={12} strokeWidth={2} />
+                  )}
                 </span>
                 <span className="truncate max-w-[170px] sm:max-w-[240px]">
                   {condoName || "Residencial Parque das Águas"}
                 </span>
-                <Icon name="chevron-down" size={11} className="text-slate-400 group-hover:text-slate-600 transition-transform" />
+                {condos.length > 1 && (
+                  <Icon
+                    name="chevron-down"
+                    size={11}
+                    className={`text-slate-400 group-hover:text-slate-600 transition-transform ${
+                      condoDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
               </button>
 
               {condoDropdownOpen && (
-                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5">
+                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5 animate-in fade-in-50 duration-100">
                   <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Selecione o Condomínio
                   </div>
                   <div className="space-y-0.5 mt-1">
-                    {condos.map((c) => (
-                      <form key={c.id} action={switchAction}>
-                        <input type="hidden" name="condoId" value={c.id} />
+                    {condos.map((c) => {
+                      const isActive = c.id === activeCondoId;
+                      const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
+                      return (
                         <button
-                          type="submit"
-                          onClick={() => setCondoDropdownOpen(false)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors ${
-                            c.id === activeCondoId ? "font-bold text-[#0055D4] bg-blue-50" : "text-slate-700 hover:bg-slate-50"
+                          key={c.id}
+                          type="button"
+                          disabled={isSwitchingCondo}
+                          onClick={() => handleCondoSwitch(c.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors cursor-pointer ${
+                            isActive
+                              ? "font-bold text-[#0055D4] bg-blue-50"
+                              : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                           }`}
                         >
                           <span className="truncate">{c.name}</span>
-                          {c.id === activeCondoId && <Icon name="check" size={13} className="text-[#0055D4]" />}
+                          {isSwitchingThis ? (
+                            <Icon name="refresh" size={13} className="animate-spin text-[#0055D4]" />
+                          ) : isActive ? (
+                            <Icon name="check" size={13} className="text-[#0055D4]" />
+                          ) : null}
                         </button>
-                      </form>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -6,14 +6,28 @@ export function money(cents: number | null | undefined) {
 
 export function dateBR(value: Date | string | null | undefined) {
   if (!value) return "—";
-  const d = typeof value === "string" ? new Date(`${value}T12:00:00`) : value;
+  let d: Date;
+  if (value instanceof Date) {
+    d = value;
+  } else if (typeof value === "string") {
+    d = value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`);
+  } else {
+    d = new Date(value as any);
+  }
   if (Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString("pt-BR");
 }
 
 export function dateTimeBR(value: Date | string | null | undefined) {
   if (!value) return "—";
-  const d = typeof value === "string" ? new Date(value) : value;
+  let d: Date;
+  if (value instanceof Date) {
+    d = value;
+  } else if (typeof value === "string") {
+    d = new Date(value);
+  } else {
+    d = new Date(value as any);
+  }
   if (Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
@@ -66,12 +80,30 @@ export function str(form: FormData, key: string, fallback = "") {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : fallback;
 }
 
-export function num(form: FormData, key: string, fallback = 0) {
-  const value = Number(String(form.get(key) ?? "").replace(",", "."));
+export function num(form: FormData | string | number, key?: string, fallback = 0) {
+  let raw: any;
+  if (form instanceof FormData && key) {
+    raw = form.get(key);
+  } else {
+    raw = form;
+  }
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : fallback;
+  if (!raw) return fallback;
+  // Handles Brazilian currency strings: "R$ 1.500,50" or "1500,00" or "1500.00"
+  const strVal = String(raw).replace(/[R$\s]/g, "").trim();
+  let cleaned = strVal;
+  if (strVal.includes(",") && strVal.includes(".")) {
+    // 1.500,50 format
+    cleaned = strVal.replace(/\./g, "").replace(",", ".");
+  } else if (strVal.includes(",")) {
+    // 1500,50 format
+    cleaned = strVal.replace(",", ".");
+  }
+  const value = Number(cleaned);
   return Number.isFinite(value) ? value : fallback;
 }
 
-export function cents(form: FormData, key: string) {
+export function cents(form: FormData | string | number, key?: string) {
   return Math.round(num(form, key) * 100);
 }
 

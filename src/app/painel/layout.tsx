@@ -31,11 +31,16 @@ export default async function PainelLayout({ children }: { children: ReactNode }
   const mobileNav = getMobileNavItems(session.role);
   const activeMembership = session.memberships.find((m) => m.condoId === condoId);
 
+  // Deduplicate condos to ensure unique items in switcher
+  const uniqueCondos = Array.from(
+    new Map(session.memberships.map((m) => [m.condoId, { id: m.condoId, name: m.condoName }])).values()
+  );
+
   return (
     <Shell
       navigationGroups={navigationGroups}
       mobileNav={mobileNav}
-      condos={session.memberships.map((m) => ({ id: m.condoId, name: m.condoName }))}
+      condos={uniqueCondos}
       activeCondoId={condoId}
       userName={session.user.name}
       roleLabel={ROLE_LABEL[session.role]}

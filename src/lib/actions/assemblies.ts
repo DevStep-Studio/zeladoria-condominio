@@ -18,7 +18,7 @@ import {
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { suggestMinutesSummary, summarize } from "@/lib/ai";
-import { maybeDate, num, str } from "@/lib/utils";
+import { dateBR, maybeDate, num, str } from "@/lib/utils";
 
 const ADMIN_ROLES = ["superadmin", "sindico"] as const;
 
@@ -140,17 +140,17 @@ export async function notifyAssemblyAction(formData: FormData) {
   if (userIds.length === 0) return;
 
   let title = `Convocação de Assembleia: ${assembly.title}`;
-  let body = `Data: ${assembly.firstCallAt.toLocaleDateString("pt-BR")} ${assembly.startTime ?? ""}. Local/Link: ${assembly.location || assembly.onlineLink || "A definir"}. Consulte os documentos e confirme sua presença.`;
+  let body = `Data: ${dateBR(assembly.firstCallAt)} ${assembly.startTime ?? ""}. Local/Link: ${assembly.location || assembly.onlineLink || "A definir"}. Consulte os documentos e confirme sua presença.`;
 
   if (triggerEvent === "alteracao_data_horario") {
     title = `Alteração de Data/Horário: ${assembly.title}`;
-    body = `A assembleia teve seu horário alterado para ${assembly.firstCallAt.toLocaleDateString("pt-BR")} ${assembly.startTime ?? ""}.`;
+    body = `A assembleia teve seu horário alterado para ${dateBR(assembly.firstCallAt)} ${assembly.startTime ?? ""}.`;
   } else if (triggerEvent === "alteracao_local") {
     title = `Alteração de Local: ${assembly.title}`;
     body = `O local/link da assembleia foi alterado para: ${assembly.location || assembly.onlineLink || "Consulte no painel"}.`;
   } else if (triggerEvent === "cancelamento") {
     title = `Assembleia Cancelada: ${assembly.title}`;
-    body = `A assembleia agendada para ${assembly.firstCallAt.toLocaleDateString("pt-BR")} foi cancelada.`;
+    body = `A assembleia agendada para ${dateBR(assembly.firstCallAt)} foi cancelada.`;
   } else if (triggerEvent === "publicacao_ata") {
     title = `Ata Publicada: ${assembly.title}`;
     body = `A ata oficial e o resumo da assembleia já estão disponíveis para consulta e download no sistema.`;
@@ -159,7 +159,7 @@ export async function notifyAssemblyAction(formData: FormData) {
     body = `Uma nova versão da ata da assembleia foi publicada. Consulte o histórico de documentos.`;
   } else if (triggerEvent.startsWith("lembrete")) {
     title = `Lembrete de Assembleia: ${assembly.title}`;
-    body = `A assembleia será realizada em breve (${assembly.firstCallAt.toLocaleDateString("pt-BR")} às ${assembly.startTime || "horário previsto"}). Confirme sua presença.`;
+    body = `A assembleia será realizada em breve (${dateBR(assembly.firstCallAt)} às ${assembly.startTime || "horário previsto"}). Confirme sua presença.`;
   }
 
   await notify(condoId, userIds, title, body, "/painel/assembleias");
@@ -583,7 +583,7 @@ export async function cancelAssemblyAction(formData: FormData) {
   await db.update(assemblies).set({ status: "cancelada", updatedAt: new Date() }).where(eq(assemblies.id, assemblyId));
 
   const userIds = await getAudienceUserIds(condoId, assembly.audienceScope, assembly.targetBlockId, assembly.targetUnitId);
-  await notify(condoId, userIds, `Assembleia Cancelada: ${assembly.title}`, `A assembleia agendada para ${assembly.firstCallAt.toLocaleDateString("pt-BR")} foi cancelada.`, "/painel/assembleias");
+  await notify(condoId, userIds, `Assembleia Cancelada: ${assembly.title}`, `A assembleia agendada para ${dateBR(assembly.firstCallAt)} foi cancelada.`, "/painel/assembleias");
 
   await logAudit({ session, condoId, action: "cancelar", entity: "assembleia", entityId: assemblyId, summary: `Cancelou assembleia "${assembly.title}"`, critical: true });
   revalidatePath("/painel/assembleias");

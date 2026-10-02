@@ -45,8 +45,14 @@ import {
   visitors,
   visits,
 } from "@/db/schema";
-import { hashPassword } from "@/lib/auth";
+import { randomBytes, scryptSync } from "node:crypto";
 import { isoDate, pickupCode, sequence, token } from "@/lib/utils";
+
+function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 32).toString("hex");
+  return `${salt}:${hash}`;
+}
 
 let seeding: Promise<void> | null = null;
 
@@ -578,11 +584,193 @@ async function seed() {
   const vendorRows = await db
     .insert(vendors)
     .values([
-      { condoId: condoA.id, name: "Elevatec Manutenção", cnpj: "22.334.556/0001-77", category: "elevadores", contactName: "Sandro Melo", phone: "(41) 3333-1122", email: "contato@elevatec.com.br", rating: 5 },
-      { condoId: condoA.id, name: "Hidrotec Serviços", cnpj: "33.221.998/0001-45", category: "hidraulica", contactName: "Márcia Reis", phone: "(41) 3222-8899", email: "atendimento@hidrotec.com.br", rating: 4 },
-      { condoId: condoA.id, name: "Portec Automatizadores", cnpj: "44.110.223/0001-12", category: "portoes", contactName: "Everton Luz", phone: "(41) 3555-4433", rating: 3 },
-      { condoId: condoA.id, name: "SegFire Extintores", cnpj: "55.998.112/0001-31", category: "seguranca", contactName: "Paula Nunes", phone: "(41) 3666-7788", rating: 5 },
-      { condoId: condoA.id, name: "Verde Vivo Jardinagem", cnpj: "66.223.114/0001-08", category: "jardinagem", contactName: "Ricardo Gomes", phone: "(41) 3777-2211", rating: 4 },
+      {
+        condoId: condoA.id,
+        name: "Carlos Eduardo Silva",
+        companyName: "Volt & Luz Soluções Elétricas",
+        cnpj: "11.222.333/0001-99",
+        category: "eletrica",
+        contactName: "Carlos Eduardo Silva",
+        phone: "(41) 99111-2233",
+        whatsapp: "(41) 99111-2233",
+        email: "carlos@voltluz.com.br",
+        rating: 5,
+        active: true,
+        verified: true,
+        sponsored: true,
+        isOnline: true,
+        availableNow: true,
+        serviceArea: "Curitiba e Região",
+        description: "Especialista em instalações elétricas residenciais, chuveiros, disjuntores, luminárias e quadros de força.",
+        priceFromCents: 8000,
+        services: [
+          { id: "elt-1", name: "Troca de Chuveiro / Resistência", description: "Instalação e teste de fiação e aterramento", priceFromCents: 8000 },
+          { id: "elt-2", name: "Substituição de Disjuntor / Quadro", description: "Troca e balanceamento de carga do quadro de força", priceFromCents: 14000 },
+          { id: "elt-3", name: "Instalação de Tomadas e Interruptores", description: "Novos pontos ou substituição estética", priceFromCents: 5000 },
+          { id: "elt-4", name: "Instalação de Luminárias / Fitas LED", description: "Iluminação decorativa e spots embutidos", priceFromCents: 9000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "AquaFix Manutenções",
+        companyName: "Hidrotec Serviços & Desentupimentos",
+        cnpj: "33.221.998/0001-45",
+        category: "hidraulica",
+        contactName: "Márcia Reis",
+        phone: "(41) 3222-8899",
+        whatsapp: "(41) 99222-8899",
+        email: "atendimento@hidrotec.com.br",
+        rating: 5,
+        active: true,
+        verified: true,
+        isOnline: true,
+        availableNow: true,
+        serviceArea: "Curitiba e Região",
+        description: "Equipe técnica especializada em caça-vazamentos, registros, válvulas Hydra e desentupimentos rápidos.",
+        priceFromCents: 9000,
+        services: [
+          { id: "hid-1", name: "Conserto de Vazamento ou Registro", description: "Reparo de tubulações, sifões, torneiras e registros", priceFromCents: 12000 },
+          { id: "hid-2", name: "Troca de Válvula de Descarga / Caixa", description: "Regulagem ou substituição completa", priceFromCents: 15000 },
+          { id: "hid-3", name: "Desentupimento de Pia ou Ralo", description: "Desobstrução rápida com equipamento profissional", priceFromCents: 9000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "ClimaMax Refrigeração",
+        companyName: "ClimaMax Ar-Condicionado",
+        cnpj: "77.888.999/0001-22",
+        category: "climatizacao",
+        contactName: "Fabio Mendes",
+        phone: "(41) 99333-4455",
+        whatsapp: "(41) 99333-4455",
+        email: "contato@climamax.com.br",
+        rating: 5,
+        active: true,
+        verified: true,
+        isOnline: true,
+        availableNow: true,
+        serviceArea: "Curitiba",
+        description: "Instalação, limpeza química e manutenção de ar-condicionado Split e Inverter.",
+        priceFromCents: 18000,
+        services: [
+          { id: "cli-1", name: "Higienização e Limpeza Completa", description: "Limpeza de filtros, turbina e aplicação de bactericida", priceFromCents: 18000 },
+          { id: "cli-2", name: "Instalação de Ar Split 9000 a 18000 BTUs", description: "Tubulação de cobre, teste de vácuo e suporte", priceFromCents: 45000 },
+          { id: "cli-3", name: "Carga de Gás e Verificação de Vazamento", description: "Recarga de fluido refrigerante R410A / R32", priceFromCents: 22000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "Roberto Marcenaria Fina",
+        companyName: "Arte em Madeira Curitiba",
+        cnpj: "88.999.000/0001-33",
+        category: "marcenaria",
+        contactName: "Roberto Marcenaria",
+        phone: "(41) 99444-5566",
+        rating: 5,
+        active: true,
+        verified: true,
+        isOnline: true,
+        serviceArea: "Curitiba",
+        description: "Reparos em móveis planejados, regulagem de portas e gavetas, troca de dobradiças e corrediças.",
+        priceFromCents: 10000,
+        services: [
+          { id: "mar-1", name: "Ajuste e Regulagem de Portas / Dobradiças", description: "Alinhamento de portas e troca de pistões a gás", priceFromCents: 10000 },
+          { id: "mar-2", name: "Troca de Corrediças Telescópicas", description: "Substituição para fechamento suave (soft-close)", priceFromCents: 12000 },
+          { id: "mar-3", name: "Montagem e Desmontagem de Móveis", description: "Montagem profissional com fixação segura", priceFromCents: 15000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "Elevatec Manutenção",
+        companyName: "Elevatec Manutenção Ltda",
+        cnpj: "22.334.556/0001-77",
+        category: "elevadores",
+        contactName: "Sandro Melo",
+        phone: "(41) 3333-1122",
+        email: "contato@elevatec.com.br",
+        rating: 5,
+        active: true,
+        services: [
+          { id: "elv-1", name: "Manutenção Preventiva de Elevador", description: "Inspeção mensal e lubrificação", priceFromCents: 45000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "Portec Automatizadores",
+        companyName: "Portec Segurança Eletrônica",
+        cnpj: "44.110.223/0001-12",
+        category: "portoes",
+        contactName: "Everton Luz",
+        phone: "(41) 3555-4433",
+        rating: 4,
+        active: true,
+        services: [
+          { id: "por-1", name: "Manutenção de Motor de Portão", description: "Troca de placa e alinhamento de cremalheira", priceFromCents: 16000 },
+        ],
+      },
+      {
+        condoId: condoA.id,
+        name: "SegFire Extintores & Segurança",
+        cnpj: "55.998.112/0001-31",
+        category: "seguranca",
+        contactName: "Paula Nunes",
+        phone: "(41) 3666-7788",
+        rating: 5,
+        active: true,
+      },
+      {
+        condoId: condoA.id,
+        name: "Verde Vivo Jardinagem",
+        cnpj: "66.223.114/0001-08",
+        category: "jardinagem",
+        contactName: "Ricardo Gomes",
+        phone: "(41) 3777-2211",
+        rating: 4,
+        active: true,
+      },
+      // VENDORS PARA CONDO B (Edifício Vista Marina)
+      {
+        condoId: condoB.id,
+        name: "EletroMarina Reparos",
+        companyName: "EletroMarina Serviços Floripa",
+        category: "eletrica",
+        contactName: "Juliano Costa",
+        phone: "(48) 99888-7711",
+        whatsapp: "(48) 99888-7711",
+        rating: 5,
+        active: true,
+        verified: true,
+        isOnline: true,
+        availableNow: true,
+        serviceArea: "Florianópolis",
+        description: "Serviços elétricos em geral, automação, iluminação e manutenções residenciais.",
+        priceFromCents: 8500,
+        services: [
+          { id: "mb-1", name: "Troca de Chuveiro e Disjuntor", description: "Instalação elétrica segura", priceFromCents: 8500 },
+          { id: "mb-2", name: "Instalação de Tomadas e Spots", description: "Pontos novos ou substituição", priceFromCents: 6000 },
+        ],
+      },
+      {
+        condoId: condoB.id,
+        name: "IlhaFix Hidráulica",
+        companyName: "IlhaFix Manutenções",
+        category: "hidraulica",
+        contactName: "Tiago Ramos",
+        phone: "(48) 99777-6622",
+        whatsapp: "(48) 99777-6622",
+        rating: 5,
+        active: true,
+        verified: true,
+        isOnline: true,
+        availableNow: true,
+        serviceArea: "Florianópolis",
+        description: "Vazamentos, torneiras, registros, bombas e desentupimentos.",
+        priceFromCents: 10000,
+        services: [
+          { id: "ih-1", name: "Reparo de Vazamento e Registros", description: "Conserto rápido sem quebra-quebra", priceFromCents: 12000 },
+          { id: "ih-2", name: "Desentupimento de Pias e Ralos", description: "Desobstrução imediata", priceFromCents: 10000 },
+        ],
+      },
     ])
     .returning();
 
@@ -756,12 +944,21 @@ async function seed() {
     ])
     .returning();
 
+  const [assembly3] = await db
+    .insert(assemblies)
+    .values([
+      { condoId: condoB.id, title: "Assembleia de Eleição de Síndico e Conselho 2026", kind: "ordinaria", mode: "hibrida", noticeAt: at(-20, 9), firstCallAt: at(6, 19), secondCallAt: at(6, 19, 30), startTime: "19:30", endTime: "21:30", location: "Auditório Central", onlineLink: "https://meet.exemplo/age-marina", quorumFirst: 50, quorumSecond: 25, status: "convocacao_enviada", createdById: sindicoB.id, responsibleName: sindicoB.name, guidelines: "Chapas concorrentes devem registrar candidatura com 48h de antecedência." },
+    ])
+    .returning();
+
   const agendaRows = await db
     .insert(assemblyAgenda)
     .values([
       { assemblyId: assembly1.id, position: 1, title: "Prestação de contas do exercício anterior", description: "Análise e votação das contas apresentadas pela síndica.", votingType: "unidade" },
       { assemblyId: assembly1.id, position: 2, title: "Previsão orçamentária e taxa condominial", description: "Aprovação do orçamento anual e reajuste da taxa.", votingType: "fracao" },
       { assemblyId: assembly1.id, position: 3, title: "Contratação de portaria remota noturna", description: "Proposta de projeto piloto por 6 meses.", votingType: "fracao" },
+      { assemblyId: assembly3.id, position: 1, title: "Eleição da administração e conselho fiscal", description: "Votação dos representantes para o biênio 2026-2028.", votingType: "unidade" },
+      { assemblyId: assembly3.id, position: 2, title: "Aprovação do plano de pintura da torre", description: "Apresentação de 3 orçamentos comparativos.", votingType: "fracao" },
     ])
     .returning();
 
@@ -867,6 +1064,44 @@ async function seed() {
   }
   txValues.push({ condoId: condoA.id, kind: "despesa", category: "manutencao", description: "Troca do motor do portão social", amountCents: 265000, dueDate: day(8), status: "pendente", vendorId: vendorRows[2].id, createdById: sindica.id });
   txValues.push({ condoId: condoA.id, kind: "despesa", category: "manutencao", description: "Reparo hidráulico bomba 2", amountCents: 82000, dueDate: day(-3), status: "atrasado", vendorId: vendorRows[1].id, createdById: sindica.id });
+
+  // Transações Condo B (Edifício Vista Marina)
+  for (let m = 0; m < 2; m++) {
+    txValues.push({
+      condoId: condoB.id,
+      kind: "receita",
+      category: "taxa_condominial",
+      description: "Arrecadação de taxas condominiais",
+      amountCents: 2850000,
+      dueDate: day(-m * 30 - 10),
+      paidDate: day(-m * 30 - 10),
+      status: "pago",
+      createdById: sindicoB.id,
+    });
+    txValues.push({
+      condoId: condoB.id,
+      kind: "despesa",
+      category: "utilidades",
+      description: "Energia elétrica e água áreas comuns",
+      amountCents: 620000,
+      dueDate: day(-m * 30 - 5),
+      paidDate: m === 0 ? null : day(-m * 30 - 4),
+      status: m === 0 ? "pendente" : "pago",
+      createdById: sindicoB.id,
+    });
+    txValues.push({
+      condoId: condoB.id,
+      kind: "despesa",
+      category: "manutencao",
+      description: "Manutenção de bombas e elevador",
+      amountCents: 450000,
+      dueDate: day(-m * 30 - 3),
+      paidDate: m === 0 ? null : day(-m * 30 - 2),
+      status: m === 0 ? "pendente" : "pago",
+      createdById: sindicoB.id,
+    });
+  }
+
   await db.insert(transactions).values(txValues);
 
   await db.insert(budgets).values([
@@ -875,6 +1110,9 @@ async function seed() {
     { condoId: condoA.id, year: new Date().getFullYear(), category: "manutencao", plannedCents: 6000000 },
     { condoId: condoA.id, year: new Date().getFullYear(), category: "administrativo", plannedCents: 4200000 },
     { condoId: condoA.id, year: new Date().getFullYear(), category: "suprimentos", plannedCents: 1200000 },
+    { condoId: condoB.id, year: new Date().getFullYear(), category: "utilidades", plannedCents: 7500000 },
+    { condoId: condoB.id, year: new Date().getFullYear(), category: "manutencao", plannedCents: 5400000 },
+    { condoId: condoB.id, year: new Date().getFullYear(), category: "administrativo", plannedCents: 3200000 },
   ]);
 
   const chargeValues: (typeof charges.$inferInsert)[] = [];
@@ -893,6 +1131,24 @@ async function seed() {
       });
     }
   });
+
+  const unitsB = unitRows.filter((u) => u.condoId === condoB.id);
+  unitsB.forEach((unit, index) => {
+    for (let m = 0; m < 2; m++) {
+      const overdue = index === 2 && m === 0;
+      chargeValues.push({
+        condoId: condoB.id,
+        unitId: unit.id,
+        reference: day(-m * 30).slice(0, 7),
+        amountCents: 95000,
+        dueDate: day(-m * 30 + 5),
+        paidAt: overdue ? null : day(-m * 30 + 3),
+        status: overdue ? "vencida" : "paga",
+        method: overdue ? null : "pix",
+      });
+    }
+  });
+
   await db.insert(charges).values(chargeValues);
 
   /* --------------------------------------------- achados / mudanças / etc */

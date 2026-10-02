@@ -78,7 +78,20 @@ export async function logoutAction() {
 
 export async function switchCondoAction(formData: FormData) {
   const condoId = Number(formData.get("condoId"));
-  if (Number.isFinite(condoId) && condoId > 0) await setActiveCondo(condoId);
+  if (Number.isFinite(condoId) && condoId > 0) {
+    const session = await getSession();
+    if (session && (session.user.isSuperAdmin || session.memberships.some((m) => m.condoId === condoId))) {
+      await setActiveCondo(condoId);
+      await logAudit({
+        session,
+        condoId,
+        action: "trocar_condominio",
+        entity: "auth",
+        entityId: condoId,
+        summary: `${session.user.name} alternou para condomínio #${condoId}`,
+      });
+    }
+  }
   revalidatePath("/painel", "layout");
   redirect("/painel");
 }

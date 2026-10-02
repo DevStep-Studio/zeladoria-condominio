@@ -33,87 +33,92 @@ export async function createMarketplaceRequestAction(payload: {
   location?: string;
   attachments?: string[];
 }) {
-  const { session, condoId } = await requireCondo();
+  try {
+    const { session, condoId } = await requireCondo();
 
-  if (!payload.title?.trim() || !payload.description?.trim()) {
-    return { success: false, error: "Título e descrição do problema são obrigatórios." };
-  }
-
-  // Generate sequence code SRV-2026-XXXX
-  const [countRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(serviceRequests)
-    .where(eq(serviceRequests.condoId, condoId));
-
-  const year = new Date().getFullYear();
-  const seqNum = String((countRow?.n ?? 0) + 1).padStart(4, "0");
-  const code = `SRV-${year}-${seqNum}`;
-
-  const initialStatus = payload.mode === "on_demand" && !payload.vendorId
-    ? "buscando_prestador"
-    : "solicitado";
-
-  const [req] = await db
-    .insert(serviceRequests)
-    .values({
-      condoId,
-      code,
-      customerId: session.user.id,
-      vendorId: payload.vendorId || null,
-      mode: payload.mode,
-      category: payload.category.toLowerCase(),
-      title: payload.title.trim(),
-      description: payload.description.trim(),
-      urgency: payload.urgency || (payload.mode === "on_demand" ? "agora" : "hoje"),
-      scheduledDate: payload.scheduledDate,
-      scheduledTimeSlot: payload.scheduledTimeSlot,
-      location: payload.location || "Minha Unidade",
-      unitId: session.unitId,
-      attachments: payload.attachments || [],
-      status: initialStatus,
-    })
-    .returning();
-
-  // Initial system message in chat
-  const modeText = payload.mode === "on_demand" ? "Atendimento sob demanda / rápido" : "Solicitação de orçamento / projeto";
-  await db.insert(serviceMessages).values({
-    requestId: req.id,
-    senderId: session.user.id,
-    senderRole: "sistema",
-    body: `Chamado registrado com sucesso (${modeText}). Código: ${code}. Aguardando confirmação do profissional.`,
-  });
-
-  // Notificar prestador se especificado
-  if (payload.vendorId) {
-    const [targetVendor] = await db
-      .select({ userId: vendors.userId, name: vendors.name })
-      .from(vendors)
-      .where(eq(vendors.id, payload.vendorId))
-      .limit(1);
-
-    if (targetVendor?.userId) {
-      await notify(
-        condoId,
-        [targetVendor.userId],
-        `Novo chamado recebido: ${code}`,
-        `${session.user.name} solicitou atendimento para "${payload.title}".`,
-        `/prestador/chamados`
-      );
+    if (!payload.title?.trim() || !payload.description?.trim()) {
+      return { success: false, error: "Título e descrição do problema são obrigatórios." };
     }
+
+    // Generate sequence code SRV-2026-XXXX
+    const [countRow] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(serviceRequests)
+      .where(eq(serviceRequests.condoId, condoId));
+
+    const year = new Date().getFullYear();
+    const seqNum = String((countRow?.n ?? 0) + 1).padStart(4, "0");
+    const code = `SRV-${year}-${seqNum}`;
+
+    const initialStatus = payload.mode === "on_demand" && !payload.vendorId
+      ? "buscando_prestador"
+      : "solicitado";
+
+    const [req] = await db
+      .insert(serviceRequests)
+      .values({
+        condoId,
+        code,
+        customerId: session.user.id,
+        vendorId: payload.vendorId || null,
+        mode: payload.mode,
+        category: (payload.category || "servicos").toLowerCase(),
+        title: payload.title.trim(),
+        description: payload.description.trim(),
+        urgency: payload.urgency || (payload.mode === "on_demand" ? "agora" : "hoje"),
+        scheduledDate: payload.scheduledDate,
+        scheduledTimeSlot: payload.scheduledTimeSlot,
+        location: payload.location || "Minha Unidade",
+        unitId: session.unitId ?? null,
+        attachments: payload.attachments || [],
+        status: initialStatus,
+      })
+      .returning();
+
+    // Initial system message in chat
+    const modeText = payload.mode === "on_demand" ? "Atendimento sob demanda / rápido" : "Solicitação de orçamento / projeto";
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: session.user.id,
+      senderRole: "sistema",
+      body: `Chamado registrado com sucesso (${modeText}). Código: ${code}. Aguardando confirmação do profissional.`,
+    });
+
+    // Notificar prestador se especificado
+    if (payload.vendorId) {
+      const [targetVendor] = await db
+        .select({ userId: vendors.userId, name: vendors.name })
+        .from(vendors)
+        .where(eq(vendors.id, payload.vendorId))
+        .limit(1);
+
+      if (targetVendor?.userId) {
+        await notify(
+          condoId,
+          [targetVendor.userId],
+          `Novo chamado recebido: ${code}`,
+          `${session.user.name} solicitou atendimento para "${payload.title}".`,
+          `/prestador/chamados`
+        );
+      }
+    }
+
+    await logAudit({
+      session,
+      condoId,
+      action: "criar",
+      entity: "marketplace_request",
+      entityId: req.id,
+      summary: `Criou solicitação de serviço ${code} (${payload.mode}): ${payload.title}`,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, requestId: req.id, code };
+  } catch (err: any) {
+    console.error("Erro em createMarketplaceRequestAction:", err);
+    return { success: false, error: err?.message || "Erro ao registrar solicitação no banco de dados." };
   }
-
-  await logAudit({
-    session,
-    condoId,
-    action: "criar",
-    entity: "marketplace_request",
-    entityId: req.id,
-    summary: `Criou solicitação de serviço ${code} (${payload.mode}): ${payload.title}`,
-  });
-
-  revalidatePath("/painel/servicos");
-  revalidatePath("/prestador/chamados");
-  return { success: true, requestId: req.id, code };
 }
 
 /**
