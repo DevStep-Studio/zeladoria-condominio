@@ -916,6 +916,9 @@ async function seed() {
       { condoId: condoA.id, name: "Portão social automatizado", category: "portao", location: "Entrada principal", brand: "Portec", serial: "PT-901", status: "manutencao" },
       { condoId: condoA.id, name: "Extintores - pavimentos", category: "seguranca", location: "Todos os blocos", brand: "SegFire" },
       { condoId: condoA.id, name: "CFTV - 32 câmeras", category: "seguranca", location: "Perímetro", brand: "Intelbras", serial: "CFTV-32" },
+      { condoId: condoB.id, name: "Elevador Panorâmico - Torre Única", category: "elevador", location: "Torre Central", brand: "Schindler", serial: "SCH-2021", installedAt: day(-1800) },
+      { condoId: condoB.id, name: "Conjunto Moto-bomba de Pressurização", category: "hidraulica", location: "Barrilete Superior", brand: "Dancor", serial: "MB-101", installedAt: day(-1200) },
+      { condoId: condoB.id, name: "Gerador de Emergência a Diesel", category: "eletrica", location: "Subsolo Garagem", brand: "Stemac", serial: "STM-55KVA", installedAt: day(-900) },
     ])
     .returning();
 
@@ -925,6 +928,8 @@ async function seed() {
     { condoId: condoA.id, assetId: assetRows[4].id, title: "Inspeção de extintores", frequencyDays: 180, vendorId: vendorRows[3].id, responsible: "SegFire", nextDueAt: day(12), lastDoneAt: day(-168), checklist: ["Pressão", "Lacre", "Validade", "Sinalização"] },
     { condoId: condoA.id, assetId: assetRows[3].id, title: "Preventiva do portão automatizado", frequencyDays: 90, vendorId: vendorRows[2].id, responsible: "Portec", nextDueAt: day(-6), lastDoneAt: day(-96), checklist: ["Motor", "Sensores", "Cremalheira"] },
     { condoId: condoA.id, assetId: assetRows[5].id, title: "Limpeza e conferência das câmeras", frequencyDays: 45, responsible: "Zelador", nextDueAt: day(9), lastDoneAt: day(-36), checklist: ["Foco", "Gravação 30 dias", "Nobreak"] },
+    { condoId: condoB.id, assetId: assetRows[6].id, title: "Manutenção mensal elevador panorâmico", frequencyDays: 30, vendorId: vendorRows[0].id, responsible: "Schindler Manutenção", nextDueAt: day(4), lastDoneAt: day(-26), checklist: ["Testes de segurança", "Lubrificação", "Cabos de tração"] },
+    { condoId: condoB.id, assetId: assetRows[8].id, title: "Teste de carga e nível de óleo do gerador", frequencyDays: 15, responsible: "Zelador Geral", nextDueAt: day(2), lastDoneAt: day(-13), checklist: ["Bateria de partida", "Nível de diesel", "Filtros e vazamentos"] },
   ]);
 
   await db.insert(maintenanceOrders).values([
@@ -933,6 +938,8 @@ async function seed() {
     { condoId: condoA.id, assetId: assetRows[2].id, kind: "corretiva", title: "Reparo de vazamento na bomba 2", scheduledFor: day(-2), completedAt: day(-1), status: "concluida", vendorId: vendorRows[1].id, technician: "Márcia Reis", costCents: 82000, report: "Substituída vedação e reapertados flanges." },
     { condoId: condoA.id, assetId: assetRows[1].id, kind: "corretiva", title: "Nivelamento do elevador de serviço", scheduledFor: day(-20), completedAt: day(-19), status: "concluida", vendorId: vendorRows[0].id, costCents: 45000, report: "Ajuste eletrônico realizado." },
     { condoId: condoA.id, assetId: assetRows[4].id, kind: "preventiva", title: "Inspeção semestral de extintores", scheduledFor: day(12), status: "programada", vendorId: vendorRows[3].id, costCents: 420000 },
+    { condoId: condoB.id, assetId: assetRows[6].id, kind: "preventiva", title: "Inspeção mensal preventiva de elevador", scheduledFor: day(4), status: "programada", vendorId: vendorRows[0].id, technician: "Carlos Eduardo", costCents: 210000 },
+    { condoId: condoB.id, assetId: assetRows[7].id, kind: "corretiva", title: "Substituição do pressostato da bomba", description: "Bomba desarmando por oscilação de pressão.", scheduledFor: day(-5), completedAt: day(-4), status: "concluida", vendorId: vendorRows[1].id, technician: "Roberto Dias", costCents: 78000, report: "Novo pressostato Schneider instalado e calibrado a 4 bar." },
   ]);
 
   /* ---------------------------------------------------------- assembleia */
