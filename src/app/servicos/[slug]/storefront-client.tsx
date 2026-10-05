@@ -84,7 +84,7 @@ export function StorefrontClient({
             {vendor.coverUrl ? (
               <img src={vendor.coverUrl} alt="Capa" className="h-full w-full object-cover" />
             ) : (
-              <div className="h-full w-full bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-center text-slate-600 text-xs font-medium">
+              <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-500 text-xs font-medium">
                 Zeladoria Serviços · Credenciado Oficial
               </div>
             )}

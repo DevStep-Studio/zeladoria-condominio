@@ -124,7 +124,8 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."assembly_attendance" (
 	"status" varchar(20) DEFAULT 'confirmado' NOT NULL,
 	"proxy_for_unit_id" integer,
 	"proxy_doc" varchar(200),
-	"checkin_at" timestamp with time zone
+	"checkin_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "condominio_app"."assembly_votes" (
@@ -708,6 +709,7 @@ ALTER TABLE "condominio_app"."assembly_agenda" ADD COLUMN IF NOT EXISTS "voting_
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "proxy_name" varchar(140);
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "proxy_cpf" varchar(32);
 ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "history" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."assembly_attendance" ADD COLUMN IF NOT EXISTS "created_at" timestamp with time zone DEFAULT now();
 CREATE TABLE IF NOT EXISTS "condominio_app"."agenda_events" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"condo_id" integer NOT NULL,
@@ -801,6 +803,7 @@ ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "documents" json
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "onboarding_status" varchar(24) DEFAULT 'aprovado' NOT NULL;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "is_online" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "available_now" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "created_at" timestamp with time zone DEFAULT now();
 
 CREATE TABLE IF NOT EXISTS "condominio_app"."service_requests" (
 	"id" serial PRIMARY KEY NOT NULL,

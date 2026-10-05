@@ -543,7 +543,7 @@ export function FinanceiroClient({
           {/* Right Column: Fundo de Reserva & Ações Rápidas */}
           <div className="space-y-6">
             {/* Fundo de Reserva Card */}
-            <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 to-white p-5 shadow-2xs space-y-3">
+            <div className="rounded-2xl border border-blue-200/80 bg-blue-50/50 p-5 shadow-2xs space-y-3">
               <div className="flex items-center gap-2 text-[#0055D4]">
                 <Icon name="shield" size={16} />
                 <h4 className="text-xs font-bold uppercase tracking-wider">Fundo de Reserva</h4>
