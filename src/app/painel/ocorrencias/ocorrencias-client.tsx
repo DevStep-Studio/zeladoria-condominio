@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
 import {
@@ -79,6 +79,21 @@ export function OcorrenciasClient({
   const [newCommentText, setNewCommentText] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Auto-open occurrence if linked from map (e.g. ?highlight=OC-101)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const highlight = params.get("highlight") || params.get("id");
+    if (highlight) {
+      const match = occurrences.find(
+        (o) => o.code.toLowerCase() === highlight.toLowerCase() || String(o.id) === highlight
+      );
+      if (match) {
+        setActiveOccurrence(match);
+      }
+    }
+  }, [occurrences]);
 
   // Filter logic strictly adhering to prompt: Todas, Recebidas, Em execução, Concluídas
   const filteredOccurrences = useMemo(() => {

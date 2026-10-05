@@ -264,22 +264,43 @@ export function Shell({
   const SidebarContent = (
     <div className="flex h-full flex-col bg-white text-slate-800 select-none overflow-hidden relative">
       {/* Brand Header */}
-      <div className={`flex items-center px-4 h-14 border-b border-slate-200/80 ${collapsed ? "justify-center px-2" : "justify-between"}`}>
-        <Link href="/painel" className="flex items-center gap-2 group min-w-0" title="Zeladoria Condomínio">
-          {!collapsed ? (
-            <BrandLogo size="sm" variant="default" showText={true} />
-          ) : (
-            <BrandLogo size="sm" variant="icon-only" showText={false} />
-          )}
-        </Link>
-        {!collapsed && (
+      <div
+        className={`flex items-center h-14 border-b border-slate-200/80 ${
+          collapsed ? "justify-center px-2" : "justify-between px-4"
+        }`}
+      >
+        {!collapsed ? (
+          <>
+            <Link
+              href="/painel"
+              className="flex items-center gap-2 group min-w-0"
+              title="Zeladoria Condomínio"
+            >
+              <BrandLogo size="sm" variant="default" showText={true} />
+            </Link>
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Recolher menu lateral"
+              aria-label="Recolher menu lateral"
+            >
+              <Icon name="panel" size={14} />
+            </button>
+          </>
+        ) : (
           <button
             type="button"
             onClick={toggleCollapse}
-            className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            title="Recolher menu lateral"
+            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-500 hover:text-[#0055D4] hover:bg-blue-50 transition-all cursor-pointer group"
+            title="Expandir menu lateral"
+            aria-label="Expandir menu lateral"
           >
-            <Icon name="panel" size={14} />
+            <Icon
+              name="panel"
+              size={16}
+              className="rotate-180 text-slate-500 group-hover:text-[#0055D4] transition-transform group-hover:scale-110"
+            />
           </button>
         )}
       </div>
@@ -501,20 +522,6 @@ export function Shell({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Collapse toggle (desktop only) */}
-        <div className="mt-0.5 flex justify-end">
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            className={`hidden lg:flex h-6.5 w-6.5 items-center justify-center rounded-[6px] text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors ${
-              collapsed ? "w-full" : ""
-            }`}
-            title={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
-          >
-            <Icon name="panel" size={13} className={collapsed ? "rotate-180" : ""} />
-          </button>
         </div>
       </div>
     </div>

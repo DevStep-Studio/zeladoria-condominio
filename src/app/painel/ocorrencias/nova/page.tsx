@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { createOccurrenceAction } from "@/lib/actions/ocorrencias";
 
@@ -73,6 +73,8 @@ export default function NovaOcorrenciaPage() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("Iluminação");
+  const [lat, setLat] = useState<string | null>(null);
+  const [lng, setLng] = useState<string | null>(null);
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -81,6 +83,25 @@ export default function NovaOcorrenciaPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const paramLoc = params.get("loc") || params.get("location");
+    const paramLat = params.get("lat");
+    const paramLng = params.get("lng");
+    const paramCat = params.get("category");
+
+    if (paramLoc) setLocation(paramLoc);
+    if (paramLat) setLat(paramLat);
+    if (paramLng) setLng(paramLng);
+    if (paramCat) {
+      const matchCat = CATEGORIES.find(
+        (c) => c.label.toLowerCase() === paramCat.toLowerCase()
+      );
+      if (matchCat) setCategory(matchCat.label);
+    }
+  }, []);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -132,6 +153,8 @@ export default function NovaOcorrenciaPage() {
     formData.set("category", category.toLowerCase());
     formData.set("severity", "media");
     formData.set("attachments", JSON.stringify(photos));
+    if (lat) formData.set("latitude", lat);
+    if (lng) formData.set("longitude", lng);
 
     startTransition(async () => {
       const res = await createOccurrenceAction(formData);
@@ -232,9 +255,16 @@ export default function NovaOcorrenciaPage() {
 
         {/* Localização */}
         <div>
-          <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-            Localização
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-bold text-[#0F172A]">
+              Localização
+            </label>
+            {lat && lng && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0055D4] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-[4px]">
+                <span>📍 Ponto marcado no mapa</span>
+              </span>
+            )}
+          </div>
           <input
             type="text"
             value={location}

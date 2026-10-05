@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "@/components/icon";
-import { CondoMap } from "@/components/condo-map";
+import { CondoMap, type CondoMapOccurrence, type CondoCoordinates } from "@/components/condo-map";
 import { CondoAssistant } from "@/components/condo-assistant";
 
 export type AttentionItem = {
@@ -94,6 +94,8 @@ export function DashboardClient({
   upcomingReservations,
   recommendedVendors,
   notices = [],
+  mapOccurrences = [],
+  condoCoordinates,
 }: {
   userName: string;
   condoName: string;
@@ -118,6 +120,8 @@ export function DashboardClient({
   upcomingReservations: DashboardReservation[];
   recommendedVendors: DashboardVendor[];
   notices?: CondoNotice[];
+  mapOccurrences?: CondoMapOccurrence[];
+  condoCoordinates?: CondoCoordinates;
 }) {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
@@ -1449,7 +1453,11 @@ export function DashboardClient({
       {/* 7. MAPA DO CONDOMÍNIO (Apenas para Gestão/Síndico) */}
       {!isResident && (
         <section className="space-y-2">
-          <CondoMap onExpand={() => setFullMapModalOpen(true)} />
+          <CondoMap
+            occurrences={mapOccurrences}
+            condo={condoCoordinates}
+            onExpand={() => setFullMapModalOpen(true)}
+          />
         </section>
       )}
 
@@ -1546,7 +1554,11 @@ export function DashboardClient({
             </div>
 
             <div className="h-[550px] w-full overflow-hidden rounded-[8px] border border-slate-200">
-              <CondoMap />
+              <CondoMap
+                occurrences={mapOccurrences}
+                condo={condoCoordinates}
+                isExpandedModal
+              />
             </div>
           </div>
         </div>

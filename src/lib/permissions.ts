@@ -223,6 +223,7 @@ const PORTEIRO_PERMISSIONS: Permission[] = [
   "package.manage",
   "announcement.view",
   "provider.view",
+  "maintenance.view",
 ];
 
 const PRESTADOR_PERMISSIONS: Permission[] = [

@@ -1,6 +1,19 @@
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
-import { amenities, announcements, assemblies, condominiums, occurrences, parcels, reservations, tickets, units } from "@/db/schema";
+import {
+  amenities,
+  announcements,
+  assemblies,
+  blocks,
+  condominiums,
+  occurrences,
+  parcels,
+  reservations,
+  tickets,
+  units,
+  users,
+} from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
 import { getMarketplaceProviders } from "@/lib/services/providers-query";
 import { dateBR, dateTimeBR, timeAgoBR } from "@/lib/utils";
@@ -238,31 +251,62 @@ export default async function PainelHome() {
     ];
   }
 
-  // 3. Query recent occurrences (scoped for morador vs global for sindico)
+  // 3. Query occurrences (scoped for morador vs global for sindico)
   const occConditions = [eq(occurrences.condoId, condoId)];
   if (isResident) {
     occConditions.push(eq(occurrences.reportedById, session.user.id));
   }
 
-  const recentOccRows = await db
+  const reporterUser = alias(users, "reporter_user");
+  const assigneeUser = alias(users, "assignee_user");
+
+  const mapOccRows = await db
     .select({
       id: occurrences.id,
       code: occurrences.code,
       title: occurrences.title,
+      description: occurrences.description,
       category: occurrences.category,
       severity: occurrences.severity,
       status: occurrences.status,
       exactLocation: occurrences.exactLocation,
+      latitude: occurrences.latitude,
+      longitude: occurrences.longitude,
       createdAt: occurrences.createdAt,
       unitNumber: units.number,
+      blockName: blocks.name,
+      reportedByName: reporterUser.name,
+      assignedToName: assigneeUser.name,
     })
     .from(occurrences)
     .leftJoin(units, eq(units.id, occurrences.unitId))
+    .leftJoin(blocks, eq(blocks.id, units.blockId))
+    .leftJoin(reporterUser, eq(reporterUser.id, occurrences.reportedById))
+    .leftJoin(assigneeUser, eq(assigneeUser.id, occurrences.assignedToId))
     .where(and(...occConditions))
-    .orderBy(desc(occurrences.createdAt))
-    .limit(4);
+    .orderBy(desc(occurrences.createdAt));
 
-  const formattedOccurrences: DashboardOccurrence[] = recentOccRows.map((occ) => {
+  const mapOccurrences = mapOccRows.map((occ) => ({
+    id: occ.id,
+    code: occ.code,
+    title: occ.title,
+    description: occ.description ?? "",
+    category: occ.category,
+    severity: occ.severity,
+    status: occ.status,
+    exactLocation:
+      occ.exactLocation ||
+      (occ.unitNumber ? `Unidade ${occ.unitNumber}` : occ.blockName ? `${occ.blockName}` : "Área Comum"),
+    latitude: occ.latitude,
+    longitude: occ.longitude,
+    createdAt: occ.createdAt.toISOString(),
+    unitNumber: occ.unitNumber,
+    blockName: occ.blockName,
+    reportedByName: occ.reportedByName,
+    assignedToName: occ.assignedToName,
+  }));
+
+  const formattedOccurrences: DashboardOccurrence[] = mapOccRows.slice(0, 4).map((occ) => {
     let statusLabel = "Recebida";
     if (occ.status === "em_andamento" || occ.status === "em_execucao") statusLabel = "Em execução";
     else if (occ.status === "resolvida" || occ.status === "concluido") statusLabel = "Concluída";
@@ -414,6 +458,13 @@ export default async function PainelHome() {
       upcomingReservations={formattedReservations}
       recommendedVendors={recommendedVendors}
       notices={notices}
+      mapOccurrences={mapOccurrences}
+      condoCoordinates={{
+        lat: condoRow?.latitude ?? -23.5855,
+        lng: condoRow?.longitude ?? -46.6784,
+        name: condoName,
+        address: condoAddress,
+      }}
     />
   );
 }

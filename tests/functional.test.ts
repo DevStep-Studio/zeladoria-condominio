@@ -182,6 +182,7 @@ describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
   const allAdminRoutes = [
     ...residentRoutes,
     { path: "/painel/ordens", name: "Ordens de Manutenção" },
+    { path: "/painel/manutencao", name: "Manutenção Preventiva & Ativos" },
   ];
 
   for (const route of residentRoutes) {
@@ -208,6 +209,40 @@ describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
     assert.equal(res.status, 307, "Morador não deve acessar ordens de manutenção (esperado redirect 307)");
     const location = res.headers.get("location");
     assert.equal(location?.includes("/painel/403"), true, "Redirecionamento deve apontar para /painel/403");
+  });
+
+  it("Morador: GET /painel/manutencao deve ser bloqueado por RBAC com redirecionamento para /painel/403", async () => {
+    const res = await fetch(`${BASE_URL}/painel/manutencao`, {
+      headers: { Cookie: authHeaderMorador },
+      redirect: "manual",
+    });
+    assert.equal(res.status, 307, "Morador não deve acessar manutenção preventiva (esperado redirect 307)");
+    const location = res.headers.get("location");
+    assert.equal(location?.includes("/painel/403"), true, "Redirecionamento deve apontar para /painel/403");
+  });
+
+  it("Porteiro: GET /painel/manutencao deve responder 200 OK", async () => {
+    const sessionCookiePorteiro = generateSessionCookie(3); // Carlos Nogueira (Porteiro)
+    const authHeaderPorteiro = `${SESSION_COOKIE}=${sessionCookiePorteiro}; ${CONDO_COOKIE}=${condoId}`;
+    const res = await fetch(`${BASE_URL}/painel/manutencao`, {
+      headers: { Cookie: authHeaderPorteiro },
+      redirect: "manual",
+    });
+    assert.equal(res.status, 200, "Porteiro deve acessar manutenção preventiva com 200 OK");
+    const text = await res.text();
+    assert.equal(text.length > 500, true, "Resposta de /painel/manutencao deve conter conteúdo HTML");
+  });
+
+  it("Zelador: GET /painel/manutencao deve responder 200 OK", async () => {
+    const sessionCookieZelador = generateSessionCookie(5); // Jonas Alencar (Zelador)
+    const authHeaderZelador = `${SESSION_COOKIE}=${sessionCookieZelador}; ${CONDO_COOKIE}=${condoId}`;
+    const res = await fetch(`${BASE_URL}/painel/manutencao`, {
+      headers: { Cookie: authHeaderZelador },
+      redirect: "manual",
+    });
+    assert.equal(res.status, 200, "Zelador deve acessar manutenção preventiva com 200 OK");
+    const text = await res.text();
+    assert.equal(text.length > 500, true, "Resposta de /painel/manutencao deve conter conteúdo HTML");
   });
 
   for (const route of allAdminRoutes) {

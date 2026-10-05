@@ -47,6 +47,13 @@ export async function createOccurrenceAction(formData: FormData) {
 
   const code = sequence("OC", Number(countRow?.n ?? 0) + 101);
 
+  const rawLat = str(formData, "latitude");
+  const rawLng = str(formData, "longitude");
+  const parsedLat = rawLat ? parseFloat(rawLat) : null;
+  const parsedLng = rawLng ? parseFloat(rawLng) : null;
+  const latitude = parsedLat !== null && !isNaN(parsedLat) ? parsedLat : null;
+  const longitude = parsedLng !== null && !isNaN(parsedLng) ? parsedLng : null;
+
   const [occ] = await db
     .insert(occurrences)
     .values({
@@ -58,6 +65,8 @@ export async function createOccurrenceAction(formData: FormData) {
       severity,
       visibility,
       exactLocation,
+      latitude,
+      longitude,
       unitId,
       attachments,
       status: "recebida",

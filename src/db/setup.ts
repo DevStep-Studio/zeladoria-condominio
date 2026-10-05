@@ -215,6 +215,8 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."condominiums" (
 	"onboarding_done" boolean DEFAULT false NOT NULL,
 	"storage_used_mb" integer DEFAULT 0 NOT NULL,
 	"storage_limit_mb" integer DEFAULT 5120 NOT NULL,
+	"latitude" double precision DEFAULT -23.5855,
+	"longitude" double precision DEFAULT -46.6784,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "condominiums_slug_unique" UNIQUE("slug")
 );
@@ -388,6 +390,8 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."occurrences" (
 	"reported_by_id" integer,
 	"unit_id" integer,
 	"attachments" jsonb DEFAULT '[]'::jsonb,
+	"latitude" double precision,
+	"longitude" double precision,
 	"ack_by_id" integer,
 	"ack_at" timestamp with time zone,
 	"locked" boolean DEFAULT true NOT NULL,
@@ -764,14 +768,26 @@ ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "max_hours" in
 
 ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "rejection_reason" text;
 
+ALTER TABLE "condominio_app"."condominiums" ADD COLUMN IF NOT EXISTS "latitude" double precision DEFAULT -23.5855;
+ALTER TABLE "condominio_app"."condominiums" ADD COLUMN IF NOT EXISTS "longitude" double precision DEFAULT -46.6784;
+
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "status" varchar(20) DEFAULT 'recebida';
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "exact_location" varchar(160);
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "latitude" double precision;
+ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "longitude" double precision;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "assigned_to_id" integer;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "block_id" integer;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "estimated_deadline" timestamp with time zone;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resolved_at" timestamp with time zone;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_rating" integer;
 ALTER TABLE "condominio_app"."occurrences" ADD COLUMN IF NOT EXISTS "resident_comment" text;
+
+UPDATE "condominio_app"."condominiums" SET "latitude" = -23.5855, "longitude" = -46.6784 WHERE "latitude" IS NULL OR "longitude" IS NULL;
+UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5858, "longitude" = -46.6787 WHERE "code" = 'OC-101' AND "latitude" IS NULL;
+UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5851, "longitude" = -46.6781 WHERE "code" = 'OC-102' AND "latitude" IS NULL;
+UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5854, "longitude" = -46.6791 WHERE "code" = 'OC-103' AND "latitude" IS NULL;
+UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5859, "longitude" = -46.6783 WHERE "code" = 'OC-104' AND "latitude" IS NULL;
+UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5852, "longitude" = -46.6778 WHERE "code" = 'OC-105' AND "latitude" IS NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "memberships_user_condo_idx" ON "condominio_app"."memberships" USING btree ("user_id","condo_id");
 
@@ -899,6 +915,45 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."service_disputes" (
 	"resolved_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "category" varchar(40) DEFAULT 'outro';
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "deposit_cents" integer DEFAULT 0;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "pricing_type" varchar(24) DEFAULT 'gratis';
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "reservation_model" varchar(24) DEFAULT 'horario_livre';
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "slot_duration_minutes" integer DEFAULT 60;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "features" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "days_schedule" jsonb;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "min_advance_hours" integer DEFAULT 2;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "max_advance_days" integer DEFAULT 60;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "limit_per_unit" integer DEFAULT 2;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "limit_interval" varchar(20) DEFAULT 'mes';
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "cancellation_deadline_hours" integer DEFAULT 24;
+ALTER TABLE "condominio_app"."amenities" ADD COLUMN IF NOT EXISTS "request_guest_list" boolean DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."amenity_blocks" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"amenity_id" integer,
+	"start_date" varchar(12) NOT NULL,
+	"end_date" varchar(12) NOT NULL,
+	"start_time" varchar(8),
+	"end_time" varchar(8),
+	"recurrent_day" varchar(20),
+	"reason" text NOT NULL,
+	"created_by_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "guest_list" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "total_cents" integer DEFAULT 0;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "deposit_cents" integer DEFAULT 0;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "payment_status" varchar(24) DEFAULT 'not_required';
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "cancellation_reason" text;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "cancelled_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "approved_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "approved_by_id" integer;
+ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "rules_accepted" boolean DEFAULT true;
 `;
 
 let setup: Promise<void> | null = null;

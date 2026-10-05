@@ -31,6 +31,8 @@ export const condominiums = appSchema.table("condominiums", {
   onboardingDone: boolean("onboarding_done").notNull().default(false),
   storageUsedMb: integer("storage_used_mb").notNull().default(0),
   storageLimitMb: integer("storage_limit_mb").notNull().default(5120),
+  latitude: doublePrecision("latitude").default(-23.5855),
+  longitude: doublePrecision("longitude").default(-46.6784),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -210,17 +212,45 @@ export const amenities = appSchema.table("amenities", {
   id: serial("id").primaryKey(),
   condoId: integer("condo_id").notNull(),
   name: varchar("name", { length: 120 }).notNull(),
+  category: varchar("category", { length: 40 }).default("outro"), // churrasqueira, salao, quadra, piscina, coworking, playground, outro
+  description: text("description"),
   capacity: integer("capacity").default(20),
   feeCents: integer("fee_cents").default(0),
+  depositCents: integer("deposit_cents").default(0),
+  pricingType: varchar("pricing_type", { length: 24 }).default("gratis"), // gratis, fixo, por_hora, por_periodo
+  reservationModel: varchar("reservation_model", { length: 24 }).default("horario_livre"), // slot_fixo, horario_livre, periodo_unico
+  slotDurationMinutes: integer("slot_duration_minutes").default(60),
   rules: text("rules"),
   images: jsonb("images").$type<string[]>().default([]),
+  features: jsonb("features").$type<string[]>().default([]),
   openTime: varchar("open_time", { length: 8 }).default("08:00"),
   closeTime: varchar("close_time", { length: 8 }).default("22:00"),
+  daysSchedule: jsonb("days_schedule").$type<Record<string, { open: string; close: string; closed: boolean }>>(),
   intervalMinutes: integer("interval_minutes").default(30),
   blockedDays: jsonb("blocked_days").$type<string[]>().default([]),
   maxHours: integer("max_hours").default(8),
+  minAdvanceHours: integer("min_advance_hours").default(2),
+  maxAdvanceDays: integer("max_advance_days").default(60),
+  limitPerUnit: integer("limit_per_unit").default(2),
+  limitInterval: varchar("limit_interval", { length: 20 }).default("mes"),
+  cancellationDeadlineHours: integer("cancellation_deadline_hours").default(24),
+  requestGuestList: boolean("request_guest_list").default(false),
   requiresApproval: boolean("requires_approval").notNull().default(true),
   active: boolean("active").notNull().default(true),
+});
+
+export const amenityBlocks = appSchema.table("amenity_blocks", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  amenityId: integer("amenity_id"), // null means all amenities
+  startDate: varchar("start_date", { length: 12 }).notNull(),
+  endDate: varchar("end_date", { length: 12 }).notNull(),
+  startTime: varchar("start_time", { length: 8 }),
+  endTime: varchar("end_time", { length: 8 }),
+  recurrentDay: varchar("recurrent_day", { length: 20 }),
+  reason: text("reason").notNull(),
+  createdById: integer("created_by_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const reservations = appSchema.table("reservations", {
@@ -233,8 +263,17 @@ export const reservations = appSchema.table("reservations", {
   startTime: varchar("start_time", { length: 8 }).notNull(),
   endTime: varchar("end_time", { length: 8 }).notNull(),
   guests: integer("guests").default(0),
+  guestList: jsonb("guest_list").$type<string[]>().default([]),
+  totalCents: integer("total_cents").default(0),
+  depositCents: integer("deposit_cents").default(0),
+  paymentStatus: varchar("payment_status", { length: 24 }).default("not_required"), // not_required, pending, paid, refunded
   status: varchar("status", { length: 24 }).notNull().default("pendente"), // pendente, aprovada, rejeitada, cancelada, concluida
   rejectionReason: text("rejection_reason"),
+  cancellationReason: text("cancellation_reason"),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  approvedById: integer("approved_by_id"),
+  rulesAccepted: boolean("rules_accepted").default(true),
   qrToken: varchar("qr_token", { length: 40 }),
   checkinAt: timestamp("checkin_at", { withTimezone: true }),
   notes: text("notes"),
@@ -378,6 +417,8 @@ export const occurrences = appSchema.table("occurrences", {
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description").notNull(),
   exactLocation: varchar("exact_location", { length: 160 }),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
   actionsTaken: text("actions_taken"),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
   reportedById: integer("reported_by_id"),
