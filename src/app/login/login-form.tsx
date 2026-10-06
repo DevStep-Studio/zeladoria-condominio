@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { loginAction } from "@/lib/actions/session";
 import { Icon } from "@/components/icon";
 
@@ -20,134 +21,197 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <form action={formAction} className="space-y-4">
-        {/* Email Field with internal icon */}
-        <div>
-          <label className="mb-1.5 block text-xs font-bold text-[var(--color-ink)]">
-            E-mail <span className="text-[#0070F3]">*</span>
+        {/* Email Field */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="email"
+            className="block text-xs sm:text-[13px] font-semibold text-slate-700"
+          >
+            E-mail
           </label>
-          <div className="flex min-h-[48px] items-center gap-2.5 rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-[var(--color-muted)] transition-all focus-within:border-[#0070F3] focus-within:ring-2 focus-within:ring-blue-100">
-            <Icon name="mail" size={16} className="text-[#94A3B8]" />
+          <div className="group relative flex items-center rounded-lg border border-slate-200 bg-white transition-all duration-150 focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
+            <span className="pointer-events-none absolute left-3.5 flex items-center text-slate-400 group-focus-within:text-[#0055D4] transition-colors">
+              <Icon name="mail" size={16} />
+            </span>
             <input
+              id="email"
               name="email"
               type="email"
-              className="w-full bg-transparent text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-subtle)]"
+              autoComplete="email"
+              className="h-11 w-full rounded-lg bg-transparent pl-10 pr-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
+              placeholder="Digite seu e-mail"
               required
             />
           </div>
         </div>
 
-        {/* Password Field with lock & eye toggle */}
-        <div>
-          <label className="mb-1.5 block text-xs font-bold text-[var(--color-ink)]">
-            Senha <span className="text-[#0070F3]">*</span>
+        {/* Password Field */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="password"
+            className="block text-xs sm:text-[13px] font-semibold text-slate-700"
+          >
+            Senha
           </label>
-          <div className="flex min-h-[48px] items-center gap-2.5 rounded-[10px] border border-[var(--color-line)] bg-white px-3.5 text-[var(--color-muted)] transition-all focus-within:border-[#0070F3] focus-within:ring-2 focus-within:ring-blue-100">
-            <Icon name="lock" size={16} className="text-[#94A3B8]" />
+          <div className="group relative flex items-center rounded-lg border border-slate-200 bg-white transition-all duration-150 focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
+            <span className="pointer-events-none absolute left-3.5 flex items-center text-slate-400 group-focus-within:text-[#0055D4] transition-colors">
+              <Icon name="lock" size={16} />
+            </span>
             <input
+              id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              className="w-full bg-transparent text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-subtle)]"
+              autoComplete="current-password"
+              className="h-11 w-full rounded-lg bg-transparent pl-10 pr-10 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Digite sua senha"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-ink)] focus:outline-none"
+              className="absolute right-2.5 flex h-7 w-7 items-center justify-center rounded text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4]/30 cursor-pointer"
               aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
             >
-              <Icon name="eye" size={16} className="text-[#94A3B8]" />
+              <Icon name={showPassword ? "eye-off" : "eye"} size={16} />
             </button>
           </div>
         </div>
 
         {/* Remember me & Forgot password */}
-        <div className="flex items-center justify-between gap-2 text-xs font-semibold">
-          <label className="flex items-center gap-2 text-[var(--color-ink)] cursor-pointer select-none">
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-[13px] pt-0.5">
+          <label className="group flex items-center gap-2 text-slate-600 cursor-pointer select-none">
             <input
               type="checkbox"
               name="remember"
               defaultChecked
-              className="h-4 w-4 rounded accent-[#0D9488] cursor-pointer"
+              className="h-4 w-4 rounded border-slate-300 accent-[#0055D4] text-[#0055D4] cursor-pointer focus:ring-2 focus:ring-[#0055D4]/20"
             />
-            <span>Lembrar de mim</span>
+            <span className="group-hover:text-slate-900 transition-colors font-medium">
+              Lembrar de mim
+            </span>
           </label>
-          <a
+          <Link
             href="/esqueci-senha"
-            className="text-[#0D9488] hover:underline font-bold"
+            className="font-semibold text-[#0055D4] transition-colors hover:text-[#0047BA] hover:underline focus:outline-none focus-visible:underline"
           >
-            Esqueci a senha
-          </a>
+            Esqueci minha senha
+          </Link>
         </div>
 
-        {/* Error message if any */}
+        {/* Error message */}
         {error ? (
-          <p className="rounded-[10px] border border-red-200 bg-red-50 p-2.5 text-xs font-semibold text-red-600">
-            {error}
-          </p>
+          <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50/90 p-3 text-xs text-red-700 animate-in fade-in duration-150">
+            <Icon name="alert-triangle" size={16} className="text-red-500 shrink-0 mt-0.5" />
+            <span className="font-medium leading-relaxed">{error}</span>
+          </div>
         ) : null}
 
         {/* Main Action Button */}
         <button
           type="submit"
-          className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#0D9488] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(13,148,136,0.25)] transition-all hover:bg-[#0F766E] hover:shadow-[0_6px_20px_rgba(13,148,136,0.35)] active:scale-[0.99] disabled:opacity-50 cursor-pointer focus:outline-none"
+          className="group relative flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0055D4] px-4 text-sm font-semibold text-white shadow-xs transition-all duration-150 hover:bg-[#0047BA] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4] focus-visible:ring-offset-2"
           disabled={pending}
         >
-          <span>{pending ? "Entrando..." : "Entrar na conta"}</span>
-          <Icon name="arrow-right" size={16} strokeWidth={2.5} />
+          {pending ? (
+            <>
+              <svg
+                className="h-4 w-4 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span>Entrando...</span>
+            </>
+          ) : (
+            <>
+              <span>Entrar na conta</span>
+              <Icon
+                name="arrow-right"
+                size={16}
+                strokeWidth={2.25}
+                className="transition-transform duration-150 group-hover:translate-x-0.5"
+              />
+            </>
+          )}
         </button>
       </form>
 
-      {/* Não tem conta? Criar conta grátis */}
-      <div className="text-center text-xs text-[var(--color-muted)] font-medium pt-1">
-        <span>Não tem conta? </span>
-        <a href="mailto:contato@zeladoriacondominio.com.br?subject=Criar%20Conta" className="font-bold text-[#0D9488] hover:underline">
-          Criar conta grátis
+      {/* Não tem uma conta? Criar conta */}
+      <div className="text-center text-xs sm:text-[13px] text-slate-500 pt-0.5">
+        <span>Não tem uma conta? </span>
+        <a
+          href="mailto:contato@zeladoriacondominio.com.br?subject=Criar%20Conta%20-%20Zeladoria%20Condom%C3%ADnio"
+          className="font-semibold text-[#0055D4] transition-colors hover:text-[#0047BA] hover:underline focus:outline-none focus-visible:underline"
+        >
+          Criar conta
         </a>
       </div>
 
-      {/* Divider "ou" */}
-      <div className="relative flex items-center justify-center">
-        <div className="w-full border-t border-[var(--color-line)]" />
-        <span className="absolute bg-white px-3 text-[11px] font-semibold text-[var(--color-subtle)] uppercase">
+      {/* Divider "OU" */}
+      <div className="relative flex items-center justify-center my-3">
+        <div className="w-full border-t border-slate-200" />
+        <span className="absolute bg-white px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
           ou
         </span>
       </div>
 
-      {/* Button: Preencher Dados de Demonstração */}
+      {/* Secondary Action: Demo Data Picker */}
       <div className="relative">
         <button
           type="button"
           onClick={() => setShowDemoPicker((v) => !v)}
-          className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--color-line)] bg-white px-4 text-xs font-bold text-[var(--color-ink)] shadow-xs transition-all hover:border-[#0D9488]/40 hover:bg-[#F0FDFA] hover:text-[#0D9488] cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-100"
+          className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4]/20 cursor-pointer"
         >
-          <Icon name="users" size={16} className="text-[#0D9488]" />
-          <span>Preencher Dados de Demonstração</span>
-          <Icon name="chevron-down" size={13} className={`transition-transform ${showDemoPicker ? "rotate-180" : ""}`} />
+          <div className="flex items-center gap-2">
+            <Icon name="users" size={15} className="text-[#0055D4]" />
+            <span>Preencher dados de demonstração</span>
+          </div>
+          <Icon
+            name="chevron-down"
+            size={14}
+            className={`text-slate-400 transition-transform duration-200 ${
+              showDemoPicker ? "rotate-180" : ""
+            }`}
+          />
         </button>
 
         {/* Demo profiles picker dropdown */}
         {showDemoPicker ? (
-          <div className="mt-2 rounded-[14px] border border-[var(--color-line)] bg-white p-2 shadow-xl space-y-1 animate-in fade-in zoom-in-95 duration-100">
+          <div className="mt-2 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg space-y-1 animate-in fade-in zoom-in-95 duration-150">
             {demos.map((demo) => (
               <button
                 key={demo.email}
                 type="button"
                 onClick={() => selectDemo(demo)}
-                className="flex w-full items-center justify-between rounded-[10px] p-2.5 text-left text-xs transition-colors hover:bg-[#F0FDFA] focus:outline-none cursor-pointer group"
+                className="group flex w-full items-center justify-between rounded-lg p-2.5 text-left text-xs transition-colors hover:bg-blue-50/60 focus:bg-blue-50/60 focus:outline-none cursor-pointer"
               >
                 <div>
-                  <p className="font-bold text-[var(--color-ink)] group-hover:text-[#0D9488] transition-colors">{demo.label}</p>
-                  <p className="text-[11px] text-[var(--color-muted)]">{demo.desc}</p>
+                  <p className="font-semibold text-slate-800 transition-colors group-hover:text-[#0055D4]">
+                    {demo.label}
+                  </p>
+                  <p className="text-[11px] text-slate-500">{demo.desc}</p>
                 </div>
-                <span className="chip bg-teal-50 text-[#0D9488] text-[10px] font-bold group-hover:bg-[#0D9488] group-hover:text-white transition-colors">
+                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-[#0055D4] transition-colors group-hover:bg-[#0055D4] group-hover:text-white">
                   Usar perfil
                 </span>
               </button>

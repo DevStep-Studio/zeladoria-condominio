@@ -22,40 +22,55 @@ export default async function LoginPage() {
   return (
     <main className="min-h-screen bg-white text-[var(--color-ink)] lg:h-screen lg:overflow-hidden">
       <section className="grid min-h-screen lg:h-screen lg:min-h-0 lg:grid-cols-[45%_55%] xl:grid-cols-[42%_58%]">
-        {/* Left Column: Login Form matching reference */}
-        <div className="flex min-h-screen flex-col justify-between px-6 py-6 sm:px-10 lg:h-screen lg:min-h-0 lg:px-14 xl:px-20 z-10 bg-white">
+        {/* Left Column: Modern SaaS Login Experience */}
+        <div className="flex min-h-screen flex-col justify-between bg-white px-6 py-8 sm:px-10 sm:py-10 lg:h-screen lg:min-h-0 lg:px-12 xl:px-16 z-10">
           {/* Top Logo */}
-          <header className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+          <header className="flex items-center">
+            <Link
+              href="/"
+              className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4] rounded-md"
+              aria-label="Ir para página inicial do Zeladoria Condomínio"
+            >
               <BrandLogo size="md" />
             </Link>
           </header>
 
           {/* Form Center Content */}
-          <div className="my-auto py-6 w-full max-w-[420px] mx-auto">
-            <div className="mb-6">
-              <h1 className="text-[32px] font-black leading-tight tracking-tight text-[var(--color-ink)] sm:text-[36px]">
+          <div className="my-auto py-8 sm:py-10 w-full max-w-[400px] mx-auto">
+            <div className="mb-7 sm:mb-8">
+              <h1 className="text-[28px] sm:text-[32px] font-bold leading-tight tracking-tight text-[#0F172A]">
                 Bem-vindo de volta
               </h1>
-              <p className="mt-2 text-sm text-[var(--color-muted)] font-medium">
-                Entre na sua conta para acessar seus lançamentos e relatórios.
+              <p className="mt-2 text-sm text-slate-500 font-normal leading-relaxed">
+                Entre na sua conta para acessar o seu condomínio.
               </p>
             </div>
 
             <LoginForm demos={DEMOS} />
           </div>
 
-          {/* Footer matching reference */}
-          <footer className="flex items-center justify-between text-xs text-[var(--color-subtle)] font-medium pt-4 border-t border-[var(--color-line)] lg:border-t-0">
+          {/* Clean SaaS Footer */}
+          <footer className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-normal pt-6 border-t border-slate-100 lg:border-t-0 pb-2">
             <p>© 2026 Zeladoria Condomínio</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-[var(--color-ink)] transition-colors">Privacidade</a>
-              <a href="#" className="hover:text-[var(--color-ink)] transition-colors">Termos</a>
+            <div className="flex items-center gap-4">
+              <a
+                href="#"
+                className="hover:text-[#0055D4] transition-colors focus:outline-none focus-visible:underline"
+              >
+                Privacidade
+              </a>
+              <span className="text-slate-300 select-none">·</span>
+              <a
+                href="#"
+                className="hover:text-[#0055D4] transition-colors focus:outline-none focus-visible:underline"
+              >
+                Termos
+              </a>
             </div>
           </footer>
         </div>
 
-        {/* Right Column: Full Background Image Login.png covering 100% of the right side */}
+        {/* Right Column: Full Background Image Login.png covering 100% of the right side - 100% UNTOUCHED */}
         <aside className="relative hidden min-h-screen overflow-hidden bg-[#0070F3] text-white lg:flex lg:flex-col lg:justify-between p-8 xl:p-12">
           {/* Full Cover Background Image */}
           <div className="absolute inset-0 z-0">
