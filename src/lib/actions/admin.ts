@@ -25,6 +25,7 @@ import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
 import { addDays, bool, cents, isoDate, maybeDate, num, str } from "@/lib/utils";
+import { voteAssemblyAction as executeVoteAssemblyAction } from "@/lib/actions/assemblies";
 
 const FINANCE = ["superadmin", "sindico", "conselho"] as const;
 
@@ -514,7 +515,9 @@ export async function confirmAttendanceAction(formData: FormData) {
   revalidatePath("/painel/assembleias");
 }
 
-export { voteAssemblyAction } from "@/lib/actions/assemblies";
+export async function voteAssemblyAction(formData: FormData) {
+  return executeVoteAssemblyAction(formData);
+}
 
 export async function publishMinutesAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
