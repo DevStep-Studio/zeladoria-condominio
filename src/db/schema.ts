@@ -720,16 +720,20 @@ export const assemblyAttendance = appSchema.table("assembly_attendance", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const assemblyVotes = appSchema.table("assembly_votes", {
-  id: serial("id").primaryKey(),
-  assemblyId: integer("assembly_id").notNull(),
-  agendaId: integer("agenda_id").notNull(),
-  unitId: integer("unit_id"),
-  userId: integer("user_id"),
-  choice: varchar("choice", { length: 20 }).notNull(),
-  weight: varchar("weight", { length: 16 }).default("1.00"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const assemblyVotes = appSchema.table(
+  "assembly_votes",
+  {
+    id: serial("id").primaryKey(),
+    assemblyId: integer("assembly_id").notNull(),
+    agendaId: integer("agenda_id").notNull(),
+    unitId: integer("unit_id"),
+    userId: integer("user_id"),
+    choice: varchar("choice", { length: 20 }).notNull(),
+    weight: varchar("weight", { length: 16 }).default("1.00"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("assembly_votes_user_agenda_idx").on(t.userId, t.agendaId)]
+);
 
 export const assemblyMinutes = appSchema.table("assembly_minutes", {
   id: serial("id").primaryKey(),

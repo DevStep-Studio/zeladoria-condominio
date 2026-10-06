@@ -514,28 +514,7 @@ export async function confirmAttendanceAction(formData: FormData) {
   revalidatePath("/painel/assembleias");
 }
 
-export async function voteAssemblyAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
-  const assemblyId = num(formData, "assemblyId");
-  const agendaId = num(formData, "agendaId");
-  const choice = str(formData, "choice");
-  if (!assemblyId || !agendaId || !choice) return;
-  const unitId = session.role === "morador" ? session.unitId : num(formData, "unitId") || null;
-  const existing = await db
-    .select({ id: assemblyVotes.id })
-    .from(assemblyVotes)
-    .where(and(eq(assemblyVotes.agendaId, agendaId), eq(assemblyVotes.userId, session.user.id)))
-    .limit(1);
-  if (existing.length > 0) return;
-  let weight = "1.00";
-  if (unitId) {
-    const [unit] = await db.select().from(units).where(eq(units.id, unitId)).limit(1);
-    weight = unit?.fraction ?? "1.00";
-  }
-  await db.insert(assemblyVotes).values({ assemblyId, agendaId, unitId, userId: session.user.id, choice, weight });
-  await logAudit({ session, condoId, action: "votar", entity: "assembleia_pauta", entityId: agendaId, summary: `Voto ${choice}`, critical: true });
-  revalidatePath("/painel/assembleias");
-}
+export { voteAssemblyAction } from "@/lib/actions/assemblies";
 
 export async function publishMinutesAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);

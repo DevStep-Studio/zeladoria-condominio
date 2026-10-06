@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge, Card, Drawer, InfoNote, Panel, StatCard } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { dateBR, dateTimeBR } from "@/lib/utils";
@@ -14,6 +14,7 @@ import {
   approveAndPublishMinutesAction,
   updateMinutesVersionAction,
   cancelAssemblyAction,
+  type VoteChoice,
 } from "@/lib/actions/assemblies";
 
 export type AssemblyView = "list" | "calendar";
@@ -109,6 +110,251 @@ type MinuteVersionItem = {
 
 type UnitOption = { id: number; label: string };
 
+function AgendaVotingControl({
+  assemblyId,
+  item,
+  assemblyStatus,
+  votes,
+  userId,
+  showToast,
+}: {
+  assemblyId: number;
+  item: AgendaItem;
+  assemblyStatus: string;
+  votes: any[];
+  userId: number;
+  showToast: (message: string, type: "success" | "error") => void;
+}) {
+  const itemVotes = votes.filter((v) => v.agendaId === item.id);
+  const myInitialVote = itemVotes.find((v) => v.userId === userId);
+
+  const [currentVote, setCurrentVote] = useState<string | null>(myInitialVote?.choice ?? null);
+  const [counts, setCounts] = useState({
+    sim: itemVotes.filter((v) => v.choice === "sim").length,
+    nao: itemVotes.filter((v) => v.choice === "nao").length,
+    abstencao: itemVotes.filter((v) => v.choice === "abstencao").length,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingChoice, setLoadingChoice] = useState<string | null>(null);
+
+  // Sincroniza o estado caso as props do servidor sejam atualizadas
+  useEffect(() => {
+    const updatedItemVotes = votes.filter((v) => v.agendaId === item.id);
+    const updatedMyVote = updatedItemVotes.find((v) => v.userId === userId);
+    setCurrentVote(updatedMyVote?.choice ?? null);
+    setCounts({
+      sim: updatedItemVotes.filter((v) => v.choice === "sim").length,
+      nao: updatedItemVotes.filter((v) => v.choice === "nao").length,
+      abstencao: updatedItemVotes.filter((v) => v.choice === "abstencao").length,
+    });
+  }, [votes, item.id, userId]);
+
+  const isVotingClosed = ["cancelada", "finalizada", "ata_em_revisao", "ata_publicada"].includes(assemblyStatus);
+
+  const handleVote = async (choice: VoteChoice) => {
+    if (isVotingClosed) {
+      showToast(
+        assemblyStatus === "cancelada"
+          ? "Esta assembleia foi cancelada."
+          : "A votação desta assembleia já foi encerrada.",
+        "error"
+      );
+      return;
+    }
+
+    if (isSubmitting) return;
+
+    if (currentVote === choice) {
+      const label = choice === "sim" ? "SIM" : choice === "nao" ? "NÃO" : "ABSTENÇÃO";
+      showToast(`Seu voto já está registrado como ${label}.`, "success");
+      return;
+    }
+
+    const previousVote = currentVote;
+    const previousCounts = { ...counts };
+
+    setIsSubmitting(true);
+    setLoadingChoice(choice);
+
+    try {
+      const res = await voteAssemblyAction({
+        assemblyId,
+        agendaId: item.id,
+        choice,
+      });
+
+      if (res.success && res.vote && res.totals) {
+        setCurrentVote(res.vote);
+        setCounts(res.totals);
+
+        const choiceLabel = res.vote === "sim" ? "SIM" : res.vote === "nao" ? "NÃO" : "ABSTENÇÃO";
+        if (res.isChange || previousVote) {
+          showToast(`Voto alterado para ${choiceLabel} com sucesso.`, "success");
+        } else {
+          showToast(`Voto alterado para ${choiceLabel} com sucesso.`, "success");
+        }
+      } else {
+        // Em caso de erro, reverte/mantém o voto anterior na interface e não altera os contadores localmente
+        setCurrentVote(previousVote);
+        setCounts(previousCounts);
+        showToast(res.error || "Não foi possível registrar seu voto.", "error");
+      }
+    } catch (err: any) {
+      console.error("Erro ao registrar voto:", err);
+      setCurrentVote(previousVote);
+      setCounts(previousCounts);
+      showToast("Erro inesperado ao conectar com o servidor.", "error");
+    } finally {
+      setIsSubmitting(false);
+      setLoadingChoice(null);
+    }
+  };
+
+  const formatChoice = (c: string) => {
+    switch (c) {
+      case "sim":
+        return "SIM";
+      case "nao":
+        return "NÃO";
+      case "abstencao":
+        return "ABSTENÇÃO";
+      default:
+        return c.toUpperCase();
+    }
+  };
+
+  if (!item.requiresVoting) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2.5">
+      {/* Botões de Votação Interativos */}
+      <div className="grid grid-cols-3 gap-2.5 pt-1 text-center text-xs">
+        {/* SIM BUTTON */}
+        <button
+          type="button"
+          disabled={isSubmitting || isVotingClosed}
+          onClick={() => handleVote("sim")}
+          title={
+            isVotingClosed
+              ? "Votação encerrada"
+              : currentVote === "sim"
+              ? "Opção selecionada atualmente"
+              : "Clique para votar SIM"
+          }
+          className={`relative flex items-center justify-center gap-1.5 rounded-[10px] p-2.5 text-xs font-bold transition-all duration-150 select-none ${
+            currentVote === "sim"
+              ? "border-2 border-emerald-600 bg-emerald-100 text-emerald-900 shadow-sm ring-2 ring-emerald-500/20 font-extrabold scale-[1.01]"
+              : "border border-[#cdebd9] bg-[var(--color-success-soft)] text-[var(--color-success)] hover:bg-emerald-100/70 hover:border-emerald-300 hover:shadow-xs hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+          } ${isVotingClosed ? "cursor-not-allowed opacity-85 hover:scale-100 hover:shadow-none" : ""} ${
+            isSubmitting ? "cursor-wait opacity-70 pointer-events-none" : ""
+          }`}
+        >
+          {currentVote === "sim" ? (
+            <Icon name="check" size={14} className="stroke-[3] text-emerald-700 shrink-0" />
+          ) : null}
+          <span>SIM: {counts.sim}</span>
+          {loadingChoice === "sim" ? (
+            <Icon name="refresh" size={13} className="animate-spin text-emerald-700 ml-1 shrink-0" />
+          ) : null}
+        </button>
+
+        {/* NÃO BUTTON */}
+        <button
+          type="button"
+          disabled={isSubmitting || isVotingClosed}
+          onClick={() => handleVote("nao")}
+          title={
+            isVotingClosed
+              ? "Votação encerrada"
+              : currentVote === "nao"
+              ? "Opção selecionada atualmente"
+              : "Clique para votar NÃO"
+          }
+          className={`relative flex items-center justify-center gap-1.5 rounded-[10px] p-2.5 text-xs font-bold transition-all duration-150 select-none ${
+            currentVote === "nao"
+              ? "border-2 border-rose-600 bg-rose-100 text-rose-900 shadow-sm ring-2 ring-rose-500/20 font-extrabold scale-[1.01]"
+              : "border border-[#f2caca] bg-[var(--color-danger-soft)] text-[var(--color-danger)] hover:bg-rose-100/70 hover:border-rose-300 hover:shadow-xs hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+          } ${isVotingClosed ? "cursor-not-allowed opacity-85 hover:scale-100 hover:shadow-none" : ""} ${
+            isSubmitting ? "cursor-wait opacity-70 pointer-events-none" : ""
+          }`}
+        >
+          {currentVote === "nao" ? (
+            <Icon name="check" size={14} className="stroke-[3] text-rose-700 shrink-0" />
+          ) : null}
+          <span>NÃO: {counts.nao}</span>
+          {loadingChoice === "nao" ? (
+            <Icon name="refresh" size={13} className="animate-spin text-rose-700 ml-1 shrink-0" />
+          ) : null}
+        </button>
+
+        {/* ABSTENÇÃO BUTTON */}
+        <button
+          type="button"
+          disabled={isSubmitting || isVotingClosed}
+          onClick={() => handleVote("abstencao")}
+          title={
+            isVotingClosed
+              ? "Votação encerrada"
+              : currentVote === "abstencao"
+              ? "Opção selecionada atualmente"
+              : "Clique para votar ABSTENÇÃO"
+          }
+          className={`relative flex items-center justify-center gap-1.5 rounded-[10px] p-2.5 text-xs font-bold transition-all duration-150 select-none ${
+            currentVote === "abstencao"
+              ? "border-2 border-slate-600 bg-slate-200 text-slate-900 shadow-sm ring-2 ring-slate-400/20 font-extrabold scale-[1.01]"
+              : "border border-[var(--color-line)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] hover:bg-slate-200/60 hover:border-slate-300 hover:shadow-xs hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+          } ${isVotingClosed ? "cursor-not-allowed opacity-85 hover:scale-100 hover:shadow-none" : ""} ${
+            isSubmitting ? "cursor-wait opacity-70 pointer-events-none" : ""
+          }`}
+        >
+          {currentVote === "abstencao" ? (
+            <Icon name="check" size={14} className="stroke-[3] text-slate-700 shrink-0" />
+          ) : null}
+          <span>ABSTENÇÃO: {counts.abstencao}</span>
+          {loadingChoice === "abstencao" ? (
+            <Icon name="refresh" size={13} className="animate-spin text-slate-700 ml-1 shrink-0" />
+          ) : null}
+        </button>
+      </div>
+
+      {/* Indicador de voto registrado */}
+      {currentVote ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-xs">
+          <p className="font-semibold text-[var(--color-primary-dark)] flex items-center gap-1.5">
+            <Icon name="check-circle" size={14} className="text-emerald-600 shrink-0" />
+            <span>
+              Seu voto registrado:{" "}
+              <strong className="uppercase font-bold tracking-wide text-slate-900">
+                {formatChoice(currentVote)}
+              </strong>
+            </span>
+          </p>
+          {!isVotingClosed ? (
+            <span className="text-[11px] text-[var(--color-muted)] font-normal hidden sm:inline-block">
+              (Clique em outra opção para alterar)
+            </span>
+          ) : (
+            <span className="text-[11px] text-amber-700 font-medium">
+              Votação encerrada
+            </span>
+          )}
+        </div>
+      ) : !isVotingClosed ? (
+        <p className="text-[11px] text-[var(--color-muted)] flex items-center gap-1.5 pt-0.5">
+          <Icon name="alert" size={13} className="shrink-0 text-slate-400" />
+          <span>Selecione uma das opções acima para registrar seu voto nesta pauta.</span>
+        </p>
+      ) : (
+        <p className="text-[11px] text-[var(--color-muted)] italic pt-0.5">
+          Votação encerrada sem voto registrado.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function AssembliesClientView({
   session,
   assemblies,
@@ -140,6 +386,15 @@ export function AssembliesClientView({
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [editingAssembly, setEditingAssembly] = useState<AssemblyRow | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "error" | "info" }[]>([]);
+
+  const showToast = useCallback((message: string, type: "success" | "error" | "info" = "success") => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
 
   const upcomingList = assemblies.filter((a) => ["rascunho", "agendada", "convocacao_enviada", "em_andamento"].includes(a.status));
   const finishedList = assemblies.filter((a) => ["finalizada", "ata_em_revisao", "ata_publicada"].includes(a.status));
@@ -633,67 +888,32 @@ export function AssembliesClientView({
                       </h4>
                     </div>
                     <ol className="space-y-3">
-                      {items.map((item) => {
-                        const itemVotes = votes.filter((v) => v.agendaId === item.id);
-                        const mine = itemVotes.find((v) => v.userId === session.user.id);
-                        const simCount = itemVotes.filter((v) => v.choice === "sim").length;
-                        const naoCount = itemVotes.filter((v) => v.choice === "nao").length;
-                        const absCount = itemVotes.filter((v) => v.choice === "abstencao").length;
+                      {items.map((item) => (
+                        <li key={item.id} className="rounded-[10px] border border-[var(--color-line)] p-3.5 bg-white space-y-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold text-sm text-[var(--color-ink)]">
+                              {item.position}. {item.title}
+                            </p>
+                            <Badge tone="purple">votação por {item.votingType}</Badge>
+                          </div>
+                          {item.description ? <p className="text-xs text-[var(--color-muted)]">{item.description}</p> : null}
 
-                        return (
-                          <li key={item.id} className="rounded-[10px] border border-[var(--color-line)] p-3.5 bg-white space-y-2.5">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="font-semibold text-sm text-[var(--color-ink)]">
-                                {item.position}. {item.title}
-                              </p>
-                              <Badge tone="purple">votação por {item.votingType}</Badge>
+                          {item.decision ? (
+                            <div className="rounded-[8px] bg-[var(--color-surface-muted)] border border-[var(--color-line)] p-2.5 text-xs">
+                              <strong className="text-[var(--color-ink)]">Decisão deliberada:</strong> {item.decision}
                             </div>
-                            {item.description ? <p className="text-xs text-[var(--color-muted)]">{item.description}</p> : null}
+                          ) : null}
 
-                            {item.decision ? (
-                              <div className="rounded-[8px] bg-[var(--color-surface-muted)] border border-[var(--color-line)] p-2.5 text-xs">
-                                <strong className="text-[var(--color-ink)]">Decisão deliberada:</strong> {item.decision}
-                              </div>
-                            ) : null}
-
-                            {item.requiresVoting ? (
-                              <div className="grid grid-cols-3 gap-2.5 pt-1 text-center text-xs">
-                                <div className="rounded-[8px] border border-[#cdebd9] bg-[var(--color-success-soft)] p-2">
-                                  <span className="font-bold text-[var(--color-success)]">SIM: {simCount}</span>
-                                </div>
-                                <div className="rounded-[8px] border border-[#f2caca] bg-[var(--color-danger-soft)] p-2">
-                                  <span className="font-bold text-[var(--color-danger)]">NÃO: {naoCount}</span>
-                                </div>
-                                <div className="rounded-[8px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-2">
-                                  <span className="font-bold text-[var(--color-muted)]">ABSTENÇÃO: {absCount}</span>
-                                </div>
-                              </div>
-                            ) : null}
-
-                            {/* Vote Buttons */}
-                            {a.status !== "cancelada" && a.status !== "ata_publicada" && !mine ? (
-                              <div className="flex gap-2 pt-1">
-                                {(["sim", "nao", "abstencao"] as const).map((choice) => (
-                                  <form key={choice} action={voteAssemblyAction}>
-                                    <input type="hidden" name="assemblyId" value={a.id} />
-                                    <input type="hidden" name="agendaId" value={item.id} />
-                                    <input type="hidden" name="choice" value={choice} />
-                                    <button className="btn-ghost btn-sm capitalize">
-                                      {choice === "sim" ? <Icon name="check" size={14} className="text-[var(--color-success)]" /> : choice === "nao" ? <Icon name="x" size={14} className="text-[var(--color-danger)]" /> : <Icon name="minus-circle" size={14} />}
-                                      {choice}
-                                    </button>
-                                  </form>
-                                ))}
-                              </div>
-                            ) : mine ? (
-                              <p className="text-xs font-semibold text-[var(--color-primary-dark)] flex items-center gap-1">
-                                <Icon name="check-circle" size={14} />
-                                Seu voto registrado: <span className="uppercase font-bold">{mine.choice}</span>
-                              </p>
-                            ) : null}
-                          </li>
-                        );
-                      })}
+                          <AgendaVotingControl
+                            assemblyId={a.id}
+                            item={item}
+                            assemblyStatus={a.status}
+                            votes={votes}
+                            userId={session.user.id}
+                            showToast={showToast}
+                          />
+                        </li>
+                      ))}
                     </ol>
                   </div>
 
@@ -1027,6 +1247,40 @@ export function AssembliesClientView({
           </div>
         </form>
       </Drawer>
+
+      {/* Floating Toast Notifications */}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-md w-full px-4 sm:px-0 pointer-events-none">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold backdrop-blur-md transition-all duration-200 animate-in fade-in slide-in-from-bottom-3 ${
+                t.type === "success"
+                  ? "bg-slate-900/95 text-white border-emerald-500/40 shadow-slate-950/30 ring-1 ring-emerald-500/20"
+                  : t.type === "error"
+                  ? "bg-rose-950/95 text-rose-100 border-rose-500/40 shadow-rose-950/30 ring-1 ring-rose-500/20"
+                  : "bg-slate-900/95 text-white border-slate-700 shadow-slate-950/30"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Icon
+                  name={t.type === "success" ? "check-circle" : t.type === "error" ? "alert-triangle" : "alert"}
+                  size={16}
+                  className={t.type === "success" ? "text-emerald-400 shrink-0" : t.type === "error" ? "text-rose-400 shrink-0" : "text-blue-400 shrink-0"}
+                />
+                <span className="leading-snug">{t.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
+                className="opacity-70 hover:opacity-100 text-slate-300 hover:text-white p-1 cursor-pointer transition-opacity"
+              >
+                <Icon name="x" size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

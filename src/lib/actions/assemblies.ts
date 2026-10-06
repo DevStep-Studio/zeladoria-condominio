@@ -290,35 +290,202 @@ export async function adminRecordAttendanceAction(formData: FormData) {
 
 /* ---------------------------------------------------- VOTACÃO E PAUTA ---- */
 
-export async function voteAssemblyAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
-  const assemblyId = num(formData, "assemblyId");
-  const agendaId = num(formData, "agendaId");
-  const choice = str(formData, "choice");
-  if (!assemblyId || !agendaId || !choice) return;
+export type VoteChoice = "sim" | "nao" | "abstencao";
 
-  const unitId = session.role === "morador" ? session.unitId : num(formData, "unitId") || session.unitId;
+export type VoteAssemblyPayload = {
+  assemblyId: number;
+  agendaId: number;
+  choice: VoteChoice | string;
+  unitId?: number | null;
+};
 
-  const [existing] = await db
-    .select({ id: assemblyVotes.id })
-    .from(assemblyVotes)
-    .where(and(eq(assemblyVotes.assemblyId, assemblyId), eq(assemblyVotes.agendaId, agendaId), eq(assemblyVotes.userId, session.user.id)))
-    .limit(1);
+export type VoteAssemblyResult = {
+  success: boolean;
+  vote?: VoteChoice;
+  isChange?: boolean;
+  totals?: {
+    sim: number;
+    nao: number;
+    abstencao: number;
+  };
+  error?: string;
+};
 
-  if (existing) {
-    await db.update(assemblyVotes).set({ choice }).where(eq(assemblyVotes.id, existing.id));
-  } else {
-    await db.insert(assemblyVotes).values({
-      assemblyId,
-      agendaId,
-      unitId,
-      userId: session.user.id,
-      choice,
-    });
+export async function voteAssemblyAction(
+  input: FormData | VoteAssemblyPayload
+): Promise<VoteAssemblyResult> {
+  try {
+    const { session, condoId } = await requireCondo();
+
+    let assemblyId: number;
+    let agendaId: number;
+    let rawChoice: string;
+    let inputUnitId: number | null = null;
+
+    if (input instanceof FormData) {
+      assemblyId = num(input, "assemblyId");
+      agendaId = num(input, "agendaId");
+      rawChoice = str(input, "choice");
+      inputUnitId = num(input, "unitId") || null;
+    } else {
+      assemblyId = Number(input.assemblyId);
+      agendaId = Number(input.agendaId);
+      rawChoice = String(input.choice || "");
+      inputUnitId = input.unitId ? Number(input.unitId) : null;
+    }
+
+    if (!assemblyId || !agendaId || !rawChoice) {
+      return { success: false, error: "Dados da votação incompletos." };
+    }
+
+    const normalizedChoice = rawChoice.trim().toLowerCase();
+    if (!["sim", "nao", "abstencao"].includes(normalizedChoice)) {
+      return { success: false, error: "Opção inválida. Escolha SIM, NÃO ou ABSTENÇÃO." };
+    }
+    const choice = normalizedChoice as VoteChoice;
+
+    // Verificar se a assembleia existe e pertence ao condomínio
+    const [assembly] = await db
+      .select()
+      .from(assemblies)
+      .where(and(eq(assemblies.id, assemblyId), eq(assemblies.condoId, condoId)))
+      .limit(1);
+
+    if (!assembly) {
+      return { success: false, error: "Assembleia não encontrada." };
+    }
+
+    // Verificar se a votação da assembleia ainda está aberta
+    const closedStatuses = ["cancelada", "finalizada", "ata_em_revisao", "ata_publicada"];
+    if (closedStatuses.includes(assembly.status)) {
+      return {
+        success: false,
+        error:
+          assembly.status === "cancelada"
+            ? "Esta assembleia foi cancelada."
+            : "A votação desta assembleia já foi encerrada.",
+      };
+    }
+
+    // Validação de escopo para morador
+    if (session.role === "morador") {
+      if (assembly.audienceScope === "unidade" && assembly.targetUnitId && assembly.targetUnitId !== session.unitId) {
+        return { success: false, error: "Esta votação é restrita a outra unidade." };
+      }
+      if (assembly.audienceScope === "bloco" && assembly.targetBlockId && session.unitId) {
+        const [u] = await db
+          .select({ blockId: units.blockId })
+          .from(units)
+          .where(eq(units.id, session.unitId))
+          .limit(1);
+        if (u && u.blockId !== assembly.targetBlockId) {
+          return { success: false, error: "Esta votação é restrita a outro bloco." };
+        }
+      }
+    }
+
+    // Verificar se a pauta existe e pertence à assembleia
+    const [agenda] = await db
+      .select()
+      .from(assemblyAgenda)
+      .where(and(eq(assemblyAgenda.id, agendaId), eq(assemblyAgenda.assemblyId, assemblyId)))
+      .limit(1);
+
+    if (!agenda) {
+      return { success: false, error: "Pauta não encontrada nesta assembleia." };
+    }
+
+    if (!agenda.requiresVoting) {
+      return { success: false, error: "Esta pauta não requer votação." };
+    }
+
+    // Determinar unidade e peso da fração
+    const unitId = session.role === "morador" ? session.unitId : inputUnitId || session.unitId;
+    let weight = "1.00";
+    if (unitId) {
+      const [unit] = await db.select({ fraction: units.fraction }).from(units).where(eq(units.id, unitId)).limit(1);
+      if (unit?.fraction) {
+        weight = unit.fraction;
+      }
+    }
+
+    // Verificar voto existente (garantindo apenas 1 voto ativo por usuário e pauta)
+    const [existing] = await db
+      .select()
+      .from(assemblyVotes)
+      .where(and(eq(assemblyVotes.agendaId, agendaId), eq(assemblyVotes.userId, session.user.id)))
+      .limit(1);
+
+    const isChange = !!existing && existing.choice !== choice;
+
+    if (existing) {
+      await db
+        .update(assemblyVotes)
+        .set({
+          choice,
+          weight,
+          assemblyId,
+          unitId,
+        })
+        .where(eq(assemblyVotes.id, existing.id));
+
+      if (isChange) {
+        await logAudit({
+          session,
+          condoId,
+          action: "votar",
+          entity: "assembleia",
+          entityId: assemblyId,
+          summary: `Alterou voto de "${existing.choice.toUpperCase()}" para "${choice.toUpperCase()}" na pauta "${agenda.title}"`,
+        });
+      }
+    } else {
+      await db.insert(assemblyVotes).values({
+        assemblyId,
+        agendaId,
+        unitId,
+        userId: session.user.id,
+        choice,
+        weight,
+      });
+
+      await logAudit({
+        session,
+        condoId,
+        action: "votar",
+        entity: "assembleia",
+        entityId: assemblyId,
+        summary: `Registrou voto "${choice.toUpperCase()}" na pauta "${agenda.title}"`,
+      });
+    }
+
+    // Calcular totais atualizados em tempo real no banco
+    const allVotes = await db
+      .select({ choice: assemblyVotes.choice })
+      .from(assemblyVotes)
+      .where(eq(assemblyVotes.agendaId, agendaId));
+
+    const totals = {
+      sim: allVotes.filter((v) => v.choice === "sim").length,
+      nao: allVotes.filter((v) => v.choice === "nao").length,
+      abstencao: allVotes.filter((v) => v.choice === "abstencao").length,
+    };
+
+    revalidatePath("/painel/assembleias");
+
+    return {
+      success: true,
+      vote: choice,
+      isChange,
+      totals,
+    };
+  } catch (err: any) {
+    console.error("Erro ao registrar voto na assembleia:", err);
+    return {
+      success: false,
+      error: err?.message || "Erro inesperado ao registrar o voto.",
+    };
   }
-
-  await logAudit({ session, condoId, action: "votar", entity: "assembleia", entityId: assemblyId, summary: `Votou "${choice}" no item #${agendaId}` });
-  revalidatePath("/painel/assembleias");
 }
 
 export async function saveAgendaItemResultAction(formData: FormData) {

@@ -790,6 +790,8 @@ UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5859, "longitude" = -
 UPDATE "condominio_app"."occurrences" SET "latitude" = -23.5852, "longitude" = -46.6778 WHERE "code" = 'OC-105' AND "latitude" IS NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "memberships_user_condo_idx" ON "condominio_app"."memberships" USING btree ("user_id","condo_id");
+DELETE FROM "condominio_app"."assembly_votes" a USING "condominio_app"."assembly_votes" b WHERE a.id < b.id AND a.user_id = b.user_id AND a.agenda_id = b.agenda_id;
+CREATE UNIQUE INDEX IF NOT EXISTS "assembly_votes_user_agenda_idx" ON "condominio_app"."assembly_votes" USING btree ("user_id","agenda_id");
 
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "photo_url" text;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "whatsapp" varchar(32);
