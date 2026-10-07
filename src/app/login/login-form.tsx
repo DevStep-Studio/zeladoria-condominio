@@ -8,8 +8,8 @@ import { Icon } from "@/components/icon";
 type Demo = { email: string; label: string; desc: string };
 
 export function LoginForm({ demos }: { demos: Demo[] }) {
-  const [email, setEmail] = useState(demos[0]?.email ?? "");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showDemoPicker, setShowDemoPicker] = useState(false);
   const [error, formAction, pending] = useActionState(loginAction, null);
@@ -21,9 +21,9 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <form action={formAction} className="space-y-4">
-        {/* Email Field */}
+        {/* E-mail Field */}
         <div className="space-y-1.5">
           <label
             htmlFor="email"
@@ -31,7 +31,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           >
             E-mail
           </label>
-          <div className="group relative flex items-center rounded-lg border border-slate-200 bg-white transition-all duration-150 focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
+          <div className="group relative flex items-center rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 focus-within:bg-white focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
             <span className="pointer-events-none absolute left-3.5 flex items-center text-slate-400 group-focus-within:text-[#0055D4] transition-colors">
               <Icon name="mail" size={16} />
             </span>
@@ -40,16 +40,16 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
               name="email"
               type="email"
               autoComplete="email"
-              className="h-11 w-full rounded-lg bg-transparent pl-10 pr-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
+              className="h-11 sm:h-12 w-full rounded-xl bg-transparent pl-10 pr-3.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Digite seu e-mail"
+              placeholder="seuemail@exemplo.com"
               required
             />
           </div>
         </div>
 
-        {/* Password Field */}
+        {/* Senha Field */}
         <div className="space-y-1.5">
           <label
             htmlFor="password"
@@ -57,7 +57,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           >
             Senha
           </label>
-          <div className="group relative flex items-center rounded-lg border border-slate-200 bg-white transition-all duration-150 focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
+          <div className="group relative flex items-center rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 focus-within:bg-white focus-within:border-[#0055D4] focus-within:ring-2 focus-within:ring-[#0055D4]/15 hover:border-slate-300">
             <span className="pointer-events-none absolute left-3.5 flex items-center text-slate-400 group-focus-within:text-[#0055D4] transition-colors">
               <Icon name="lock" size={16} />
             </span>
@@ -66,7 +66,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              className="h-11 w-full rounded-lg bg-transparent pl-10 pr-10 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
+              className="h-11 sm:h-12 w-full rounded-xl bg-transparent pl-10 pr-10 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Digite sua senha"
@@ -83,7 +83,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           </div>
         </div>
 
-        {/* Remember me & Forgot password */}
+        {/* Opções auxiliares: Lembrar de mim & Esqueci minha senha */}
         <div className="flex items-center justify-between gap-2 text-xs sm:text-[13px] pt-0.5">
           <label className="group flex items-center gap-2 text-slate-600 cursor-pointer select-none">
             <input
@@ -104,18 +104,18 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           </Link>
         </div>
 
-        {/* Error message */}
+        {/* Mensagem de Erro contextual */}
         {error ? (
-          <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50/90 p-3 text-xs text-red-700 animate-in fade-in duration-150">
+          <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 animate-in fade-in duration-150">
             <Icon name="alert-triangle" size={16} className="text-red-500 shrink-0 mt-0.5" />
             <span className="font-medium leading-relaxed">{error}</span>
           </div>
         ) : null}
 
-        {/* Main Action Button */}
+        {/* Botão Principal ENTRAR */}
         <button
           type="submit"
-          className="group relative flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0055D4] px-4 text-sm font-semibold text-white shadow-xs transition-all duration-150 hover:bg-[#0047BA] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4] focus-visible:ring-offset-2"
+          className="group relative flex h-11 sm:h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0055D4] px-4 text-sm font-semibold text-white shadow-xs transition-all duration-150 hover:bg-[#0047BA] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4] focus-visible:ring-offset-2"
           disabled={pending}
         >
           {pending ? (
@@ -156,18 +156,18 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         </button>
       </form>
 
-      {/* Não tem uma conta? Criar conta */}
+      {/* Cadastro / Solicitação de Acesso */}
       <div className="text-center text-xs sm:text-[13px] text-slate-500 pt-0.5">
-        <span>Não tem uma conta? </span>
+        <span>Ainda não tem uma conta? </span>
         <a
-          href="mailto:contato@zeladoriacondominio.com.br?subject=Criar%20Conta%20-%20Zeladoria%20Condom%C3%ADnio"
+          href="mailto:contato@zeladoriacondominio.com.br?subject=Solicitar%20Acesso%20-%20Zeladoria%20Cidades"
           className="font-semibold text-[#0055D4] transition-colors hover:text-[#0047BA] hover:underline focus:outline-none focus-visible:underline"
         >
           Criar conta
         </a>
       </div>
 
-      {/* Divider "OU" */}
+      {/* Divisor "OU" */}
       <div className="relative flex items-center justify-center my-3">
         <div className="w-full border-t border-slate-200" />
         <span className="absolute bg-white px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
@@ -175,12 +175,12 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         </span>
       </div>
 
-      {/* Secondary Action: Demo Data Picker */}
+      {/* Acesso rápido com dados de demonstração */}
       <div className="relative">
         <button
           type="button"
           onClick={() => setShowDemoPicker((v) => !v)}
-          className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4]/20 cursor-pointer"
+          className="flex h-10 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all duration-150 hover:border-slate-300 hover:bg-slate-100/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0055D4]/20 cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <Icon name="users" size={15} className="text-[#0055D4]" />
@@ -195,7 +195,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           />
         </button>
 
-        {/* Demo profiles picker dropdown */}
+        {/* Demo profiles dropdown */}
         {showDemoPicker ? (
           <div className="mt-2 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg space-y-1 animate-in fade-in zoom-in-95 duration-150">
             {demos.map((demo) => (
