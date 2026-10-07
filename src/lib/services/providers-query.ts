@@ -177,10 +177,20 @@ export async function getMarketplaceProviders(
       ? vendorTickets.some((t) => t.openedById === options.currentUserId && t.status === "concluido")
       : false;
 
+    const isCompany =
+      v.providerType === "empresa" ||
+      Boolean(v.cnpj) ||
+      (Boolean(v.name) && Boolean(v.contactName) && v.name !== v.contactName);
+    const displayName = isCompany ? v.name : (v.contactName || v.name);
+    const companyDisplayName = isCompany ? (v.companyName || v.name) : (v.name !== displayName ? v.name : "");
+
     const provider: MarketplaceProvider = {
       id: v.id,
-      name: v.contactName || v.name,
-      company: v.name,
+      name: displayName,
+      company: companyDisplayName,
+      contactName: v.contactName,
+      providerType: v.providerType,
+      isCompany,
       category: v.category,
       rating: Math.round(computedRating * 10) / 10,
       reviewsCount,

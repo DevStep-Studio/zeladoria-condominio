@@ -55,6 +55,8 @@ export interface MarketplaceProvider {
   reviews: VerifiedReview[];
   ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
   isCompany?: boolean;
+  contactName?: string | null;
+  providerType?: string | null;
   teamMembers?: { name: string; role: string; avatarUrl?: string }[];
 }
 
