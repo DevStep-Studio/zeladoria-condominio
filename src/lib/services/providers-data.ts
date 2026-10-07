@@ -88,6 +88,25 @@ export const CATEGORY_ICONS: Record<string, IconName> = {
   servicos: "briefcase",
 };
 
+export const CATEGORY_IMAGES: Record<string, string> = {
+  eletrica: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=400&q=80",
+  hidraulica: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=400&q=80",
+  climatizacao: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=400&q=80",
+  pintura: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=400&q=80",
+  marcenaria: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80",
+  carpintaria: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80",
+  seguranca: "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80",
+  limpeza: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80",
+  jardinagem: "https://images.unsplash.com/photo-1558904541-efa8c4a08931?auto=format&fit=crop&w=400&q=80",
+  elevadores: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80",
+  portoes: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80",
+  servicos: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=400&q=80",
+};
+
+export function categoryImage(category: string): string | null {
+  return CATEGORY_IMAGES[category.toLowerCase()] ?? null;
+}
+
 export function categoryIcon(category: string): IconName {
   return CATEGORY_ICONS[category.toLowerCase()] ?? "briefcase";
 }
@@ -115,6 +134,7 @@ export interface CategoryOption {
   id: string;
   name: string;
   icon: IconName;
+  imageUrl?: string | null;
   count: number;
 }
 
@@ -125,10 +145,16 @@ export function buildCategoriesConfig(providers: MarketplaceProvider[]): Categor
     counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
   }
   const categories: CategoryOption[] = [
-    { id: "Todas", name: "Todas as categorias", icon: "grid", count: providers.length },
+    { id: "Todas", name: "Todas as categorias", icon: "grid", imageUrl: null, count: providers.length },
   ];
   for (const [id, count] of counts) {
-    categories.push({ id, name: categoryLabel(id), icon: categoryIcon(id), count });
+    categories.push({
+      id,
+      name: categoryLabel(id),
+      icon: categoryIcon(id),
+      imageUrl: categoryImage(id),
+      count,
+    });
   }
   return categories;
 }

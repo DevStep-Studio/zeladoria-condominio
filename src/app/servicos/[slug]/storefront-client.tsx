@@ -21,6 +21,14 @@ export function StorefrontClient({
   const services = Array.isArray(vendor.services) ? vendor.services : [];
   const portfolio = Array.isArray(vendor.portfolio) ? vendor.portfolio : [];
 
+  const ratingDistribution = {
+    5: reviews.filter((r) => r.rating === 5).length,
+    4: reviews.filter((r) => r.rating === 4).length,
+    3: reviews.filter((r) => r.rating === 3).length,
+    2: reviews.filter((r) => r.rating === 2).length,
+    1: reviews.filter((r) => r.rating === 1).length,
+  };
+
   // Map vendor to MarketplaceProvider interface for wizard
   const providerForWizard: MarketplaceProvider = {
     id: vendor.id,
@@ -43,7 +51,7 @@ export function StorefrontClient({
     portfolio,
     servicesOffered: services,
     reviews: [],
-    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    ratingDistribution,
   };
 
   const handleRequestService = (svc?: any) => {
@@ -160,9 +168,17 @@ export function StorefrontClient({
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Avaliação Geral</span>
                 <div className="font-black text-[#0F172A] flex items-center justify-center gap-1 mt-0.5">
-                  <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                  <span>{vendor.rating ? `${vendor.rating}.0` : "5.0"}</span>
-                  <span className="text-[10px] text-slate-400">({reviews.length})</span>
+                  {reviews.length > 0 ? (
+                    <>
+                      <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
+                      <span>{vendor.rating ? `${vendor.rating}.0` : "5.0"}</span>
+                      <span className="text-[10px] text-slate-400">({reviews.length})</span>
+                    </>
+                  ) : (
+                    <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-1.5 py-0.2">
+                      Novo no Zeladoria
+                    </span>
+                  )}
                 </div>
               </div>
               <div>
@@ -180,6 +196,37 @@ export function StorefrontClient({
                 </div>
               </div>
             </div>
+
+            {/* Quick Portfolio Gallery Preview */}
+            {portfolio.length > 0 && (
+              <div className="mt-5 pt-5 border-t border-slate-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700">Destaques dos Trabalhos</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("portfolio")}
+                    className="text-xs font-bold text-[#0055D4] hover:underline"
+                  >
+                    Ver todos os {portfolio.length} trabalhos →
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {portfolio.slice(0, 3).map((item: any, idx: number) => (
+                    <div
+                      key={idx}
+                      onClick={() => setLightboxUrl(item.url)}
+                      className="group relative h-20 sm:h-24 rounded-xl overflow-hidden bg-slate-100 cursor-pointer border border-slate-200"
+                    >
+                      <img
+                        src={item.url}
+                        alt={item.caption}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tabs Selector */}
             <div className="flex items-center gap-2 mt-6 border-b border-slate-200 overflow-x-auto text-xs font-bold">
@@ -213,8 +260,18 @@ export function StorefrontClient({
               Tabela de Serviços com Valores de Referência
             </h2>
             {services.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-500">
-                Este profissional realiza orçamentos sob medida para a sua necessidade.
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center space-y-3 shadow-xs">
+                <p className="text-xs font-bold text-slate-700">Serviços ainda não cadastrados na tabela.</p>
+                <p className="text-xs text-slate-500">
+                  Você ainda pode solicitar um orçamento personalizado para a sua necessidade.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleRequestService()}
+                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                >
+                  Solicitar orçamento
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -291,7 +348,7 @@ export function StorefrontClient({
 
         {/* Tab 3: Avaliações Verificadas */}
         {activeTab === "avaliacoes" && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h2 className="text-sm font-bold text-[#0F172A]">
               Avaliações de Clientes do Condomínio ({reviews.length})
             </h2>
@@ -301,30 +358,66 @@ export function StorefrontClient({
                 Ainda não há avaliações registradas para este profissional.
               </div>
             ) : (
-              <div className="space-y-3">
-                {reviews.map((rev: any) => (
-                  <div
-                    key={rev.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-[#0F172A]">
-                        <span>{rev.authorName}</span>
-                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-[4px]">
-                          <Icon name="check" size={11} strokeWidth={2.4} />
-                          <span>Serviço Verificado</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        {[...Array(rev.rating || 5)].map((_, i) => (
-                          <Icon key={i} name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
-                        ))}
-                      </div>
+              <>
+                {/* Rating Distribution Card */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row items-center gap-6">
+                  <div className="text-center sm:border-r sm:border-slate-100 sm:pr-6 shrink-0">
+                    <span className="text-4xl font-black text-[#0F172A]">
+                      {vendor.rating ? `${vendor.rating}.0` : "5.0"}
+                    </span>
+                    <div className="flex items-center justify-center gap-1 my-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Icon key={s} name="star" size={15} className="text-[#FFD000] fill-[#FFD000]" />
+                      ))}
                     </div>
-                    {rev.comment && <p className="text-xs text-slate-600 leading-relaxed">&quot;{rev.comment}&quot;</p>}
+                    <span className="text-xs text-slate-400 font-medium">
+                      {reviews.length} {reviews.length === 1 ? "avaliação" : "avaliações"}
+                    </span>
                   </div>
-                ))}
-              </div>
+
+                  <div className="w-full space-y-1.5 flex-1">
+                    {[5, 4, 3, 2, 1].map((stars) => {
+                      const count = (ratingDistribution as any)[stars] || 0;
+                      const percent = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                      return (
+                        <div key={stars} className="flex items-center gap-2 text-xs">
+                          <span className="w-4 font-bold text-slate-600 text-right">{stars}</span>
+                          <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                          <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div className="h-full bg-[#0055D4] rounded-full" style={{ width: `${percent}%` }} />
+                          </div>
+                          <span className="w-8 text-[11px] text-slate-400 text-right">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {reviews.map((rev: any) => (
+                    <div
+                      key={rev.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div className="flex items-center gap-1.5 font-bold text-xs text-[#0F172A]">
+                          <span>{rev.authorName}</span>
+                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-[4px]">
+                            <Icon name="check" size={11} strokeWidth={2.4} />
+                            <span>Serviço Verificado</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(rev.rating || 5)].map((_, i) => (
+                            <Icon key={i} name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
+                          ))}
+                        </div>
+                      </div>
+                      {rev.comment && <p className="text-xs text-slate-600 leading-relaxed">&quot;{rev.comment}&quot;</p>}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -381,6 +474,24 @@ export function StorefrontClient({
           }}
         />
       )}
+
+      {/* Mobile Sticky Bottom CTA */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-40 flex items-center justify-between gap-3 shadow-lg">
+        <div>
+          <span className="text-[10px] text-slate-400 uppercase font-bold block">Preço inicial</span>
+          <span className="text-sm font-black text-emerald-700">
+            {vendor.priceFromCents ? `R$ ${(vendor.priceFromCents / 100).toFixed(0)}` : "Sob consulta"}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => handleRequestService()}
+          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+        >
+          <Icon name="zap" size={14} className="text-[#FFD000] fill-[#FFD000]" />
+          <span>Solicitar Atendimento</span>
+        </button>
+      </div>
     </div>
   );
 }

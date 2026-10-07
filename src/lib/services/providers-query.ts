@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { blocks, tickets, units, users, vendors } from "@/db/schema";
+import { blocks, serviceReviews, tickets, units, users, vendors } from "@/db/schema";
 import { calculateProviderScore } from "./ranking";
 import type { MarketplaceProvider, PortfolioItem, ServiceOffering, VerifiedReview } from "./providers-data";
 
@@ -59,6 +59,24 @@ export async function getMarketplaceProviders(
     .leftJoin(users, eq(users.id, tickets.openedById))
     .where(and(eq(tickets.condoId, condoId), inArray(tickets.vendorId, vendorIds)));
 
+  let serviceReviewRows: any[] = [];
+  try {
+    serviceReviewRows = await db
+      .select({
+        id: serviceReviews.id,
+        vendorId: serviceReviews.vendorId,
+        rating: serviceReviews.rating,
+        comment: serviceReviews.comment,
+        createdAt: serviceReviews.createdAt,
+        authorName: users.name,
+      })
+      .from(serviceReviews)
+      .leftJoin(users, eq(users.id, serviceReviews.customerId))
+      .where(inArray(serviceReviews.vendorId, vendorIds));
+  } catch {
+    // Optional / empty
+  }
+
   const byVendor = new Map<number, typeof ticketRows>();
   for (const t of ticketRows) {
     if (!t.vendorId) continue;
@@ -67,12 +85,45 @@ export async function getMarketplaceProviders(
     byVendor.set(t.vendorId, list);
   }
 
+  const reviewsByVendor = new Map<number, typeof serviceReviewRows>();
+  for (const r of serviceReviewRows) {
+    if (!r.vendorId) continue;
+    const list = reviewsByVendor.get(r.vendorId) ?? [];
+    list.push(r);
+    reviewsByVendor.set(r.vendorId, list);
+  }
+
   return vendorRows.map((v) => {
     const vendorTickets = byVendor.get(v.id) ?? [];
+    const directReviews = reviewsByVendor.get(v.id) ?? [];
+
     const ratedTickets = vendorTickets.filter((t) => t.rating != null);
-    const reviewsCount = ratedTickets.length;
-    const ratingSum = ratedTickets.reduce((acc, t) => acc + (t.rating ?? 0), 0);
-    const rating = reviewsCount > 0 ? ratingSum / reviewsCount : 0;
+    const allRatings = [
+      ...ratedTickets.map((t) => ({
+        id: t.id,
+        rating: t.rating ?? 5,
+        comment: t.ratingComment,
+        author: t.requesterName ?? "Morador do condomínio",
+        unit: t.blockName && t.unitNumber ? `${t.blockName} ${t.unitNumber}` : "Unidade no condomínio",
+        serviceDone: t.title,
+        date: timeAgo(t.closedAt ?? t.createdAt),
+        timestamp: (t.closedAt ?? t.createdAt).getTime(),
+      })),
+      ...directReviews.map((r) => ({
+        id: r.id,
+        rating: r.rating ?? 5,
+        comment: r.comment,
+        author: r.authorName ?? "Morador verificado",
+        unit: "Unidade no condomínio",
+        serviceDone: "Serviço residencial contratado",
+        date: timeAgo(r.createdAt),
+        timestamp: r.createdAt.getTime(),
+      })),
+    ];
+
+    const reviewsCount = allRatings.length;
+    const ratingSum = allRatings.reduce((acc, r) => acc + r.rating, 0);
+    const computedRating = reviewsCount > 0 ? ratingSum / reviewsCount : (v.rating || 0);
 
     const completedOrCancelled = vendorTickets.filter((t) => t.status === "concluido" || t.status === "cancelado");
     const completionRate =
@@ -81,22 +132,22 @@ export async function getMarketplaceProviders(
         : null;
 
     const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } as MarketplaceProvider["ratingDistribution"];
-    for (const t of ratedTickets) {
-      const stars = Math.max(1, Math.min(5, Math.round(t.rating ?? 0))) as 1 | 2 | 3 | 4 | 5;
+    for (const r of allRatings) {
+      const stars = Math.max(1, Math.min(5, Math.round(r.rating ?? 5))) as 1 | 2 | 3 | 4 | 5;
       ratingDistribution[stars] += 1;
     }
 
-    const reviews: VerifiedReview[] = ratedTickets
-      .sort((a, b) => (b.closedAt?.getTime() ?? b.createdAt.getTime()) - (a.closedAt?.getTime() ?? a.createdAt.getTime()))
+    const reviews: VerifiedReview[] = allRatings
+      .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 20)
-      .map((t) => ({
-        id: t.id,
-        authorName: t.requesterName ?? "Morador do condomínio",
-        unit: t.blockName && t.unitNumber ? `${t.blockName} ${t.unitNumber}` : "Unidade não informada",
-        rating: t.rating ?? 0,
-        comment: t.ratingComment,
-        serviceDone: t.title,
-        date: timeAgo(t.closedAt ?? t.createdAt),
+      .map((r) => ({
+        id: r.id,
+        authorName: r.author,
+        unit: r.unit,
+        rating: r.rating,
+        comment: r.comment,
+        serviceDone: r.serviceDone,
+        date: r.date,
       }));
 
     const servicesOffered: ServiceOffering[] = Array.isArray(v.services)
@@ -105,7 +156,7 @@ export async function getMarketplaceProviders(
     const portfolio: PortfolioItem[] = Array.isArray(v.portfolio) ? (v.portfolio as PortfolioItem[]) : [];
 
     const score = calculateProviderScore({
-      rating,
+      rating: computedRating,
       reviewsCount,
       completionRate,
       isVerified: v.verified,
@@ -131,7 +182,7 @@ export async function getMarketplaceProviders(
       name: v.contactName || v.name,
       company: v.name,
       category: v.category,
-      rating: Math.round(rating * 10) / 10,
+      rating: Math.round(computedRating * 10) / 10,
       reviewsCount,
       score,
       isSponsored: v.sponsored,

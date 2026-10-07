@@ -229,6 +229,10 @@ export function ServicosClient({
       .slice(0, 3);
   }, [providers, selectedCategory]);
 
+  const hasRealRatingsInRegion = useMemo(() => {
+    return topOrganicRegion.some((p) => (p.reviewsCount ?? 0) > 0);
+  }, [topOrganicRegion]);
+
   const rehireProviders = useMemo(() => {
     return providers.filter((p) => p.hasHiredBefore || hiredProviderIds.has(p.id));
   }, [providers, hiredProviderIds]);
@@ -634,111 +638,115 @@ export function ServicosClient({
             )}
           </div>
 
-          {/* SECTION 1: SEARCH BAR WITH AUTOCOMPLETE */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs space-y-4">
-            <div className="max-w-3xl mx-auto space-y-2">
-              <label
-                htmlFor="search-marketplace-input"
-                className="block text-sm sm:text-base font-black text-[#0F172A] tracking-tight"
-              >
-                Qual serviço você precisa para o seu apartamento?
-              </label>
+          {/* SECTION 1: SEARCH BAR PROMINENTE (DIRETO NA PÁGINA COM RESPIRO) */}
+          <div className="py-2 space-y-3">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+                Qual serviço você precisa?
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                Encontre profissionais avaliados que atendem o seu condomínio com agilidade e segurança.
+              </p>
+            </div>
 
-              <div ref={searchContainerRef} className="relative">
-                <div className="relative flex items-center">
-                  <Icon
-                    name="search"
-                    size={18}
-                    className="absolute left-4 text-slate-400 pointer-events-none"
-                  />
-                  <input
-                    id="search-marketplace-input"
-                    type="text"
-                    value={search}
-                    onFocus={() => setShowSuggestions(true)}
-                    onChange={(e) => {
-                      handleSearchChange(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    placeholder="Ex: chuveiro, vazamento, tomada, ar-condicionado, pintor, marcenaria..."
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-10 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white transition-all shadow-xs"
-                  />
-                  {search && (
-                    <button
-                      type="button"
-                      onClick={() => handleSearchChange("")}
-                      className="absolute right-3 p-1 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer"
-                    >
-                      <Icon name="x" size={15} />
-                    </button>
-                  )}
-                </div>
-
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-30 mt-1.5 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 block">
-                      Sugestões de problemas e serviços
-                    </span>
-                    <div className="space-y-1">
-                      {suggestions.map((sug) => (
-                        <div
-                          key={sug.query + sug.serviceTitle}
-                          onClick={() => {
-                            handleSearchChange(sug.query);
-                            setSelectedCategory(sug.category);
-                            setShowSuggestions(false);
-                          }}
-                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors cursor-pointer text-xs"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Icon name="search" size={13} className="text-[#0055D4] shrink-0" />
-                            <span className="font-bold text-[#0F172A] truncate">{sug.serviceTitle}</span>
-                            <span className="text-[11px] text-slate-400 shrink-0">em {sug.category}</span>
-                          </div>
-                          {sug.badge && (
-                            <span className="rounded bg-amber-100 text-amber-900 text-[9px] font-black uppercase px-1.5 py-0.2 shrink-0">
-                              {sug.badge}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            <div ref={searchContainerRef} className="relative max-w-3xl">
+              <div className="relative flex items-center">
+                <Icon
+                  name="search"
+                  size={20}
+                  className="absolute left-4 text-slate-400 pointer-events-none"
+                />
+                <input
+                  id="search-marketplace-input"
+                  type="text"
+                  value={search}
+                  onFocus={() => setShowSuggestions(true)}
+                  onChange={(e) => {
+                    handleSearchChange(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  placeholder="Ex.: chuveiro queimado, vazamento, pintura, ar-condicionado..."
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange("")}
+                    className="absolute right-3.5 p-1.5 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer"
+                  >
+                    <Icon name="x" size={16} />
+                  </button>
                 )}
               </div>
 
-              {/* Quick Tags */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
-                <span className="text-[11px] font-bold text-slate-400">Problemas comuns:</span>
-                {[
-                  { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
-                  { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
-                  { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
-                  { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
-                  { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
-                ].map((item) => (
-                  <button
-                    key={item.tag}
-                    type="button"
-                    onClick={() => {
-                      handleSearchChange(item.q);
-                      setSelectedCategory(item.cat);
-                    }}
-                    className="rounded-[6px] bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] text-slate-600 px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
-                  >
-                    {item.tag}
-                  </button>
-                ))}
-              </div>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-30 mt-1.5 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 block">
+                    Sugestões de problemas e serviços
+                  </span>
+                  <div className="space-y-1">
+                    {suggestions.map((sug) => (
+                      <div
+                        key={sug.query + sug.serviceTitle}
+                        onClick={() => {
+                          handleSearchChange(sug.query);
+                          setSelectedCategory(sug.category);
+                          setShowSuggestions(false);
+                        }}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors cursor-pointer text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Icon name="search" size={13} className="text-[#0055D4] shrink-0" />
+                          <span className="font-bold text-[#0F172A] truncate">{sug.serviceTitle}</span>
+                          <span className="text-[11px] text-slate-400 shrink-0">em {sug.category}</span>
+                        </div>
+                        {sug.badge && (
+                          <span className="rounded bg-amber-100 text-amber-900 text-[9px] font-black uppercase px-1.5 py-0.2 shrink-0">
+                            {sug.badge}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Tags */}
+            <div className="flex items-center gap-1.5 flex-wrap text-xs pt-0.5">
+              <span className="text-[11px] font-bold text-slate-400">Problemas comuns:</span>
+              {[
+                { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
+                { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
+                { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
+                { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
+                { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
+                { tag: "Marcenaria", cat: "marcenaria", q: "marcenaria" },
+              ].map((item) => (
+                <button
+                  key={item.tag}
+                  type="button"
+                  onClick={() => {
+                    handleSearchChange(item.q);
+                    setSelectedCategory(item.cat);
+                  }}
+                  className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] text-slate-600 px-3 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
+                >
+                  {item.tag}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* SECTION 2: CATEGORIES HORIZONTAL SCROLL */}
-          <div className="space-y-2">
+          {/* SECTION 2: CATEGORIAS VISUAIS (FOTO/ÍCONE E CONTAGEM) */}
+          <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                Categorias de Serviços
-              </h2>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Categorias de Serviços
+                </h2>
+              </div>
               {selectedCategory !== "Todas" && (
                 <button
                   type="button"
@@ -750,7 +758,8 @@ export function ServicosClient({
               )}
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {/* Category visual rail / tiles */}
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 sm:overflow-visible">
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 return (
@@ -758,24 +767,39 @@ export function ServicosClient({
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${
+                    className={`group flex flex-col items-center justify-between p-2 rounded-2xl text-center transition-all shrink-0 w-28 sm:w-auto cursor-pointer border ${
                       isActive
-                        ? "bg-[#0055D4] border-[#0055D4] text-white shadow-xs"
-                        : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        ? "bg-blue-50/70 border-[#0055D4] shadow-xs ring-2 ring-[#0055D4]/20"
+                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                     }`}
                   >
-                    <Icon
-                      name={cat.icon as any}
-                      size={15}
-                      className={isActive ? "text-[#FFD000]" : "text-[#0055D4]"}
-                    />
-                    <span>{cat.name}</span>
-                    <span
-                      className={`text-[10px] font-black rounded-[4px] px-1.5 py-0.2 ${
-                        isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {cat.count}
+                    {/* Visual photo/icon tile */}
+                    <div className="relative h-14 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
+                      {cat.imageUrl ? (
+                        <>
+                          <img
+                            src={cat.imageUrl}
+                            alt={cat.name}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#0055D4]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
+                          <span className="absolute bottom-1 right-1 p-1 rounded-md bg-white/95 text-slate-800 shadow-2xs">
+                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#0055D4]" : "text-slate-700"} />
+                          </span>
+                        </>
+                      ) : (
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#0055D4] text-white" : "bg-blue-50 text-[#0055D4]"}`}>
+                          <Icon name={cat.icon as any} size={20} />
+                        </span>
+                      )}
+                    </div>
+
+                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#0055D4]" : "text-[#0F172A]"}`}>
+                      {cat.name}
+                    </span>
+                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#0055D4]" : "text-slate-400"}`}>
+                      {cat.count} {cat.count === 1 ? "profis." : "profis."}
                     </span>
                   </button>
                 );
@@ -801,7 +825,7 @@ export function ServicosClient({
                           handleSearchChange(subcat);
                         }
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
                         isSelected
                           ? "bg-[#0055D4] text-white border-[#0055D4] shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#0055D4]"
@@ -815,18 +839,18 @@ export function ServicosClient({
             )}
           </div>
 
-          {/* SECTION 3: PRECISA PARA AGORA? (CHAMADA SOB DEMANDA) */}
-          <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0055D4] text-white shrink-0">
-                <Icon name="zap" size={20} className="text-[#FFD000] fill-[#FFD000]" />
-              </span>
+          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL SOB DEMANDA) */}
+          <div className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shrink-0">
+                <Icon name="zap" size={24} className="text-[#FFD000] fill-[#FFD000]" />
+              </div>
               <div>
-                <h3 className="text-sm sm:text-base font-black text-[#0F172A]">
-                  Precisa de atendimento urgente ou para hoje?
+                <h3 className="text-sm sm:text-base font-black text-[#0F172A] tracking-tight">
+                  Precisa resolver agora?
                 </h3>
-                <p className="text-xs text-slate-600">
-                  Filtre apenas os profissionais disponíveis agora para pequenos consertos imediatos.
+                <p className="text-xs text-slate-500 font-medium">
+                  Veja profissionais credenciados com disponibilidade confirmada para atendimento hoje.
                 </p>
               </div>
             </div>
@@ -834,7 +858,7 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => setOnlyAvailableNow(!onlyAvailableNow)}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+              className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-2 ${
                 onlyAvailableNow
                   ? "bg-slate-900 text-white"
                   : "bg-[#0055D4] hover:bg-[#0047BA] text-white"
@@ -842,55 +866,194 @@ export function ServicosClient({
             >
               {onlyAvailableNow ? (
                 <>
-                  <Icon name="check" size={13} strokeWidth={2.4} />
-                  <span>Mostrando Disponíveis Agora</span>
+                  <Icon name="check" size={14} strokeWidth={2.4} />
+                  <span>Mostrando Disponíveis Hoje</span>
                 </>
               ) : (
-                <span>Ver Disponíveis Agora</span>
+                <>
+                  <span>Ver profissionais disponíveis</span>
+                  <Icon name="arrow-right" size={13} />
+                </>
               )}
             </button>
           </div>
 
-          {/* SECTION 4: MELHORES DA REGIÃO (#1, #2, #3) */}
-          <div className="space-y-3">
+          {/* SECTION 4: MAIS CONTRATADOS NO SEU CONDOMÍNIO (RECOMENDAÇÃO SOCIAL VISUAL) */}
+          {mostHiredInCondo.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-emerald-600 text-white">
+                    <Icon name="shield" size={12} strokeWidth={2.4} />
+                  </span>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                    Mais contratados no {condoInfo?.name || "seu condomínio"}
+                  </h2>
+                </div>
+                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline">
+                  Alta confiança dos moradores locais
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {mostHiredInCondo.map((vendor) => {
+                  const mainPhoto = vendor.portfolio?.[0]?.url || vendor.avatarUrl;
+                  return (
+                    <div
+                      key={`condo-top-${vendor.id}`}
+                      onClick={() => setSelectedProfileVendor(vendor)}
+                      className="group rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
+                    >
+                      {/* Top Visual Banner */}
+                      <div className="h-32 w-full bg-slate-100 relative overflow-hidden">
+                        {mainPhoto ? (
+                          <img
+                            src={mainPhoto}
+                            alt={vendor.name}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-400 text-xs font-bold">
+                            {vendor.company}
+                          </div>
+                        )}
+                        <span className="absolute top-2.5 right-2.5 rounded-[6px] bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 shadow-xs">
+                          {vendor.condoHiredCount} no prédio
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-sm font-bold text-[#0F172A] truncate">
+                              {vendor.name}
+                            </h4>
+                            {vendor.isVerified && (
+                              <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 truncate">
+                            {vendor.category} · {vendor.company}
+                          </p>
+
+                          {/* Rating or Novo no Zeladoria */}
+                          <div className="mt-1.5 flex items-center gap-2">
+                            {vendor.reviewsCount > 0 ? (
+                              <div className="flex items-center gap-1 text-xs">
+                                <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
+                                <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                                <span className="text-[10px] text-slate-400">({vendor.reviewsCount} avaliações)</span>
+                              </div>
+                            ) : (
+                              <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-2 py-0.5">
+                                Novo no Zeladoria
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-[11px] font-bold text-emerald-700 bg-emerald-50/70 p-1.5 rounded-lg border border-emerald-100 mt-2">
+                            “{vendor.condoHiredCount} serviços realizados neste condomínio.”
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProfileVendor(vendor);
+                            }}
+                            className="text-xs font-bold text-slate-700 hover:text-[#0055D4] transition-colors"
+                          >
+                            Ver perfil
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBudgetVendor(vendor);
+                            }}
+                            className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                          >
+                            Solicitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 5: MELHORES AVALIADOS NA SUA REGIÃO (TOP 3 VISUAL) */}
+          <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#FFD000] text-[#12162A]">
                   <Icon name="star" size={12} strokeWidth={2.4} />
                 </span>
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Melhores da sua Região {selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}
+                  {hasRealRatingsInRegion
+                    ? `Melhores da sua Região ${selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}`
+                    : `Profissionais Credenciados ${selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}`}
                 </h2>
               </div>
               <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                Ranking mérito: avaliações, conclusão e pontualidade
+                {hasRealRatingsInRegion
+                  ? "Ranking por avaliações verificadas, pontualidade e satisfação"
+                  : "Profissionais verificados disponíveis para o seu condomínio"}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
               {topOrganicRegion.map((vendor, index) => {
                 const rankNum = index + 1;
+                const photo = vendor.portfolio?.[0]?.url || vendor.avatarUrl;
                 return (
                   <div
                     key={vendor.id}
-                    className="relative flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-blue-300 transition-all shadow-xs cursor-pointer"
                     onClick={() => setSelectedProfileVendor(vendor)}
+                    className="group relative rounded-2xl border border-slate-200 bg-white hover:border-blue-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-xs ${
+                    {/* Visual photo top */}
+                    <div className="h-28 w-full bg-slate-100 relative overflow-hidden">
+                      {photo ? (
+                        <img
+                          src={photo}
+                          alt={vendor.name}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-400 text-xs font-bold">
+                          {vendor.company}
+                        </div>
+                      )}
+
+                      {/* Rank badge: #1 in yellow, #2 & #3 in neutral */}
+                      <span
+                        className={`absolute top-2.5 left-2.5 h-7 px-2.5 rounded-lg flex items-center justify-center font-black text-xs shadow-xs ${
                           rankNum === 1
                             ? "bg-[#FFD000] text-[#12162A]"
-                            : rankNum === 2
-                            ? "bg-slate-200 text-slate-800"
-                            : "bg-amber-100 text-amber-900"
+                            : "bg-white/95 text-slate-800"
                         }`}
                       >
                         #{rankNum}
-                      </div>
+                      </span>
 
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1">
+                      {vendor.startingPriceCents && (
+                        <span className="absolute bottom-2 right-2 rounded-md bg-white/95 text-slate-900 text-[10px] font-black px-2 py-0.5 shadow-2xs">
+                          A partir de R$ {(vendor.startingPriceCents / 100).toFixed(0)}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5">
                           <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
                             {vendor.name}
                           </h4>
@@ -901,24 +1064,49 @@ export function ServicosClient({
                         <p className="text-[11px] text-slate-500 truncate">
                           {vendor.category} · {vendor.company}
                         </p>
-                        <div className="flex items-center gap-1.5 text-xs mt-0.5">
-                          <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                          <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                          <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
+
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {vendor.reviewsCount > 0 ? (
+                            <div className="flex items-center gap-1 text-xs">
+                              <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                              <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                              <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
+                            </div>
+                          ) : (
+                            <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-2 py-0.5">
+                              Novo no Zeladoria
+                            </span>
+                          )}
+                          <span className="text-[11px] text-slate-400">·</span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {vendor.hiredCount || 10}+ serviços
+                          </span>
                         </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setBudgetVendor(vendor);
-                      }}
-                      className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-2.5 py-1 text-[11px] font-bold shrink-0 shadow-xs"
-                    >
-                      Orçar
-                    </button>
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProfileVendor(vendor);
+                          }}
+                          className="text-xs font-bold text-[#0055D4] hover:underline"
+                        >
+                          Ver perfil
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBudgetVendor(vendor);
+                          }}
+                          className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold shadow-xs cursor-pointer"
+                        >
+                          Solicitar
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -927,7 +1115,7 @@ export function ServicosClient({
 
           {/* SECTION: CONTRATE NOVAMENTE (SE HOUVER HISTÓRICO REAL DO MORADOR) */}
           {rehireProviders.length > 0 && (
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3 pt-2">
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#0055D4] text-white">
                   <Icon name="refresh" size={12} strokeWidth={2.4} />
@@ -947,7 +1135,7 @@ export function ServicosClient({
                     className="p-3.5 rounded-2xl border border-blue-200 bg-blue-50/40 hover:bg-blue-50/70 transition-all shadow-xs flex flex-col justify-between gap-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs text-[#0055D4] shrink-0 overflow-hidden shadow-2xs">
+                      <div className="h-11 w-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs text-[#0055D4] shrink-0 overflow-hidden shadow-2xs">
                         {vendor.avatarUrl ? (
                           <img src={vendor.avatarUrl} alt={vendor.name} className="h-full w-full object-cover" />
                         ) : (
@@ -969,9 +1157,17 @@ export function ServicosClient({
 
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-blue-100">
                       <div className="flex items-center gap-1 text-xs">
-                        <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                        <span className="font-bold text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                        <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
+                        {vendor.reviewsCount > 0 ? (
+                          <>
+                            <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                            <span className="font-bold text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                            <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
+                          </>
+                        ) : (
+                          <span className="rounded bg-white text-[#0055D4] text-[10px] font-bold px-1.5 py-0.2">
+                            Novo no Zeladoria
+                          </span>
+                        )}
                       </div>
                       <button
                         type="button"
@@ -980,77 +1176,6 @@ export function ServicosClient({
                       >
                         <Icon name="refresh" size={12} />
                         <span>Contratar</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* SECTION: MAIS CONTRATADOS NO SEU CONDOMÍNIO (RECOMENDAÇÃO SOCIAL) */}
-          {mostHiredInCondo.length > 0 && (
-            <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-emerald-600 text-white">
-                    <Icon name="shield" size={12} strokeWidth={2.4} />
-                  </span>
-                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                    Mais contratados no {condoInfo?.name || "seu condomínio"}
-                  </h2>
-                </div>
-                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline">
-                  Alta confiança dos moradores locais
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                {mostHiredInCondo.map((vendor) => (
-                  <div
-                    key={`condo-top-${vendor.id}`}
-                    onClick={() => setSelectedProfileVendor(vendor)}
-                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 transition-all shadow-xs cursor-pointer flex flex-col justify-between gap-3"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 overflow-hidden">
-                          {vendor.avatarUrl ? (
-                            <img src={vendor.avatarUrl} alt={vendor.name} className="h-full w-full object-cover" />
-                          ) : (
-                            vendor.name.charAt(0)
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
-                            {vendor.name}
-                          </h4>
-                          <p className="text-[11px] text-slate-500 truncate">
-                            {vendor.category} · {vendor.company}
-                          </p>
-                        </div>
-                      </div>
-
-                      <span className="rounded bg-emerald-50 text-emerald-800 text-[10px] font-black px-2 py-0.5 shrink-0 border border-emerald-200">
-                        {vendor.condoHiredCount} {vendor.condoHiredCount === 1 ? "serviço no prédio" : "serviços no prédio"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                        <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                        <span className="text-[10px] text-slate-400">({vendor.reviewsCount} avaliações)</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setBudgetVendor(vendor);
-                        }}
-                        className="text-xs font-bold text-[#0055D4] hover:underline"
-                      >
-                        Solicitar serviço →
                       </button>
                     </div>
                   </div>

@@ -98,6 +98,88 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
         </div>
       )}
 
+      {/* SECTION: MEU PERFIL PÚBLICO & COMPLETUDE */}
+      {(() => {
+        const hasPhoto = Boolean(photoUrl.trim());
+        const hasCover = Boolean(coverUrl.trim());
+        const hasBio = Boolean(description.trim());
+        const hasPortfolio = portfolio.length > 0;
+        const hasServices = Array.isArray(vendor.services) && vendor.services.length > 0;
+        const hasPrice = vendor.priceFromCents != null;
+
+        const items = [
+          { label: "Foto do perfil", ok: hasPhoto, weight: 20 },
+          { label: "Foto de capa", ok: hasCover, weight: 10 },
+          { label: "Apresentação / Bio", ok: hasBio, weight: 20 },
+          { label: "Portfólio de trabalhos", ok: hasPortfolio, weight: 25 },
+          { label: "Serviços cadastrados", ok: hasServices, weight: 15 },
+          { label: "Preços de referência", ok: hasPrice, weight: 10 },
+        ];
+
+        const completeness = items.reduce((acc, item) => (item.ok ? acc + item.weight : acc), 0);
+        const missing = items.filter((i) => !i.ok);
+
+        return (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Meu Perfil Público
+                </span>
+                <h2 className="text-base font-black text-[#0F172A] mt-0.5">
+                  Completude do Perfil: {completeness}%
+                </h2>
+              </div>
+              <span
+                className={`text-xs font-bold px-3 py-1 rounded-full ${
+                  completeness >= 80
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-amber-50 text-amber-800 border border-amber-200"
+                }`}
+              >
+                {completeness >= 80 ? "Perfil Altamente Atrativo" : "Complete seu Perfil"}
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-[#0055D4] transition-all duration-500 rounded-full"
+                style={{ width: `${completeness}%` }}
+              />
+            </div>
+
+            {/* Missing elements checklist */}
+            {missing.length > 0 && (
+              <div className="text-xs space-y-1.5">
+                <span className="font-bold text-slate-700">Faltando completar:</span>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {missing.map((item) => (
+                    <span
+                      key={item.label}
+                      className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-medium"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      <span>{item.label}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Photo & Portfolio Incentive Callout */}
+            {(!hasPhoto || !hasPortfolio) && (
+              <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[#0055D4] text-xs font-medium flex items-center gap-3">
+                <Icon name="camera" size={20} className="shrink-0 text-[#0055D4]" />
+                <p>
+                  <strong>Dica de visibilidade:</strong> Perfis com fotos dos trabalhos ajudam moradores a conhecer melhor seu serviço e aumentam a confiança na contratação.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Main Details Form */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
         <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
