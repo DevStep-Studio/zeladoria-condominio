@@ -21,62 +21,59 @@ export default async function LoginPage() {
   if (session) redirect("/painel");
 
   return (
-    <main className="w-full min-h-screen bg-[#F4F5F7] p-3 sm:p-5 lg:p-7 flex items-center justify-center font-sans antialiased selection:bg-[#0055D4] selection:text-white">
-      {/* Outer Rounded Container Card */}
-      <div className="w-full max-w-[1260px] min-h-[680px] lg:h-[860px] bg-white rounded-[32px] sm:rounded-[40px] p-4 sm:p-6 lg:p-7 shadow-xl border border-slate-200/70 grid grid-cols-1 lg:grid-cols-[46%_54%] gap-6 lg:gap-8 items-stretch overflow-hidden">
-        
-        {/* LEFT COLUMN: Clean Minimalist Login Form */}
-        <section className="flex flex-col justify-between p-2 sm:p-4 lg:p-6 h-full overflow-y-auto">
-          {/* Top Brand Header */}
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
-              aria-label="Zeladoria Condomínio"
-            >
-              <BrandLogo variant="default" size="md" />
-            </Link>
+    <main className="w-full min-h-screen lg:h-screen bg-white flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-[#0055D4] selection:text-white">
+      {/* LEFT COLUMN: Clean Form taking full height, not centered in a floating box */}
+      <section className="flex-1 w-full lg:w-[48%] xl:w-[45%] h-full flex flex-col justify-between px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 overflow-y-auto">
+        {/* Top Brand Header */}
+        <div className="flex items-center justify-between shrink-0">
+          <Link
+            href="/"
+            className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
+            aria-label="Zeladoria Condomínio"
+          >
+            <BrandLogo variant="default" size="md" />
+          </Link>
 
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold border border-slate-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Plataforma 24h</span>
-            </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[11px] font-semibold border border-slate-200/80">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Plataforma 24h</span>
+          </span>
+        </div>
+
+        {/* Form Content Area */}
+        <div className="max-w-[400px] w-full mx-auto my-auto py-6 sm:py-8">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl sm:text-[36px] font-black text-[#0F172A] tracking-tight leading-[1.12]">
+              Acesse seu <br />
+              condomínio
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
+              Controle de acessos, portaria e zeladoria
+            </p>
           </div>
 
-          {/* Form Content Area */}
-          <div className="max-w-[380px] w-full mx-auto my-auto py-6">
-            {/* Headline matching "Start your perfect trip" */}
-            <div className="text-center mb-6">
-              <h1 className="text-3xl sm:text-[38px] font-black text-[#0F172A] tracking-tight leading-[1.12]">
-                Acesse seu <br />
-                condomínio
-              </h1>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
-                Controle de acessos, portaria e zeladoria
-              </p>
-            </div>
+          {/* Interactive Form Component */}
+          <LoginForm demos={DEMOS} />
+        </div>
 
-            {/* Interactive Form Component */}
-            <LoginForm demos={DEMOS} />
+        {/* SaaS Footer */}
+        <footer className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+          <span>© 2026 Zeladoria Cidades</span>
+          <div className="flex items-center gap-3">
+            <a href="#" className="hover:text-[#0055D4] transition-colors">
+              Termos
+            </a>
+            <span>·</span>
+            <a href="#" className="hover:text-[#0055D4] transition-colors">
+              Privacidade
+            </a>
           </div>
+        </footer>
+      </section>
 
-          {/* SaaS Footer */}
-          <footer className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>© 2026 Zeladoria Cidades</span>
-            <div className="flex items-center gap-3">
-              <a href="#" className="hover:text-[#0055D4] transition-colors">
-                Termos
-              </a>
-              <span>·</span>
-              <a href="#" className="hover:text-[#0055D4] transition-colors">
-                Privacidade
-              </a>
-            </div>
-          </footer>
-        </section>
-
-        {/* RIGHT COLUMN: Luxury Condominium Visual with Floating Markers */}
-        <section className="relative h-[480px] sm:h-[540px] lg:h-full w-full rounded-[26px] sm:rounded-[32px] overflow-hidden shadow-sm group">
+      {/* RIGHT COLUMN: Luxury Condominium Visual with Padding and Rounded Corners */}
+      <section className="hidden lg:flex lg:w-[52%] xl:w-[55%] h-full p-3 sm:p-4 lg:p-5 xl:p-6 shrink-0 select-none">
+        <div className="relative w-full h-full rounded-2xl lg:rounded-3xl xl:rounded-[32px] overflow-hidden shadow-sm group">
           {/* Photographic Image of the Condominium */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -85,7 +82,7 @@ export default async function LoginPage() {
             className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
 
-          {/* Subtle natural ambient overlay (no heavy gradient, just enough for crisp contrast) */}
+          {/* Subtle natural ambient overlay */}
           <div className="absolute inset-0 bg-black/15 pointer-events-none" />
 
           {/* FLOATING MARKER 1: Top-Left (Condominium Name & City) */}
@@ -146,9 +143,8 @@ export default async function LoginPage() {
               <span>Acesso Seguro Moradores</span>
             </div>
           </div>
-        </section>
-
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
