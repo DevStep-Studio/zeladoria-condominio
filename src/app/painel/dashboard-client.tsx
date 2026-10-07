@@ -363,9 +363,14 @@ export function DashboardClient({
       <div className="space-y-6">
         {/* 1. NOVO HERO DO DASHBOARD (Grande bloco AZUL SÓLIDO #0055D4, sem gradiente) */}
         <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#0055D4] p-5 sm:p-7 text-white shadow-sm select-none">
-          {/* Símbolo do condomínio/prédio como elemento gráfico sutil de fundo */}
-          <div className="pointer-events-none absolute -right-6 -bottom-8 opacity-10 hidden sm:block">
-            <Icon name="building" size={210} strokeWidth={1} className="text-white" />
+          {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
+          <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-white.png"
+              alt=""
+              className="h-44 w-44 sm:h-64 sm:w-64 object-contain pointer-events-none select-none"
+            />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
