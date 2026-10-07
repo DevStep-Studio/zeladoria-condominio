@@ -3,6 +3,7 @@ import type { Role } from "@/lib/auth";
 export type Permission =
   // Dashboard
   | "dashboard.view"
+  | "dashboard.portaria_view"
   | "dashboard.management_metrics"
 
   // Ocorrências
@@ -16,18 +17,35 @@ export type Permission =
   | "reservation.view_own"
   | "reservation.view_all"
   | "reservation.create"
+  | "reservation.approve"
   | "reservation.manage"
 
-  // Visitantes
+  // Visitantes & Acessos
   | "visitor.view_own"
   | "visitor.view_all"
   | "visitor.create"
+  | "visitor.checkin"
+  | "visitor.checkout"
   | "visitor.manage"
 
   // Encomendas
   | "package.view_own"
   | "package.view_all"
+  | "package.register"
+  | "package.release"
   | "package.manage"
+
+  // Turnos & Portaria Operacional
+  | "shift.view"
+  | "shift.open"
+  | "shift.close"
+  | "shift.manage"
+
+  // Livro Digital
+  | "logbook.view"
+  | "logbook.create"
+  | "logbook.ack"
+  | "logbook.manage"
 
   // Comunicados
   | "announcement.view"
@@ -54,6 +72,7 @@ export type Permission =
   // Prestadores & Serviços
   | "provider.view"
   | "provider.request"
+  | "provider.access_control"
   | "provider.manage"
   | "provider.calls.view"
   | "provider.calls.accept"
@@ -81,6 +100,11 @@ export type Permission =
   | "maintenance.view"
   | "maintenance.manage"
 
+  // Gestão de Unidades e Membros
+  | "unit.view"
+  | "unit.manage"
+  | "user.manage"
+
   // Gestão Financeira & Orçamento
   | "financial.view"
   | "financial.manage"
@@ -89,8 +113,9 @@ export type Permission =
   | "report.view"
   | "audit.view"
 
-  // Configurações e Membros
-  | "settings.manage";
+  // Configurações do Condomínio
+  | "settings.manage"
+  | "condominium.settings.manage";
 
 /**
  * Matriz de permissões por papel.
@@ -132,14 +157,25 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "reservation.view_own",
   "reservation.view_all",
   "reservation.create",
+  "reservation.approve",
   "reservation.manage",
   "visitor.view_own",
   "visitor.view_all",
   "visitor.create",
+  "visitor.checkin",
+  "visitor.checkout",
   "visitor.manage",
   "package.view_own",
   "package.view_all",
+  "package.register",
+  "package.release",
   "package.manage",
+  "shift.view",
+  "shift.manage",
+  "logbook.view",
+  "logbook.create",
+  "logbook.ack",
+  "logbook.manage",
   "announcement.view",
   "announcement.create",
   "announcement.manage",
@@ -156,6 +192,7 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "suggestion.manage",
   "provider.view",
   "provider.request",
+  "provider.access_control",
   "provider.manage",
   "vendors.onboarding.moderate",
   "marketplace.request.create",
@@ -169,11 +206,15 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "service_order.manage",
   "maintenance.view",
   "maintenance.manage",
+  "unit.view",
+  "unit.manage",
+  "user.manage",
   "financial.view",
   "financial.manage",
   "report.view",
   "audit.view",
   "settings.manage",
+  "condominium.settings.manage",
 ];
 
 const CONSELHO_PERMISSIONS: Permission[] = [
@@ -191,6 +232,8 @@ const CONSELHO_PERMISSIONS: Permission[] = [
   "provider.view",
   "service_order.view",
   "maintenance.view",
+  "logbook.view",
+  "logbook.ack",
   "financial.view",
   "report.view",
   "audit.view",
@@ -206,23 +249,46 @@ const ZELADOR_PERMISSIONS: Permission[] = [
   "maintenance.view",
   "maintenance.manage",
   "package.view_all",
+  "package.register",
+  "package.release",
   "package.manage",
   "visitor.view_all",
+  "visitor.checkin",
+  "visitor.checkout",
   "visitor.manage",
+  "shift.view",
+  "shift.open",
+  "shift.close",
+  "logbook.view",
+  "logbook.create",
   "announcement.view",
   "provider.view",
+  "provider.access_control",
 ];
 
 const PORTEIRO_PERMISSIONS: Permission[] = [
   "dashboard.view",
+  "dashboard.portaria_view",
   "occurrence.view_all",
   "occurrence.create",
   "visitor.view_all",
+  "visitor.create",
+  "visitor.checkin",
+  "visitor.checkout",
   "visitor.manage",
   "package.view_all",
+  "package.register",
+  "package.release",
   "package.manage",
+  "reservation.view_all", // Portaria consulta reservas do dia
+  "shift.view",
+  "shift.open",
+  "shift.close",
+  "logbook.view",
+  "logbook.create",
   "announcement.view",
   "provider.view",
+  "provider.access_control",
   "maintenance.view",
 ];
 

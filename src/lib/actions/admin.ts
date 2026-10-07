@@ -15,16 +15,20 @@ import {
   lostItems,
   maintenanceOrders,
   maintenancePlans,
+  memberships,
   moveRequests,
+  occurrences,
   supportTickets,
+  tickets,
   transactions,
   units,
+  users,
   vendors,
 } from "@/db/schema";
-import { requireCondo, requireRole } from "@/lib/auth";
+import { hashPassword, requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
-import { addDays, bool, cents, isoDate, maybeDate, num, str } from "@/lib/utils";
+import { addDays, bool, cents, isoDate, maybeDate, num, sequence, str } from "@/lib/utils";
 import { voteAssemblyAction as executeVoteAssemblyAction } from "@/lib/actions/assemblies";
 
 const FINANCE = ["superadmin", "sindico", "conselho"] as const;
@@ -699,6 +703,8 @@ export async function saveCondoSettingsAction(formData: FormData) {
     summary: "Atualizou dados do condomínio", before: before ? { name: before.name, city: before.city } : null, after: values, critical: true,
   });
   revalidatePath("/painel/implantacao");
+  revalidatePath("/painel/configuracoes");
+  revalidatePath("/painel");
 }
 
 export async function createSupportTicketAction(formData: FormData) {
@@ -757,4 +763,136 @@ export async function seedDemoCondoAction() {
     .returning();
   await logAudit({ session, condoId: condo.id, action: "criar", entity: "condominio", entityId: condo.id, summary: `Criou ${condo.name}`, critical: true });
   revalidatePath("/painel/adocao");
+}
+
+/* --------------------------------------------------- GESTÃO DE USUÁRIOS & CONVITES */
+
+export async function inviteUserAction(formData: FormData) {
+  const { session, condoId } = await requireRole(["superadmin", "sindico"]);
+  const name = str(formData, "name");
+  const email = str(formData, "email").toLowerCase().trim();
+  const role = str(formData, "role", "morador");
+  const unitId = num(formData, "unitId") || null;
+  const phone = str(formData, "phone") || null;
+
+  if (!name || !email) {
+    return { success: false, error: "Nome e e-mail são obrigatórios." };
+  }
+
+  // 1. Check if user already exists
+  let [existingUser] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  let userId = existingUser?.id;
+
+  if (!existingUser) {
+    // Generate secure temporary random password hash (user will use invite/reset link)
+    const tempPassword = `zc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const [created] = await db
+      .insert(users)
+      .values({
+        name,
+        email,
+        phone,
+        passwordHash: hashPassword(tempPassword),
+        status: "ativo",
+      })
+      .returning();
+    userId = created.id;
+  }
+
+  // 2. Check if membership already exists in this condo
+  const [existingMembership] = await db
+    .select()
+    .from(memberships)
+    .where(and(eq(memberships.userId, userId!), eq(memberships.condoId, condoId)))
+    .limit(1);
+
+  if (existingMembership) {
+    await db
+      .update(memberships)
+      .set({
+        role: role as any,
+        unitId,
+        status: "ativo",
+      })
+      .where(eq(memberships.id, existingMembership.id));
+  } else {
+    await db.insert(memberships).values({
+      condoId,
+      userId: userId!,
+      role: role as any,
+      unitId,
+      status: "ativo",
+    });
+  }
+
+  await logAudit({
+    session,
+    condoId,
+    action: "convidar_usuario",
+    entity: "usuario",
+    entityId: userId,
+    summary: `Convidou ${name} (${email}) como ${role}${unitId ? ` para unidade #${unitId}` : ""}`,
+    critical: true,
+  });
+
+  revalidatePath("/painel/moradores");
+  revalidatePath("/painel/admin");
+  return { success: true };
+}
+
+/* ------------------------------------------- CRIAR ORDEM A PARTIR DE OCORRÊNCIA */
+
+export async function createWorkOrderFromOccurrenceAction(formData: FormData) {
+  const { session, condoId } = await requireRole(["superadmin", "sindico", "zelador"]);
+  const occurrenceId = num(formData, "occurrenceId");
+  const [occ] = await db.select().from(occurrences).where(and(eq(occurrences.id, occurrenceId), eq(occurrences.condoId, condoId))).limit(1);
+  if (!occ) return { success: false, error: "Ocorrência não encontrada." };
+
+  const [orderCount] = await db.select({ n: sql<number>`count(*)::int` }).from(maintenanceOrders).where(eq(maintenanceOrders.condoId, condoId));
+  const scheduledFor = str(formData, "scheduledFor") || isoDate(addDays(3));
+  const technician = str(formData, "technician") || "Equipe de Manutenção";
+  const vendorId = num(formData, "vendorId") || null;
+  const costCents = cents(str(formData, "cost") || "0");
+
+  const [order] = await db
+    .insert(maintenanceOrders)
+    .values({
+      condoId,
+      kind: "corretiva",
+      title: str(formData, "title", `OS: ${occ.title}`),
+      description: `${occ.description}\n\n[Origem: Ocorrência ${occ.code}] - Local: ${occ.exactLocation ?? "Área Comum"}`,
+      scheduledFor,
+      status: "programada",
+      vendorId,
+      technician,
+      costCents,
+    })
+    .returning();
+
+  // Update occurrence status to em_execucao and append note
+  const stamp = new Date().toLocaleString("pt-BR");
+  const note = `${occ.actionsTaken ?? ""}\n[${stamp}] Ordem de serviço #${order.id} criada por ${session.user.name}`.trim();
+  await db
+    .update(occurrences)
+    .set({
+      status: "em_execucao",
+      actionsTaken: note,
+    })
+    .where(eq(occurrences.id, occ.id));
+
+  await logAudit({
+    session,
+    condoId,
+    action: "criar_ordem_de_ocorrencia",
+    entity: "ordem_manutencao",
+    entityId: order.id,
+    summary: `Criou OS #${order.id} a partir da ocorrência ${occ.code}`,
+    critical: true,
+  });
+
+  revalidatePath("/painel/ocorrencias");
+  revalidatePath("/painel/ordens");
+  revalidatePath("/painel/manutencao");
+  revalidatePath("/painel");
+  return { success: true, orderId: order.id };
 }

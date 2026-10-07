@@ -80,6 +80,21 @@ const NOTICE_META: Record<
   },
 };
 
+import { PorteiroDashboard, type InsideVisitor, type ExpectedVisitor, type PendingParcel, type ShiftInfo, type PorteiroOverview } from "@/components/porteiro-dashboard";
+import { SindicoDashboard, type SindicoTodaySummary, type SmartPreventionAlert, type LogbookEntry, type ManagementOccurrence } from "@/components/sindico-dashboard";
+
+export type {
+  InsideVisitor,
+  ExpectedVisitor,
+  PendingParcel,
+  ShiftInfo,
+  PorteiroOverview,
+  SindicoTodaySummary,
+  SmartPreventionAlert,
+  LogbookEntry,
+  ManagementOccurrence,
+};
+
 export function DashboardClient({
   userName,
   condoName,
@@ -96,6 +111,14 @@ export function DashboardClient({
   notices = [],
   mapOccurrences = [],
   condoCoordinates,
+  // Specialized Props
+  activeShift,
+  lastShift,
+  porteiroOverview,
+  allUnits = [],
+  sindicoSummary,
+  smartAlerts = [],
+  logbookEntries = [],
 }: {
   userName: string;
   condoName: string;
@@ -122,7 +145,47 @@ export function DashboardClient({
   notices?: CondoNotice[];
   mapOccurrences?: CondoMapOccurrence[];
   condoCoordinates?: CondoCoordinates;
+  // Specialized Props
+  activeShift?: ShiftInfo | null;
+  lastShift?: ShiftInfo | null;
+  porteiroOverview?: PorteiroOverview;
+  allUnits?: Array<{ id: number; label: string }>;
+  sindicoSummary?: SindicoTodaySummary;
+  smartAlerts?: SmartPreventionAlert[];
+  logbookEntries?: LogbookEntry[];
 }) {
+  // 1. Specialized Porteiro Dashboard View
+  if ((role === "porteiro" || role === "zelador") && porteiroOverview) {
+    return (
+      <PorteiroDashboard
+        userName={userName}
+        condoName={condoName}
+        activeShift={activeShift ?? null}
+        lastShift={lastShift ?? null}
+        overview={porteiroOverview}
+        allUnits={allUnits}
+      />
+    );
+  }
+
+  // 2. Specialized Síndico Management Dashboard View
+  if ((role === "sindico" || role === "superadmin" || role === "conselho") && !isResident && sindicoSummary) {
+    return (
+      <SindicoDashboard
+        userName={userName}
+        condoName={condoName}
+        attentionItems={attentionItems}
+        todaySummary={sindicoSummary}
+        smartAlerts={smartAlerts}
+        logbookEntries={logbookEntries}
+        recentActivities={recentActivities}
+        mapOccurrences={mapOccurrences}
+        condoCoordinates={condoCoordinates}
+      />
+    );
+  }
+
+  // 3. Resident / Standard Dashboard View
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);

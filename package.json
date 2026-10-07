@@ -12,6 +12,7 @@
     "test:marketplace": "tsx --test tests/marketplace.test.ts",
     "test:reservas": "tsx --test tests/reservas.test.ts",
     "test:mapa": "tsx --test tests/mapa.test.ts",
+    "test:portaria": "tsx --test tests/portaria-sindico-e2e.test.ts",
     "db:setup": "tsx src/db/setup.ts",
     "db:seed": "tsx src/db/seed.ts",
     "autocommit": "node scripts/auto-commit.mjs",
