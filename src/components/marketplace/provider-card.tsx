@@ -38,8 +38,8 @@ export function ProviderCard({
       className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer overflow-hidden"
     >
       <div>
-        {/* BANNER FOTOGRÁFICO DO TRABALHO / CAPA (Proporção 16:10) */}
-        <div className="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden">
+        {/* BANNER FOTOGRÁFICO COMPACTO E MODERNO (h-36 sm:h-40 em vez de proporção gigante) */}
+        <div className="relative h-36 sm:h-40 w-full bg-slate-100 overflow-hidden">
           {coverImage && !imageError ? (
             <img
               src={coverImage}
@@ -49,10 +49,10 @@ export function ProviderCard({
               loading="lazy"
             />
           ) : (
-            /* Fallback elegante e neutro: Ícone da categoria + nome da categoria (Sem fingir foto e sem bloco escuro artificial) */
-            <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-4 border-b border-slate-100">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white border border-slate-200 text-[#0055D4] shadow-2xs">
-                <Icon name={catIconName} size={22} />
+            /* Fallback elegante e neutro: Ícone da categoria + nome da categoria */
+            <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-3 border-b border-slate-100">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#0055D4] shadow-2xs">
+                <Icon name={catIconName} size={20} />
               </span>
               <span className="text-xs font-bold text-slate-600 capitalize">
                 {provider.category}
@@ -60,30 +60,30 @@ export function ProviderCard({
             </div>
           )}
 
-          {/* Botão de Favoritar (♡) limpo no topo direito da foto */}
-          <div className="absolute top-2.5 right-2.5 z-10">
+          {/* Botão de Favoritar (♡) compacto no topo direito */}
+          <div className="absolute top-2 right-2 z-10">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite?.(provider.id);
               }}
-              className={`flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
+              className={`flex h-7.5 w-7.5 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
                 isFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
               }`}
               title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
             >
               <Icon
                 name="heart"
-                size={15}
+                size={14}
                 className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
               />
             </button>
           </div>
 
-          {/* FOTO / AVATAR DO PRESTADOR / LOGO DA EMPRESA (Sobrepondo a borda inferior) */}
-          <div className="absolute -bottom-5 left-4 z-10">
-            <div className="relative h-12 w-12 rounded-xl bg-white p-0.5 border-2 border-white shadow-md overflow-hidden bg-slate-100">
+          {/* FOTO / AVATAR DO PRESTADOR / LOGO DA EMPRESA (Proporcional e ajustado) */}
+          <div className="absolute -bottom-4 left-3.5 z-10">
+            <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white p-0.5 border-2 border-white shadow-md overflow-hidden bg-slate-100">
               {provider.avatarUrl && !avatarError ? (
                 <img
                   src={provider.avatarUrl}
@@ -93,39 +93,39 @@ export function ProviderCard({
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#0055D4] rounded-lg text-sm">
+                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#0055D4] rounded-lg text-xs sm:text-sm">
                   {provider.name.charAt(0).toUpperCase()}
                 </div>
               )}
 
-              {/* Selo Verificado sobre o avatar (apenas se verificado real) */}
+              {/* Selo Verificado sobre o avatar */}
               {provider.isVerified && (
                 <div
                   title="Documento e antecedentes verificados"
                   className="absolute bottom-0 right-0 bg-[#0055D4] text-white rounded-tl-md rounded-br-lg p-0.5"
                 >
-                  <Icon name="check" size={9} strokeWidth={3} />
+                  <Icon name="check" size={8} strokeWidth={3} />
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* CORPO DO CARD */}
-        <div className="p-4 pt-6 space-y-2">
+        {/* CORPO DO CARD COM PADDINGS EQUILIBRADOS */}
+        <div className="p-3.5 pt-5 space-y-1.5">
           {/* Identidade: Nome & Empresa / Especialidade */}
           <div>
             <div className="flex items-center justify-between gap-1.5">
-              <h3 className="text-sm font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
+              <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
                 {provider.name}
               </h3>
               {rankingPosition && rankingPosition <= 3 && (
-                <span className="text-[11px] font-black text-[#0055D4] shrink-0">
+                <span className="text-[10px] font-black text-[#0055D4] bg-blue-50 px-1.5 py-0.2 rounded-md shrink-0">
                   #{rankingPosition}
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+            <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
               {provider.category.charAt(0).toUpperCase() + provider.category.slice(1)}
               {provider.company && provider.company !== provider.name ? ` · ${provider.company}` : ""}
             </p>
@@ -135,20 +135,20 @@ export function ProviderCard({
           <div className="flex items-center justify-between text-xs gap-2 pt-0.5">
             {provider.reviewsCount > 0 ? (
               <div className="flex items-center gap-1">
-                <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                <span className="font-black text-[#0F172A]">{provider.rating.toFixed(1)}</span>
-                <span className="text-slate-400 font-medium text-[11px]">
-                  ({provider.reviewsCount} {provider.reviewsCount === 1 ? "avaliação" : "avaliações"})
+                <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
+                <span className="font-black text-[#0F172A] text-xs">{provider.rating.toFixed(1)}</span>
+                <span className="text-slate-400 font-medium text-[10px]">
+                  ({provider.reviewsCount})
                 </span>
               </div>
             ) : (
-              <span className="text-[11px] font-bold text-[#0055D4]">
+              <span className="text-[10px] font-bold text-[#0055D4]">
                 Novo no Zeladoria
               </span>
             )}
 
             {provider.responseTimeMinutes && (
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[10px] text-slate-400">
                 ~{provider.responseTimeMinutes} min resposta
               </span>
             )}
@@ -156,39 +156,39 @@ export function ProviderCard({
 
           {/* Prova Social Condominial: Máximo 1 badge contextual */}
           {provider.condoHiredCount && provider.condoHiredCount > 0 ? (
-            <p className="text-[11px] font-semibold text-emerald-700">
-              ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço neste condomínio" : "serviços neste condomínio"}
+            <p className="text-[10px] font-semibold text-emerald-700 truncate">
+              ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço no condomínio" : "serviços no condomínio"}
             </p>
           ) : hasHiredBefore ? (
-            <p className="text-[11px] font-semibold text-[#0055D4]">
-              ✓ Você já contratou anteriormente
+            <p className="text-[10px] font-semibold text-[#0055D4] truncate">
+              ✓ Já contratado anteriormente
             </p>
           ) : null}
 
           {/* Preço Inicial & Disponibilidade / Distância */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+              <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block">
                 A partir de
               </span>
-              <span className="text-sm font-black text-[#0F172A]">
+              <span className="text-xs sm:text-sm font-black text-[#0F172A]">
                 {provider.startingPriceCents != null
                   ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                   : "Sob consulta"}
               </span>
             </div>
 
-            <div className="text-right text-[11px] text-slate-500">
+            <div className="text-right text-[10px]">
               {provider.availableNow ? (
                 <span className="font-bold text-emerald-700 block">
                   Disponível hoje
                 </span>
               ) : (
                 <span className="text-slate-400 block">
-                  Atende sua região
+                  Atende a região
                 </span>
               )}
-              <span>
+              <span className="text-slate-400">
                 {provider.distanceKm != null
                   ? `${provider.distanceKm.toFixed(1).replace(".", ",")} km`
                   : "Próximo"}
@@ -198,15 +198,15 @@ export function ProviderCard({
         </div>
       </div>
 
-      {/* BOTÕES DE AÇÃO: Ver perfil e Solicitar */}
-      <div className="grid grid-cols-2 gap-2 p-4 pt-1 border-t border-slate-50">
+      {/* BOTÕES DE AÇÃO: Ver perfil e Solicitar (Mais compactos e elegantes) */}
+      <div className="grid grid-cols-2 gap-2 p-3 pt-1 border-t border-slate-50">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onViewProfile(provider);
           }}
-          className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 py-2 text-xs font-bold transition-colors cursor-pointer text-center"
+          className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 py-1.5 sm:py-2 text-xs font-bold transition-colors cursor-pointer text-center"
         >
           Ver perfil
         </button>
@@ -217,7 +217,7 @@ export function ProviderCard({
             e.stopPropagation();
             onRequestBudget(provider);
           }}
-          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
+          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
         >
           Solicitar
         </button>
