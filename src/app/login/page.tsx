@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ensureSeed } from "@/db/seed";
 import { BrandLogo } from "@/components/brand-logo";
+import { Icon } from "@/components/icon";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -20,170 +21,134 @@ export default async function LoginPage() {
   if (session) redirect("/painel");
 
   return (
-    <main className="w-full min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[58%_42%] xl:grid-cols-[60%_40%] bg-white text-[#0F172A] selection:bg-[#0055D4] selection:text-white">
-      {/* Left Visual Panel: 100% full screen height, edge-to-edge */}
-      <section className="relative bg-[#0055D4] text-white p-8 sm:p-12 lg:p-14 xl:p-16 flex flex-col justify-between overflow-hidden">
-        {/* Subtle architectural vector geometry & tonal depth */}
-        <div
-          className="absolute inset-0 pointer-events-none select-none overflow-hidden"
-          aria-hidden="true"
-        >
-          {/* Soft tonal depth */}
-          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#0047BA] opacity-60 blur-3xl" />
-          <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-[#003B99] opacity-75 blur-3xl" />
-
-          {/* Geometric architectural SVG linework */}
-          <svg
-            className="absolute inset-0 w-full h-full stroke-white/10"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 900 900"
-            fill="none"
-          >
-            <circle cx="450" cy="450" r="380" strokeWidth="1" strokeDasharray="6 6" />
-            <circle cx="450" cy="450" r="260" strokeWidth="1" />
-            <circle cx="450" cy="450" r="130" strokeWidth="1" strokeDasharray="4 4" />
-            <line x1="80" y1="450" x2="820" y2="450" strokeWidth="1" strokeOpacity="0.4" />
-            <line x1="450" y1="80" x2="450" y2="820" strokeWidth="1" strokeOpacity="0.4" />
-            <rect x="320" y="320" width="260" height="260" rx="20" strokeWidth="1" strokeOpacity="0.25" />
-          </svg>
-        </div>
-
-        {/* Top Header: Official Logo + Product Badge */}
-        <header className="relative z-10 flex items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD000] rounded-lg"
-            aria-label="Ir para página inicial do Zeladoria Cidades"
-          >
-            <BrandLogo variant="white" size="xl" />
-          </Link>
-
-          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs text-white/95 font-medium backdrop-blur-xs shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FFD000] animate-pulse" />
-            <span>Zeladoria Cidades</span>
-          </div>
-        </header>
-
-        {/* Bottom Content Hierarchy */}
-        <div className="relative z-10 mt-10 lg:mt-auto pt-6">
-          {/* Eyebrow element */}
-          <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-semibold tracking-wide text-white shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FFD000]" />
-            <span>Tudo do seu condomínio em um só lugar</span>
-          </div>
-
-          {/* Main Title */}
-          <h2 className="text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-extrabold tracking-tight text-white leading-[1.12]">
-            Seu condomínio, <br />
-            <span className="text-white">mais simples.</span>
-          </h2>
-
-          {/* Subtitle */}
-          <p className="mt-3 text-sm sm:text-[15px] lg:text-base text-blue-100/90 font-normal leading-relaxed max-w-xl">
-            Gestão, serviços e convivência conectados em uma única plataforma moderna e inteligente.
-          </p>
-
-          {/* 3 Horizontal Cards (visible on tablet and desktop, hidden on compact mobile) */}
-          <div className="mt-8 hidden sm:grid sm:grid-cols-3 gap-3.5 w-full">
-            {/* CARD 1 — Ativo / Destacado */}
-            <div className="bg-white text-slate-900 rounded-2xl p-4 shadow-md border border-white flex flex-col justify-between transition-transform duration-150">
-              <div className="w-7 h-7 rounded-full bg-[#0055D4] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#FFD000] shrink-0">
-                1
-              </div>
-              <div className="mt-3">
-                <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 leading-snug">
-                  Acesse seu condomínio
-                </h3>
-                <p className="mt-1 text-[11px] text-slate-500 leading-normal">
-                  Entre com sua conta para gerenciar seu espaço.
-                </p>
-              </div>
-            </div>
-
-            {/* CARD 2 — Secundário */}
-            <div className="bg-white/10 hover:bg-white/15 text-white rounded-2xl p-4 border border-white/15 flex flex-col justify-between backdrop-blur-xs transition-colors">
-              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                2
-              </div>
-              <div className="mt-3">
-                <h3 className="text-xs sm:text-[13px] font-bold text-white leading-snug">
-                  Acompanhe tudo
-                </h3>
-                <p className="mt-1 text-[11px] text-blue-100/85 leading-normal">
-                  Reservas, ocorrências e comunicados.
-                </p>
-              </div>
-            </div>
-
-            {/* CARD 3 — Secundário */}
-            <div className="bg-white/10 hover:bg-white/15 text-white rounded-2xl p-4 border border-white/15 flex flex-col justify-between backdrop-blur-xs transition-colors">
-              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                3
-              </div>
-              <div className="mt-3">
-                <h3 className="text-xs sm:text-[13px] font-bold text-white leading-snug">
-                  Resolva com facilidade
-                </h3>
-                <p className="mt-1 text-[11px] text-blue-100/85 leading-normal">
-                  Serviços e gestão em um só lugar.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Right Form Area: 100% full screen height, edge-to-edge */}
-      <section className="bg-white flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 h-full overflow-y-auto">
-        {/* Top Header: Security Indicator */}
-        <header className="flex items-center justify-between text-xs">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-[11px] font-medium text-slate-600">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Ambiente Seguro SSL</span>
-          </div>
-
-          <Link
-            href="/prestador/login"
-            className="text-[12px] font-semibold text-[#0055D4] hover:text-[#0047BA] hover:underline transition-colors"
-          >
-            Área do Prestador →
-          </Link>
-        </header>
-
-        {/* Centered Form Area */}
-        <div className="w-full max-w-[400px] mx-auto my-auto py-6 sm:py-8">
-          <div className="mb-6">
-            <h1 className="text-[30px] sm:text-[34px] font-extrabold leading-tight tracking-tight text-[#0F172A]">
-              Bem-vindo de volta
-            </h1>
-            <p className="mt-2 text-sm text-slate-500 font-normal leading-relaxed">
-              Entre na sua conta para acessar o Zeladoria Cidades.
-            </p>
-          </div>
-
-          <LoginForm demos={DEMOS} />
-        </div>
-
-        {/* SaaS Footer */}
-        <footer className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-normal">
-          <p>© 2026 Zeladoria Cidades</p>
-          <div className="flex items-center gap-4">
-            <a
-              href="#"
-              className="hover:text-[#0055D4] transition-colors focus:outline-none focus-visible:underline"
+    <main className="w-full min-h-screen bg-[#F4F5F7] p-3 sm:p-5 lg:p-7 flex items-center justify-center font-sans antialiased selection:bg-[#0055D4] selection:text-white">
+      {/* Outer Rounded Container Card */}
+      <div className="w-full max-w-[1260px] min-h-[680px] lg:h-[860px] bg-white rounded-[32px] sm:rounded-[40px] p-4 sm:p-6 lg:p-7 shadow-xl border border-slate-200/70 grid grid-cols-1 lg:grid-cols-[46%_54%] gap-6 lg:gap-8 items-stretch overflow-hidden">
+        
+        {/* LEFT COLUMN: Clean Minimalist Login Form */}
+        <section className="flex flex-col justify-between p-2 sm:p-4 lg:p-6 h-full overflow-y-auto">
+          {/* Top Brand Header */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
+              aria-label="Zeladoria Condomínio"
             >
-              Termos de Uso
-            </a>
-            <span className="text-slate-300 select-none">·</span>
-            <a
-              href="#"
-              className="hover:text-[#0055D4] transition-colors focus:outline-none focus-visible:underline"
-            >
-              Política de Privacidade
-            </a>
+              <BrandLogo variant="default" size="md" />
+            </Link>
+
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold border border-slate-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Plataforma 24h</span>
+            </span>
           </div>
-        </footer>
-      </section>
+
+          {/* Form Content Area */}
+          <div className="max-w-[380px] w-full mx-auto my-auto py-6">
+            {/* Headline matching "Start your perfect trip" */}
+            <div className="text-center mb-6">
+              <h1 className="text-3xl sm:text-[38px] font-black text-[#0F172A] tracking-tight leading-[1.12]">
+                Acesse seu <br />
+                condomínio
+              </h1>
+              <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal">
+                Controle de acessos, portaria e zeladoria
+              </p>
+            </div>
+
+            {/* Interactive Form Component */}
+            <LoginForm demos={DEMOS} />
+          </div>
+
+          {/* SaaS Footer */}
+          <footer className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span>© 2026 Zeladoria Cidades</span>
+            <div className="flex items-center gap-3">
+              <a href="#" className="hover:text-[#0055D4] transition-colors">
+                Termos
+              </a>
+              <span>·</span>
+              <a href="#" className="hover:text-[#0055D4] transition-colors">
+                Privacidade
+              </a>
+            </div>
+          </footer>
+        </section>
+
+        {/* RIGHT COLUMN: Luxury Condominium Visual with Floating Markers */}
+        <section className="relative h-[480px] sm:h-[540px] lg:h-full w-full rounded-[26px] sm:rounded-[32px] overflow-hidden shadow-sm group">
+          {/* Photographic Image of the Condominium */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/condominio-login.jpg"
+            alt="Fachada e área de lazer do Residencial Jardim Atlântico"
+            className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          />
+
+          {/* Subtle natural ambient overlay (no heavy gradient, just enough for crisp contrast) */}
+          <div className="absolute inset-0 bg-black/15 pointer-events-none" />
+
+          {/* FLOATING MARKER 1: Top-Left (Condominium Name & City) */}
+          <div className="absolute top-8 left-6 sm:left-8 z-20 flex flex-col items-start gap-1 group/m1 transition-transform duration-300 hover:scale-105 cursor-pointer">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-900/65 backdrop-blur-md text-white border border-white/20 shadow-xl">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-white shrink-0">
+                <Icon name="building" size={16} />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Condomínio</p>
+                <h3 className="text-xs sm:text-sm font-black text-white tracking-tight leading-tight">
+                  Residencial Jardim Atlântico
+                </h3>
+              </div>
+            </div>
+            {/* Pin line and pulse dot */}
+            <div className="ml-7 flex flex-col items-center">
+              <div className="w-[1.5px] h-7 bg-white/80" />
+              <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#0055D4]" />
+              </div>
+            </div>
+          </div>
+
+          {/* FLOATING MARKER 2: Middle-Right (Portaria & Zeladoria 24h) */}
+          <div className="absolute top-[44%] right-6 sm:right-8 z-20 flex flex-col items-end gap-1 group/m2 transition-transform duration-300 hover:scale-105 cursor-pointer">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900/65 backdrop-blur-md text-white border border-white/20 shadow-xl max-w-[260px]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/30 text-emerald-300 shrink-0">
+                <Icon name="shield" size={17} />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-black text-white">Portaria & Zeladoria</p>
+                <p className="text-[11px] text-slate-300 leading-tight mt-0.5">
+                  Acessos, encomendas e serviços 100% monitorados
+                </p>
+              </div>
+            </div>
+            {/* Pin line and pulse dot */}
+            <div className="mr-8 flex flex-col items-center">
+              <div className="w-[1.5px] h-8 bg-white/80" />
+              <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* FLOATING MARKER 3: Bottom Pathway (Acesso Seguro & Facial) */}
+          <div className="absolute bottom-8 left-[30%] sm:left-[35%] z-20 flex flex-col items-center gap-1 group/m3 transition-transform duration-300 hover:scale-105 cursor-pointer">
+            <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#0055D4]" />
+            </div>
+            <div className="w-[1.5px] h-6 bg-white/80" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-slate-900 font-bold text-xs shadow-xl border border-slate-100">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Acesso Seguro Moradores</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </main>
   );
 }
