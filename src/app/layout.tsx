@@ -7,7 +7,14 @@ export const metadata: Metadata = {
   description:
     "Plataforma completa para zeladoria, controle de portaria, ocorrências, mapa em tempo real, agendamentos e administração condominial.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: {
+    icon: [
+      { url: "/8.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/8.png",
+    apple: "/8.png",
+  },
   applicationName: "Zeladoria Condomínio",
   appleWebApp: { capable: true, title: "Zeladoria Condomínio", statusBarStyle: "default" },
 };
