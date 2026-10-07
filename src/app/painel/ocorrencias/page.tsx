@@ -1,6 +1,7 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
-import { occurrences, occurrenceComments, blocks, units, users } from "@/db/schema";
+import { occurrences, occurrenceComments, blocks, units, users, memberships } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
 import { OcorrenciasClient } from "./ocorrencias-client";
 
@@ -10,10 +11,7 @@ export default async function OcorrenciasPage() {
   const { session, condoId } = await requireCondo();
   const isResident = session.role === "morador";
 
-  // If morador, only see their own occurrences OR public ones (confidential ones from others are hidden)
-  const occurrenceScope = isResident
-    ? undefined // Filtered in query/logic based on reportedById or visibility === 'publica'
-    : undefined;
+  const assignedUsers = alias(users, "assigned_users");
 
   const occurrenceRows = await db
     .select({
@@ -37,11 +35,14 @@ export default async function OcorrenciasPage() {
       reporterName: users.name,
       unitNumber: units.number,
       blockName: blocks.name,
+      assignedToId: occurrences.assignedToId,
+      assignedToName: assignedUsers.name,
     })
     .from(occurrences)
     .leftJoin(units, eq(units.id, occurrences.unitId))
     .leftJoin(blocks, eq(blocks.id, units.blockId))
     .leftJoin(users, eq(users.id, occurrences.reportedById))
+    .leftJoin(assignedUsers, eq(assignedUsers.id, occurrences.assignedToId))
     .where(eq(occurrences.condoId, condoId))
     .orderBy(desc(occurrences.createdAt));
 
@@ -66,12 +67,35 @@ export default async function OcorrenciasPage() {
     .leftJoin(users, eq(users.id, occurrenceComments.userId))
     .orderBy(occurrenceComments.createdAt);
 
+  // Load staff members for assignment (sindico, zelador, etc.)
+  let staffMembers: { id: number; name: string; role: string }[] = [];
+  try {
+    staffMembers = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        role: memberships.role,
+      })
+      .from(memberships)
+      .innerJoin(users, eq(users.id, memberships.userId))
+      .where(
+        and(
+          eq(memberships.condoId, condoId),
+          inArray(memberships.role, ["sindico", "superadmin", "zelador", "porteiro", "conselho"])
+        )
+      );
+  } catch {
+    staffMembers = [];
+  }
+
   return (
     <OcorrenciasClient
       occurrences={visibleOccurrences}
       comments={comments}
+      staffMembers={staffMembers}
       role={session.role}
       currentUserId={session.user.id}
+      currentUserName={session.user.name}
     />
   );
 }

@@ -38,52 +38,55 @@ export function ProviderCard({
       className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer overflow-hidden"
     >
       <div>
-        {/* BANNER FOTOGRÁFICO COMPACTO E MODERNO (h-36 sm:h-40 em vez de proporção gigante) */}
-        <div className="relative h-36 sm:h-40 w-full bg-slate-100 overflow-hidden">
-          {coverImage && !imageError ? (
-            <img
-              src={coverImage}
-              alt={provider.name}
-              onError={() => setImageError(true)}
-              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            /* Fallback elegante e neutro: Ícone da categoria + nome da categoria */
-            <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-3 border-b border-slate-100">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#0055D4] shadow-2xs">
-                <Icon name={catIconName} size={20} />
-              </span>
-              <span className="text-xs font-bold text-slate-600 capitalize">
-                {provider.category}
-              </span>
-            </div>
-          )}
-
-          {/* Botão de Favoritar (♡) compacto no topo direito */}
-          <div className="absolute top-2 right-2 z-10">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite?.(provider.id);
-              }}
-              className={`flex h-7.5 w-7.5 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
-                isFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
-              }`}
-              title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
-            >
-              <Icon
-                name="heart"
-                size={14}
-                className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
+        {/* BANNER FOTOGRÁFICO COMPACTO E MODERNO */}
+        <div className="relative h-36 sm:h-40 w-full">
+          {/* Container exclusivo da imagem com overflow-hidden para não vazar zoom */}
+          <div className="relative h-full w-full bg-slate-100 overflow-hidden">
+            {coverImage && !imageError ? (
+              <img
+                src={coverImage}
+                alt={provider.name}
+                onError={() => setImageError(true)}
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                loading="lazy"
               />
-            </button>
+            ) : (
+              /* Fallback elegante e neutro: Ícone da categoria + nome da categoria */
+              <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-3 border-b border-slate-100">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#0055D4] shadow-2xs">
+                  <Icon name={catIconName} size={20} />
+                </span>
+                <span className="text-xs font-bold text-slate-600 capitalize">
+                  {provider.category}
+                </span>
+              </div>
+            )}
+
+            {/* Botão de Favoritar (♡) compacto no topo direito */}
+            <div className="absolute top-2 right-2 z-10">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite?.(provider.id);
+                }}
+                className={`flex h-7.5 w-7.5 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
+                  isFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
+                }`}
+                title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
+              >
+                <Icon
+                  name="heart"
+                  size={14}
+                  className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
+                />
+              </button>
+            </div>
           </div>
 
-          {/* FOTO / AVATAR DO PRESTADOR / LOGO DA EMPRESA (Proporcional e ajustado) */}
-          <div className="absolute -bottom-4 left-3.5 z-10">
-            <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white p-0.5 border-2 border-white shadow-md overflow-hidden bg-slate-100">
+          {/* FOTO / AVATAR DO PRESTADOR / LOGO DA EMPRESA (Flutuando sem corte!) */}
+          <div className="absolute -bottom-5 left-3.5 z-20">
+            <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-white p-0.5 border-2 border-white shadow-md overflow-hidden bg-slate-100">
               {provider.avatarUrl && !avatarError ? (
                 <img
                   src={provider.avatarUrl}
@@ -112,7 +115,7 @@ export function ProviderCard({
         </div>
 
         {/* CORPO DO CARD COM PADDINGS EQUILIBRADOS */}
-        <div className="p-3.5 pt-5 space-y-1.5">
+        <div className="p-3.5 pt-6 space-y-1.5">
           {/* Identidade: Nome & Empresa / Especialidade */}
           <div>
             <div className="flex items-center justify-between gap-1.5">

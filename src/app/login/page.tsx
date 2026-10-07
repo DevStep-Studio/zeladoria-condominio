@@ -33,11 +33,6 @@ export default async function LoginPage() {
           >
             <BrandLogo variant="default" size="md" />
           </Link>
-
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[11px] font-semibold border border-slate-200/80">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Plataforma 24h</span>
-          </span>
         </div>
 
         {/* Form Content Area */}

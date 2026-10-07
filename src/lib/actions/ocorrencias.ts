@@ -230,3 +230,134 @@ export async function rateOccurrenceAction(formData: FormData) {
   revalidatePath("/painel/ocorrencias");
   return { success: true };
 }
+
+export async function reopenOccurrenceAction(formData: FormData) {
+  const { session, condoId } = await requireCondo();
+  const id = num(formData, "id");
+  const reason = str(formData, "reason") || "Morador indicou que o problema ainda persiste.";
+
+  if (!id) return { success: false, error: "ID inválido." };
+
+  const [existing] = await db
+    .select()
+    .from(occurrences)
+    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
+    .limit(1);
+
+  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
+
+  const isReporter = existing.reportedById === session.user.id;
+  const isStaff = ALL_STAFF.includes(session.role as any);
+  if (!isReporter && !isStaff) {
+    return { success: false, error: "Não autorizado a reabrir esta ocorrência." };
+  }
+
+  await db
+    .update(occurrences)
+    .set({
+      status: "em_analise",
+      resolvedAt: null,
+    })
+    .where(eq(occurrences.id, id));
+
+  await db.insert(occurrenceComments).values({
+    occurrenceId: id,
+    userId: session.user.id,
+    body: `⚠️ [Ocorrência Reaberta]: ${reason}`,
+    internal: false,
+  });
+
+  const sindicos = await db
+    .select({ userId: memberships.userId })
+    .from(memberships)
+    .where(and(eq(memberships.condoId, condoId), eq(memberships.role, "sindico")));
+
+  if (sindicos.length > 0) {
+    await notify(
+      condoId,
+      sindicos.map((s) => s.userId),
+      `Ocorrência reaberta: ${existing.code}`,
+      `${session.user.name} reabriu a ocorrência: "${reason}"`,
+      `/painel/ocorrencias?highlight=${existing.code}`,
+    );
+  }
+
+  await logAudit({
+    session,
+    condoId,
+    action: "atualizar",
+    entity: "ocorrencia",
+    entityId: id,
+    summary: `Reabriu ocorrência ${existing.code}: ${reason}`,
+  });
+
+  revalidatePath("/painel/ocorrencias");
+  return { success: true };
+}
+
+export async function updateOccurrenceDetailsAction(formData: FormData) {
+  const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
+  const id = num(formData, "id");
+  if (!id) return { success: false, error: "ID inválido." };
+
+  const [existing] = await db
+    .select()
+    .from(occurrences)
+    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
+    .limit(1);
+
+  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
+
+  const status = str(formData, "status", existing.status);
+  const severity = str(formData, "severity", existing.severity);
+  const rawAssigned = str(formData, "assignedToId");
+  const assignedToId = rawAssigned === "none" ? null : (num(formData, "assignedToId") || existing.assignedToId);
+  const actionsTaken = str(formData, "actionsTaken") || existing.actionsTaken;
+  const comment = str(formData, "comment");
+
+  const isResolved = status === "resolvida";
+
+  await db
+    .update(occurrences)
+    .set({
+      status,
+      severity,
+      assignedToId: assignedToId || null,
+      actionsTaken,
+      resolvedAt: isResolved ? (existing.resolvedAt || new Date()) : null,
+      ackById: session.user.id,
+      ackAt: existing.ackAt || new Date(),
+    })
+    .where(eq(occurrences.id, id));
+
+  if (comment) {
+    await db.insert(occurrenceComments).values({
+      occurrenceId: id,
+      userId: session.user.id,
+      body: comment,
+      internal: false,
+    });
+  }
+
+  if (existing.reportedById && status !== existing.status) {
+    await notify(
+      condoId,
+      [existing.reportedById],
+      `Atualização na ocorrência ${existing.code}`,
+      `O status foi alterado para: ${status.replace("_", " ").toUpperCase()}`,
+      `/painel/ocorrencias?highlight=${existing.code}`,
+    );
+  }
+
+  await logAudit({
+    session,
+    condoId,
+    action: "atualizar",
+    entity: "ocorrencia",
+    entityId: id,
+    summary: `Atualizou ocorrência ${existing.code} (Status: ${status}, Severidade: ${severity})`,
+  });
+
+  revalidatePath("/painel/ocorrencias");
+  return { success: true };
+}

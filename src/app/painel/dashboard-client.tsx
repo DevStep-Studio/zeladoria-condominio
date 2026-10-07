@@ -387,21 +387,13 @@ export function DashboardClient({
               </p>
             </div>
 
-            {/* Ações do Hero */}
-            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-              <Link
-                href="/painel/ocorrencias/nova"
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-[#FFD000] hover:bg-[#FFE04D] active:bg-[#E6BB00] text-[#12162A] px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-all duration-150 cursor-pointer"
-              >
-                <Icon name="plus" size={15} strokeWidth={2.6} />
-                <span>Registrar ocorrência</span>
-              </Link>
-
+            {/* Ações do Hero: Somente Emergência */}
+            <div className="w-full sm:w-auto shrink-0 pt-2 sm:pt-0">
               <button
                 type="button"
                 onClick={() => setEmergencyModalOpen(true)}
                 title="Telefones úteis e emergência 24h"
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+                className="w-full sm:w-auto inline-flex min-h-[42px] items-center justify-center gap-2 rounded-[10px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
               >
                 <Icon name="phone" size={15} strokeWidth={2.4} />
                 <span>Emergência</span>
@@ -806,13 +798,13 @@ export function DashboardClient({
         </section>
 
         {/* 5. ZELADORIA SERVIÇOS (Atalho com chips de categorias) */}
-        <section className="rounded-[16px] bg-white border border-slate-200/90 p-5 sm:p-6 shadow-2xs">
+        <section className="rounded-[16px] bg-[#FFD000] border border-[#E6BC00] p-5 sm:p-6 shadow-2xs">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1.5 max-w-xl">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              <h3 className="text-base sm:text-lg font-black text-slate-950 tracking-tight">
                 Precisa de um profissional para sua casa?
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-900/85 font-medium leading-relaxed">
                 Encontre eletricistas, encanadores, pintores e técnicos avaliados por moradores do seu condomínio.
               </p>
 
@@ -828,9 +820,9 @@ export function DashboardClient({
                   <Link
                     key={cat.label}
                     href={cat.href}
-                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-white text-slate-900 hover:bg-slate-950 hover:text-white px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs"
                   >
-                    <Icon name={cat.icon} size={13} className="text-slate-500" />
+                    <Icon name={cat.icon} size={13} className="text-slate-700" />
                     <span>{cat.label}</span>
                   </Link>
                 ))}

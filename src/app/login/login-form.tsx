@@ -29,62 +29,6 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
 
   return (
     <div className="space-y-4">
-      {/* 3-Icon Bubble Pill Container (Matching reference: Apple, Google, ID) */}
-      <div className="flex flex-col items-center gap-2 pt-1">
-        <div className="inline-flex items-center gap-6 px-6 py-2.5 rounded-full bg-[#F3F4F6] text-slate-700 shadow-2xs transition-all">
-          {/* Apple Icon */}
-          <button
-            type="button"
-            onClick={() => selectDemo(demos[2])} // Morador demo shortcut
-            title="Acesso rápido com Apple / Morador"
-            className="text-slate-800 hover:text-black hover:scale-115 transition-all duration-200 cursor-pointer"
-          >
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 170 170">
-              <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.07-7.7-7.85-12-14.34-5.77-8.63-10.3-18.42-13.6-29.36-3.3-10.95-4.95-21.2-4.95-30.77 0-14.12 3.5-26 10.5-35.63 7-9.63 16.02-14.58 27.06-14.85 4.9 0 10.42 1.34 16.56 4.03 6.13 2.68 10.05 4.09 11.75 4.22 1.48-.13 5.48-1.57 12-4.32 6.53-2.74 12.05-4.01 16.56-3.8 12.33.64 22.37 5.34 30.13 14.1-10.74 6.5-16.02 15.53-15.82 27.08.21 9.07 3.63 16.71 10.27 22.92 6.64 6.22 14.47 9.8 23.5 10.75-2.02 6.07-4.49 12.18-7.41 18.32zM119.22 31.84c0-7.22 2.61-13.9 7.82-20.03 5.22-6.14 11.53-10.08 18.94-11.81.42 1.48.64 2.96.64 4.43 0 7.32-2.73 14.24-8.19 20.76-5.46 6.52-12.03 10.4-19.72 11.64-.1-1.69-.15-3.35-.15-4.99z" />
-            </svg>
-          </button>
-
-          {/* Google Icon */}
-          <button
-            type="button"
-            onClick={() => selectDemo(demos[0])} // Síndica demo shortcut
-            title="Acesso rápido com Google / Síndica"
-            className="hover:scale-115 transition-all duration-200 cursor-pointer"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.94 0 12s.45 3.84 1.24 5.42l4.04-3.15z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-              />
-            </svg>
-          </button>
-
-          {/* Condomínio ID / Shield Icon */}
-          <button
-            type="button"
-            onClick={() => selectDemo(demos[1])} // Portaria demo shortcut
-            title="Acesso rápido com ID Portaria"
-            className="text-slate-800 hover:text-[#0055D4] hover:scale-115 transition-all duration-200 cursor-pointer"
-          >
-            <Icon name="shield" size={17} />
-          </button>
-        </div>
-
-        <span className="text-xs text-slate-400 font-medium tracking-wide">ou</span>
-      </div>
-
       <form action={formAction} className="space-y-3.5">
         {/* E-mail / Identificação */}
         <div className="space-y-1">
