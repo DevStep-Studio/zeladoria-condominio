@@ -2,6 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   blocks,
+  condominiums,
   customerFavorites,
   serviceMessages,
   serviceQuotes,
@@ -156,6 +157,32 @@ export default async function ServicosPage() {
     .orderBy(desc(tickets.createdAt));
 
   // 6. Lista de Prestadores e Favoritos
+  // 6. Dados do Condomínio para Localização e Proximidade
+  const [condoRow] = await db
+    .select({
+      id: condominiums.id,
+      name: condominiums.name,
+      address: condominiums.address,
+      city: condominiums.city,
+      state: condominiums.state,
+      latitude: condominiums.latitude,
+      longitude: condominiums.longitude,
+    })
+    .from(condominiums)
+    .where(eq(condominiums.id, condoId))
+    .limit(1);
+
+  const condoInfo = {
+    id: condoId,
+    name: condoRow?.name || session.condo?.name || "Residencial Parque das Águas",
+    address: condoRow?.address || "Av. das Nações, 1200",
+    city: condoRow?.city || "Curitiba",
+    state: condoRow?.state || "PR",
+    latitude: condoRow?.latitude ?? null,
+    longitude: condoRow?.longitude ?? null,
+  };
+
+  // 7. Lista de Prestadores e Favoritos
   let vendorList: any[] = [];
   try {
     vendorList = await db
@@ -166,7 +193,11 @@ export default async function ServicosPage() {
     console.warn("Could not query vendors:", err);
   }
 
-  const providers = await getMarketplaceProviders(condoId);
+  const providers = await getMarketplaceProviders(condoId, {
+    currentUserId: session.user.id,
+    condoLat: condoInfo.latitude,
+    condoLng: condoInfo.longitude,
+  });
 
   let userFavoriteIds: number[] = [];
   try {
@@ -189,6 +220,8 @@ export default async function ServicosPage() {
       initialFavorites={userFavoriteIds}
       vendors={vendorList}
       providers={providers}
+      condoInfo={condoInfo}
+      canSwitchCondo={session.memberships.length > 1 || session.user.isSuperAdmin}
       role={session.role}
       currentUserId={session.user.id}
     />

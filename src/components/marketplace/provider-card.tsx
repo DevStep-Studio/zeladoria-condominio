@@ -30,6 +30,26 @@ export function ProviderCard({
         {/* Top bar: Ranking / Sponsor badge & Favorite Button */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Distance / Condo coverage badge */}
+            <span className="inline-flex items-center gap-1 rounded bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-semibold">
+              <Icon name="map-pin" size={11} className="text-[#0055D4]" />
+              <span>{provider.distanceKm != null ? `${provider.distanceKm.toFixed(1).replace(".", ",")} km` : "Atende seu condomínio"}</span>
+            </span>
+
+            {/* Response time badge */}
+            <span className="inline-flex items-center gap-1 rounded bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-semibold">
+              <Icon name="clock" size={11} className="text-slate-500" />
+              <span>~{provider.responseTimeMinutes || 15} min</span>
+            </span>
+
+            {/* Available today badge */}
+            {provider.availableNow && (
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Disponível hoje</span>
+              </span>
+            )}
+
             {/* Ranking Position Badge */}
             {rankingPosition && rankingPosition <= 3 && (
               <span
@@ -56,7 +76,7 @@ export function ProviderCard({
             {/* Previous hiring notification badge */}
             {hasHiredBefore && (
               <span className="rounded bg-blue-50 text-[#0055D4] border border-blue-100 px-1.5 py-0.5 text-[9px] font-bold">
-                Já contratado
+                Já contratado por você
               </span>
             )}
           </div>

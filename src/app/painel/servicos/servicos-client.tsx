@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import {
   buildCategoriesConfig,
+  getCategorySubcategories,
   type MarketplaceProvider,
   type ServiceOffering,
 } from "@/lib/services/providers-data";
@@ -35,6 +36,8 @@ export function ServicosClient({
   staff = [],
   role = "morador",
   currentUserId = 1,
+  condoInfo,
+  canSwitchCondo = false,
 }: {
   services?: any[];
   marketplaceRequests?: any[];
@@ -47,6 +50,16 @@ export function ServicosClient({
   staff?: any[];
   role?: string;
   currentUserId?: number;
+  condoInfo?: {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    latitude?: number | string | null;
+    longitude?: number | string | null;
+  } | null;
+  canSwitchCondo?: boolean;
 } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -215,6 +228,17 @@ export function ServicosClient({
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
   }, [providers, selectedCategory]);
+
+  const rehireProviders = useMemo(() => {
+    return providers.filter((p) => p.hasHiredBefore || hiredProviderIds.has(p.id));
+  }, [providers, hiredProviderIds]);
+
+  const mostHiredInCondo = useMemo(() => {
+    return [...providers]
+      .filter((p) => (p.condoHiredCount ?? 0) > 0)
+      .sort((a, b) => (b.condoHiredCount ?? 0) - (a.condoHiredCount ?? 0))
+      .slice(0, 3);
+  }, [providers]);
 
   const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">(
     searchParams.get("aba") === "contratacoes" ? "contratacoes" : "marketplace"
@@ -575,6 +599,41 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
+          {/* LOCALIZAÇÃO NO TOPO (CONTEXTO CONDOMINIAL DO MARKETPLACE) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100 shadow-2xs">
+                <Icon name="map-pin" size={18} />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Atendimento em
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-[4px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 text-[9px] font-bold border border-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Região Atendida
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
+                  {condoInfo?.name || "Residencial Parque das Águas"}
+                </p>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {condoInfo?.address ? `${condoInfo.address} · ${condoInfo.city || "Curitiba"} - ${condoInfo.state || "PR"}` : "Av. das Nações, 1200 · Curitiba - PR"}
+                </p>
+              </div>
+            </div>
+            {canSwitchCondo && (
+              <button
+                type="button"
+                onClick={() => router.push("/painel")}
+                className="text-xs font-bold text-[#0055D4] hover:text-[#0047BA] hover:underline self-start sm:self-center px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/50 cursor-pointer transition-colors"
+              >
+                Alterar condomínio
+              </button>
+            )}
+          </div>
+
           {/* SECTION 1: SEARCH BAR WITH AUTOCOMPLETE */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs space-y-4">
             <div className="max-w-3xl mx-auto space-y-2">
@@ -722,6 +781,38 @@ export function ServicosClient({
                 );
               })}
             </div>
+
+            {/* Subcategorias quando categoria selecionada */}
+            {selectedCategory !== "Todas" && getCategorySubcategories(selectedCategory).length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1">
+                  Subcategorias:
+                </span>
+                {getCategorySubcategories(selectedCategory).map((subcat) => {
+                  const isSelected = search.toLowerCase() === subcat.toLowerCase();
+                  return (
+                    <button
+                      key={subcat}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          handleSearchChange("");
+                        } else {
+                          handleSearchChange(subcat);
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
+                        isSelected
+                          ? "bg-[#0055D4] text-white border-[#0055D4] shadow-xs"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#0055D4]"
+                      }`}
+                    >
+                      {subcat}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* SECTION 3: PRECISA PARA AGORA? (CHAMADA SOB DEMANDA) */}
@@ -833,6 +924,140 @@ export function ServicosClient({
               })}
             </div>
           </div>
+
+          {/* SECTION: CONTRATE NOVAMENTE (SE HOUVER HISTÓRICO REAL DO MORADOR) */}
+          {rehireProviders.length > 0 && (
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#0055D4] text-white">
+                  <Icon name="refresh" size={12} strokeWidth={2.4} />
+                </span>
+                <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                  Contrate Novamente
+                </h2>
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                  Profissionais já contratados por você anteriormente
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {rehireProviders.slice(0, 3).map((vendor) => (
+                  <div
+                    key={`rehire-${vendor.id}`}
+                    className="p-3.5 rounded-2xl border border-blue-200 bg-blue-50/40 hover:bg-blue-50/70 transition-all shadow-xs flex flex-col justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs text-[#0055D4] shrink-0 overflow-hidden shadow-2xs">
+                        {vendor.avatarUrl ? (
+                          <img src={vendor.avatarUrl} alt={vendor.name} className="h-full w-full object-cover" />
+                        ) : (
+                          vendor.name.charAt(0)
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
+                          {vendor.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {vendor.category} · {vendor.company}
+                        </p>
+                        <p className="text-[10px] font-bold text-emerald-700 mt-0.5">
+                          ✓ Você já utilizou este profissional
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-blue-100">
+                      <div className="flex items-center gap-1 text-xs">
+                        <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                        <span className="font-bold text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                        <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBudgetVendor(vendor)}
+                        className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1"
+                      >
+                        <Icon name="refresh" size={12} />
+                        <span>Contratar</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION: MAIS CONTRATADOS NO SEU CONDOMÍNIO (RECOMENDAÇÃO SOCIAL) */}
+          {mostHiredInCondo.length > 0 && (
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-emerald-600 text-white">
+                    <Icon name="shield" size={12} strokeWidth={2.4} />
+                  </span>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                    Mais contratados no {condoInfo?.name || "seu condomínio"}
+                  </h2>
+                </div>
+                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline">
+                  Alta confiança dos moradores locais
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {mostHiredInCondo.map((vendor) => (
+                  <div
+                    key={`condo-top-${vendor.id}`}
+                    onClick={() => setSelectedProfileVendor(vendor)}
+                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 transition-all shadow-xs cursor-pointer flex flex-col justify-between gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 overflow-hidden">
+                          {vendor.avatarUrl ? (
+                            <img src={vendor.avatarUrl} alt={vendor.name} className="h-full w-full object-cover" />
+                          ) : (
+                            vendor.name.charAt(0)
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
+                            {vendor.name}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {vendor.category} · {vendor.company}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="rounded bg-emerald-50 text-emerald-800 text-[10px] font-black px-2 py-0.5 shrink-0 border border-emerald-200">
+                        {vendor.condoHiredCount} {vendor.condoHiredCount === 1 ? "serviço no prédio" : "serviços no prédio"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
+                        <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
+                        <span className="text-[10px] text-slate-400">({vendor.reviewsCount} avaliações)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBudgetVendor(vendor);
+                        }}
+                        className="text-xs font-bold text-[#0055D4] hover:underline"
+                      >
+                        Solicitar serviço →
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* SECTION 5: PATROCINADOS (PUBLICIDADE DISTINTA) */}
           {sponsoredList.length > 0 && (

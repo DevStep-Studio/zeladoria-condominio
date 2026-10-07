@@ -47,9 +47,30 @@ export interface MarketplaceProvider {
   bio: string | null;
   avatarUrl: string | null;
   portfolio: PortfolioItem[];
+  distanceKm?: number | null;
+  condoHiredCount?: number;
+  hasHiredBefore?: boolean;
+  responseTimeMinutes?: number | null;
   servicesOffered: ServiceOffering[];
   reviews: VerifiedReview[];
   ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+}
+
+export const SUBCATEGORIES_BY_CATEGORY: Record<string, string[]> = {
+  eletrica: ["Chuveiro", "Tomadas", "Iluminação", "Disjuntores", "Quadro elétrico", "Curto-circuito", "Instalação elétrica"],
+  hidraulica: ["Vazamento", "Torneira", "Descarga", "Pia", "Caixa d’água", "Entupimento", "Tubulação"],
+  climatizacao: ["Higienização / Limpeza", "Instalação Split", "Carga de gás", "Vazamento de água", "Manutenção preventiva"],
+  pintura: ["Pintura interna", "Retoque de manchas", "Massa corrida", "Pintura de portas", "Umidade e infiltração"],
+  marcenaria: ["Regulagem de dobradiças", "Troca de puxadores", "Montagem de móveis", "Ajuste de portas", "Móveis sob medida"],
+  seguranca: ["Fechadura digital", "Chaveiro residencial", "Câmeras CFTV", "Alarme", "Controle de acesso"],
+  portoes: ["Motor de portão", "Fechadura eletrônica", "Troca de miolo", "Mola aérea"],
+  limpeza: ["Limpeza pós-obra", "Higienização de sofá", "Limpeza de vidros", "Limpeza pesada"],
+  jardinagem: ["Poda de plantas", "Corte de grama", "Adubação e paisagismo"],
+  servicos: ["Instalação de varal", "Suporte de TV", "Pequenos reparos gerais"],
+};
+
+export function getCategorySubcategories(category: string): string[] {
+  return SUBCATEGORIES_BY_CATEGORY[category.toLowerCase()] ?? [];
 }
 
 export const CATEGORY_ICONS: Record<string, IconName> = {

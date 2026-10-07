@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { ROLE_PERMISSIONS_MAP, hasPermission, type Permission } from "../src/lib/permissions";
 import { calculateProviderScore } from "../src/lib/services/ranking";
+import { calculateHaversineKm, formatDistanceText } from "../src/lib/services/geo";
+import { getCategorySubcategories } from "../src/lib/services/providers-data";
 
 describe("Marketplace 1: Permissões e Matriz de RBAC", () => {
   it("prestador deve ter permissões exclusivas de prestador e NÃO de morador ou síndico", () => {
@@ -134,3 +136,29 @@ describe("Marketplace 4: Motor de Ranking e Score Confiável", () => {
     assert.equal(feeCents, 1500, "Taxa da plataforma incide sobre mão de obra (R$ 15,00)");
   });
 });
+
+describe("Marketplace 5: Geolocalização e Proximidade Real", () => {
+  it("deve calcular distância real por Haversine e formatar adequadamente", () => {
+    // Coordenadas: Curitiba Centro (-25.4284, -49.2733) até Batel (-25.4411, -49.2818)
+    const dist = calculateHaversineKm(-25.4284, -49.2733, -25.4411, -49.2818);
+    assert.equal(dist > 1.0 && dist < 2.0, true, "Distância esperada ~1.6km");
+
+    // Formatação: vírgula no padrão brasileiro ou fallback seguro
+    assert.equal(formatDistanceText(dist).includes("km"), true);
+    assert.equal(formatDistanceText(null), "Atende seu condomínio");
+    assert.equal(formatDistanceText(undefined), "Atende seu condomínio");
+  });
+});
+
+describe("Marketplace 6: Estrutura de Descoberta e Subcategorias", () => {
+  it("deve mapear subcategorias canônicas por especialidade", () => {
+    const subEletrica = getCategorySubcategories("eletrica");
+    assert.equal(subEletrica.includes("Chuveiro"), true);
+    assert.equal(subEletrica.includes("Disjuntores"), true);
+
+    const subHidraulica = getCategorySubcategories("hidraulica");
+    assert.equal(subHidraulica.includes("Vazamento"), true);
+    assert.equal(subHidraulica.includes("Torneira"), true);
+  });
+});
+

@@ -16,8 +16,17 @@ function timeAgo(date: Date): string {
   return `Há ${Math.floor(days / 365)} ano(s)`;
 }
 
-/** Carrega os prestadores reais de um condomínio (tabela vendors) com métricas calculadas a partir dos tickets. */
-export async function getMarketplaceProviders(condoId: number): Promise<MarketplaceProvider[]> {
+import { calculateHaversineKm } from "./geo";
+
+/** Carrega os prestadores reais de um condomínio (tabela vendors) com métricas calculadas a partir dos tickets e contratações. */
+export async function getMarketplaceProviders(
+  condoId: number,
+  options?: {
+    currentUserId?: number;
+    condoLat?: number | null;
+    condoLng?: number | null;
+  }
+): Promise<MarketplaceProvider[]> {
   try {
     const vendorRows = await db
       .select()
@@ -102,6 +111,21 @@ export async function getMarketplaceProviders(condoId: number): Promise<Marketpl
       isVerified: v.verified,
     });
 
+    // Distância real calculada quando as coordenadas estão disponíveis
+    let distanceKm: number | null = null;
+    if (
+      options?.condoLat != null &&
+      options?.condoLng != null &&
+      v.lat != null &&
+      v.lng != null
+    ) {
+      distanceKm = calculateHaversineKm(options.condoLat, options.condoLng, v.lat, v.lng);
+    }
+
+    const hasHiredBefore = options?.currentUserId
+      ? vendorTickets.some((t) => t.openedById === options.currentUserId && t.status === "concluido")
+      : false;
+
     const provider: MarketplaceProvider = {
       id: v.id,
       name: v.contactName || v.name,
@@ -114,6 +138,10 @@ export async function getMarketplaceProviders(condoId: number): Promise<Marketpl
       isVerified: v.verified,
       completionRate: completionRate === null ? null : Math.round(completionRate),
       hiredCount: vendorTickets.length,
+      condoHiredCount: vendorTickets.length,
+      hasHiredBefore,
+      distanceKm,
+      responseTimeMinutes: v.responseTimeMinutes || 15,
       startingPriceCents: v.priceFromCents,
       regionCoverage: v.serviceArea,
       slug: v.slug,
