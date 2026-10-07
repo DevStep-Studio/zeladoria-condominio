@@ -18,6 +18,7 @@ import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace
 import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
 import { MarketplaceImageBanner } from "@/components/marketplace/marketplace-image-banner";
+import { selectEligiblePromotions } from "@/lib/services/promotions";
 import {
   acceptQuoteAction,
   confirmServiceCompletionAction,
@@ -263,8 +264,37 @@ export function ServicosClient({
       });
   }, [providers, search, selectedCategory, filters, sortBy, onlyAvailableNow]);
 
-  const sponsoredList = useMemo(() => filteredVendors.filter((v) => v.isSponsored), [filteredVendors]);
-  const organicList = useMemo(() => filteredVendors.filter((v) => !v.isSponsored), [filteredVendors]);
+  const sponsoredList = useMemo(() => {
+    const rawSponsored = providers.filter((v) => v.isSponsored);
+    const eligible = selectEligiblePromotions(
+      rawSponsored.map((p) => ({
+        ...p,
+        vendorId: p.id,
+        status: "ACTIVE",
+        startsAt: new Date(Date.now() - 3600000),
+        endsAt: new Date(Date.now() + 86400000 * 7),
+        categoryId: p.category,
+        vendorCategory: p.category,
+      })),
+      {
+        category: selectedCategory === "Todas" ? (search ? search : undefined) : selectedCategory,
+        maxLimit: 2,
+      }
+    );
+    // Mapear de volta para o objeto de MarketplaceProvider
+    const eligibleVendorIds = new Set(eligible.map((e) => e.vendorId));
+    return rawSponsored.filter((p) => eligibleVendorIds.has(p.id)).slice(0, 2);
+  }, [providers, selectedCategory, search]);
+
+  const organicList = useMemo(() => {
+    return filteredVendors.filter((v) => !v.isSponsored);
+  }, [filteredVendors]);
+
+  const newcomersList = useMemo(() => {
+    return providers
+      .filter((v) => !v.isSponsored && (v.reviewsCount === 0 || !v.rating))
+      .slice(0, 4);
+  }, [providers]);
 
   const topOrganicRegion = useMemo(() => {
     return [...providers]
@@ -376,7 +406,7 @@ export function ServicosClient({
         </div>
 
         {/* View Switcher: Marketplace vs Minhas Contratações */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl shrink-0">
           <button
             type="button"
             onClick={() => setActiveView("marketplace")}
@@ -407,6 +437,25 @@ export function ServicosClient({
               </span>
             )}
           </button>
+
+          {(role === "sindico" || role === "superadmin") && (
+            <Link
+              href="/painel/admin/marketplace/destaques"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-[#0055D4] hover:bg-white transition-all"
+              title="Gerenciar Planos de Publicidade e Destaques"
+            >
+              <Icon name="sparkles" size={13} />
+              <span>Destaques Admin</span>
+            </Link>
+          )}
+
+          <Link
+            href="/prestador"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#0055D4] bg-white border border-blue-200 hover:bg-blue-50 transition-all shadow-2xs"
+          >
+            <Icon name="briefcase" size={13} />
+            <span>Portal do Prestador</span>
+          </Link>
         </div>
       </div>
 
@@ -1061,23 +1110,105 @@ export function ServicosClient({
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {filteredVendors.map((vendor, index) => (
-                      <ProviderCard
-                        key={vendor.id}
-                        provider={vendor}
-                        rankingPosition={
-                          (sortBy === "score" || sortBy === "rating") && index < 3
-                            ? index + 1
-                            : undefined
-                        }
-                        isFavorite={favorites.includes(vendor.id)}
-                        hasHiredBefore={hiredProviderIds.has(vendor.id)}
-                        onToggleFavorite={toggleFavorite}
-                        onViewProfile={(p) => setSelectedProfileVendor(p)}
-                        onRequestBudget={(p) => setBudgetVendor(p)}
-                      />
-                    ))}
+                  <div className="space-y-6">
+                    {/* BLOCO 1: PATROCINADOS / ANÚNCIO (Separado, máx 1-2, sem medalha #1) */}
+                    {sponsoredList.length > 0 && (
+                      <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md">
+                              Patrocinados · Anúncio
+                            </span>
+                            <span className="text-[11px] text-amber-800 font-medium hidden sm:inline">
+                              Profissionais em destaque nesta especialidade
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-400">Publicidade interna</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {sponsoredList.map((vendor) => (
+                            <ProviderCard
+                              key={`sponsored-${vendor.id}`}
+                              provider={vendor}
+                              rankingPosition={undefined}
+                              isFavorite={favorites.includes(vendor.id)}
+                              hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                              onToggleFavorite={toggleFavorite}
+                              onViewProfile={(p) => setSelectedProfileVendor(p)}
+                              onRequestBudget={(p) => setBudgetVendor(p)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* BLOCO 2: RANKING ORGÂNICO / RECOMENDADOS (Qualidade, Reputação & Proximidade) */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-sm font-bold text-[#0F172A]">
+                            {selectedCategory === "Todas"
+                              ? "Melhores Profissionais Recomendados"
+                              : `Melhores em ${selectedCategory}`}
+                          </h2>
+                          <span className="text-xs text-slate-400">
+                            ({organicList.length})
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 hidden sm:inline">
+                          Ordenados por avaliação e histórico real
+                        </span>
+                      </div>
+
+                      {organicList.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-4">Nenhum resultado orgânico com os filtros selecionados.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {organicList.map((vendor, index) => (
+                            <ProviderCard
+                              key={vendor.id}
+                              provider={vendor}
+                              rankingPosition={
+                                (sortBy === "score" || sortBy === "rating") && index < 3 && vendor.reviewsCount > 0
+                                  ? index + 1
+                                  : undefined
+                              }
+                              isFavorite={favorites.includes(vendor.id)}
+                              hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                              onToggleFavorite={toggleFavorite}
+                              onViewProfile={(p) => setSelectedProfileVendor(p)}
+                              onRequestBudget={(p) => setBudgetVendor(p)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* BLOCO 3: NOVOS NO ZELADORIA (Novos profissionais sem distorcer o ranking) */}
+                    {newcomersList.length > 0 && selectedCategory === "Todas" && (
+                      <div className="mt-8 pt-6 border-t border-slate-200 space-y-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-[#0F172A]">Novos no Zeladoria</h3>
+                          <p className="text-[11px] text-slate-500">
+                            Profissionais recém-credenciados para você conhecer e avaliar
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {newcomersList.map((vendor) => (
+                            <ProviderCard
+                              key={`newcomer-${vendor.id}`}
+                              provider={vendor}
+                              rankingPosition={undefined}
+                              isFavorite={favorites.includes(vendor.id)}
+                              hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                              onToggleFavorite={toggleFavorite}
+                              onViewProfile={(p) => setSelectedProfileVendor(p)}
+                              onRequestBudget={(p) => setBudgetVendor(p)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </>

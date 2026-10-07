@@ -635,6 +635,39 @@ export const serviceDisputes = appSchema.table("service_disputes", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* ------------------------------------------- DESTAQUES PAGOS E PUBLICIDADE --- */
+
+export const promotionPlans = appSchema.table("promotion_plans", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id"), // null para planos globais
+  name: varchar("name", { length: 120 }).notNull(),
+  type: varchar("type", { length: 40 }).notNull().default("categoria"), // 'categoria', 'regiao', 'home', 'busca'
+  durationDays: integer("duration_days").notNull().default(7),
+  priceCents: integer("price_cents").notNull().default(2990),
+  badge: varchar("badge", { length: 40 }).default("Patrocinado"),
+  active: boolean("active").notNull().default(true),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const providerPromotions = appSchema.table("provider_promotions", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  planId: integer("plan_id"),
+  type: varchar("type", { length: 40 }).notNull().default("categoria"), // 'categoria', 'regiao', 'home', 'busca'
+  categoryId: varchar("category_id", { length: 60 }),
+  region: varchar("region", { length: 160 }),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull().defaultNow(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("ACTIVE"), // DRAFT, PENDING_PAYMENT, SCHEDULED, ACTIVE, EXPIRED, CANCELLED
+  amountCents: integer("amount_cents").notNull().default(0),
+  paymentStatus: varchar("payment_status", { length: 24 }).notNull().default("paid"), // pending, paid, refunded, failed
+  impressions: integer("impressions").notNull().default(0),
+  clicks: integer("clicks").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const contracts = appSchema.table("contracts", {
   id: serial("id").primaryKey(),
   condoId: integer("condo_id").notNull(),

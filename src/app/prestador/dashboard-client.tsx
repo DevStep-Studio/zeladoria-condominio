@@ -5,9 +5,12 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import {
   acceptServiceRequestAction,
+  rejectServiceRequestAction,
   sendQuoteAction,
+  toggleProviderAvailableNowAction,
   updateServiceProgressAction,
 } from "@/lib/actions/prestador";
+import { calculateProfileCompleteness } from "@/lib/services/provider-profile";
 
 export function ProviderDashboardClient({
   vendor,
@@ -21,29 +24,40 @@ export function ProviderDashboardClient({
   reviews: any[];
 }) {
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<any | null>(null);
-  const [laborVal, setLaborVal] = useState("200");
-  const [materialsVal, setMaterialsVal] = useState("50");
-  const [quoteDesc, setQuoteDesc] = useState("Mão de obra especializada com garantia.");
+  const [laborVal, setLaborVal] = useState("180");
+  const [materialsVal, setMaterialsVal] = useState("40");
+  const [quoteDesc, setQuoteDesc] = useState("Mão de obra com garantia de serviço.");
   const [quoteDays, setQuoteDays] = useState(1);
   const [isPending, startTransition] = useTransition();
 
-  // Metrics
+  // Completude do Perfil centralizada
+  const completeness = calculateProfileCompleteness(vendor);
+
+  // Filtros de métricas essenciais
   const newRequests = requests.filter(
     (r) => r.status === "solicitado" || r.status === "buscando_prestador"
   );
   const inProgressRequests = requests.filter((r) =>
     ["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento"].includes(r.status)
   );
-  const completedRequests = requests.filter((r) => r.status === "concluido");
 
-  const totalEarningsCents = inProgressRequests.reduce(
-    (acc, r) => acc + (r.finalAmountCents || r.estimatedAmountCents || 0),
-    0
-  );
+  const isAvailable = vendor?.availableNow ?? true;
+
+  const handleToggleAvailable = () => {
+    startTransition(async () => {
+      await toggleProviderAvailableNowAction();
+    });
+  };
 
   const handleAccept = (requestId: number) => {
     startTransition(async () => {
       await acceptServiceRequestAction(requestId);
+    });
+  };
+
+  const handleReject = (requestId: number) => {
+    startTransition(async () => {
+      await rejectServiceRequestAction(requestId);
     });
   };
 
@@ -78,401 +92,428 @@ export function ProviderDashboardClient({
     });
   };
 
+  const firstName = (vendor?.name || "Prestador").split(" ")[0];
+  const displayRating = vendor?.rating ? (vendor.rating / 10).toFixed(1) : "4.9";
+
   return (
     <div className="space-y-6">
-      {/* 1. Greeting Banner */}
+      {/* 1. Header Simples com Botão "Disponível agora" ON / OFF */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-              Olá, {vendor.name.split(" ")[0]}
+              Olá, {firstName}
             </h1>
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[6px] text-[11px] font-bold ${
-                vendor.isOnline
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  : "bg-slate-100 text-slate-600"
+
+            {/* Toggle Estou Disponível Agora ON / OFF */}
+            <button
+              type="button"
+              onClick={handleToggleAvailable}
+              disabled={isPending}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                isAvailable
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                  : "bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200"
               }`}
+              title="Clique para alternar disponibilidade imediata no marketplace"
             >
               <span
-                className={`h-1.5 w-1.5 rounded-[2px] ${
-                  vendor.isOnline ? "bg-emerald-500" : "bg-slate-400"
+                className={`h-2.5 w-2.5 rounded-full ${
+                  isAvailable ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
                 }`}
               />
-              {vendor.isOnline ? "Disponível para novos chamados" : "Offline / Indisponível"}
-            </span>
+              <span>Disponível agora:</span>
+              <span className="font-extrabold uppercase">{isAvailable ? "ON" : "OFF"}</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            {vendor.companyName} · {vendor.category.toUpperCase()} · Raio de atendimento: {vendor.serviceRadiusKm} km
+
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            {vendor.companyName || vendor.name} · Especialidade:{" "}
+            <span className="capitalize">{vendor.category}</span> · Atende até {vendor.serviceRadiusKm || 15} km
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/prestador/perfil"
-            className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+            href="/prestador/chamados"
+            className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors shadow-xs"
           >
-            Editar Vitrine / Loja
+            Ver chamados
           </Link>
           <Link
-            href="/prestador/chamados"
-            className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            href="/prestador/perfil"
+            className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-bold transition-colors"
           >
-            Ver todos os chamados
+            Editar perfil
           </Link>
         </div>
       </div>
 
-      {/* 2. Today's Key Metrics */}
+      {/* 2. 4 Cards de Métricas Essenciais */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
+        {/* Novos Chamados */}
+        <Link
+          href="/prestador/chamados"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1 hover:border-[#0055D4] transition-colors block"
+        >
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Novas Oportunidades</span>
+            <span>Novos Chamados</span>
             <Icon name="bell" size={14} className="text-[#0055D4]" />
           </div>
           <div className="text-2xl font-black text-[#0F172A]">{newRequests.length}</div>
-          <div className="text-[11px] text-slate-500">Aguardando seu aceite</div>
-        </div>
+          <div className="text-[11px] text-slate-500">Aguardando aceite</div>
+        </Link>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
+        {/* Em Andamento */}
+        <Link
+          href="/prestador/chamados"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1 hover:border-amber-400 transition-colors block"
+        >
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Em Andamento</span>
             <Icon name="wrench" size={14} className="text-amber-600" />
           </div>
           <div className="text-2xl font-black text-[#0F172A]">{inProgressRequests.length}</div>
-          <div className="text-[11px] text-slate-500">Serviços ativos hoje</div>
-        </div>
+          <div className="text-[11px] text-slate-500">Atendimentos ativos</div>
+        </Link>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
+        {/* Avaliação */}
+        <Link
+          href="/prestador/avaliacoes"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1 hover:border-yellow-400 transition-colors block"
+        >
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Ganhos Previstos</span>
-            <Icon name="dollar" size={14} className="text-emerald-600" />
-          </div>
-          <div className="text-2xl font-black text-emerald-700">
-            R$ {(totalEarningsCents / 100).toFixed(0)}
-          </div>
-          <div className="text-[11px] text-slate-500">De serviços em execução</div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Reputação</span>
-            <Icon name="star" size={14} className="text-[#FFD000] fill-[#FFD000]" />
+            <span>Avaliação</span>
+            <Icon name="star" size={14} className="text-[#FFD000]" />
           </div>
           <div className="text-2xl font-black text-[#0F172A] flex items-center gap-1">
-            <span>{vendor.rating ? `${vendor.rating}.0` : "5.0"}</span>
-            <Icon name="star" size={14} className="text-[#FFD000] fill-[#FFD000]" />
+            <span>{displayRating}</span>
+            <span className="text-sm text-yellow-500">★</span>
           </div>
-          <div className="text-[11px] text-slate-500">{completedRequests.length} serviços finalizados</div>
-        </div>
+          <div className="text-[11px] text-slate-500">{reviews.length} avaliações</div>
+        </Link>
+
+        {/* Completude do Perfil */}
+        <Link
+          href="/prestador/perfil"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-1 hover:border-emerald-400 transition-colors block"
+        >
+          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
+            <span>Perfil</span>
+            <span className="text-xs font-bold text-emerald-600">{completeness.percentage}%</span>
+          </div>
+          <div className="text-2xl font-black text-emerald-700">
+            {completeness.percentage}%
+          </div>
+          <div className="text-[11px] text-slate-500">
+            {completeness.percentage === 100 ? "Perfil completo" : "Completo"}
+          </div>
+        </Link>
       </div>
 
-      {/* 3. Novas Oportunidades & Chamados Recebidos */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
-              Novos Chamados Disponíveis
-            </h2>
-            {newRequests.length > 0 && (
-              <span className="rounded-full bg-[#0055D4] text-white px-2 py-0.5 text-[10px] font-black">
-                {newRequests.length} novos
-              </span>
-            )}
+      {/* 3. Banner Informativo se Perfil Incompleto */}
+      {completeness.percentage < 100 && completeness.missingItems.length > 0 && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shrink-0">
+              <Icon name="sparkles" size={16} />
+            </span>
+            <div className="flex-1">
+              <h3 className="text-xs sm:text-sm font-bold text-[#0F172A]">
+                Complete seu perfil para aumentar a confiança dos moradores
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Perfis com fotos de trabalhos reais, serviços detalhados e documentação transmitem maior credibilidade.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {completeness.missingItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.actionUrl}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white border border-blue-200 text-xs font-bold text-[#0055D4] hover:bg-blue-100/50 transition-colors shadow-2xs"
+                  >
+                    <span>+</span>
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
-          <span className="text-xs text-slate-400">Tempo de resposta médio: {vendor.responseTimeMinutes || 15} min</span>
+        </div>
+      )}
+
+      {/* 4. Chamados Recentes com Privacidade Gated */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
+              Chamados Recentes
+            </h2>
+            <p className="text-xs text-slate-500">
+              Oportunidades e atendimentos no seu condomínio de atuação
+            </p>
+          </div>
+          <Link
+            href="/prestador/chamados"
+            className="text-xs font-bold text-[#0055D4] hover:underline"
+          >
+            Ver todos ({requests.length})
+          </Link>
         </div>
 
-        {newRequests.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center space-y-2">
+        {requests.length === 0 ? (
+          <div className="py-10 text-center space-y-2">
             <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <Icon name="bell" size={18} />
+              <Icon name="clipboard" size={18} />
             </div>
-            <h3 className="text-xs font-bold text-[#0F172A]">Nenhum novo chamado no momento</h3>
-            <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-              Mantenha o status <strong>Online</strong> para receber notificações imediatas quando moradores solicitarem serviços de {vendor.category}.
+            <p className="text-xs font-bold text-slate-700">Nenhum chamado no momento</p>
+            <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+              Mantenha o status &ldquo;Disponível agora&rdquo; ativado para receber notificações assim que um morador solicitar.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {newRequests.map((req) => (
-              <div
-                key={req.id}
-                className="rounded-2xl border border-blue-200 bg-white p-4 shadow-xs space-y-3 hover:border-[#0055D4] transition-colors"
-              >
-                <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="rounded bg-blue-50 text-[#0055D4] font-black text-[10px] px-1.5 py-0.5">
-                        {req.code}
-                      </span>
-                      <span
-                        className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                          req.urgency === "agora" || req.urgency === "urgente"
-                            ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-amber-50 text-amber-800"
-                        }`}
-                      >
-                        {req.urgency === "agora" ? "Precisa para Agora" : `Urgência: ${req.urgency}`}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-bold text-[#0F172A] mt-1">{req.title}</h3>
-                  </div>
-
-                  <span className="text-[10px] text-slate-400 font-semibold whitespace-nowrap">
-                    {req.mode === "on_demand" ? "Sob Demanda" : "Orçamento"}
-                  </span>
-                </div>
-
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                  {req.description}
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1">
-                  <div>
-                    <span className="text-slate-400">Localização:</span>{" "}
-                    <strong>Condomínio (Região)</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Previsão:</span>{" "}
-                    <strong>{req.scheduledDate || "Imediato"}</strong>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-                  {req.mode === "quote" ? (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQuoteRequest(req)}
-                      className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Icon name="dollar" size={13} />
-                      <span>Enviar Orçamento</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleAccept(req.id)}
-                      disabled={isPending}
-                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Icon name="check-circle" size={13} />
-                      <span>Aceitar Chamado</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 4. Serviços em Andamento e Despacho */}
-      <div className="space-y-3">
-        <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
-          Serviços em Execução e Despacho
-        </h2>
-
-        {inProgressRequests.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-xs text-slate-500">
-            Nenhum serviço em andamento no momento.
-          </div>
-        ) : (
           <div className="space-y-3">
-            {inProgressRequests.map((req) => (
-              <div
-                key={req.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-md">
+            {requests.slice(0, 5).map((req) => {
+              const isAccepted = [
+                "aceito",
+                "a_caminho",
+                "chegou",
+                "em_atendimento",
+                "orcamento_aprovado",
+                "concluido",
+              ].includes(req.status);
+
+              return (
+                <div
+                  key={req.id}
+                  className="rounded-xl border border-slate-200 p-4 space-y-3 hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-md font-mono">
                         {req.code}
                       </span>
-                      <h3 className="text-sm font-bold text-[#0F172A]">{req.title}</h3>
+                      <h3 className="text-xs sm:text-sm font-bold text-[#0F172A]">
+                        {req.title}
+                      </h3>
+                      <span className="rounded bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
+                        {req.mode === "on_demand" ? "Sob Demanda" : "Orçamento"}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Cliente: <strong>{req.customerName}</strong> · Local: <strong>{req.location}</strong>
-                    </p>
-                  </div>
 
-                  <div className="flex items-center gap-2">
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                        req.status === "em_atendimento"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 animate-pulse"
-                          : req.status === "a_caminho"
+                        req.status === "concluido"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : req.status === "em_atendimento"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : req.status === "aceito"
                           ? "bg-blue-50 text-[#0055D4] border border-blue-200"
-                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-slate-100 text-slate-700"
                       }`}
                     >
                       {req.status.replace("_", " ")}
                     </span>
                   </div>
-                </div>
 
-                {/* State Machine Action Controls for Provider */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                  <div className="text-xs text-slate-600">
-                    Valor previsto:{" "}
-                    <strong className="text-[#0F172A]">
-                      R$ {((req.finalAmountCents || req.estimatedAmountCents || 0) / 100).toFixed(2)}
-                    </strong>
+                  <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 leading-relaxed">
+                    {req.description}
+                  </p>
+
+                  {/* Informações de Localização e Cliente com Privacidade */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                    <div>
+                      <span className="text-slate-400">Cliente:</span>{" "}
+                      <strong className="text-slate-800">
+                        {isAccepted ? req.customerName : "Morador do condomínio"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Localização:</span>{" "}
+                      <strong className="text-slate-800">
+                        {isAccepted ? req.location : "Condomínio (Unidade liberada após aceite)"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Contato:</span>{" "}
+                      {isAccepted && req.customerPhone ? (
+                        <a
+                          href={`tel:${req.customerPhone}`}
+                          className="font-bold text-[#0055D4] hover:underline"
+                        >
+                          {req.customerPhone}
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 italic">🔒 Oculto até aceite</span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {req.status === "aceito" && (
-                      <button
-                        type="button"
-                        onClick={() => handleAdvance(req.id, "a_caminho")}
-                        className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Icon name="navigation" size={13} />
-                        <span>A caminho</span>
-                      </button>
-                    )}
+                  {/* Ações Rápidas: ACEITAR / RECUSAR antes do aceite, ou Avançar após */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs text-slate-500 font-medium">
+                      Data: {new Date(req.createdAt).toLocaleDateString("pt-BR")}
+                    </span>
 
-                    {req.status === "a_caminho" && (
-                      <button
-                        type="button"
-                        onClick={() => handleAdvance(req.id, "chegou")}
-                        className="rounded-xl bg-blue-700 hover:bg-blue-800 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Icon name="map-pin" size={13} />
-                        <span>Cheguei ao local</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {(req.status === "solicitado" || req.status === "buscando_prestador") && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleReject(req.id)}
+                            disabled={isPending}
+                            className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Recusar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAccept(req.id)}
+                            disabled={isPending}
+                            className="px-4 py-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                          >
+                            Aceitar chamado
+                          </button>
+                        </>
+                      )}
 
-                    {req.status === "chegou" && (
-                      <button
-                        type="button"
-                        onClick={() => handleAdvance(req.id, "em_atendimento")}
-                        className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Icon name="wrench" size={13} />
-                        <span>Iniciar Atendimento</span>
-                      </button>
-                    )}
+                      {req.status === "aceito" && (
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(req.id, "a_caminho")}
+                          disabled={isPending}
+                          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-2xs"
+                        >
+                          Estou a caminho
+                        </button>
+                      )}
 
-                    {req.status === "em_atendimento" && (
-                      <button
-                        type="button"
-                        onClick={() => handleAdvance(req.id, "concluido")}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Icon name="check-circle" size={13} />
-                        <span>Finalizar Serviço</span>
-                      </button>
-                    )}
+                      {req.status === "a_caminho" && (
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(req.id, "chegou")}
+                          disabled={isPending}
+                          className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors shadow-2xs"
+                        >
+                          Cheguei ao local
+                        </button>
+                      )}
+
+                      {req.status === "chegou" && (
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(req.id, "em_atendimento")}
+                          disabled={isPending}
+                          className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-colors shadow-2xs"
+                        >
+                          Iniciar serviço
+                        </button>
+                      )}
+
+                      {req.status === "em_atendimento" && (
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(req.id, "concluido")}
+                          disabled={isPending}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs"
+                        >
+                          Concluir serviço
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* 5. Modal: Enviar Orçamento Formal */}
+      {/* Modal de Envio de Orçamento */}
       {selectedQuoteRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
-            onClick={() => setSelectedQuoteRequest(null)}
-          />
-
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl z-10 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
-                  Proposta Formal
-                </span>
-                <h3 className="text-base font-bold text-[#0F172A]">
-                  Enviar Orçamento #{selectedQuoteRequest.code}
-                </h3>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900">
+                Enviar Proposta de Orçamento
+              </h3>
               <button
                 type="button"
                 onClick={() => setSelectedQuoteRequest(null)}
-                className="p-1 rounded-full text-slate-400 hover:bg-slate-100"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
               >
                 <Icon name="x" size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSendQuoteSubmit} className="space-y-3.5">
+            <form onSubmit={handleSendQuoteSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Mão de Obra (R$) <span className="text-rose-500">*</span>
+                <label className="text-xs font-bold text-slate-800 block mb-1">
+                  Mão de Obra (R$)
                 </label>
                 <input
                   type="number"
-                  required
+                  step="0.01"
                   value={laborVal}
                   onChange={(e) => setLaborVal(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#0070F3]"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Materiais / Peças Previstas (R$)
+                <label className="text-xs font-bold text-slate-800 block mb-1">
+                  Materiais (R$)
                 </label>
                 <input
                   type="number"
+                  step="0.01"
                   value={materialsVal}
                   onChange={(e) => setMaterialsVal(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#0070F3]"
                 />
               </div>
 
-              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700">Total da Proposta:</span>
-                <span className="font-black text-[#0055D4] text-sm">
-                  R$ {(parseFloat(laborVal || "0") + parseFloat(materialsVal || "0")).toFixed(2)}
-                </span>
-              </div>
-
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Prazo de Execução (dias)
+                <label className="text-xs font-bold text-slate-800 block mb-1">
+                  Previsão (Dias)
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  max="60"
                   value={quoteDays}
-                  onChange={(e) => setQuoteDays(Number(e.target.value))}
-                  className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                  onChange={(e) => setQuoteDays(parseInt(e.target.value, 10) || 1)}
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#0070F3]"
+                  min={1}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Descrição e Condições da Proposta
+                <label className="text-xs font-bold text-slate-800 block mb-1">
+                  Observações / Escopo
                 </label>
                 <textarea
                   rows={3}
                   value={quoteDesc}
                   onChange={(e) => setQuoteDesc(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedQuoteRequest(null)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  className="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-xs transition-colors"
+                  className="px-4 py-2 text-xs font-bold bg-[#0055D4] text-white rounded-xl hover:bg-[#0047BA] shadow-xs"
                 >
-                  {isPending ? "Enviando..." : "Enviar Proposta ao Morador"}
+                  Enviar orçamento
                 </button>
               </div>
             </form>

@@ -28,19 +28,22 @@ export function ProviderShell({
   const navItems = [
     { href: "/prestador", label: "Início", icon: "grid" as const },
     { href: "/prestador/chamados", label: "Chamados", icon: "clipboard" as const },
-    { href: "/prestador/agenda", label: "Agenda", icon: "calendar" as const },
+    { href: "/prestador/perfil", label: "Meu Perfil", icon: "user" as const },
     { href: "/prestador/servicos", label: "Serviços", icon: "wrench" as const },
-    { href: "/prestador/ganhos", label: "Ganhos", icon: "dollar" as const },
-    { href: "/prestador/perfil", label: "Perfil & Loja", icon: "user" as const },
+    { href: "/prestador/portfolio", label: "Portfólio", icon: "camera" as const },
+    { href: "/prestador/disponibilidade", label: "Disponibilidade", icon: "clock" as const },
+    { href: "/prestador/avaliacoes", label: "Avaliações", icon: "star" as const },
+    { href: "/prestador/destaque", label: "Destaque / Plano", icon: "sparkles" as const },
+    { href: "/prestador/configuracoes", label: "Configurações", icon: "settings" as const },
   ];
 
-  // Mobile bottom-nav subset (5 items max)
+  // Mobile bottom-nav subset (5 itens essenciais)
   const mobileNav = [
     { href: "/prestador", label: "Início", icon: "grid" as const },
     { href: "/prestador/chamados", label: "Chamados", icon: "clipboard" as const },
-    { href: "/prestador/agenda", label: "Agenda", icon: "calendar" as const },
-    { href: "/prestador/ganhos", label: "Ganhos", icon: "dollar" as const },
     { href: "/prestador/perfil", label: "Perfil", icon: "user" as const },
+    { href: "/prestador/avaliacoes", label: "Avaliações", icon: "star" as const },
+    { href: "/prestador/configuracoes", label: "Ajustes", icon: "settings" as const },
   ];
 
   const isOnline = vendor?.isOnline ?? true;

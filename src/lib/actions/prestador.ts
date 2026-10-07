@@ -6,6 +6,8 @@ import { db } from "@/db";
 import {
   condominiums,
   memberships,
+  promotionPlans,
+  providerPromotions,
   serviceMessages,
   serviceQuotes,
   serviceRequests,
@@ -448,4 +450,234 @@ export async function updateProviderStorefrontAction(payload: {
   revalidatePath("/prestador/servicos");
   revalidatePath("/painel/servicos");
   return { success: true };
+}
+
+/**
+ * Prestador recusa uma solicitação de serviço
+ */
+export async function rejectServiceRequestAction(requestId: number, reason?: string) {
+  const { vendor, session } = await requireProvider();
+  if (!vendor) return { success: false, error: "Prestador não autorizado." };
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+
+  // Se o chamado foi direcionado exclusivamente a este prestador, marca como cancelado/recusado
+  await db
+    .update(serviceRequests)
+    .set({
+      status: "cancelado",
+      cancelledBy: session.user.id,
+      cancelReason: reason || "Prestador indisponível para este atendimento no momento.",
+      cancelledAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(serviceRequests.id, requestId));
+
+  // Registrar mensagem no chat
+  await db.insert(serviceMessages).values({
+    requestId,
+    senderId: session.user.id,
+    senderRole: "prestador",
+    body: `Solicitação recusada pelo prestador. Motivo: ${reason || "Indisponibilidade no horário solicitado."}`,
+  });
+
+  // Notificar morador
+  await notify(
+    req.condoId,
+    [req.customerId],
+    `Atualização no chamado ${req.code}`,
+    `O prestador não pôde assumir este serviço no momento. Você pode selecionar outro profissional no Zeladoria Serviços.`,
+    `/painel/servicos`
+  );
+
+  revalidatePath("/prestador");
+  revalidatePath("/prestador/chamados");
+  revalidatePath("/painel/servicos");
+  return { success: true };
+}
+
+/**
+ * Alternar botão "Estou disponível agora" (ON / OFF)
+ */
+export async function toggleProviderAvailableNowAction() {
+  const { vendor } = await requireProvider();
+  if (!vendor) return { success: false, error: "Prestador não autorizado." };
+
+  const nextVal = !vendor.availableNow;
+  await db
+    .update(vendors)
+    .set({ availableNow: nextVal, isOnline: nextVal })
+    .where(eq(vendors.id, vendor.id));
+
+  revalidatePath("/prestador");
+  revalidatePath("/prestador/disponibilidade");
+  revalidatePath("/painel/servicos");
+  return { success: true, availableNow: nextVal };
+}
+
+/**
+ * Prestador adquire ou ativa plano de promoção/destaque interno
+ */
+export async function createPromotionCampaignAction(payload: {
+  planId: number;
+  type?: string;
+  categoryId?: string;
+  region?: string;
+}) {
+  const { vendor } = await requireProvider();
+  if (!vendor) return { success: false, error: "Prestador não autorizado." };
+
+  if (vendor.onboardingStatus === "suspenso" || vendor.onboardingStatus === "rejeitado") {
+    return { success: false, error: "Prestadores suspensos ou reprovados não podem contratar campanhas de destaque." };
+  }
+
+  // Buscar plano
+  let planDurationDays = 7;
+  let planPriceCents = 2990;
+  let planType = payload.type || "categoria";
+
+  try {
+    const [plan] = await db
+      .select()
+      .from(promotionPlans)
+      .where(eq(promotionPlans.id, payload.planId))
+      .limit(1);
+
+    if (plan) {
+      planDurationDays = plan.durationDays;
+      planPriceCents = plan.priceCents;
+      planType = plan.type;
+    }
+  } catch {
+    // Usar defaults se tabela não estiver populada
+  }
+
+  const startsAt = new Date();
+  const endsAt = new Date(Date.now() + planDurationDays * 24 * 60 * 60 * 1000);
+
+  const [promo] = await db
+    .insert(providerPromotions)
+    .values({
+      condoId: vendor.condoId,
+      vendorId: vendor.id,
+      planId: payload.planId,
+      type: planType,
+      categoryId: payload.categoryId || vendor.category,
+      region: payload.region || vendor.serviceArea || "Geral",
+      startsAt,
+      endsAt,
+      status: "ACTIVE", // Ativo de imediato na simulação de contratação
+      amountCents: planPriceCents,
+      paymentStatus: "paid",
+      impressions: 0,
+      clicks: 0,
+    })
+    .returning();
+
+  // Marca vendor com flag sponsored para consultas rápidas
+  await db
+    .update(vendors)
+    .set({ sponsored: true })
+    .where(eq(vendors.id, vendor.id));
+
+  revalidatePath("/prestador");
+  revalidatePath("/prestador/destaque");
+  revalidatePath("/painel/servicos");
+  return { success: true, promotionId: promo?.id };
+}
+
+/**
+ * Cancelar campanha de destaque
+ */
+export async function cancelPromotionCampaignAction(promotionId: number) {
+  const { vendor, session } = await requireProvider();
+  const isStaff = session.role === "sindico" || session.role === "superadmin";
+
+  const [promo] = await db
+    .select()
+    .from(providerPromotions)
+    .where(eq(providerPromotions.id, promotionId))
+    .limit(1);
+
+  if (!promo) return { success: false, error: "Campanha não encontrada." };
+  if (!isStaff && promo.vendorId !== vendor?.id) {
+    return { success: false, error: "Sem permissão para cancelar esta campanha." };
+  }
+
+  await db
+    .update(providerPromotions)
+    .set({ status: "CANCELLED" })
+    .where(eq(providerPromotions.id, promotionId));
+
+  revalidatePath("/prestador/destaque");
+  revalidatePath("/painel/admin/marketplace/destaques");
+  revalidatePath("/painel/servicos");
+  return { success: true };
+}
+
+/**
+ * Admin cria um novo plano de publicidade interna
+ */
+export async function adminCreatePromotionPlanAction(payload: {
+  name: string;
+  type: string;
+  durationDays: number;
+  priceCents: number;
+  description?: string;
+}) {
+  const session = await requireSession();
+  const condoId = session.condo?.id ?? null;
+  if (session.role !== "sindico" && session.role !== "superadmin") {
+    return { success: false, error: "Apenas administradores podem criar planos de destaque." };
+  }
+
+  const [plan] = await db
+    .insert(promotionPlans)
+    .values({
+      condoId,
+      name: payload.name,
+      type: payload.type,
+      durationDays: payload.durationDays,
+      priceCents: payload.priceCents,
+      description: payload.description,
+      active: true,
+    })
+    .returning();
+
+  revalidatePath("/painel/admin/marketplace/destaques");
+  revalidatePath("/prestador/destaque");
+  return { success: true, planId: plan?.id };
+}
+
+/**
+ * Admin ativa ou desativa um plano de destaque
+ */
+export async function adminTogglePromotionPlanAction(planId: number) {
+  const session = await requireSession();
+  if (session.role !== "sindico" && session.role !== "superadmin") {
+    return { success: false, error: "Apenas administradores podem alterar planos." };
+  }
+
+  const [plan] = await db
+    .select()
+    .from(promotionPlans)
+    .where(eq(promotionPlans.id, planId))
+    .limit(1);
+
+  if (!plan) return { success: false, error: "Plano não encontrado." };
+
+  await db
+    .update(promotionPlans)
+    .set({ active: !plan.active })
+    .where(eq(promotionPlans.id, planId));
+
+  revalidatePath("/painel/admin/marketplace/destaques");
+  revalidatePath("/prestador/destaque");
+  return { success: true, active: !plan.active };
 }
