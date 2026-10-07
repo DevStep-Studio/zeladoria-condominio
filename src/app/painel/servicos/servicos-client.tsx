@@ -17,6 +17,7 @@ import { ServiceRequestWizard } from "@/components/marketplace/service-request-w
 import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace/filter-drawer";
 import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
+import { MarketplaceImageBanner } from "@/components/marketplace/marketplace-image-banner";
 import {
   acceptQuoteAction,
   confirmServiceCompletionAction,
@@ -643,6 +644,9 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
+          {/* BANNER DE IMAGEM FULL-BLEED (SEM TEXTOS, IMAGEM OCUPA TODA A CAIXA) */}
+          <MarketplaceImageBanner />
+
           {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs w-full">
             <div className="flex items-center gap-3 min-w-0">
