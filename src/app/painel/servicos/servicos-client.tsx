@@ -17,7 +17,6 @@ import { ServiceRequestWizard } from "@/components/marketplace/service-request-w
 import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace/filter-drawer";
 import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
-import { MarketplacePromoBanner } from "@/components/marketplace/marketplace-promo-banner";
 import {
   acceptQuoteAction,
   confirmServiceCompletionAction,
@@ -644,23 +643,6 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* BANNER DE DIVULGAÇÃO EM IMAGENS NO INÍCIO */}
-          <MarketplacePromoBanner
-            onOpenNewsletter={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("open-newsletter"));
-              }
-            }}
-            onUrgentToggle={() => {
-              const nextVal = !onlyAvailableNow;
-              setOnlyAvailableNow(nextVal);
-              setFilters((prev) => ({ ...prev, availableNowOnly: nextVal }));
-            }}
-            onSelectCategory={(cat) => {
-              handleCategoryChange(cat);
-            }}
-          />
-
           {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs w-full">
             <div className="flex items-center gap-3 min-w-0">

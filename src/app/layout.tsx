@@ -26,15 +26,10 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-import { NewsletterModal } from "@/components/newsletter-modal";
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="antialiased">
-        {children}
-        <NewsletterModal />
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
