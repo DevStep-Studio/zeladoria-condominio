@@ -17,6 +17,7 @@ import { ServiceRequestWizard } from "@/components/marketplace/service-request-w
 import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace/filter-drawer";
 import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
+import { MarketplacePromoBanner } from "@/components/marketplace/marketplace-promo-banner";
 import {
   acceptQuoteAction,
   confirmServiceCompletionAction,
@@ -357,7 +358,7 @@ export function ServicosClient({
   const totalContractedCount = marketplaceRequests.length + services.length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       {/* Top Banner / Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
@@ -643,17 +644,34 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* LOCALIZAÇÃO NO TOPO (COMPONENTE INTERATIVO PRINCIPAL) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-            <div className="flex items-center gap-3">
+          {/* BANNER DE DIVULGAÇÃO EM IMAGENS NO INÍCIO */}
+          <MarketplacePromoBanner
+            onOpenNewsletter={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-newsletter"));
+              }
+            }}
+            onUrgentToggle={() => {
+              const nextVal = !onlyAvailableNow;
+              setOnlyAvailableNow(nextVal);
+              setFilters((prev) => ({ ...prev, availableNowOnly: nextVal }));
+            }}
+            onSelectCategory={(cat) => {
+              handleCategoryChange(cat);
+            }}
+          />
+
+          {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs w-full">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100">
                 <Icon name="map-pin" size={18} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Atendimento em
                 </span>
-                <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
+                <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5 truncate">
                   {serviceLocation.name}
                   {serviceLocation.unit ? ` · ${serviceLocation.unit}` : ""}
                 </p>
@@ -666,15 +684,15 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer shrink-0"
             >
               <span>Alterar local</span>
               <Icon name="chevron-down" size={13} />
             </button>
           </div>
 
-          {/* SECTION 1: SEARCH BAR PROMINENTE (DIRETO NA PÁGINA) */}
-          <div className="py-2 space-y-3">
+          {/* SECTION 1: SEARCH BAR PROMINENTE (FULL WIDTH ATÉ O FINAL DA PÁGINA) */}
+          <div className="py-1 space-y-3 w-full">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
                 Qual serviço você precisa?
@@ -684,7 +702,7 @@ export function ServicosClient({
               </p>
             </div>
 
-            <div ref={searchContainerRef} className="relative max-w-3xl">
+            <div ref={searchContainerRef} className="relative w-full">
               <div className="relative flex items-center">
                 <Icon
                   name="search"
@@ -773,8 +791,8 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 2: CATEGORIAS VISUAIS (PRESERVADA COM POLIMENTO) */}
-          <div className="space-y-3 pt-2">
+          {/* SECTION 2: CATEGORIAS VISUAIS (EXPANDIDAS EM 6 COLUNAS ATÉ O FINAL DA PÁGINA) */}
+          <div className="space-y-3 pt-1 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
@@ -793,8 +811,8 @@ export function ServicosClient({
               )}
             </div>
 
-            {/* Category horizontal rail / compact grid */}
-            <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 sm:overflow-visible">
+            {/* Category grid: 6 items spanning exactly across 6 columns on lg, 3 on sm, 2 on xs, filling 100% */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 w-full">
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 return (
@@ -802,14 +820,14 @@ export function ServicosClient({
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`group flex flex-col items-center justify-between p-2 rounded-2xl text-center transition-all shrink-0 w-28 sm:w-auto cursor-pointer border ${
+                    className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all w-full cursor-pointer border ${
                       isActive
                         ? "bg-blue-50/70 border-[#0055D4] shadow-xs ring-2 ring-[#0055D4]/20"
                         : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                     }`}
                   >
                     {/* Visual photo/icon tile com fallback automático onError */}
-                    <div className="relative h-14 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
+                    <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
                       {cat.imageUrl ? (
                         <>
                           <img
@@ -880,8 +898,8 @@ export function ServicosClient({
             )}
           </div>
 
-          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL LIMPA) */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL LIMPA E FULL-WIDTH) */}
+          <div className="w-full rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3.5">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shrink-0">
                 <Icon name="zap" size={24} className="text-[#FFD000] fill-[#FFD000]" />
@@ -923,8 +941,8 @@ export function ServicosClient({
             </button>
           </div>
 
-          {/* SECTION 4: RESULTADOS PARA VOCÊ (SEM DUPLICAÇÃO, LISTA E MAPA UNIFICADOS) */}
-          <div className="space-y-4 pt-2">
+          {/* SECTION 4: RESULTADOS PARA VOCÊ (FULL-WIDTH) */}
+          <div className="space-y-4 pt-1 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-3 sm:p-3.5 rounded-2xl shadow-xs">
               <div>
                 <div className="flex items-center gap-2">

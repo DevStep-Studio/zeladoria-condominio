@@ -42,32 +42,32 @@ export function ProviderProfileModal({
         aria-hidden
       />
 
-      {/* Modal / Storefront Sheet Container (Grande e Visual: max-w-4xl) */}
-      <div className="relative w-full max-w-4xl min-h-screen sm:min-h-0 sm:max-h-[92vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* Modal / Storefront Sheet Container (Minimalista, Focado e Elegante: max-w-3xl) */}
+      <div className="relative w-full max-w-3xl min-h-screen sm:min-h-0 sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
         
-        {/* TOP BAR / CAPA VISUAL COM HEADER DE MARKETPLACE */}
+        {/* TOP BAR / CAPA VISUAL COMPACTA E MINIMALISTA */}
         <div className="relative w-full">
-          {/* Imagem de Capa (Trabalho Realizado / Empresa) */}
-          <div className="relative h-44 sm:h-56 w-full bg-slate-900 overflow-hidden">
+          {/* Imagem de Capa Elegante (Altura compacta sem engolir o modal) */}
+          <div className="relative h-28 sm:h-32 w-full bg-slate-900 overflow-hidden">
             <img
               src={coverImage}
               alt={provider.name}
-              className="h-full w-full object-cover object-center brightness-[0.92]"
+              className="h-full w-full object-cover object-center brightness-95"
             />
-            {/* Gradiente sutil escurecido no topo para legibilidade dos botões de controle */}
-            <div className="absolute inset-0 bg-black/25 pointer-events-none" />
+            {/* Overlay sutil sólido */}
+            <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
-            {/* Ações de Topo: Fechar & Favoritar */}
-            <div className="absolute top-3.5 right-3.5 flex items-center gap-2 z-20">
+            {/* Ações de Topo: Fechar & Favoritar com Botões Limpos e Redondos */}
+            <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
               <button
                 type="button"
                 onClick={() => onToggleFavorite?.(provider.id)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-sm border border-slate-200/50 transition-all cursor-pointer active:scale-95"
                 title="Salvar nos favoritos"
               >
                 <Icon
                   name="heart"
-                  size={16}
+                  size={15}
                   className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
                 />
               </button>
@@ -75,20 +75,20 @@ export function ProviderProfileModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:bg-white hover:text-slate-900 transition-all cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-sm border border-slate-200/50 transition-all cursor-pointer active:scale-95"
                 title="Fechar"
               >
-                <Icon name="x" size={18} />
+                <Icon name="x" size={16} />
               </button>
             </div>
           </div>
 
-          {/* PERFIL DO PRESTADOR COM AVATAR SOBREPOSTO */}
+          {/* PERFIL DO PRESTADOR COM AVATAR LIMPO E IDENTIFICAÇÃO */}
           <div className="px-5 sm:px-8 pb-4 bg-white border-b border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 -mt-8 sm:-mt-10 relative z-10">
               {/* Avatar e Identificação */}
-              <div className="flex items-end gap-4">
-                <div className="relative h-22 w-22 sm:h-26 sm:w-26 rounded-2xl bg-white p-1 border-3 border-white shadow-xl overflow-hidden shrink-0 bg-slate-100">
+              <div className="flex items-end gap-3.5">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden shrink-0 bg-slate-100">
                   {provider.avatarUrl ? (
                     <img
                       src={provider.avatarUrl}
@@ -96,7 +96,7 @@ export function ProviderProfileModal({
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#0055D4] rounded-xl text-2xl">
+                    <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#0055D4] rounded-xl text-xl sm:text-2xl">
                       {provider.name.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -104,16 +104,16 @@ export function ProviderProfileModal({
                   {provider.isVerified && (
                     <div
                       title="Profissional com verificação oficial"
-                      className="absolute bottom-1 right-1 bg-[#0055D4] text-white rounded-lg p-1 shadow-md"
+                      className="absolute bottom-1 right-1 bg-[#0055D4] text-white rounded-md p-0.5 shadow-sm"
                     >
-                      <Icon name="check" size={12} strokeWidth={3} />
+                      <Icon name="check" size={10} strokeWidth={3} />
                     </div>
                   )}
                 </div>
 
-                <div className="min-w-0 pb-1">
+                <div className="min-w-0 pb-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-lg sm:text-2xl font-black text-[#0F172A] tracking-tight truncate">
+                    <h1 className="text-base sm:text-xl font-black text-[#0F172A] tracking-tight truncate">
                       {provider.name}
                     </h1>
                     {provider.isVerified && (
@@ -123,153 +123,117 @@ export function ProviderProfileModal({
                       </span>
                     )}
                     {provider.availableNow && (
-                      <span className="text-emerald-700 text-xs font-bold">
-                        · Disponível hoje
+                      <span className="rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5">
+                        Disponível hoje
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium truncate mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
                     {provider.company} · Especialista em {provider.category}
                   </p>
                 </div>
               </div>
 
-              {/* Botão Principal de Solicitação no Header (Desktop) */}
-              <div className="hidden sm:flex items-center gap-3 shrink-0 pb-1">
+              {/* Botão de Ação no Header */}
+              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
                 {provider.slug && (
                   <Link
                     href={`/servicos/${provider.slug}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition-colors"
                   >
-                    <Icon name="external-link" size={13} />
-                    <span>Página pública</span>
+                    <Icon name="external-link" size={12} />
+                    <span className="hidden sm:inline">Página pública</span>
                   </Link>
                 )}
 
                 <button
                   type="button"
                   onClick={() => onRequestBudget(provider)}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2.5 text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-2 active:scale-[0.98]"
+                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
-                  <Icon name="zap" size={14} className="text-[#FFD000] fill-[#FFD000]" />
+                  <Icon name="zap" size={13} className="text-[#FFD000] fill-[#FFD000]" />
                   <span>Solicitar Serviço</span>
                 </button>
               </div>
             </div>
 
-            {/* BARRA DE NÚMEROS & LABELS (Sem poluição de badges - Prompt Item 22) */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-5 mt-4 border-t border-slate-100 text-left">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Avaliação
+            {/* BARRA DE NÚMEROS E STATUS (MINIMALISTA E COESA) */}
+            <div className="flex items-center justify-between flex-wrap gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs mt-3.5">
+              <div className="flex items-center gap-1.5">
+                <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
+                <span className="font-black text-[#0F172A]">
+                  {provider.reviewsCount > 0 ? provider.rating.toFixed(1) : "Novo"}
                 </span>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <Icon name="star" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                  <span className="text-sm font-black text-[#0F172A]">
-                    {provider.reviewsCount > 0 ? provider.rating.toFixed(1) : "Novo"}
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    ({provider.reviewsCount})
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Atendimentos
-                </span>
-                <span className="text-sm font-black text-[#0F172A] mt-0.5 block">
-                  {provider.hiredCount > 0 ? `${provider.hiredCount} concluídos` : "Primeiros serviços"}
+                <span className="text-slate-400 font-medium text-[11px]">
+                  ({provider.reviewsCount})
                 </span>
               </div>
 
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  No Condomínio
+              <span className="h-3.5 w-px bg-slate-200 hidden sm:block" />
+
+              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                <Icon name="briefcase" size={12} className="text-slate-400" />
+                <span className="font-bold text-[#0F172A]">
+                  {provider.hiredCount > 0 ? `${provider.hiredCount} serviços` : "Primeiros serviços"}
                 </span>
-                <span className="text-sm font-black text-emerald-700 mt-0.5 block">
+              </div>
+
+              <span className="h-3.5 w-px bg-slate-200 hidden sm:block" />
+
+              <div className="flex items-center gap-1.5 font-medium">
+                <Icon name="map-pin" size={12} className="text-slate-400" />
+                <span className="font-bold text-emerald-700">
                   {provider.condoHiredCount && provider.condoHiredCount > 0
-                    ? `${provider.condoHiredCount} realizados`
+                    ? `${provider.condoHiredCount} no condomínio`
                     : "Atende a região"}
                 </span>
               </div>
 
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Resposta
-                </span>
-                <span className="text-sm font-black text-[#0F172A] mt-0.5 block">
-                  ~{provider.responseTimeMinutes || 15} min
+              <span className="h-3.5 w-px bg-slate-200 hidden sm:block" />
+
+              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                <Icon name="clock" size={12} className="text-slate-400" />
+                <span className="font-bold text-[#0F172A]">
+                  ~{provider.responseTimeMinutes || 15} min resposta
                 </span>
               </div>
 
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Preço Base
-                </span>
-                <span className="text-sm font-black text-[#0055D4] mt-0.5 block">
+              <span className="h-3.5 w-px bg-slate-200 hidden sm:block" />
+
+              <div className="flex items-center gap-1 font-medium">
+                <span className="text-slate-400">Preço:</span>
+                <span className="font-bold text-[#0055D4]">
                   {provider.startingPriceCents != null
                     ? `A partir de R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                     : "Sob consulta"}
                 </span>
               </div>
             </div>
-
-            {/* PREVIEW RÁPIDO DO PORTFÓLIO (Prompt Item 31: Galeria de Fotos no topo) */}
-            {provider.portfolio && provider.portfolio.length > 0 && (
-              <div className="pt-4 mt-3 border-t border-slate-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Fotos de Trabalhos Realizados:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("portfolio")}
-                    className="text-xs font-bold text-[#0055D4] hover:underline"
-                  >
-                    Ver galeria completa ({provider.portfolio.length}) →
-                  </button>
-                </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {provider.portfolio.slice(0, 4).map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setLightboxIndex(idx)}
-                      className="relative h-18 sm:h-22 rounded-xl overflow-hidden border border-slate-200 cursor-pointer group bg-slate-100 shadow-2xs"
-                      title={item.caption}
-                    >
-                      <img
-                        src={item.url}
-                        alt={item.caption}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-bold">
-                        Ampliar
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* TABS DE NAVEGAÇÃO DA LOJA (Serviços, Portfólio, Avaliações, Sobre) */}
-          <div className="flex items-center gap-1 px-5 sm:px-8 border-b border-slate-200 bg-slate-50/70 overflow-x-auto scrollbar-none">
+          {/* TABS DE NAVEGAÇÃO SEGMENTADAS (Pills Modernas sem Bordas Pesadas) */}
+          <div className="flex items-center gap-1.5 px-5 sm:px-8 py-2 bg-slate-50 border-b border-slate-200 overflow-x-auto scrollbar-none">
             <button
               type="button"
               onClick={() => setActiveTab("servicos")}
-              className={`flex items-center gap-1.5 py-3 px-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "servicos"
-                  ? "border-[#0055D4] text-[#0055D4]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0055D4] shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Icon name="briefcase" size={13} />
-              <span>Catálogo de Serviços</span>
+              <Icon name="briefcase" size={12} />
+              <span>Serviços</span>
               {provider.servicesOffered.length > 0 && (
-                <span className="rounded-full bg-blue-100 text-[#0055D4] px-1.5 py-0.2 text-[10px]">
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    activeTab === "servicos"
+                      ? "bg-blue-100 text-[#0055D4]"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
                   {provider.servicesOffered.length}
                 </span>
               )}
@@ -278,16 +242,22 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("portfolio")}
-              className={`flex items-center gap-1.5 py-3 px-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "portfolio"
-                  ? "border-[#0055D4] text-[#0055D4]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0055D4] shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Icon name="camera" size={13} />
-              <span>Trabalhos & Portfólio</span>
+              <Icon name="camera" size={12} />
+              <span>Portfólio</span>
               {provider.portfolio.length > 0 && (
-                <span className="rounded-full bg-slate-200 text-slate-700 px-1.5 py-0.2 text-[10px]">
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    activeTab === "portfolio"
+                      ? "bg-blue-100 text-[#0055D4]"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
                   {provider.portfolio.length}
                 </span>
               )}
@@ -296,16 +266,22 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("avaliacoes")}
-              className={`flex items-center gap-1.5 py-3 px-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "avaliacoes"
-                  ? "border-[#0055D4] text-[#0055D4]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0055D4] shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Icon name="star" size={13} />
-              <span>Avaliações Verificadas</span>
+              <Icon name="star" size={12} />
+              <span>Avaliações</span>
               {provider.reviewsCount > 0 && (
-                <span className="rounded-full bg-slate-200 text-slate-700 px-1.5 py-0.2 text-[10px]">
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    activeTab === "avaliacoes"
+                      ? "bg-blue-100 text-[#0055D4]"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
                   {provider.reviewsCount}
                 </span>
               )}
@@ -314,14 +290,14 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("sobre")}
-              className={`flex items-center gap-1.5 py-3 px-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "sobre"
-                  ? "border-[#0055D4] text-[#0055D4]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0055D4] shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Icon name="shield" size={13} />
-              <span>Sobre & Área Atendida</span>
+              <Icon name="shield" size={12} />
+              <span>Sobre o Prestador</span>
             </button>
           </div>
         </div>
