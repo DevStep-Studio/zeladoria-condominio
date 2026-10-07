@@ -54,6 +54,8 @@ export interface MarketplaceProvider {
   servicesOffered: ServiceOffering[];
   reviews: VerifiedReview[];
   ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+  isCompany?: boolean;
+  teamMembers?: { name: string; role: string; avatarUrl?: string }[];
 }
 
 export const SUBCATEGORIES_BY_CATEGORY: Record<string, string[]> = {
@@ -97,7 +99,7 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   carpintaria: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80",
   seguranca: "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80",
   limpeza: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80",
-  jardinagem: "https://images.unsplash.com/photo-1558904541-efa8c4a08931?auto=format&fit=crop&w=400&q=80",
+  jardinagem: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=400&q=80",
   elevadores: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80",
   portoes: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80",
   servicos: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=400&q=80",

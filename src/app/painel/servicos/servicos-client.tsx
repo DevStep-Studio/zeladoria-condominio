@@ -14,7 +14,8 @@ import { getSearchSuggestions, type SearchSuggestion } from "@/lib/services/rank
 import { ProviderCard } from "@/components/marketplace/provider-card";
 import { ProviderProfileModal } from "@/components/marketplace/provider-profile-modal";
 import { ServiceRequestWizard } from "@/components/marketplace/service-request-wizard";
-import { FilterBottomSheet, type FilterState } from "@/components/marketplace/filter-bottom-sheet";
+import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace/filter-drawer";
+import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
 import {
   acceptQuoteAction,
@@ -64,6 +65,17 @@ export function ServicosClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Location State (Interativo no topo)
+  const [serviceLocation, setServiceLocation] = useState<ServiceLocation>({
+    type: "meu_condominio",
+    name: condoInfo?.name || "Residencial Parque das Águas",
+    address: condoInfo?.address || "Av. das Nações, 1200",
+    unit: "Unidade 302",
+    city: condoInfo?.city || "Curitiba",
+    state: condoInfo?.state || "PR",
+  });
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
   // URL state persistence
   const initialCategory = searchParams.get("categoria") || "Todas";
   const initialSearch = searchParams.get("busca") || "";
@@ -71,16 +83,20 @@ export function ServicosClient({
 
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [sortBy, setSortBy] = useState<"score" | "rating" | "reviews" | "price_asc" | "response">(initialSort);
+  const [sortBy, setSortBy] = useState<"score" | "distance" | "rating" | "condo" | "response" | "price_asc">(initialSort);
   const [displayMode, setDisplayMode] = useState<"lista" | "mapa">("lista");
   const [onlyAvailableNow, setOnlyAvailableNow] = useState(false);
 
   // Filters State
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<ExtendedFilterState>({
     category: initialCategory,
+    subcategory: undefined,
     minRating: 0,
     verifiedOnly: false,
     maxPrice: 50000,
+    availableNowOnly: false,
+    condoHiredOnly: false,
+    maxDistanceKm: undefined,
   });
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
@@ -176,6 +192,20 @@ export function ServicosClient({
     return new Set([...fromTickets, ...fromMp]);
   }, [services, marketplaceRequests]);
 
+  // Active Filters Count (para exibir badge no botão de filtros)
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.category && filters.category !== "Todas") count++;
+    if (filters.subcategory) count++;
+    if (filters.minRating > 0) count++;
+    if (filters.verifiedOnly) count++;
+    if (filters.availableNowOnly || onlyAvailableNow) count++;
+    if (filters.condoHiredOnly) count++;
+    if (filters.maxPrice < 50000) count++;
+    if (filters.maxDistanceKm != null) count++;
+    return count;
+  }, [filters, onlyAvailableNow]);
+
   // Filtered & Sorted Providers List
   const filteredVendors = useMemo(() => {
     return providers
@@ -185,11 +215,22 @@ export function ServicosClient({
           return false;
         }
 
+        // Subcategoria
+        if (filters.subcategory) {
+          const subLower = filters.subcategory.toLowerCase();
+          const matchesOffering = v.servicesOffered.some((s) => s.name.toLowerCase().includes(subLower));
+          const matchesBio = (v.bio ?? "").toLowerCase().includes(subLower);
+          if (!matchesOffering && !matchesBio) return false;
+        }
+
         if (filters.minRating > 0 && v.rating < filters.minRating) return false;
         if (filters.verifiedOnly && !v.isVerified) return false;
-        if (v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
+        if (filters.condoHiredOnly && (v.condoHiredCount ?? 0) <= 0) return false;
+        if (filters.maxPrice < 50000 && v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
+        if (filters.maxDistanceKm != null && v.distanceKm != null && v.distanceKm > filters.maxDistanceKm) return false;
 
-        if (onlyAvailableNow && !v.isOnline && !v.availableNow) {
+        const mustBeAvailableNow = onlyAvailableNow || filters.availableNowOnly;
+        if (mustBeAvailableNow && !v.isOnline && !v.availableNow) {
           return false;
         }
 
@@ -212,8 +253,10 @@ export function ServicosClient({
       })
       .sort((a, b) => {
         if (sortBy === "score") return b.score - a.score;
-        if (sortBy === "rating") return b.rating - a.rating;
-        if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount;
+        if (sortBy === "distance") return (a.distanceKm ?? 99) - (b.distanceKm ?? 99);
+        if (sortBy === "rating") return b.rating - a.rating || b.reviewsCount - a.reviewsCount;
+        if (sortBy === "condo") return (b.condoHiredCount ?? 0) - (a.condoHiredCount ?? 0);
+        if (sortBy === "response") return (a.responseTimeMinutes ?? 999) - (b.responseTimeMinutes ?? 999);
         if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
         return 0;
       });
@@ -600,43 +643,44 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* LOCALIZAÇÃO NO TOPO (CONTEXTO CONDOMINIAL DO MARKETPLACE) */}
+          {/* LOCALIZAÇÃO NO TOPO (COMPONENTE INTERATIVO PRINCIPAL) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100 shadow-2xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100">
                 <Icon name="map-pin" size={18} />
               </div>
-                <div>
-                  <span className="text-[11px] font-bold text-slate-400">
-                    Atendimento no condomínio
-                  </span>
-                  <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
-                    {condoInfo?.name || "Residencial Parque das Águas"}
-                  </p>
-                  <p className="text-[11px] text-slate-500 truncate">
-                    {condoInfo?.address ? `${condoInfo.address} · ${condoInfo.city || "Curitiba"} - ${condoInfo.state || "PR"}` : "Av. das Nações, 1200 · Curitiba - PR"}
-                  </p>
-                </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Atendimento em
+                </span>
+                <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
+                  {serviceLocation.name}
+                  {serviceLocation.unit ? ` · ${serviceLocation.unit}` : ""}
+                </p>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {serviceLocation.address} · {serviceLocation.city} - {serviceLocation.state}
+                </p>
+              </div>
             </div>
-            {canSwitchCondo && (
-              <button
-                type="button"
-                onClick={() => router.push("/painel")}
-                className="text-xs font-bold text-[#0055D4] hover:text-[#0047BA] hover:underline self-start sm:self-center px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/50 cursor-pointer transition-colors"
-              >
-                Alterar condomínio
-              </button>
-            )}
+
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer"
+            >
+              <span>Alterar local</span>
+              <Icon name="chevron-down" size={13} />
+            </button>
           </div>
 
-          {/* SECTION 1: SEARCH BAR PROMINENTE (DIRETO NA PÁGINA COM RESPIRO) */}
+          {/* SECTION 1: SEARCH BAR PROMINENTE (DIRETO NA PÁGINA) */}
           <div className="py-2 space-y-3">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
                 Qual serviço você precisa?
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                Encontre profissionais avaliados que atendem o seu condomínio com agilidade e segurança.
+                Encontre profissionais que atendem {serviceLocation.name}.
               </p>
             </div>
 
@@ -656,7 +700,7 @@ export function ServicosClient({
                     handleSearchChange(e.target.value);
                     setShowSuggestions(true);
                   }}
-                  placeholder="Ex.: chuveiro queimado, vazamento, pintura, ar-condicionado..."
+                  placeholder="Ex.: chuveiro queimado, pia vazando, instalar ar-condicionado..."
                   className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
                 />
                 {search && (
@@ -703,7 +747,7 @@ export function ServicosClient({
               )}
             </div>
 
-            {/* Quick Tags */}
+            {/* Quick Tags de Problemas Comuns */}
             <div className="flex items-center gap-1.5 flex-wrap text-xs pt-0.5">
               <span className="text-[11px] font-bold text-slate-400">Problemas comuns:</span>
               {[
@@ -729,7 +773,7 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 2: CATEGORIAS VISUAIS (FOTO/ÍCONE E CONTAGEM) */}
+          {/* SECTION 2: CATEGORIAS VISUAIS (PRESERVADA COM POLIMENTO) */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -749,7 +793,7 @@ export function ServicosClient({
               )}
             </div>
 
-            {/* Category visual rail / tiles */}
+            {/* Category horizontal rail / compact grid */}
             <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 sm:overflow-visible">
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
@@ -764,13 +808,17 @@ export function ServicosClient({
                         : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                     }`}
                   >
-                    {/* Visual photo/icon tile */}
+                    {/* Visual photo/icon tile com fallback automático onError */}
                     <div className="relative h-14 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
                       {cat.imageUrl ? (
                         <>
                           <img
                             src={cat.imageUrl}
                             alt={cat.name}
+                            onError={(e) => {
+                              // Se houver erro de rede na imagem, esconde a tag img e mostra o container de fallback
+                              e.currentTarget.style.display = "none";
+                            }}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
                           />
@@ -790,7 +838,7 @@ export function ServicosClient({
                       {cat.name}
                     </span>
                     <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#0055D4]" : "text-slate-400"}`}>
-                      {cat.count} {cat.count === 1 ? "profis." : "profis."}
+                      {cat.count} {cat.count === 1 ? "profissional" : "profissionais"}
                     </span>
                   </button>
                 );
@@ -804,7 +852,7 @@ export function ServicosClient({
                   Subcategorias:
                 </span>
                 {getCategorySubcategories(selectedCategory).map((subcat) => {
-                  const isSelected = search.toLowerCase() === subcat.toLowerCase();
+                  const isSelected = search.toLowerCase() === subcat.toLowerCase() || filters.subcategory === subcat;
                   return (
                     <button
                       key={subcat}
@@ -812,8 +860,10 @@ export function ServicosClient({
                       onClick={() => {
                         if (isSelected) {
                           handleSearchChange("");
+                          setFilters((prev) => ({ ...prev, subcategory: undefined }));
                         } else {
                           handleSearchChange(subcat);
+                          setFilters((prev) => ({ ...prev, subcategory: subcat }));
                         }
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
@@ -830,7 +880,7 @@ export function ServicosClient({
             )}
           </div>
 
-          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL SOB DEMANDA) */}
+          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL LIMPA) */}
           <div className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3.5">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shrink-0">
@@ -841,14 +891,18 @@ export function ServicosClient({
                   Precisa resolver agora?
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Veja profissionais credenciados com disponibilidade confirmada para atendimento hoje.
+                  Encontre profissionais aprovados e online com disponibilidade confirmada para hoje.
                 </p>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => setOnlyAvailableNow(!onlyAvailableNow)}
+              onClick={() => {
+                const nextVal = !onlyAvailableNow;
+                setOnlyAvailableNow(nextVal);
+                setFilters((prev) => ({ ...prev, availableNowOnly: nextVal }));
+              }}
               className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-2 ${
                 onlyAvailableNow
                   ? "bg-slate-900 text-white"
@@ -858,357 +912,43 @@ export function ServicosClient({
               {onlyAvailableNow ? (
                 <>
                   <Icon name="check" size={14} strokeWidth={2.4} />
-                  <span>Mostrando Disponíveis Hoje</span>
+                  <span>Mostrando Disponíveis Agora</span>
                 </>
               ) : (
                 <>
-                  <span>Ver profissionais disponíveis</span>
+                  <span>Encontrar disponível agora</span>
                   <Icon name="arrow-right" size={13} />
                 </>
               )}
             </button>
           </div>
 
-          {/* SECTION 4: MAIS CONTRATADOS NO SEU CONDOMÍNIO (RECOMENDAÇÃO SOCIAL VISUAL) */}
-          {mostHiredInCondo.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-emerald-600 text-white">
-                    <Icon name="shield" size={12} strokeWidth={2.4} />
-                  </span>
-                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                    Mais contratados no {condoInfo?.name || "seu condomínio"}
-                  </h2>
-                </div>
-                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                  Profissionais com histórico no condomínio
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                {mostHiredInCondo.map((vendor) => {
-                  const mainPhoto = vendor.portfolio?.[0]?.url || vendor.avatarUrl;
-                  return (
-                    <div
-                      key={`condo-top-${vendor.id}`}
-                      onClick={() => setSelectedProfileVendor(vendor)}
-                      className="group rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
-                    >
-                      {/* Top Visual Photo - Limpa sem badges flutuantes */}
-                      <div className="h-32 w-full bg-slate-100 overflow-hidden">
-                        {mainPhoto ? (
-                          <img
-                            src={mainPhoto}
-                            alt={vendor.name}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-400 text-xs font-bold">
-                            {vendor.company}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h4 className="text-sm font-bold text-[#0F172A] truncate">
-                              {vendor.name}
-                            </h4>
-                            {vendor.isVerified && (
-                              <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 truncate">
-                            {vendor.category} · {vendor.company}
-                          </p>
-
-                          {/* Rating or Novo no Zeladoria */}
-                          <div className="mt-1 flex items-center gap-2">
-                            {vendor.reviewsCount > 0 ? (
-                              <div className="flex items-center gap-1 text-xs">
-                                <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
-                                <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                                <span className="text-[10px] text-slate-400">({vendor.reviewsCount} avaliações)</span>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] font-bold text-[#0055D4]">
-                                Novo no Zeladoria
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-[11px] font-medium text-emerald-700 mt-1">
-                            ✓ {vendor.condoHiredCount} serviços realizados neste condomínio
-                          </p>
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedProfileVendor(vendor);
-                            }}
-                            className="text-xs font-bold text-slate-700 hover:text-[#0055D4] transition-colors"
-                          >
-                            Ver perfil
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setBudgetVendor(vendor);
-                            }}
-                            className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                          >
-                            Solicitar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 5: MELHORES AVALIADOS NA SUA REGIÃO (TOP 3 VISUAL) */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#FFD000] text-[#12162A]">
-                  <Icon name="star" size={12} strokeWidth={2.4} />
-                </span>
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  {hasRealRatingsInRegion
-                    ? `Melhores da sua Região ${selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}`
-                    : `Profissionais Credenciados ${selectedCategory !== "Todas" ? `(${selectedCategory})` : ""}`}
-                </h2>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                {hasRealRatingsInRegion
-                  ? "Ranking por avaliações verificadas, pontualidade e satisfação"
-                  : "Profissionais verificados disponíveis para o seu condomínio"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              {topOrganicRegion.map((vendor, index) => {
-                const rankNum = index + 1;
-                const photo = vendor.portfolio?.[0]?.url || vendor.avatarUrl;
-                return (
-                  <div
-                    key={vendor.id}
-                    onClick={() => setSelectedProfileVendor(vendor)}
-                    className="group rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
-                  >
-                    {/* Visual photo top - Limpa sem badges flutuantes */}
-                    <div className="h-28 w-full bg-slate-100 overflow-hidden">
-                      {photo ? (
-                        <img
-                          src={photo}
-                          alt={vendor.name}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-400 text-xs font-bold">
-                          {vendor.company}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-black ${rankNum === 1 ? "text-[#0055D4]" : "text-slate-400"}`}>
-                            #{rankNum}
-                          </span>
-                          <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
-                            {vendor.name}
-                          </h4>
-                          {vendor.isVerified && (
-                            <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-slate-500 truncate">
-                          {vendor.category} · {vendor.company}
-                        </p>
-
-                        <div className="flex items-center justify-between text-xs mt-1.5">
-                          {vendor.reviewsCount > 0 ? (
-                            <div className="flex items-center gap-1">
-                              <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                              <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                              <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
-                            </div>
-                          ) : (
-                            <span className="text-[11px] font-bold text-[#0055D4]">
-                              Novo no Zeladoria
-                            </span>
-                          )}
-
-                          {vendor.startingPriceCents && (
-                            <span className="text-[11px] font-semibold text-slate-700">
-                              A partir de R$ {(vendor.startingPriceCents / 100).toFixed(0)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedProfileVendor(vendor);
-                          }}
-                          className="text-xs font-bold text-slate-700 hover:text-[#0055D4] transition-colors"
-                        >
-                          Ver perfil
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setBudgetVendor(vendor);
-                          }}
-                          className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold shadow-xs cursor-pointer"
-                        >
-                          Solicitar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* SECTION: CONTRATE NOVAMENTE (SE HOUVER HISTÓRICO REAL DO MORADOR) */}
-          {rehireProviders.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#0055D4] text-white">
-                  <Icon name="refresh" size={12} strokeWidth={2.4} />
-                </span>
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Contrate Novamente
-                </h2>
-                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                  Profissionais já contratados por você anteriormente
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {rehireProviders.slice(0, 3).map((vendor) => (
-                  <div
-                    key={`rehire-${vendor.id}`}
-                    className="p-3.5 rounded-2xl border border-blue-200 bg-blue-50/40 hover:bg-blue-50/70 transition-all shadow-xs flex flex-col justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs text-[#0055D4] shrink-0 overflow-hidden shadow-2xs">
-                        {vendor.avatarUrl ? (
-                          <img src={vendor.avatarUrl} alt={vendor.name} className="h-full w-full object-cover" />
-                        ) : (
-                          vendor.name.charAt(0)
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
-                          {vendor.name}
-                        </h4>
-                        <p className="text-[11px] text-slate-500 truncate">
-                          {vendor.category} · {vendor.company}
-                        </p>
-                        <p className="text-[10px] font-bold text-emerald-700 mt-0.5">
-                          ✓ Você já utilizou este profissional
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-blue-100">
-                      <div className="flex items-center gap-1 text-xs">
-                        {vendor.reviewsCount > 0 ? (
-                          <>
-                            <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                            <span className="font-bold text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
-                            <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
-                          </>
-                        ) : (
-                          <span className="rounded bg-white text-[#0055D4] text-[10px] font-bold px-1.5 py-0.2">
-                            Novo no Zeladoria
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setBudgetVendor(vendor)}
-                        className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1"
-                      >
-                        <Icon name="refresh" size={12} />
-                        <span>Contratar</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 5: PATROCINADOS (PUBLICIDADE DISTINTA) */}
-          {sponsoredList.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                  Patrocinados
-                </h2>
-                <span className="rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 text-[9px] font-black uppercase tracking-wider">
-                  Publicidade
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sponsoredList.map((vendor) => (
-                  <ProviderCard
-                    key={vendor.id}
-                    provider={vendor}
-                    isFavorite={favorites.includes(vendor.id)}
-                    hasHiredBefore={hiredProviderIds.has(vendor.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onViewProfile={(p) => setSelectedProfileVendor(p)}
-                    onRequestBudget={(p) => setBudgetVendor(p)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 6: VITRINE COMPLETA COM SELETOR LISTA / MAPA */}
+          {/* SECTION 4: RESULTADOS PARA VOCÊ (SEM DUPLICAÇÃO, LISTA E MAPA UNIFICADOS) */}
           <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Prestadores Disponíveis
-                </h2>
-                <span className="rounded-[4px] bg-slate-200 text-slate-700 px-2 py-0.5 text-[10px] font-black">
-                  {filteredVendors.length}
-                </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-3 sm:p-3.5 rounded-2xl shadow-xs">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                    Resultados para Você
+                  </h2>
+                  <span className="rounded-[4px] bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-black">
+                    {filteredVendors.length}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"} próximos de {serviceLocation.name}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 justify-between sm:justify-end">
+              <div className="flex items-center gap-2 justify-between sm:justify-end flex-wrap">
                 {/* View Switcher: Lista vs Mapa */}
-                <div className="flex items-center gap-1 bg-white p-0.5 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setDisplayMode("lista")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "lista"
-                        ? "bg-[#0055D4] text-white"
+                        ? "bg-[#0055D4] text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -1218,9 +958,9 @@ export function ServicosClient({
                   <button
                     type="button"
                     onClick={() => setDisplayMode("mapa")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "mapa"
-                        ? "bg-[#0055D4] text-white"
+                        ? "bg-[#0055D4] text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -1229,14 +969,19 @@ export function ServicosClient({
                   </button>
                 </div>
 
-                {/* Filter Sheet Trigger */}
+                {/* Filter Drawer Trigger */}
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <Icon name="filter" size={13} className="text-[#0055D4]" />
                   <span>Filtros</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0055D4] text-white text-[9px] font-black">
+                      {activeFiltersCount}
+                    </span>
+                  )}
                 </button>
 
                 {/* Sort selector */}
@@ -1245,18 +990,24 @@ export function ServicosClient({
                   onChange={(e) => handleSortChange(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer"
                 >
-                  <option value="score">Pontuação Geral (Score)</option>
-                  <option value="rating">Melhor Avaliação</option>
-                  <option value="reviews">Mais Avaliados</option>
-                  <option value="price_asc">Menor Preço Inicial</option>
+                  <option value="score">Ordenar: Recomendados</option>
+                  <option value="distance">Ordenar: Mais próximos</option>
+                  <option value="rating">Ordenar: Melhor avaliados</option>
+                  <option value="condo">Ordenar: Mais contratados no condomínio</option>
+                  <option value="response">Ordenar: Resposta mais rápida</option>
+                  <option value="price_asc">Ordenar: Menor preço inicial</option>
                 </select>
               </div>
             </div>
 
-            {/* Display Mode: MAPA */}
+            {/* Display Mode: MAPA (58/42 Split view desktop / solid bottom card mobile) */}
             {displayMode === "mapa" ? (
               <MarketplaceMap
                 providers={filteredVendors}
+                condoName={serviceLocation.name}
+                condoAddress={serviceLocation.address}
+                condoLat={condoInfo?.latitude ? Number(condoInfo.latitude) : -23.5615}
+                condoLng={condoInfo?.longitude ? Number(condoInfo.longitude) : -46.6559}
                 onSelectProvider={(p) => setSelectedProfileVendor(p)}
                 onRequestBudget={(p) => setBudgetVendor(p)}
               />
@@ -1270,7 +1021,7 @@ export function ServicosClient({
                     </div>
                     <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador cadastrado ainda</h3>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Ainda não há prestadores credenciados disponíveis para este condomínio.
+                      Ainda não há prestadores credenciados disponíveis para esta localidade.
                     </p>
                   </div>
                 ) : filteredVendors.length === 0 ? (
@@ -1280,7 +1031,7 @@ export function ServicosClient({
                     </div>
                     <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador encontrado com estes filtros</h3>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Tente alterar os termos de busca ou selecionar outra categoria.
+                      Tente alterar os termos de busca, limpar filtros ou selecionar outra categoria.
                     </p>
                     <button
                       type="button"
@@ -1288,6 +1039,17 @@ export function ServicosClient({
                         setSearch("");
                         setSelectedCategory("Todas");
                         setOnlyAvailableNow(false);
+                        setFilters({
+                          category: "Todas",
+                          subcategory: undefined,
+                          minRating: 0,
+                          verifiedOnly: false,
+                          maxPrice: 50000,
+                          availableNowOnly: false,
+                          condoHiredOnly: false,
+                          maxDistanceKm: undefined,
+                        });
+                        updateUrlParams("Todas", "", "score");
                       }}
                       className="rounded-xl bg-[#0055D4] text-white px-4 py-2 text-xs font-bold cursor-pointer"
                     >
@@ -1300,7 +1062,11 @@ export function ServicosClient({
                       <ProviderCard
                         key={vendor.id}
                         provider={vendor}
-                        rankingPosition={index < 3 ? index + 1 : undefined}
+                        rankingPosition={
+                          (sortBy === "score" || sortBy === "rating") && index < 3
+                            ? index + 1
+                            : undefined
+                        }
                         isFavorite={favorites.includes(vendor.id)}
                         hasHiredBefore={hiredProviderIds.has(vendor.id)}
                         onToggleFavorite={toggleFavorite}
@@ -1315,6 +1081,61 @@ export function ServicosClient({
           </div>
         </>
       )}
+
+      {/* Location Modal Interativo */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        currentLocation={serviceLocation}
+        availableCondos={
+          condoInfo
+            ? [
+                {
+                  id: condoInfo.id,
+                  name: condoInfo.name,
+                  address: condoInfo.address,
+                  city: condoInfo.city,
+                  state: condoInfo.state,
+                },
+              ]
+            : []
+        }
+        onClose={() => setIsLocationModalOpen(false)}
+        onSave={(loc) => setServiceLocation(loc)}
+      />
+
+      {/* Filter Drawer (Lateral no desktop / Bottom Sheet no mobile) */}
+      <FilterDrawer
+        isOpen={isFilterSheetOpen}
+        filters={filters}
+        categories={categoriesConfig}
+        totalResultsCount={filteredVendors.length}
+        onClose={() => setIsFilterSheetOpen(false)}
+        onChange={(updated) => {
+          setFilters((prev) => {
+            const next = { ...prev, ...updated };
+            if (updated.category) {
+              setSelectedCategory(updated.category);
+              updateUrlParams(updated.category, search, sortBy);
+            }
+            return next;
+          });
+        }}
+        onReset={() => {
+          setFilters({
+            category: "Todas",
+            subcategory: undefined,
+            minRating: 0,
+            verifiedOnly: false,
+            maxPrice: 50000,
+            availableNowOnly: false,
+            condoHiredOnly: false,
+            maxDistanceKm: undefined,
+          });
+          setSelectedCategory("Todas");
+          setOnlyAvailableNow(false);
+          updateUrlParams("Todas", search, sortBy);
+        }}
+      />
 
       {/* Profile Storefront Modal */}
       {selectedProfileVendor && (
@@ -1343,30 +1164,6 @@ export function ServicosClient({
           }}
         />
       )}
-
-      {/* Filter Bottom Sheet */}
-      <FilterBottomSheet
-        isOpen={isFilterSheetOpen}
-        filters={filters}
-        categories={categoriesConfig}
-        totalResultsCount={filteredVendors.length}
-        onClose={() => setIsFilterSheetOpen(false)}
-        onChange={(updated) => {
-          setFilters((prev) => {
-            const next = { ...prev, ...updated };
-            if (updated.category) {
-              setSelectedCategory(updated.category);
-              updateUrlParams(updated.category, search, sortBy);
-            }
-            return next;
-          });
-        }}
-        onReset={() => {
-          setFilters({ category: "Todas", minRating: 0, verifiedOnly: false, maxPrice: 50000 });
-          setSelectedCategory("Todas");
-          updateUrlParams("Todas", search, sortBy);
-        }}
-      />
 
       {/* Review Modal (4 Criteria) */}
       {reviewRequest && (

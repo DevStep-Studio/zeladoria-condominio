@@ -613,6 +613,32 @@ export function ProviderProfileModal({
                   </p>
                 </div>
               </div>
+
+              {/* Nossa Equipe (Aparece apenas quando for empresa e possuir equipe) */}
+              {provider.isCompany && provider.teamMembers && provider.teamMembers.length > 0 && (
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+                    Nossa Equipe de Profissionais
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {provider.teamMembers.map((member, mIdx) => (
+                      <div key={mIdx} className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100">
+                        <div className="h-9 w-9 rounded-lg bg-blue-100 text-[#0055D4] flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name} className="h-full w-full object-cover" />
+                          ) : (
+                            member.name.charAt(0)
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h5 className="font-bold text-slate-800 text-xs truncate">{member.name}</h5>
+                          <p className="text-[11px] text-slate-400 truncate">{member.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -643,26 +669,59 @@ export function ProviderProfileModal({
       {/* LIGHTBOX MODAL PARA FOTOS DO PORTFÓLIO */}
       {currentPortfolioItem && (
         <div
-          className="fixed inset-0 z-60 bg-black/90 flex flex-col items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-60 bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setLightboxIndex(null)}
         >
           <div className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={() => setLightboxIndex(null)}
-              className="absolute -top-12 right-0 text-white hover:text-slate-300 p-2 text-sm font-bold flex items-center gap-1 cursor-pointer"
+              className="absolute -top-12 right-0 text-white hover:text-slate-300 p-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
             >
               <span>Fechar</span>
               <Icon name="x" size={18} />
             </button>
+
+            {/* Navigation buttons */}
+            {provider.portfolio.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : provider.portfolio.length - 1));
+                  }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors cursor-pointer"
+                  title="Foto anterior"
+                >
+                  <Icon name="chevron-left" size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((prev) => (prev !== null && prev < provider.portfolio.length - 1 ? prev + 1 : 0));
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors cursor-pointer"
+                  title="Próxima foto"
+                >
+                  <Icon name="chevron-right" size={20} />
+                </button>
+              </>
+            )}
+
             <img
               src={currentPortfolioItem.url}
               alt={currentPortfolioItem.caption}
               className="max-h-[75vh] w-auto rounded-xl object-contain shadow-2xl"
             />
-            <p className="text-white text-xs sm:text-sm font-medium mt-3 text-center max-w-xl">
-              {currentPortfolioItem.caption}
-            </p>
+            <div className="flex items-center justify-between w-full max-w-xl mt-3 text-white text-xs font-medium px-2">
+              <p className="truncate">{currentPortfolioItem.caption}</p>
+              <span className="shrink-0 text-slate-400">
+                {(lightboxIndex ?? 0) + 1} de {provider.portfolio.length}
+              </span>
+            </div>
           </div>
         </div>
       )}
