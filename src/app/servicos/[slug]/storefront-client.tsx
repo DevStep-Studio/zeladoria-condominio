@@ -123,8 +123,8 @@ export function StorefrontClient({
                       {vendor.companyName || vendor.name}
                     </h1>
                     {vendor.verified && (
-                      <span className="inline-flex items-center gap-1 rounded-[4px] bg-blue-50 border border-blue-200 text-[#0055D4] px-2 py-0.5 text-[10px] font-bold">
-                        <Icon name="check-circle" size={12} />
+                      <span className="inline-flex items-center gap-1 text-[#0055D4] text-xs font-bold">
+                        <Icon name="check-circle" size={13} />
                         <span>Verificado</span>
                       </span>
                     )}
@@ -136,20 +136,10 @@ export function StorefrontClient({
               </div>
 
               {/* Status and Action CTA */}
-              <div className="flex items-center gap-2 pt-2 sm:pt-0">
-                <span
-                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                    vendor.isOnline
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      vendor.isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
-                    }`}
-                  />
-                  <span>{vendor.isOnline ? "Disponível agora" : "Offline / Agendado"}</span>
+              <div className="flex items-center gap-3 pt-2 sm:pt-0">
+                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${vendor.isOnline ? "text-emerald-700" : "text-slate-500"}`}>
+                  <span className={`h-2 w-2 rounded-full ${vendor.isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+                  <span>{vendor.isOnline ? "Disponível agora" : "Atendimento programado"}</span>
                 </span>
 
                 <button

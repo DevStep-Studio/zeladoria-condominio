@@ -58,35 +58,28 @@ export function ProviderProfileModal({
             <div className="absolute inset-0 bg-black/25 pointer-events-none" />
 
             {/* Ações de Topo: Fechar & Favoritar */}
-            <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between z-20">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/70 backdrop-blur-xs text-white text-xs font-semibold">
-                <Icon name="briefcase" size={13} className="text-[#FFD000]" />
-                <span className="capitalize">{provider.category}</span>
-              </span>
+            <div className="absolute top-3.5 right-3.5 flex items-center gap-2 z-20">
+              <button
+                type="button"
+                onClick={() => onToggleFavorite?.(provider.id)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                title="Salvar nos favoritos"
+              >
+                <Icon
+                  name="heart"
+                  size={16}
+                  className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
+                />
+              </button>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onToggleFavorite?.(provider.id)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                  title="Salvar nos favoritos"
-                >
-                  <Icon
-                    name="heart"
-                    size={16}
-                    className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
-                  />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:bg-white hover:text-slate-900 transition-all cursor-pointer"
-                  title="Fechar"
-                >
-                  <Icon name="x" size={18} />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs text-slate-700 shadow-md hover:bg-white hover:text-slate-900 transition-all cursor-pointer"
+                title="Fechar"
+              >
+                <Icon name="x" size={18} />
+              </button>
             </div>
           </div>
 
@@ -124,15 +117,14 @@ export function ProviderProfileModal({
                       {provider.name}
                     </h1>
                     {provider.isVerified && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-[#0055D4] border border-blue-200 px-2 py-0.5 text-[11px] font-bold">
-                        <Icon name="check-circle" size={12} />
+                      <span className="inline-flex items-center gap-1 text-[#0055D4] text-xs font-bold">
+                        <Icon name="check-circle" size={13} />
                         <span>Verificado</span>
                       </span>
                     )}
                     {provider.availableNow && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>Disponível hoje</span>
+                      <span className="text-emerald-700 text-xs font-bold">
+                        · Disponível hoje
                       </span>
                     )}
                   </div>

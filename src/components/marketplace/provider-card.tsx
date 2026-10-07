@@ -53,56 +53,16 @@ export function ProviderCard({
             </div>
           )}
 
-          {/* Sombra sutil interna para contraste dos badges */}
-          <div className="absolute inset-0 bg-black/15 pointer-events-none" />
-
-          {/* Floating Badges no topo da foto */}
-          <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 z-10 pointer-events-none">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {/* Disponibilidade Hoje */}
-              {provider.availableNow && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/90 backdrop-blur-xs text-white px-2.5 py-0.5 text-[10px] font-bold shadow-xs">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                  <span>Disponível hoje</span>
-                </span>
-              )}
-
-              {/* Distância Real ou Atende Condomínio */}
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/70 backdrop-blur-xs text-white px-2.5 py-0.5 text-[10px] font-semibold shadow-xs">
-                <Icon name="map-pin" size={10} className="text-[#FFD000]" />
-                <span>
-                  {provider.distanceKm != null
-                    ? `${provider.distanceKm.toFixed(1).replace(".", ",")} km`
-                    : "Atende seu condomínio"}
-                </span>
-              </span>
-
-              {/* Ranking Posição */}
-              {rankingPosition && rankingPosition <= 3 && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
-                    rankingPosition === 1
-                      ? "bg-[#FFD000] text-[#12162A]"
-                      : rankingPosition === 2
-                      ? "bg-slate-200 text-slate-900"
-                      : "bg-amber-100 text-amber-950"
-                  }`}
-                >
-                  <Icon name="award" size={11} />
-                  <span>#{rankingPosition}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Botão de Favoritar (♡) */}
+          {/* Botão de Favoritar (♡) limpo no topo direito da foto */}
+          <div className="absolute top-2.5 right-2.5 z-10">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite?.(provider.id);
               }}
-              className={`pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-md transition-transform active:scale-90 hover:scale-110 cursor-pointer ${
-                isFavorite ? "text-rose-500" : "text-slate-500 hover:text-rose-500"
+              className={`flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
+                isFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
               }`}
               title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
             >
@@ -176,7 +136,7 @@ export function ProviderCard({
                 </span>
               </div>
             ) : (
-              <span className="rounded-[4px] bg-blue-50 text-[#0055D4] text-[10px] font-bold px-2 py-0.5 border border-blue-100">
+              <span className="text-[11px] font-bold text-[#0055D4]">
                 Novo no Zeladoria
               </span>
             )}
@@ -189,33 +149,40 @@ export function ProviderCard({
 
           {/* Destaque Comunitário: Serviços realizados neste condomínio */}
           {provider.condoHiredCount && provider.condoHiredCount > 0 ? (
-            <p className="text-[11px] font-bold text-emerald-700 bg-emerald-50/70 border border-emerald-100 px-2 py-1 rounded-lg">
-              ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço realizado" : "serviços realizados"} neste condomínio
+            <p className="text-[11px] font-medium text-emerald-700">
+              ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço realizado" : "serviços realizados"} no condomínio
             </p>
           ) : hasHiredBefore ? (
-            <p className="text-[11px] font-bold text-blue-700 bg-blue-50/70 border border-blue-100 px-2 py-1 rounded-lg">
-              ✓ Você já utilizou este profissional
+            <p className="text-[11px] font-medium text-[#0055D4]">
+              ✓ Você já contratou anteriormente
             </p>
           ) : null}
 
-          {/* Preço Inicial */}
-          <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
+          {/* Preço Inicial & Disponibilidade / Distância */}
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                Investimento
+                A partir de
               </span>
               <span className="text-sm font-black text-[#0F172A]">
                 {provider.startingPriceCents != null
-                  ? `A partir de R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
+                  ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                   : "Sob consulta"}
               </span>
             </div>
 
-            {provider.completionRate !== null && provider.completionRate > 0 && (
-              <span className="text-[10px] font-bold text-slate-500">
-                {provider.completionRate}% conclusão
+            <div className="text-right text-[11px] text-slate-500">
+              {provider.availableNow && (
+                <span className="font-bold text-emerald-700 block">
+                  Disponível hoje
+                </span>
+              )}
+              <span>
+                {provider.distanceKm != null
+                  ? `${provider.distanceKm.toFixed(1).replace(".", ",")} km`
+                  : "Atende seu condomínio"}
               </span>
-            )}
+            </div>
           </div>
         </div>
       </div>

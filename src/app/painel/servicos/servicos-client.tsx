@@ -325,9 +325,6 @@ export function ServicosClient({
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
               Zeladoria Serviços
             </h1>
-            <span className="rounded-[4px] bg-blue-50 text-[#0055D4] border border-blue-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
-              Marketplace On-Demand
-            </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             Encontre, compare e contrate os melhores profissionais para pequenos reparos ou reformas completas.
@@ -609,23 +606,17 @@ export function ServicosClient({
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100 shadow-2xs">
                 <Icon name="map-pin" size={18} />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Atendimento em
+                <div>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    Atendimento no condomínio
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-[4px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 text-[9px] font-bold border border-emerald-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Região Atendida
-                  </span>
+                  <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
+                    {condoInfo?.name || "Residencial Parque das Águas"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {condoInfo?.address ? `${condoInfo.address} · ${condoInfo.city || "Curitiba"} - ${condoInfo.state || "PR"}` : "Av. das Nações, 1200 · Curitiba - PR"}
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm font-black text-[#0F172A] leading-tight mt-0.5">
-                  {condoInfo?.name || "Residencial Parque das Águas"}
-                </p>
-                <p className="text-[11px] text-slate-500 truncate">
-                  {condoInfo?.address ? `${condoInfo.address} · ${condoInfo.city || "Curitiba"} - ${condoInfo.state || "PR"}` : "Av. das Nações, 1200 · Curitiba - PR"}
-                </p>
-              </div>
             </div>
             {canSwitchCondo && (
               <button
@@ -890,8 +881,8 @@ export function ServicosClient({
                     Mais contratados no {condoInfo?.name || "seu condomínio"}
                   </h2>
                 </div>
-                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline">
-                  Alta confiança dos moradores locais
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                  Profissionais com histórico no condomínio
                 </span>
               </div>
 
@@ -902,10 +893,10 @@ export function ServicosClient({
                     <div
                       key={`condo-top-${vendor.id}`}
                       onClick={() => setSelectedProfileVendor(vendor)}
-                      className="group rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
+                      className="group rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
                     >
-                      {/* Top Visual Banner */}
-                      <div className="h-32 w-full bg-slate-100 relative overflow-hidden">
+                      {/* Top Visual Photo - Limpa sem badges flutuantes */}
+                      <div className="h-32 w-full bg-slate-100 overflow-hidden">
                         {mainPhoto ? (
                           <img
                             src={mainPhoto}
@@ -918,9 +909,6 @@ export function ServicosClient({
                             {vendor.company}
                           </div>
                         )}
-                        <span className="absolute top-2.5 right-2.5 rounded-[6px] bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 shadow-xs">
-                          {vendor.condoHiredCount} no prédio
-                        </span>
                       </div>
 
                       {/* Content */}
@@ -939,7 +927,7 @@ export function ServicosClient({
                           </p>
 
                           {/* Rating or Novo no Zeladoria */}
-                          <div className="mt-1.5 flex items-center gap-2">
+                          <div className="mt-1 flex items-center gap-2">
                             {vendor.reviewsCount > 0 ? (
                               <div className="flex items-center gap-1 text-xs">
                                 <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
@@ -947,14 +935,14 @@ export function ServicosClient({
                                 <span className="text-[10px] text-slate-400">({vendor.reviewsCount} avaliações)</span>
                               </div>
                             ) : (
-                              <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-2 py-0.5">
+                              <span className="text-[11px] font-bold text-[#0055D4]">
                                 Novo no Zeladoria
                               </span>
                             )}
                           </div>
 
-                          <p className="text-[11px] font-bold text-emerald-700 bg-emerald-50/70 p-1.5 rounded-lg border border-emerald-100 mt-2">
-                            “{vendor.condoHiredCount} serviços realizados neste condomínio.”
+                          <p className="text-[11px] font-medium text-emerald-700 mt-1">
+                            ✓ {vendor.condoHiredCount} serviços realizados neste condomínio
                           </p>
                         </div>
 
@@ -1016,10 +1004,10 @@ export function ServicosClient({
                   <div
                     key={vendor.id}
                     onClick={() => setSelectedProfileVendor(vendor)}
-                    className="group relative rounded-2xl border border-slate-200 bg-white hover:border-blue-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
+                    className="group rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs cursor-pointer overflow-hidden flex flex-col justify-between"
                   >
-                    {/* Visual photo top */}
-                    <div className="h-28 w-full bg-slate-100 relative overflow-hidden">
+                    {/* Visual photo top - Limpa sem badges flutuantes */}
+                    <div className="h-28 w-full bg-slate-100 overflow-hidden">
                       {photo ? (
                         <img
                           src={photo}
@@ -1032,28 +1020,14 @@ export function ServicosClient({
                           {vendor.company}
                         </div>
                       )}
-
-                      {/* Rank badge: #1 in yellow, #2 & #3 in neutral */}
-                      <span
-                        className={`absolute top-2.5 left-2.5 h-7 px-2.5 rounded-lg flex items-center justify-center font-black text-xs shadow-xs ${
-                          rankNum === 1
-                            ? "bg-[#FFD000] text-[#12162A]"
-                            : "bg-white/95 text-slate-800"
-                        }`}
-                      >
-                        #{rankNum}
-                      </span>
-
-                      {vendor.startingPriceCents && (
-                        <span className="absolute bottom-2 right-2 rounded-md bg-white/95 text-slate-900 text-[10px] font-black px-2 py-0.5 shadow-2xs">
-                          A partir de R$ {(vendor.startingPriceCents / 100).toFixed(0)}
-                        </span>
-                      )}
                     </div>
 
                     <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center gap-1.5">
+                          <span className={`text-xs font-black ${rankNum === 1 ? "text-[#0055D4]" : "text-slate-400"}`}>
+                            #{rankNum}
+                          </span>
                           <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
                             {vendor.name}
                           </h4>
@@ -1065,22 +1039,24 @@ export function ServicosClient({
                           {vendor.category} · {vendor.company}
                         </p>
 
-                        <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex items-center justify-between text-xs mt-1.5">
                           {vendor.reviewsCount > 0 ? (
-                            <div className="flex items-center gap-1 text-xs">
+                            <div className="flex items-center gap-1">
                               <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
                               <span className="font-black text-[#0F172A]">{vendor.rating.toFixed(1)}</span>
                               <span className="text-[10px] text-slate-400">({vendor.reviewsCount})</span>
                             </div>
                           ) : (
-                            <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-2 py-0.5">
+                            <span className="text-[11px] font-bold text-[#0055D4]">
                               Novo no Zeladoria
                             </span>
                           )}
-                          <span className="text-[11px] text-slate-400">·</span>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {vendor.hiredCount || 10}+ serviços
-                          </span>
+
+                          {vendor.startingPriceCents && (
+                            <span className="text-[11px] font-semibold text-slate-700">
+                              A partir de R$ {(vendor.startingPriceCents / 100).toFixed(0)}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -1091,7 +1067,7 @@ export function ServicosClient({
                             e.stopPropagation();
                             setSelectedProfileVendor(vendor);
                           }}
-                          className="text-xs font-bold text-[#0055D4] hover:underline"
+                          className="text-xs font-bold text-slate-700 hover:text-[#0055D4] transition-colors"
                         >
                           Ver perfil
                         </button>
