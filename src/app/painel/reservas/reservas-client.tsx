@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
+import { PageHeader } from "@/components/page-header";
 import { SpaceCard } from "./components/space-card";
 import { SpaceDetailsModal } from "./components/space-details-modal";
 import { MyReservations } from "./components/my-reservations";
@@ -86,26 +87,23 @@ export function ReservasClient({
 
   return (
     <div className="space-y-6">
-      {/* Top Page Header + Role Navigation */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <span>Reservas</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
-              {initialAmenities.filter((a) => a.active).length} espaços disponíveis
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            {isStaff
-              ? "Gestão integrada de espaços comuns, aprovação de solicitações e agenda do condomínio."
-              : "Reserve os espaços de lazer e convivência do seu condomínio com poucos cliques."}
-          </p>
-        </div>
-
-        {/* Action button for Staff */}
-        {isStaff && (
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+      {/* Page Header Padronizado */}
+      <PageHeader
+        icon="calendar"
+        title="Reservas"
+        description={
+          isStaff
+            ? "Gestão integrada de espaços comuns, aprovação de solicitações e agenda do condomínio."
+            : "Reserve os espaços de lazer e convivência do seu condomínio com poucos cliques."
+        }
+        badge={
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+            {initialAmenities.filter((a) => a.active).length} espaços disponíveis
+          </span>
+        }
+        actions={
+          isStaff ? (
             <button
               type="button"
               onClick={() => setWizardModal({ open: true, space: null })}
@@ -114,9 +112,9 @@ export function ReservasClient({
               <Icon name="plus" size={15} />
               <span>Novo espaço</span>
             </button>
-          </div>
-        )}
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Main Tab Capsule Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">

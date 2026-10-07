@@ -242,18 +242,16 @@ export function FinanceiroClient({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shadow-2xs">
-              <Icon name="wallet" size={18} />
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs shrink-0">
+              <Icon name="wallet" size={16} />
             </span>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0F172A]">
-                Gestão Financeira & DRE
-              </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                {condoName} · Prestação de contas do exercício {currentYear}
-              </p>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0F172A]">
+              Gestão Financeira & DRE
+            </h1>
           </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+            {condoName} · Prestação de contas do exercício {currentYear}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">

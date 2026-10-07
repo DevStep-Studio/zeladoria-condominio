@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Icon, type IconName } from "@/components/icon";
+import { PageHeader } from "@/components/page-header";
 import { NextStepModal } from "@/components/next-step-modal";
 import { logoutAction } from "@/lib/actions/session";
 
@@ -73,15 +74,12 @@ export function PerfilClient({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-          Perfil
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-          Gerencie suas informações cadastrais e dados condominiais
-        </p>
-      </div>
+      {/* Page Header Padronizado */}
+      <PageHeader
+        icon="user"
+        title="Perfil"
+        description="Gerencie suas informações cadastrais e dados condominiais."
+      />
 
       {/* 1. User Identity Card */}
       <div className="rounded-[14px] border border-slate-200/60 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">

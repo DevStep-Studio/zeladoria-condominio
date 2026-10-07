@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
+import { PageHeader } from "@/components/page-header";
 import { createOccurrenceAction } from "@/lib/actions/ocorrencias";
 
 const CATEGORIES: { label: string; icon: IconName }[] = [
@@ -172,24 +173,21 @@ export default function NovaOcorrenciaPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
+      {/* Page Header Padronizado */}
+      <PageHeader
+        icon="plus"
+        title="Nova Ocorrência"
+        description="Descreva o problema detalhadamente. Nossa IA sugerirá categoria e nível de prioridade."
+        actions={
           <Link
             href="/painel/ocorrencias"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0070F3] hover:underline mb-2"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-bold transition-colors"
           >
-            <Icon name="arrow-left" size={14} />
+            <Icon name="arrow-left" size={13} />
             <span>Voltar para ocorrências</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-            Nova ocorrência
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Descreva o problema. Nossa IA vai sugerir categoria e prioridade.
-          </p>
-        </div>
-      </div>
+        }
+      />
 
       {/* Success Notification */}
       {successMessage && (

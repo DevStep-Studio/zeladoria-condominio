@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
+import { PageHeader } from "@/components/page-header";
 import { dateTimeBR } from "@/lib/utils";
 import {
   updateOccurrenceStatusAction,
@@ -178,29 +179,27 @@ export function OcorrenciasClient({
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
-            <span>Ocorrências</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
-              {occurrences.length} registradas
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Acompanhe, gerencie e registre ocorrências no condomínio
-          </p>
-        </div>
-
-        <Link
-          href="/painel/ocorrencias/nova"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFD000] hover:bg-[#E6BC00] text-[#12162A] px-4 py-2.5 text-xs sm:text-sm font-black shadow-md shadow-[#FFD000]/25 transition-all hover:scale-[1.02] self-start sm:self-auto"
-        >
-          <Icon name="plus" size={15} strokeWidth={2.6} />
-          <span>Nova ocorrência</span>
-        </Link>
-      </div>
+      {/* Page Header Padronizado */}
+      <PageHeader
+        icon="clipboard"
+        title="Ocorrências"
+        description="Acompanhe, gerencie e registre ocorrências no condomínio."
+        badge={
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+            {occurrences.length} registradas
+          </span>
+        }
+        actions={
+          <Link
+            href="/painel/ocorrencias/nova"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFD000] hover:bg-[#E6BC00] text-[#12162A] px-4 py-2 text-xs sm:text-sm font-black shadow-xs transition-all hover:scale-[1.02]"
+          >
+            <Icon name="plus" size={15} strokeWidth={2.6} />
+            <span>Nova ocorrência</span>
+          </Link>
+        }
+      />
 
       {/* Feedback message */}
       {feedback && (

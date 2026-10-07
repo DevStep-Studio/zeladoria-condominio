@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
+import { PageHeader } from "@/components/page-header";
 
 type OrderStatus = "aguardando" | "em_execucao" | "concluida" | "cancelada";
 
@@ -129,19 +130,18 @@ export function OrdensClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
-          <span>Ordens de Serviço</span>
+      {/* Page Header Padronizado */}
+      <PageHeader
+        icon="wrench"
+        title="Ordens de Serviço"
+        description="Acompanhamento de manutenções, prestadores e ordens executadas no condomínio."
+        badge={
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
             <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
             {SAMPLE_ORDERS.length} ordens
           </span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-          Acompanhamento de manutenções, prestadores e ordens executadas no condomínio
-        </p>
-      </div>
+        }
+      />
 
       {/* Filter and Search Bar - Minimalista e Fluido */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">

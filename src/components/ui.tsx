@@ -2,24 +2,89 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon, isIconName, type IconName } from "@/components/icon";
 
+const DEFAULT_TITLE_ICONS: Array<[RegExp, IconName]> = [
+  [/serviço|prestador/i, "briefcase"],
+  [/ocorrência|chamado/i, "clipboard"],
+  [/reserva|espaço/i, "calendar"],
+  [/encomenda|correspondência/i, "package"],
+  [/visitante/i, "users"],
+  [/comunicado|notícia/i, "mail"],
+  [/assembleia|edital/i, "scale"],
+  [/documento/i, "folder"],
+  [/sugestão|reivindicação/i, "megaphone"],
+  [/ordem/i, "wrench"],
+  [/manutenção|preventiva/i, "shield"],
+  [/financeiro|dre|caixa/i, "wallet"],
+  [/auditoria|log/i, "lock"],
+  [/relatório/i, "chart"],
+  [/morador|unidade/i, "users"],
+  [/portaria|acesso/i, "shield"],
+  [/mudança/i, "truck"],
+  [/achado/i, "search"],
+  [/enquete/i, "vote"],
+  [/configuraç|ajuste/i, "settings"],
+  [/perfil|conta/i, "user"],
+  [/ajuda|suporte/i, "help"],
+  [/livro/i, "book"],
+  [/agenda/i, "calendar"],
+  [/fornecedor/i, "truck"],
+  [/implantação|onboarding/i, "grid"],
+  [/turno/i, "clock"],
+  [/adoção|pet/i, "heart"],
+  [/notificaç/i, "bell"],
+];
+
+function resolvePageIcon(icon?: IconName, title?: ReactNode): IconName {
+  if (icon) return icon;
+  if (typeof title === "string") {
+    for (const [regex, matchedIcon] of DEFAULT_TITLE_ICONS) {
+      if (regex.test(title)) return matchedIcon;
+    }
+  }
+  return "grid";
+}
+
 /* Minimalist page title block. One optional primary action area. */
 export function PageHeader({
+  icon,
   title,
   subtitle,
+  description,
+  badge,
   actions,
+  className = "",
 }: {
-  title: string;
-  subtitle?: string;
+  icon?: IconName;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+  badge?: ReactNode;
   actions?: ReactNode;
+  className?: string;
 }) {
+  const resolvedIcon = resolvePageIcon(icon, title);
+  const textDescription = description || subtitle;
+
   return (
-    <header className="mb-7 flex flex-col gap-5 border-b border-[var(--color-line)] pb-6 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-[var(--color-ink)] sm:text-[34px]">{title}</h1>
-        {subtitle ? <p className="mt-2 max-w-4xl text-[15px] leading-7 text-[var(--color-muted)]">{subtitle}</p> : null}
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4 mb-6 ${className}`}>
+      <div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs shrink-0">
+            <Icon name={resolvedIcon} size={16} />
+          </span>
+          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
+            <span>{title}</span>
+            {badge}
+          </h1>
+        </div>
+        {textDescription ? (
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+            {textDescription}
+          </p>
+        ) : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2 no-print">{actions}</div> : null}
-    </header>
+    </div>
   );
 }
 
