@@ -100,7 +100,7 @@ export async function createOccurrenceAction(formData: FormData) {
 
   revalidatePath("/painel/ocorrencias");
   revalidatePath("/painel");
-  return { success: true };
+  return { success: true, code: occ.code, id: occ.id };
 }
 
 export async function updateOccurrenceStatusAction(formData: FormData) {
