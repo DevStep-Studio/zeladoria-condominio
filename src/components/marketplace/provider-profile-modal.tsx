@@ -42,8 +42,8 @@ export function ProviderProfileModal({
         aria-hidden
       />
 
-      {/* Modal / Storefront Sheet Container (Tamanho Fixo e Estável: max-w-3xl sm:h-[650px]) */}
-      <div className="relative w-full max-w-3xl h-full sm:h-[650px] sm:max-h-[85vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* Modal / Storefront Sheet Container (Tamanho Fixo e Estável de 680px para evitar pulos de tamanho entre abas) */}
+      <div className="relative w-full max-w-3xl h-full sm:h-[680px] sm:max-h-[88vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* TOP BAR / CAPA VISUAL COMPACTA E MINIMALISTA */}
         <div className="relative w-full shrink-0">
@@ -84,11 +84,11 @@ export function ProviderProfileModal({
           </div>
 
           {/* PERFIL DO PRESTADOR COM AVATAR LIMPO E ESPAÇAMENTO RESPIRADO DO BANNER */}
-          <div className="px-5 sm:px-8 pb-4 bg-white border-b border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 relative z-10">
-              {/* Avatar e Identificação */}
+          <div className="px-5 sm:px-8 pt-3 sm:pt-4 pb-4 bg-white border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+              {/* Avatar e Identificação com Respiro Amplo */}
               <div className="flex items-center gap-4 min-w-0">
-                <div className="relative -mt-10 sm:-mt-12 h-18 w-18 sm:h-22 sm:w-22 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden shrink-0 bg-slate-100">
+                <div className="relative -mt-10 sm:-mt-14 h-18 w-18 sm:h-22 sm:w-22 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden shrink-0 bg-slate-100">
                   {provider.avatarUrl ? (
                     <img
                       src={provider.avatarUrl}
@@ -111,8 +111,8 @@ export function ProviderProfileModal({
                   )}
                 </div>
 
-                {/* Nome e informações com respiro garantido abaixo do banner */}
-                <div className="min-w-0 pt-2 sm:pt-2.5">
+                {/* Nome e informações com respiro generoso e nítido abaixo do banner */}
+                <div className="min-w-0 pt-1 sm:pt-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="text-base sm:text-xl font-black text-[#0F172A] tracking-tight truncate">
                       {provider.name}
