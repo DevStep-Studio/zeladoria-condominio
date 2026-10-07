@@ -42,11 +42,11 @@ export function ProviderProfileModal({
         aria-hidden
       />
 
-      {/* Modal / Storefront Sheet Container (Minimalista, Focado e Elegante: max-w-3xl) */}
-      <div className="relative w-full max-w-3xl min-h-screen sm:min-h-0 sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* Modal / Storefront Sheet Container (Tamanho Fixo e Estável: max-w-3xl sm:h-[650px]) */}
+      <div className="relative w-full max-w-3xl h-full sm:h-[650px] sm:max-h-[85vh] flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* TOP BAR / CAPA VISUAL COMPACTA E MINIMALISTA */}
-        <div className="relative w-full">
+        <div className="relative w-full shrink-0">
           {/* Imagem de Capa Elegante (Altura compacta sem engolir o modal) */}
           <div className="relative h-28 sm:h-32 w-full bg-slate-900 overflow-hidden">
             <img
@@ -83,12 +83,12 @@ export function ProviderProfileModal({
             </div>
           </div>
 
-          {/* PERFIL DO PRESTADOR COM AVATAR LIMPO E IDENTIFICAÇÃO */}
+          {/* PERFIL DO PRESTADOR COM AVATAR LIMPO E ESPAÇAMENTO RESPIRADO DO BANNER */}
           <div className="px-5 sm:px-8 pb-4 bg-white border-b border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 -mt-8 sm:-mt-10 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 relative z-10">
               {/* Avatar e Identificação */}
-              <div className="flex items-end gap-3.5">
-                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden shrink-0 bg-slate-100">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="relative -mt-10 sm:-mt-12 h-18 w-18 sm:h-22 sm:w-22 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden shrink-0 bg-slate-100">
                   {provider.avatarUrl ? (
                     <img
                       src={provider.avatarUrl}
@@ -111,7 +111,8 @@ export function ProviderProfileModal({
                   )}
                 </div>
 
-                <div className="min-w-0 pb-0.5">
+                {/* Nome e informações com respiro garantido abaixo do banner */}
+                <div className="min-w-0 pt-2 sm:pt-2.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="text-base sm:text-xl font-black text-[#0F172A] tracking-tight truncate">
                       {provider.name}
@@ -129,14 +130,14 @@ export function ProviderProfileModal({
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium truncate mt-1">
                     {provider.company} · Especialista em {provider.category}
                   </p>
                 </div>
               </div>
 
               {/* Botão de Ação no Header */}
-              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+              <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-2">
                 {provider.slug && (
                   <Link
                     href={`/servicos/${provider.slug}`}
@@ -303,7 +304,7 @@ export function ProviderProfileModal({
         </div>
 
         {/* CONTEÚDO PRINCIPAL COM SCROLL */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto min-h-0 p-5 sm:p-8 space-y-6">
           
           {/* TAB 1: CATÁLOGO DE SERVIÇOS E PREÇOS (Prompt Item 23) */}
           {activeTab === "servicos" && (
