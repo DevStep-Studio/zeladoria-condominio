@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureDatabase } from "@/db/setup";
 import {
@@ -73,8 +73,46 @@ export async function ensureSeed() {
     try {
       await ensureDatabase();
       const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(condominiums);
-      if (Number(row?.n ?? 0) > 0) return;
-      await seed();
+      if (Number(row?.n ?? 0) === 0) {
+        await seed();
+      }
+
+      // Garantir que a conta do prestador Carlos existe
+      const [existingCarlos] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, "carlos@eletrica.com.br"))
+        .limit(1);
+
+      if (!existingCarlos) {
+        const pass = hashPassword("demo1234");
+        const [newCarlos] = await db
+          .insert(users)
+          .values({
+            name: "Carlos Eduardo Silva",
+            email: "carlos@eletrica.com.br",
+            passwordHash: pass,
+            phone: "(41) 99111-2233",
+            lastLoginAt: new Date(),
+            firstAccessAt: new Date(),
+          })
+          .returning();
+
+        if (newCarlos) {
+          const [carlosVendor] = await db
+            .select()
+            .from(vendors)
+            .where(eq(vendors.slug, "carlos-eletrica"))
+            .limit(1);
+
+          if (carlosVendor) {
+            await db
+              .update(vendors)
+              .set({ userId: newCarlos.id })
+              .where(eq(vendors.id, carlosVendor.id));
+          }
+        }
+      }
     } catch (error) {
       seeding = null;
       console.warn("seed skipped:", error);
