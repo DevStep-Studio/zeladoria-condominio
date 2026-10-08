@@ -80,8 +80,8 @@ export function DestaqueClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+      <div className="border-b border-slate-200/80 pb-4">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
           Destaque & Publicidade Interna
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
@@ -90,21 +90,21 @@ export function DestaqueClient({
       </div>
 
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
+        <div className="p-3.5 rounded-[12px] bg-emerald-50 border border-emerald-200/80 text-xs font-bold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
           <Icon name="check-circle" size={16} className="text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-800 flex items-center gap-2 animate-in fade-in duration-150">
+        <div className="p-3.5 rounded-[12px] bg-red-50 border border-red-200/80 text-xs font-bold text-red-800 flex items-center gap-2 animate-in fade-in duration-150">
           <Icon name="alert-triangle" size={16} className="text-red-600 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {/* Regra Máxima e Ética */}
-      <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs space-y-2">
+      <div className="rounded-[16px] border border-blue-200/80 bg-blue-50/70 p-5 shadow-2xs space-y-2">
         <div className="flex items-center gap-2 text-[#0055D4]">
           <Icon name="shield" size={18} />
           <h2 className="text-xs sm:text-sm font-bold">
@@ -118,7 +118,7 @@ export function DestaqueClient({
 
       {/* Planos Disponíveis */}
       <div className="space-y-3">
-        <h2 className="text-sm font-bold text-[#0F172A]">
+        <h2 className="text-sm font-bold text-slate-900">
           Planos Disponíveis para o seu Perfil
         </h2>
 
@@ -126,21 +126,21 @@ export function DestaqueClient({
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#0055D4] transition-all"
+              className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col justify-between space-y-4 hover:border-[#0055D4] transition-all"
             >
               <div className="space-y-2">
-                <span className="inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#0055D4] border border-blue-200">
+                <span className="inline-flex px-2.5 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#0055D4] border border-blue-200/60">
                   {plan.type === "categoria" ? "Destaque por Especialidade" : "Destaque Local"}
                 </span>
 
-                <h3 className="text-base font-bold text-[#0F172A]">{plan.name}</h3>
+                <h3 className="text-base font-bold text-slate-900">{plan.name}</h3>
 
                 <p className="text-xs text-slate-500 leading-relaxed">
                   {plan.description || "Maior exposição do seu perfil nos blocos patrocinados."}
                 </p>
 
                 <div className="pt-2">
-                  <span className="text-2xl font-black text-[#0F172A]">
+                  <span className="text-2xl font-black text-slate-900">
                     R$ {(plan.priceCents / 100).toFixed(2).replace(".", ",")}
                   </span>
                   <span className="text-xs text-slate-400 font-medium"> / {plan.durationDays} dias</span>
@@ -151,7 +151,7 @@ export function DestaqueClient({
                 type="button"
                 onClick={() => handleHirePlan(plan.id)}
                 disabled={isPending && selectedPlanId === plan.id}
-                className="w-full py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                className="w-full py-2.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isPending && selectedPlanId === plan.id ? "Ativando..." : "Contratar Destaque"}
               </button>
@@ -161,10 +161,10 @@ export function DestaqueClient({
       </div>
 
       {/* Campanhas Ativas e Histórico */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h2 className="text-sm font-bold text-[#0F172A]">
+            <h2 className="text-sm font-bold text-slate-900">
               Suas Campanhas de Destaque
             </h2>
             <p className="text-xs text-slate-500">
@@ -195,22 +195,22 @@ export function DestaqueClient({
               return (
                 <div
                   key={promo.id}
-                  className="rounded-xl border border-slate-200 p-4 space-y-3 hover:border-slate-300 transition-colors"
+                  className="rounded-[12px] border border-slate-200/80 p-4 space-y-3 hover:border-slate-300 transition-colors shadow-2xs"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#0F172A]">
+                      <span className="text-xs font-bold text-slate-900">
                         Campanha #{promo.id} · Categoria {promo.categoryId || vendor.category}
                       </span>
                       <span
-                        className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-[6px] ${
                           displayStatus === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
                             : displayStatus === "EXPIRED"
                             ? "bg-slate-100 text-slate-500"
                             : displayStatus === "CANCELLED"
-                            ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                            ? "bg-rose-50 text-rose-700 border border-rose-200/80"
+                            : "bg-amber-50 text-amber-700 border border-amber-200/80"
                         }`}
                       >
                         {displayStatus}
@@ -223,9 +223,9 @@ export function DestaqueClient({
                     </span>
                   </div>
 
-                  {/* Analytics reais (Seção 58 do prompt) */}
+                  {/* Analytics reais */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2.5 rounded-[8px] bg-slate-50 border border-slate-100">
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
                         Visualizações Patrocinadas
                       </span>
@@ -234,14 +234,14 @@ export function DestaqueClient({
                       </strong>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2.5 rounded-[8px] bg-slate-50 border border-slate-100">
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
                         Cliques no Perfil
                       </span>
                       <strong className="text-sm text-slate-800">{promo.clicks || 0}</strong>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2.5 rounded-[8px] bg-slate-50 border border-slate-100">
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
                         Investimento
                       </span>
@@ -250,13 +250,13 @@ export function DestaqueClient({
                       </strong>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-end">
+                    <div className="p-2.5 rounded-[8px] bg-slate-50 border border-slate-100 flex items-center justify-end">
                       {displayStatus === "ACTIVE" && (
                         <button
                           type="button"
                           onClick={() => handleCancelCampaign(promo.id)}
                           disabled={isPending}
-                          className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+                          className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
                         >
                           Cancelar campanha
                         </button>

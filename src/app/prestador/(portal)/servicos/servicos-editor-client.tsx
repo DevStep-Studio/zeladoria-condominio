@@ -46,8 +46,8 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+    <div className="space-y-6 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
             Catálogo de Serviços & Tabela de Preços
@@ -61,7 +61,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+          className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 shrink-0"
         >
           <Icon name="check" size={14} />
           <span>{isPending ? "Salvando..." : savedSuccess ? "Salvo com Sucesso!" : "Salvar Alterações"}</span>
@@ -69,16 +69,16 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
       </div>
 
       {savedSuccess && (
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
-          <Icon name="check-circle" size={15} className="text-emerald-600" />
+        <div className="p-3.5 rounded-[12px] bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+          <Icon name="check-circle" size={16} className="text-emerald-600" />
           <span>Catálogo de serviços atualizado com sucesso na sua vitrine do marketplace!</span>
         </div>
       )}
 
       {/* Add New Service Form */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-        <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">
-          + Adicionar Serviço ao Catálogo
+      <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-4">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          Adicionar Novo Serviço ao Catálogo
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -91,7 +91,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               placeholder="Ex: Instalação de Chuveiro, Troca de Tomada..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
             <select
               value={priceType}
               onChange={(e) => setPriceType(e.target.value as any)}
-              className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 bg-white"
             >
               <option value="a_partir">A partir de (Estimativa inicial)</option>
               <option value="fixo">Preço Fixo</option>
@@ -123,7 +123,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               disabled={priceType === "sob_consulta"}
-              className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] disabled:bg-slate-100"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 disabled:bg-slate-100"
             />
           </div>
 
@@ -136,7 +136,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               placeholder="Ex: Substituição completa e conferência de segurança da fiação"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="h-10 w-full rounded-xl border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
             />
           </div>
         </div>
@@ -145,9 +145,10 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
           <button
             type="button"
             onClick={addService}
-            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
+            className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
           >
-            Adicionar à Lista
+            <Icon name="plus" size={14} />
+            <span>Adicionar à Lista</span>
           </button>
         </div>
       </div>
@@ -159,7 +160,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
         </h2>
 
         {services.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-500">
+          <div className="rounded-[16px] border border-slate-200/80 bg-white p-8 text-center text-xs text-slate-500">
             Você ainda não adicionou nenhum serviço ao catálogo.
           </div>
         ) : (
@@ -167,16 +168,16 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
             {services.map((svc) => (
               <div
                 key={svc.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                className="rounded-[14px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-colors"
               >
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-bold text-[#0F172A]">{svc.name}</h3>
-                    <span className="rounded bg-slate-100 text-slate-600 text-[10px] font-bold px-1.5 py-0.5 capitalize">
+                    <span className="rounded-[4px] bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 capitalize">
                       {svc.priceType === "a_partir" ? "A partir de" : svc.priceType?.replace("_", " ")}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{svc.description}</p>
+                  <p className="text-xs text-slate-500 mt-1">{svc.description}</p>
                 </div>
 
                 <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
@@ -188,7 +189,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => removeService(svc.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-[6px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                     title="Remover serviço"
                   >
                     <Icon name="trash" size={14} />

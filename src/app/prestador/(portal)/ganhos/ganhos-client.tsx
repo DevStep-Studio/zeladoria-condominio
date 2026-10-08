@@ -15,8 +15,8 @@ export function ProviderGanhosClient({
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+      <div className="border-b border-slate-200/80 pb-4">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
           Ganhos & Extrato Financeiro
         </h1>
         <p className="text-xs text-slate-500 font-medium mt-1">
@@ -26,18 +26,18 @@ export function ProviderGanhosClient({
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
+        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Faturamento Bruto</span>
             <Icon name="dollar" size={15} className="text-emerald-600" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-[#0F172A]">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900">
             R$ {(totalGrossCents / 100).toFixed(2)}
           </div>
           <p className="text-[11px] text-slate-500">{services.length} serviço(s) faturado(s)</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
+        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Líquido Recebido</span>
             <Icon name="check-circle" size={15} className="text-[#0055D4]" />
@@ -48,7 +48,7 @@ export function ProviderGanhosClient({
           <p className="text-[11px] text-slate-500">Direto com o morador / condomínio</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
+        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Taxa da Plataforma</span>
             <Icon name="shield" size={15} className="text-slate-400" />
@@ -62,22 +62,22 @@ export function ProviderGanhosClient({
 
       {/* History */}
       <div className="space-y-3">
-        <h2 className="text-sm font-bold text-[#0F172A]">
+        <h2 className="text-sm font-bold text-slate-900">
           Histórico de Serviços Faturados ({services.length})
         </h2>
 
         {services.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-2">
+          <div className="rounded-[16px] border border-slate-200/80 bg-white p-12 text-center space-y-2 shadow-2xs">
             <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <Icon name="dollar" size={18} />
             </div>
-            <h3 className="text-xs font-bold text-[#0F172A]">Nenhum serviço faturado ainda</h3>
+            <h3 className="text-xs font-bold text-slate-900">Nenhum serviço faturado ainda</h3>
             <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
               Quando você concluir seus atendimentos e o morador confirmar a finalização, os valores aparecerão registrados aqui.
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+          <div className="rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
                 <tr>

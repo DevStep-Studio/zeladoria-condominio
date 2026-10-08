@@ -138,9 +138,9 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Portfólio de Trabalhos
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
@@ -151,7 +151,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-xs"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
         >
           <Icon name="plus" size={15} />
           <span>Adicionar Trabalho</span>
@@ -159,7 +159,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
       </div>
 
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
+        <div className="p-3.5 rounded-[12px] bg-emerald-50 border border-emerald-200/80 text-xs font-bold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
           <Icon name="check-circle" size={16} className="text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
@@ -167,8 +167,8 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
 
       {/* Grid de Trabalhos */}
       {portfolio.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center space-y-3">
-          <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto">
+        <div className="rounded-[16px] border-2 border-dashed border-slate-200 bg-white p-12 text-center space-y-3 shadow-2xs">
+          <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto border border-blue-200/60">
             <Icon name="camera" size={24} />
           </div>
           <h3 className="text-sm font-bold text-slate-900">Nenhum trabalho cadastrado ainda</h3>
@@ -178,7 +178,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0047BA] shadow-xs"
+            className="px-4 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0047BA] shadow-2xs cursor-pointer transition-colors"
           >
             Adicionar primeira foto
           </button>
@@ -188,7 +188,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
           {portfolio.map((item, idx) => (
             <div
               key={idx}
-              className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs hover:border-slate-300 transition-colors flex flex-col"
+              className="rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs hover:border-slate-300 transition-colors flex flex-col"
             >
               <div className="relative aspect-4/3 bg-slate-100 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -198,7 +198,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   className="w-full h-full object-cover"
                 />
                 {item.category && (
-                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/80 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
+                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-[6px] bg-slate-900/85 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
                     {item.category}
                   </span>
                 )}
@@ -225,7 +225,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => handleSetCover(item.url)}
-                    className="text-[11px] font-bold text-[#0055D4] hover:underline"
+                    className="text-[11px] font-bold text-[#0055D4] hover:underline cursor-pointer"
                   >
                     Definir como capa
                   </button>
@@ -233,7 +233,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => handleDeleteItem(idx)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-[6px] hover:bg-red-50 transition-colors cursor-pointer"
                     title="Excluir trabalho"
                   >
                     <Icon name="trash" size={14} />
@@ -248,7 +248,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
       {/* Modal de Adicionar Trabalho */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
+          <div className="w-full max-w-md rounded-[16px] bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">
                 Adicionar Trabalho ao Portfólio
@@ -256,7 +256,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-[6px] cursor-pointer"
               >
                 <Icon name="x" size={16} />
               </button>
@@ -269,13 +269,13 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   Foto do Trabalho
                 </label>
                 {newUrl ? (
-                  <div className="relative aspect-4/3 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 mb-2">
+                  <div className="relative aspect-4/3 rounded-[12px] overflow-hidden border border-slate-200 bg-slate-100 mb-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={newUrl} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setNewUrl("")}
-                      className="absolute top-2 right-2 p-1.5 bg-slate-900/80 text-white rounded-full hover:bg-red-600 transition-colors shadow-xs"
+                      className="absolute top-2 right-2 p-1.5 bg-slate-900/80 text-white rounded-full hover:bg-red-600 transition-colors shadow-2xs cursor-pointer"
                     >
                       <Icon name="x" size={14} />
                     </button>
@@ -285,7 +285,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isCompressing}
-                    className="w-full py-8 border-2 border-dashed border-slate-200 hover:border-[#0070F3] rounded-xl flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-600 hover:bg-slate-100/50 transition-colors"
+                    className="w-full py-8 border-2 border-dashed border-slate-200 hover:border-[#0055D4] rounded-[12px] flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-600 hover:bg-slate-100/50 transition-colors cursor-pointer"
                   >
                     <Icon name="camera" size={24} className="text-[#0055D4]" />
                     <span className="text-xs font-bold text-slate-800">
@@ -313,7 +313,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Ex.: Instalação de quadro de distribuição com DR"
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
                 />
               </div>
 
@@ -327,7 +327,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newCaption}
                   onChange={(e) => setNewCaption(e.target.value)}
                   placeholder="Ex.: Substituição completa de fiação e disjuntores antigos com teste de carga."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   placeholder="Ex.: Elétrica, Iluminação, Hidráulica"
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
                 />
               </div>
             </div>
@@ -350,7 +350,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl"
+                className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-[8px] cursor-pointer"
               >
                 Cancelar
               </button>
@@ -358,7 +358,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                 type="button"
                 onClick={handleSaveItem}
                 disabled={!newUrl || isPending}
-                className="px-4 py-2 text-xs font-bold bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl shadow-xs transition-colors disabled:opacity-40"
+                className="px-4 py-2 text-xs font-bold bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-[8px] shadow-2xs transition-colors disabled:opacity-40 cursor-pointer"
               >
                 Salvar no portfólio
               </button>
