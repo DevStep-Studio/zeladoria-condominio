@@ -219,10 +219,6 @@ export function SindicoDashboard({
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div className="space-y-1.5 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[11px] font-bold uppercase tracking-wider mb-0.5">
-              <span>Gestão Condominial</span>
-            </div>
-
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
               Olá, {userName}
             </h1>
