@@ -262,7 +262,7 @@ export function Shell({
   };
 
   const SidebarContent = (
-    <div className="flex h-full flex-col bg-white text-slate-800 select-none overflow-hidden relative">
+    <div className="flex h-full flex-col bg-white text-slate-800 select-none relative">
       {/* Brand Header */}
       <div
         className={`flex items-center h-14 border-b border-slate-200/80 ${
@@ -447,7 +447,13 @@ export function Shell({
 
           {/* Profile Popup Menu */}
           {profileMenuOpen && (
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-[12px] border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl animate-in fade-in-50 duration-100">
+            <div
+              className={`absolute z-50 rounded-[14px] border border-slate-200 bg-white p-1.5 text-slate-800 shadow-2xl animate-in fade-in-50 duration-100 max-h-[calc(100vh-120px)] overflow-y-auto [scrollbar-width:thin] ${
+                collapsed
+                  ? "bottom-0 left-[calc(100%+10px)] w-60"
+                  : "bottom-[calc(100%+8px)] left-0 right-0 w-full"
+              }`}
+            >
               <div className="px-3 py-2 border-b border-slate-100">
                 <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
                 <p className="text-[10px] text-slate-500">
@@ -479,17 +485,17 @@ export function Shell({
                             type="button"
                             disabled={isSwitchingCondo}
                             onClick={() => handleCondoSwitch(c.id)}
-                            className={`w-full text-left rounded-[6px] px-2 py-1.5 text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                            className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
                               isActive
                                 ? "bg-blue-50 font-bold text-[#0055D4]"
                                 : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
-                            <span className="truncate">{c.name}</span>
+                            <span className="truncate flex-1 text-[11px] leading-snug">{c.name}</span>
                             {isSwitchingThis ? (
-                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
+                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4] shrink-0" />
                             ) : isActive ? (
-                              <Icon name="check" size={12} className="text-[#0055D4]" />
+                              <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />
                             ) : null}
                           </button>
                         );
