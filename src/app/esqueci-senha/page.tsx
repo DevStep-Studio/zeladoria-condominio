@@ -133,10 +133,10 @@ export default function EsqueciSenhaPage() {
             </div>
           ) : (
             <>
-              <div className="text-center space-y-2">
-                <span className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-50 text-[#0055D4] border border-blue-100">
-                  <Icon name="lock" size={22} />
-                </span>
+              <div className="text-center space-y-2.5">
+                <div className="flex justify-center pb-1">
+                  <BrandLogo size="md" variant="default" />
+                </div>
                 <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
                   Recuperação de Senha
                 </h1>
