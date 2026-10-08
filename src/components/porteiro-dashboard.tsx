@@ -305,7 +305,7 @@ export function PorteiroDashboard({
         <button
           id="btn-registrar-encomenda"
           onClick={() => setModal("encomenda")}
-          className="flex flex-col items-start justify-between p-4 bg-slate-900 hover:bg-black text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group"
+          className="flex flex-col items-start justify-between p-4 bg-[#0055D4] hover:bg-[#0044AA] text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group cursor-pointer"
         >
           <div className="flex items-center justify-between w-full">
             <span className="p-2 bg-white/10 rounded-xl text-white">
@@ -315,7 +315,7 @@ export function PorteiroDashboard({
           </div>
           <div>
             <p className="text-sm sm:text-base font-black tracking-tight leading-tight">Registrar Encomenda</p>
-            <p className="text-[11px] text-slate-300 font-medium mt-0.5">Notifica morador na hora</p>
+            <p className="text-[11px] text-blue-100 font-medium mt-0.5">Notifica morador na hora</p>
           </div>
         </button>
 
@@ -490,7 +490,7 @@ export function PorteiroDashboard({
                       <button
                         onClick={() => handleGateMove(v.id, "checkout")}
                         disabled={isPending}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5"
+                        className="px-3 py-1.5 bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
                       >
                         <Icon name="logout" size={14} />
                         Registrar Saída
@@ -760,7 +760,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-slate-900 hover:bg-black text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Cadastrando..." : "Registrar & Notificar Morador"}
                 </button>
               </div>
@@ -968,7 +968,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-slate-900 hover:bg-black text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Gravando..." : "Confirmar Encerramento"}
                 </button>
               </div>

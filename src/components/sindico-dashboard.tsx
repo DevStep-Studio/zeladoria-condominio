@@ -517,7 +517,7 @@ export function SindicoDashboard({
                     <span className="text-[11px] font-bold text-amber-900">{alert.recommendedAction}</span>
                     <Link
                       href="/painel/manutencao"
-                      className="px-2.5 py-1 bg-slate-900 hover:bg-black text-white text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                      className="px-2.5 py-1 bg-[#0055D4] hover:bg-[#0047BA] text-white text-[11px] font-bold rounded-lg transition-colors shrink-0"
                     >
                       Agendar
                     </Link>
@@ -631,7 +631,7 @@ export function SindicoDashboard({
                 </div>
                 <button
                   onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
+                  className="px-3 py-1.5 bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
                 >
                   Gerar OS
                 </button>
