@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { CondoMap, type CondoMapOccurrence, type CondoCoordinates } from "@/components/condo-map";
 import { ackOccurrenceAction } from "@/lib/actions/portaria";
 import { createWorkOrderFromOccurrenceAction } from "@/lib/actions/admin";
@@ -123,9 +123,66 @@ export function SindicoDashboard({
     });
   };
 
-  // Filtrar apenas pendências ativas com contagem > 0
+  // Ícones mapeados por tipo de item de atenção
+  const getAttentionIcon = (id: string): IconName => {
+    if (id.includes("occurrence")) return "clipboard";
+    if (id.includes("reservation")) return "calendar";
+    if (id.includes("maintenance")) return "shield";
+    if (id.includes("order") || id.includes("unassigned")) return "wrench";
+    if (id.includes("suggestion")) return "megaphone";
+    return "alert-triangle";
+  };
+
+  // Fallbacks de ações caso haja menos de 4 itens de atenção pendentes
+  const fallbackActions = [
+    {
+      id: "action-comunicado",
+      count: undefined,
+      label: "Criar comunicado",
+      detail: "Enviar aviso geral ou convocação",
+      href: "/painel/comunicados",
+      icon: "mail" as IconName,
+    },
+    {
+      id: "action-ordens",
+      count: undefined,
+      label: "Ordem de serviço",
+      detail: "Reparo, equipe ou OS interna",
+      href: "/painel/ordens",
+      icon: "wrench" as IconName,
+    },
+    {
+      id: "action-manutencao",
+      count: undefined,
+      label: "Cadastrar manutenção",
+      detail: "Plano preventivo de ativos",
+      href: "/painel/manutencao",
+      icon: "shield" as IconName,
+    },
+    {
+      id: "action-servicos",
+      count: undefined,
+      label: "Contratar prestador",
+      detail: "Marketplace e parceiros",
+      href: "/painel/servicos",
+      icon: "briefcase" as IconName,
+    },
+  ];
+
+  // Montar exatamente 4 cards para a linha: atenção prioritária primeiro, completado com ações
   const activeAttention = attentionItems.filter((i) => i.count > 0);
-  const totalPending = activeAttention.reduce((acc, curr) => acc + curr.count, 0);
+  const displayCards = [
+    ...activeAttention.slice(0, 4).map((item) => ({
+      id: item.id,
+      count: item.count,
+      label: item.label,
+      detail: item.detail,
+      href: item.href,
+      icon: getAttentionIcon(item.id),
+      urgent: item.urgent,
+    })),
+    ...fallbackActions,
+  ].slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -148,7 +205,7 @@ export function SindicoDashboard({
         </div>
       )}
 
-      {/* 1. HERO DO SÍNDICO (Idêntico ao padrão do Morador: Azul Sólido #0055D4, sem gradiente) */}
+      {/* 1. HERO DO SÍNDICO (Azul Sólido #0055D4, sem gradiente) */}
       <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#0055D4] p-5 sm:p-7 text-white shadow-sm select-none">
         {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
         <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
@@ -198,100 +255,85 @@ export function SindicoDashboard({
         </div>
       </section>
 
-      {/* 2. AÇÕES RÁPIDAS DE GESTÃO (Idêntico ao padrão do Morador: 1ª Amarela Assinatura #FFD000, 3 Azuis #0070F3) */}
-      <section className="space-y-2">
+      {/* 2. PRECISA DA SUA ATENÇÃO (Linha de 4 itens: 1º Amarelo #FFD000, 3 Azuis #0070F3) */}
+      <section className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-amber-50 text-amber-700">
+              <Icon name="alert-triangle" size={13} />
+            </span>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Precisa da sua Atenção
+            </h2>
+          </div>
+          <span className="text-xs text-slate-400 font-medium">
+            Priorize aprovações e decisões críticas
+          </span>
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* 1. Criar comunicado (Nível 1 - Amarelo Assinatura #FFD000) */}
-          <Link
-            href="/painel/comunicados"
-            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#FFD000] p-4 sm:p-5 text-[#12162A] shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <div className="flex items-center justify-start">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[#12162A]/10 text-[#12162A] transition-transform group-hover:scale-110">
-                <Icon name="mail" size={17} strokeWidth={2.4} />
-              </span>
-            </div>
-            <div className="pr-10 pt-2">
-              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-[#12162A]">
-                Criar comunicado
-              </h3>
-              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-[#12162A]/75 line-clamp-1">
-                Enviar aviso geral ou circular
-              </p>
-            </div>
-            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#12162A] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
-            </div>
-          </Link>
+          {displayCards.map((card, index) => {
+            const isFirst = index === 0;
+            return (
+              <Link
+                key={card.id}
+                href={card.href}
+                className={`group relative flex min-h-[128px] sm:min-h-[140px] flex-col justify-between overflow-hidden rounded-[16px] p-4 sm:p-5 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
+                  isFirst
+                    ? "bg-[#FFD000] text-[#12162A]"
+                    : "bg-[#0070F3] text-white hover:bg-[#0062D6]"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  {card.count !== undefined ? (
+                    <span
+                      className={`text-2xl sm:text-3xl font-black tabular-nums tracking-tight ${
+                        isFirst ? "text-[#12162A]" : "text-white"
+                      }`}
+                    >
+                      {card.count}
+                    </span>
+                  ) : (
+                    <div />
+                  )}
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-[8px] ${
+                      isFirst ? "bg-[#12162A]/10 text-[#12162A]" : "bg-white/15 text-white"
+                    }`}
+                  >
+                    <Icon name={card.icon} size={15} strokeWidth={2.4} />
+                  </span>
+                </div>
 
-          {/* 2. Ordem de serviço (Azul #0070F3) */}
-          <Link
-            href="/painel/ordens"
-            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
-          >
-            <div className="flex items-center justify-start">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                <Icon name="wrench" size={17} strokeWidth={2.2} />
-              </span>
-            </div>
-            <div className="pr-10 pt-2">
-              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
-                Ordem de serviço
-              </h3>
-              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                Reparo, equipe ou OS interna
-              </p>
-            </div>
-            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
-            </div>
-          </Link>
+                <div className="pr-8 pt-2">
+                  <h3
+                    className={`text-xs sm:text-sm font-black tracking-tight leading-tight ${
+                      isFirst ? "text-[#12162A]" : "text-white"
+                    }`}
+                  >
+                    {card.label}
+                  </h3>
+                  {card.detail && (
+                    <p
+                      className={`mt-0.5 text-[11px] sm:text-xs font-medium line-clamp-1 ${
+                        isFirst ? "text-[#12162A]/75" : "text-white/80"
+                      }`}
+                    >
+                      {card.detail}
+                    </p>
+                  )}
+                </div>
 
-          {/* 3. Cadastrar manutenção (Azul #0070F3) */}
-          <Link
-            href="/painel/manutencao"
-            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
-          >
-            <div className="flex items-center justify-start">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                <Icon name="shield" size={17} strokeWidth={2.2} />
-              </span>
-            </div>
-            <div className="pr-10 pt-2">
-              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
-                Cadastrar manutenção
-              </h3>
-              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                Plano preventivo de ativos
-              </p>
-            </div>
-            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
-            </div>
-          </Link>
-
-          {/* 4. Contratar prestador (Azul #0070F3) */}
-          <Link
-            href="/painel/servicos"
-            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
-          >
-            <div className="flex items-center justify-start">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                <Icon name="briefcase" size={17} strokeWidth={2.2} />
-              </span>
-            </div>
-            <div className="pr-10 pt-2">
-              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
-                Contratar prestador
-              </h3>
-              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                Marketplace e parceiros
-              </p>
-            </div>
-            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
-            </div>
-          </Link>
+                <div
+                  className={`absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm ${
+                    isFirst ? "text-[#12162A]" : "text-[#0070F3]"
+                  }`}
+                >
+                  <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -431,73 +473,9 @@ export function SindicoDashboard({
         </div>
       </section>
 
-      {/* 4. SEÇÃO EM DUAS COLUNAS: PENDÊNCIAS CRÍTICAS + PREVENÇÃO INTELIGENTE */}
+      {/* 4. PREVENÇÃO INTELIGENTE & ATIVOS CRÍTICOS + LIVRO DIGITAL DA PORTARIA (2 Colunas) */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        {/* Coluna 1: O que precisa da sua atenção (Cards Limpos) */}
-        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-amber-50 text-amber-700">
-                <Icon name="alert-triangle" size={13} />
-              </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                O que precisa da sua atenção
-              </h3>
-            </div>
-            {activeAttention.length > 0 && (
-              <span className="rounded-[6px] bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
-              </span>
-            )}
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {activeAttention.length === 0 ? (
-              <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-emerald-50 text-emerald-600 mb-1">
-                  <Icon name="check-circle" size={20} />
-                </span>
-                <p className="text-xs font-bold text-slate-800">Tudo em dia!</p>
-                <p className="text-[11px] text-slate-400 max-w-xs">
-                  Nenhuma ocorrência crítica, aprovação de reserva pendente ou ordem atrasada no momento.
-                </p>
-              </div>
-            ) : (
-              activeAttention.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 px-2 -mx-2 rounded-lg transition-colors group"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-[6px] ${
-                          item.urgent
-                            ? "bg-red-50 text-red-700 border border-red-200/60"
-                            : "bg-slate-100 text-slate-800"
-                        }`}
-                      >
-                        {item.count}
-                      </span>
-                      <p className="text-xs font-bold text-slate-900 truncate">{item.label}</p>
-                    </div>
-                    {item.detail && (
-                      <p className="text-[11px] text-slate-500 truncate pl-8">{item.detail}</p>
-                    )}
-                  </div>
-                  <Icon
-                    name="chevron-right"
-                    size={14}
-                    className="text-slate-400 group-hover:text-slate-700 shrink-0 transition-transform group-hover:translate-x-0.5"
-                  />
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Coluna 2: Prevenção Inteligente & Ativos Críticos */}
+        {/* Coluna 1: Prevenção Inteligente & Ativos Críticos */}
         <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -553,11 +531,8 @@ export function SindicoDashboard({
             </div>
           )}
         </div>
-      </section>
 
-      {/* 5. LIVRO DIGITAL DA PORTARIA & OCORRÊNCIAS EM ANDAMENTO */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        {/* Livro Digital da Portaria */}
+        {/* Coluna 2: Livro Digital da Portaria */}
         <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -620,7 +595,10 @@ export function SindicoDashboard({
             </div>
           )}
         </div>
+      </section>
 
+      {/* 5. OCORRÊNCIAS EM ANDAMENTO & MAPA OPERACIONAL (2 Colunas) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Ocorrências Recentes */}
         <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -665,24 +643,24 @@ export function SindicoDashboard({
             </div>
           )}
         </div>
-      </section>
 
-      {/* 6. MAPA OPERACIONAL (Visual Limpo e Enquadrado) */}
-      <section className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-slate-100 text-slate-700">
-              <Icon name="grid" size={13} />
-            </span>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-              Mapa Operacional de Ocorrências
-            </h3>
+        {/* Mapa Operacional */}
+        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-slate-100 text-slate-700">
+                <Icon name="grid" size={13} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Mapa Operacional
+              </h3>
+            </div>
+            <span className="text-xs text-slate-400 font-medium">Localização ao vivo</span>
           </div>
-          <span className="text-xs text-slate-400 font-medium">Visualização geolocalizada no condomínio</span>
-        </div>
 
-        <div className="rounded-xl overflow-hidden border border-slate-200">
-          <CondoMap occurrences={mapOccurrences} condo={condoCoordinates} />
+          <div className="rounded-xl overflow-hidden border border-slate-200">
+            <CondoMap occurrences={mapOccurrences} condo={condoCoordinates} />
+          </div>
         </div>
       </section>
 
