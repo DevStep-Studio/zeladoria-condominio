@@ -82,20 +82,20 @@ export function SindicoDashboard({
   condoName,
   attentionItems,
   todaySummary,
-  smartAlerts,
-  logbookEntries,
-  recentActivities,
-  mapOccurrences,
+  smartAlerts = [],
+  logbookEntries = [],
+  recentActivities = [],
+  mapOccurrences = [],
   condoCoordinates,
 }: {
   userName: string;
   condoName: string;
   attentionItems: AttentionItem[];
   todaySummary: SindicoTodaySummary;
-  smartAlerts: SmartPreventionAlert[];
-  logbookEntries: LogbookEntry[];
-  recentActivities: DashboardOccurrence[];
-  mapOccurrences: CondoMapOccurrence[];
+  smartAlerts?: SmartPreventionAlert[];
+  logbookEntries?: LogbookEntry[];
+  recentActivities?: DashboardOccurrence[];
+  mapOccurrences?: CondoMapOccurrence[];
   condoCoordinates?: CondoCoordinates;
 }) {
   const [selectedOccurrenceForOS, setSelectedOccurrenceForOS] = useState<number | null>(null);
@@ -123,6 +123,10 @@ export function SindicoDashboard({
     });
   };
 
+  // Filtrar apenas pendências ativas com contagem > 0
+  const activeAttention = attentionItems.filter((i) => i.count > 0);
+  const totalPending = activeAttention.reduce((acc, curr) => acc + curr.count, 0);
+
   return (
     <div className="space-y-6">
       {/* Toast Feedback */}
@@ -138,241 +142,429 @@ export function SindicoDashboard({
             <Icon name={feedback.type === "success" ? "check" : "alert-triangle"} size={18} />
             <span>{feedback.msg}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-slate-700">
+          <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
             <Icon name="x" size={16} />
           </button>
         </div>
       )}
 
-      {/* 1. Header Greeting */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="px-2.5 py-1 bg-[#0055D4] text-white text-xs font-black rounded-lg uppercase tracking-wider">
-              Gestão Condominial
-            </span>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {condoName}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            Olá, {userName}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Veja o que precisa da sua atenção e decisão hoje.
-          </p>
+      {/* 1. HERO DO SÍNDICO (Idêntico ao padrão do Morador: Azul Sólido #0055D4, sem gradiente) */}
+      <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#0055D4] p-5 sm:p-7 text-white shadow-sm select-none">
+        {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
+        <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-white.png"
+            alt=""
+            className="h-44 w-44 sm:h-64 sm:w-64 object-contain pointer-events-none select-none"
+          />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/painel/relatorios"
-            className="px-3.5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-2"
-          >
-            <Icon name="chart" size={16} />
-            Relatórios & Auditoria
-          </Link>
-          <Link
-            href="/painel/configuracoes"
-            className="px-3.5 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-xs"
-          >
-            <Icon name="settings" size={16} />
-            Configurações
-          </Link>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="space-y-1.5 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[11px] font-bold uppercase tracking-wider mb-0.5">
+              <span>Gestão Condominial</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+              Olá, {userName}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-blue-100 font-medium">
+              {condoName} · Central de Decisão e Governança
+            </p>
+            <p className="text-[11px] sm:text-xs text-blue-200/90 font-normal">
+              Veja o que precisa da sua atenção, aprove solicitações e gerencie o condomínio.
+            </p>
+          </div>
+
+          {/* Ações Rápidas no Hero: Relatórios e Configurações */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0 pt-2 sm:pt-0">
+            <Link
+              href="/painel/relatorios"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white/15 hover:bg-white/25 active:bg-white/30 text-white border border-white/20 px-3.5 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <Icon name="chart" size={15} strokeWidth={2.4} />
+              <span>Relatórios</span>
+            </Link>
+            <Link
+              href="/painel/configuracoes"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white hover:bg-blue-50 active:bg-blue-100 text-[#0055D4] px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <Icon name="settings" size={15} strokeWidth={2.4} />
+              <span>Configurações</span>
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* 2. Hero Section: PRECISA DA SUA ATENÇÃO */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Icon name="alert-triangle" size={18} className="text-amber-500" />
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Precisa da sua Atenção
-            </h2>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">Priorize aprovações e decisões críticas</span>
-        </div>
-
-        {attentionItems.length === 0 ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center text-emerald-800">
-            <Icon name="check" size={28} className="mx-auto text-emerald-600 mb-2" />
-            <p className="text-base font-black">Tudo em dia!</p>
-            <p className="text-xs text-emerald-700 mt-0.5">Nenhuma ocorrência crítica, reserva pendente ou manutenção atrasada no momento.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {attentionItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`p-4 rounded-2xl border transition-all flex flex-col justify-between group ${
-                  item.urgent
-                    ? "bg-red-50/60 border-red-200 hover:border-red-300"
-                    : "bg-white border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className={`text-2xl font-black ${item.urgent ? "text-red-600" : "text-slate-900"}`}>
-                    {item.count}
-                  </span>
-                  <span className="text-slate-400 group-hover:text-slate-700 transition-colors">
-                    <Icon name="chevron-right" size={18} />
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm font-bold text-slate-900 leading-snug">{item.label}</p>
-                  {item.detail && <p className="text-xs text-slate-500 mt-0.5">{item.detail}</p>}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Ações Rápidas do Síndico */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-        <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <Icon name="sparkles" size={16} className="text-[#0055D4]" />
-          Ações Rápidas de Gestão
-        </h2>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* 2. AÇÕES RÁPIDAS DE GESTÃO (Idêntico ao padrão do Morador: 1ª Amarela Assinatura #FFD000, 3 Azuis #0070F3) */}
+      <section className="space-y-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* 1. Criar comunicado (Nível 1 - Amarelo Assinatura #FFD000) */}
           <Link
             href="/painel/comunicados"
-            className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all flex flex-col items-start gap-2"
+            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#FFD000] p-4 sm:p-5 text-[#12162A] shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
           >
-            <span className="p-2 bg-blue-100 text-[#0055D4] rounded-lg">
-              <Icon name="mail" size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Criar Comunicado</p>
-              <p className="text-[11px] text-slate-500">Enviar aviso geral</p>
+            <div className="flex items-center justify-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[#12162A]/10 text-[#12162A] transition-transform group-hover:scale-110">
+                <Icon name="mail" size={17} strokeWidth={2.4} />
+              </span>
+            </div>
+            <div className="pr-10 pt-2">
+              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-[#12162A]">
+                Criar comunicado
+              </h3>
+              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-[#12162A]/75 line-clamp-1">
+                Enviar aviso geral ou circular
+              </p>
+            </div>
+            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#12162A] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
             </div>
           </Link>
 
+          {/* 2. Ordem de serviço (Azul #0070F3) */}
           <Link
             href="/painel/ordens"
-            className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all flex flex-col items-start gap-2"
+            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
           >
-            <span className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <Icon name="wrench" size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Ordem de Serviço</p>
-              <p className="text-[11px] text-slate-500">Reparo ou equipe</p>
+            <div className="flex items-center justify-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
+                <Icon name="wrench" size={17} strokeWidth={2.2} />
+              </span>
+            </div>
+            <div className="pr-10 pt-2">
+              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
+                Ordem de serviço
+              </h3>
+              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
+                Reparo, equipe ou OS interna
+              </p>
+            </div>
+            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
             </div>
           </Link>
 
+          {/* 3. Cadastrar manutenção (Azul #0070F3) */}
           <Link
             href="/painel/manutencao"
-            className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all flex flex-col items-start gap-2"
+            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
           >
-            <span className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
-              <Icon name="shield" size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Cadastrar Manutenção</p>
-              <p className="text-[11px] text-slate-500">Plano preventivo</p>
+            <div className="flex items-center justify-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
+                <Icon name="shield" size={17} strokeWidth={2.2} />
+              </span>
+            </div>
+            <div className="pr-10 pt-2">
+              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
+                Cadastrar manutenção
+              </h3>
+              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
+                Plano preventivo de ativos
+              </p>
+            </div>
+            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
             </div>
           </Link>
 
+          {/* 4. Contratar prestador (Azul #0070F3) */}
           <Link
             href="/painel/servicos"
-            className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all flex flex-col items-start gap-2"
+            className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
           >
-            <span className="p-2 bg-purple-100 text-purple-700 rounded-lg">
-              <Icon name="briefcase" size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Contratar Prestador</p>
-              <p className="text-[11px] text-slate-500">Marketplace parceiro</p>
+            <div className="flex items-center justify-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
+                <Icon name="briefcase" size={17} strokeWidth={2.2} />
+              </span>
+            </div>
+            <div className="pr-10 pt-2">
+              <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
+                Contratar prestador
+              </h3>
+              <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
+                Marketplace e parceiros
+              </p>
+            </div>
+            <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
+              <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
             </div>
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* 4. Resumo Compacto: HOJE NO CONDOMÍNIO */}
-      <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Icon name="calendar" size={18} className="text-amber-400" />
-            <h2 className="text-sm font-black uppercase tracking-wider">Hoje no Condomínio</h2>
-          </div>
-          <span className="text-xs text-slate-400">Resumo da rotina em andamento</span>
+      {/* 3. RESUMO DA GESTÃO (4 Cards Brancos Minimalistas e Elegantes) */}
+      <section className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Resumo da Gestão
+          </h2>
+          <span className="text-xs text-slate-400 font-medium">Indicadores operacionais de hoje</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-2xl font-black text-amber-400">{todaySummary.expectedVisitors}</p>
-            <p className="text-xs font-medium text-slate-300 mt-0.5">Visitantes previstos</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-2xl font-black text-blue-400">{todaySummary.authorizedProviders}</p>
-            <p className="text-xs font-medium text-slate-300 mt-0.5">Prestadores autorizados</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-2xl font-black text-emerald-400">{todaySummary.todayReservations}</p>
-            <p className="text-xs font-medium text-slate-300 mt-0.5">Reservas hoje</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-2xl font-black text-purple-400">{todaySummary.scheduledMaintenances}</p>
-            <p className="text-xs font-medium text-slate-300 mt-0.5">Manutenções agendadas</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-2xl font-black text-red-400">{todaySummary.inProgressOccurrences}</p>
-            <p className="text-xs font-medium text-slate-300 mt-0.5">Ocorrências abertas</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. Prevenção Inteligente & Alertas de Ativos */}
-      {smartAlerts.length > 0 && (
-        <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Icon name="shield" size={18} className="text-amber-600" />
-              <h2 className="text-sm font-black text-amber-950 uppercase tracking-wider">
-                Prevenção Inteligente & Ativos Críticos
-              </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card 1: Ocorrências Abertas */}
+          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
+            <div className="flex items-center justify-between pb-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Ocorrências
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4]">
+                <Icon name="clipboard" size={16} />
+              </span>
             </div>
-            <span className="text-xs text-amber-800 font-medium">Diagnóstico proativo baseado em histórico</span>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                  {todaySummary.inProgressOccurrences}
+                </span>
+                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
+                  abertas
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 leading-snug">
+                Chamados e relatos de moradores no condomínio.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <Link href="/painel/ocorrencias" className="text-[#0055D4] hover:underline flex items-center gap-1">
+                <span>Gerenciar todas</span>
+                <Icon name="arrow-up-right" size={13} />
+              </Link>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {smartAlerts.map((alert) => (
-              <div key={alert.id} className="p-4 bg-white rounded-xl border border-amber-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-black text-slate-900 text-sm">{alert.equipmentName}</p>
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
+          {/* Card 2: Ordens & Manutenções */}
+          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
+            <div className="flex items-center justify-between pb-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Manutenções
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-amber-50 text-amber-700">
+                <Icon name="wrench" size={16} />
+              </span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                  {todaySummary.scheduledMaintenances}
+                </span>
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-[6px]">
+                  agendadas
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 leading-snug">
+                Equipamentos em manutenção e ordens ativas.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <Link href="/painel/manutencao" className="text-[#0055D4] hover:underline flex items-center gap-1">
+                <span>Plano preventivo</span>
+                <Icon name="arrow-up-right" size={13} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Reservas de Hoje */}
+          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
+            <div className="flex items-center justify-between pb-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Reservas Hoje
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-indigo-50 text-indigo-600">
+                <Icon name="calendar" size={16} />
+              </span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                  {todaySummary.todayReservations}
+                </span>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px]">
+                  confirmadas
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 leading-snug">
+                Áreas comuns e salões de festas em uso hoje.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <Link href="/painel/reservas" className="text-[#0055D4] hover:underline flex items-center gap-1">
+                <span>Ver calendário</span>
+                <Icon name="arrow-up-right" size={13} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4: Portaria & Movimento */}
+          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
+            <div className="flex items-center justify-between pb-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Portaria & Acessos
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-emerald-50 text-emerald-700">
+                <Icon name="users" size={16} />
+              </span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                  {todaySummary.expectedVisitors + todaySummary.authorizedProviders}
+                </span>
+                <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-[6px]">
+                  previstos
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 leading-snug">
+                {todaySummary.expectedVisitors} visitantes e {todaySummary.authorizedProviders} prestadores hoje.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <Link href="/painel/visitantes" className="text-[#0055D4] hover:underline flex items-center gap-1">
+                <span>Portaria ao vivo</span>
+                <Icon name="arrow-up-right" size={13} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. SEÇÃO EM DUAS COLUNAS: PENDÊNCIAS CRÍTICAS + PREVENÇÃO INTELIGENTE */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        {/* Coluna 1: O que precisa da sua atenção (Cards Limpos) */}
+        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-amber-50 text-amber-700">
+                <Icon name="alert-triangle" size={13} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                O que precisa da sua atenção
+              </h3>
+            </div>
+            {activeAttention.length > 0 && (
+              <span className="rounded-[6px] bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
+              </span>
+            )}
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {activeAttention.length === 0 ? (
+              <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-emerald-50 text-emerald-600 mb-1">
+                  <Icon name="check-circle" size={20} />
+                </span>
+                <p className="text-xs font-bold text-slate-800">Tudo em dia!</p>
+                <p className="text-[11px] text-slate-400 max-w-xs">
+                  Nenhuma ocorrência crítica, aprovação de reserva pendente ou ordem atrasada no momento.
+                </p>
+              </div>
+            ) : (
+              activeAttention.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 px-2 -mx-2 rounded-lg transition-colors group"
+                >
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-[6px] ${
+                          item.urgent
+                            ? "bg-red-50 text-red-700 border border-red-200/60"
+                            : "bg-slate-100 text-slate-800"
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                      <p className="text-xs font-bold text-slate-900 truncate">{item.label}</p>
+                    </div>
+                    {item.detail && (
+                      <p className="text-[11px] text-slate-500 truncate pl-8">{item.detail}</p>
+                    )}
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-400 group-hover:text-slate-700 shrink-0 transition-transform group-hover:translate-x-0.5"
+                  />
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Coluna 2: Prevenção Inteligente & Ativos Críticos */}
+        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                <Icon name="shield" size={13} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Prevenção Inteligente & Ativos
+              </h3>
+            </div>
+            <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
+              Diagnóstico Proativo
+            </span>
+          </div>
+
+          {smartAlerts.length === 0 ? (
+            <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-50 text-[#0055D4] mb-1">
+                <Icon name="shield" size={20} />
+              </span>
+              <p className="text-xs font-bold text-slate-800">Ativos com Saúde Normal</p>
+              <p className="text-[11px] text-slate-400 max-w-xs">
+                Elevadores, bombas e portões sem registros de falha recorrente nos últimos 30 dias.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {smartAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/40 flex flex-col justify-between space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{alert.equipmentName}</p>
+                      <p className="text-[11px] text-slate-600 mt-0.5">{alert.patternDescription}</p>
+                    </div>
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded shrink-0">
                       {alert.location}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{alert.patternDescription}</p>
+                  <div className="pt-2 border-t border-amber-200/50 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-amber-900">{alert.recommendedAction}</span>
+                    <Link
+                      href="/painel/manutencao"
+                      className="px-2.5 py-1 bg-slate-900 hover:bg-black text-white text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                    >
+                      Agendar
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-amber-900">{alert.recommendedAction}</span>
-                  <Link
-                    href="/painel/manutencao"
-                    className="px-3 py-1 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0"
-                  >
-                    Agendar
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </section>
 
-      {/* 6. Livro Digital da Portaria & Ocorrências em Andamento */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Livro Digital */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
+      {/* 5. LIVRO DIGITAL DA PORTARIA & OCORRÊNCIAS EM ANDAMENTO */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        {/* Livro Digital da Portaria */}
+        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <Icon name="book" size={18} className="text-[#0055D4]" />
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-indigo-50 text-indigo-600">
+                <Icon name="book" size={13} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Livro Digital da Portaria
               </h3>
             </div>
@@ -382,18 +574,22 @@ export function SindicoDashboard({
           </div>
 
           {logbookEntries.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">Nenhum registro no livro digital recentemente.</p>
+            <div className="py-6 text-center text-xs text-slate-400">
+              Nenhum registro no livro digital recentemente.
+            </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {logbookEntries.map((log) => (
+              {logbookEntries.slice(0, 4).map((log) => (
                 <div key={log.id} className="py-3 flex items-start justify-between gap-3">
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-black text-slate-700">{log.code}</span>
-                      <span className="text-xs font-bold text-slate-900">{log.title}</span>
-                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] rounded">{log.category}</span>
+                      <span className="text-xs font-bold text-slate-900 truncate">{log.title}</span>
+                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-semibold rounded">
+                        {log.category}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 line-clamp-2">{log.description}</p>
+                    <p className="text-xs text-slate-500 line-clamp-1">{log.description}</p>
                     <p className="text-[11px] text-slate-400">
                       {log.reporterName} {log.unit ? `· ${log.unit}` : ""} · {log.timeAgo}
                     </p>
@@ -403,7 +599,7 @@ export function SindicoDashboard({
                       <button
                         onClick={() => handleAck(log.id)}
                         disabled={isPending}
-                        className="px-2.5 py-1 bg-[#0055D4] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044AA]"
+                        className="px-2.5 py-1 bg-[#0055D4] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044AA] cursor-pointer"
                       >
                         Dar Ciência
                       </button>
@@ -414,7 +610,7 @@ export function SindicoDashboard({
                     )}
                     <button
                       onClick={() => setSelectedOccurrenceForOS(log.id)}
-                      className="text-[11px] font-bold text-slate-600 hover:text-slate-900"
+                      className="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
                     >
                       + Criar OS
                     </button>
@@ -426,11 +622,13 @@ export function SindicoDashboard({
         </div>
 
         {/* Ocorrências Recentes */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <Icon name="clipboard" size={18} className="text-[#0055D4]" />
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                <Icon name="clipboard" size={13} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Ocorrências em Andamento
               </h3>
             </div>
@@ -440,23 +638,25 @@ export function SindicoDashboard({
           </div>
 
           {recentActivities.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">Nenhuma ocorrência em andamento.</p>
+            <div className="py-6 text-center text-xs text-slate-400">
+              Nenhuma ocorrência em andamento no momento.
+            </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {recentActivities.map((occ) => (
+              {recentActivities.slice(0, 4).map((occ) => (
                 <div key={occ.id} className="py-3 flex items-center justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs font-black text-slate-700">{occ.code}</span>
-                      <span className="text-xs font-bold text-slate-900">{occ.title}</span>
+                      <span className="text-xs font-bold text-slate-900 truncate">{occ.title}</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">
                       {occ.location} · Status: <strong>{occ.status}</strong> · {occ.timeAgo}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0"
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
                   >
                     Gerar OS
                   </button>
@@ -465,39 +665,41 @@ export function SindicoDashboard({
             </div>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* 7. Mapa Operacional */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-3">
+      {/* 6. MAPA OPERACIONAL (Visual Limpo e Enquadrado) */}
+      <section className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Icon name="grid" size={18} className="text-[#0055D4]" />
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Mapa Operacional de Ocorrências e Equipamentos
+            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-slate-100 text-slate-700">
+              <Icon name="grid" size={13} />
+            </span>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Mapa Operacional de Ocorrências
             </h3>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Visualização geolocalizada no condomínio</span>
+          <span className="text-xs text-slate-400 font-medium">Visualização geolocalizada no condomínio</span>
         </div>
 
         <div className="rounded-xl overflow-hidden border border-slate-200">
-          <CondoMap
-            occurrences={mapOccurrences}
-            condo={condoCoordinates}
-          />
+          <CondoMap occurrences={mapOccurrences} condo={condoCoordinates} />
         </div>
-      </div>
+      </section>
 
       {/* MODAL: CRIAR OS A PARTIR DE OCORRÊNCIA */}
       {selectedOccurrenceForOS && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-[16px] max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Icon name="wrench" size={20} className="text-[#0055D4]" />
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Icon name="wrench" size={18} className="text-[#0055D4]" />
                 Criar Ordem de Serviço
               </h3>
-              <button onClick={() => setSelectedOccurrenceForOS(null)} className="text-slate-400 hover:text-slate-700">
-                <Icon name="x" size={20} />
+              <button
+                onClick={() => setSelectedOccurrenceForOS(null)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <Icon name="x" size={18} />
               </button>
             </div>
 
@@ -506,7 +708,12 @@ export function SindicoDashboard({
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Título da Ordem de Serviço</label>
-                <input name="title" required placeholder="Ex: Reparo hidráulico urgente" className="w-full input text-sm" />
+                <input
+                  name="title"
+                  required
+                  placeholder="Ex: Reparo hidráulico urgente"
+                  className="w-full input text-sm"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -522,15 +729,27 @@ export function SindicoDashboard({
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Técnico / Responsável Designado</label>
-                <input name="technician" placeholder="Ex: Equipe de Manutenção Interna ou Empresa" className="w-full input text-sm" />
+                <input
+                  name="technician"
+                  placeholder="Ex: Equipe de Manutenção Interna ou Empresa"
+                  className="w-full input text-sm"
+                />
               </div>
 
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setSelectedOccurrenceForOS(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOccurrenceForOS(null)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+                >
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#0055D4] text-white rounded-xl font-bold">
-                  {isPending ? "Criando OS..." : "Criar Ordem & Atualizar Ocorrência"}
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-5 py-2 bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl font-bold cursor-pointer"
+                >
+                  {isPending ? "Criando OS..." : "Criar Ordem & Vincular"}
                 </button>
               </div>
             </form>
