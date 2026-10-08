@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTransition } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { toggleProviderOnlineAction } from "@/lib/actions/prestador";
 import { logoutAction } from "@/lib/actions/session";
@@ -56,13 +57,8 @@ export function ProviderShell({
           <div className="flex items-center justify-between h-16 gap-3">
             {/* Left: Brand & Provider identity */}
             <div className="flex items-center gap-4">
-              <Link href="/prestador" className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs">
-                  <Icon name="briefcase" size={16} />
-                </span>
-                <span className="font-black text-sm sm:text-base tracking-tight text-[#0F172A] hidden sm:inline">
-                  Zeladoria <span className="text-[#0055D4]">Prestadores</span>
-                </span>
+              <Link href="/prestador" className="transition-opacity hover:opacity-90">
+                <BrandLogo size="sm" variant="default" />
               </Link>
 
               {/* Online / Offline status badge & toggle */}

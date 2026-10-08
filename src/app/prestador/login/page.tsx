@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ensureSeed } from "@/db/seed";
+import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { ProviderLoginForm, type ProviderDemo } from "./login-form";
 
@@ -38,13 +39,10 @@ export default async function PrestadorLoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Header */}
-        <div className="flex justify-center items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs">
-            <Icon name="briefcase" size={20} />
-          </span>
-          <span className="text-xl font-black tracking-tight text-[#0F172A]">
-            Zeladoria <span className="text-[#0055D4]">Prestadores</span>
-          </span>
+        <div className="flex justify-center items-center">
+          <Link href="/" className="transition-opacity hover:opacity-90">
+            <BrandLogo size="lg" variant="default" />
+          </Link>
         </div>
 
         <h2 className="mt-6 text-center text-2xl font-black tracking-tight text-[#0F172A]">
