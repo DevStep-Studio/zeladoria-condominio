@@ -597,71 +597,52 @@ export function SindicoDashboard({
         </div>
       </section>
 
-      {/* 5. OCORRÊNCIAS EM ANDAMENTO & MAPA OPERACIONAL (2 Colunas) */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        {/* Ocorrências Recentes */}
-        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
-                <Icon name="clipboard" size={13} />
-              </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Ocorrências em Andamento
-              </h3>
-            </div>
-            <Link href="/painel/ocorrencias" className="text-xs font-bold text-[#0055D4] hover:underline">
-              Gerenciar todas
-            </Link>
+      {/* 5. OCORRÊNCIAS EM ANDAMENTO */}
+      <section className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+              <Icon name="clipboard" size={13} />
+            </span>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Ocorrências em Andamento
+            </h3>
           </div>
+          <Link href="/painel/ocorrencias" className="text-xs font-bold text-[#0055D4] hover:underline">
+            Gerenciar todas
+          </Link>
+        </div>
 
-          {recentActivities.length === 0 ? (
-            <div className="py-6 text-center text-xs text-slate-400">
-              Nenhuma ocorrência em andamento no momento.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {recentActivities.slice(0, 4).map((occ) => (
-                <div key={occ.id} className="py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-black text-slate-700">{occ.code}</span>
-                      <span className="text-xs font-bold text-slate-900 truncate">{occ.title}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">
-                      {occ.location} · Status: <strong>{occ.status}</strong> · {occ.timeAgo}
-                    </p>
+        {recentActivities.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-400">
+            Nenhuma ocorrência em andamento no momento.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {recentActivities.slice(0, 6).map((occ) => (
+              <div key={occ.id} className="py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs font-black text-slate-700">{occ.code}</span>
+                    <span className="text-xs font-bold text-slate-900 truncate">{occ.title}</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-[#0055D4] text-[10px] font-bold rounded">
+                      {occ.category}
+                    </span>
                   </div>
-                  <button
-                    onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
-                  >
-                    Gerar OS
-                  </button>
+                  <p className="text-xs text-slate-500 mt-0.5 truncate">
+                    {occ.location} · Status: <strong>{occ.status}</strong> · {occ.timeAgo}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Mapa Operacional */}
-        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-slate-100 text-slate-700">
-                <Icon name="grid" size={13} />
-              </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Mapa Operacional
-              </h3>
-            </div>
-            <span className="text-xs text-slate-400 font-medium">Localização ao vivo</span>
+                <button
+                  onClick={() => setSelectedOccurrenceForOS(occ.id)}
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
+                >
+                  Gerar OS
+                </button>
+              </div>
+            ))}
           </div>
-
-          <div className="rounded-xl overflow-hidden border border-slate-200">
-            <CondoMap occurrences={mapOccurrences} condo={condoCoordinates} />
-          </div>
-        </div>
+        )}
       </section>
 
       {/* MODAL: CRIAR OS A PARTIR DE OCORRÊNCIA */}
