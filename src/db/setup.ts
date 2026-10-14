@@ -26,17 +26,22 @@ const EXPECTED_TABLES = [
   "lost_items",
   "maintenance_orders",
   "maintenance_plans",
+  "marketplace_settings",
   "memberships",
   "move_requests",
   "notifications",
   "occurrence_comments",
   "occurrences",
   "parcels",
+  "payment_orders",
+  "payment_recipients",
+  "payment_webhook_events",
   "poll_options",
   "poll_votes",
   "polls",
   "reservations",
   "service_disputes",
+  "service_inspections",
   "service_messages",
   "service_quotes",
   "service_requests",
@@ -956,6 +961,96 @@ ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "cancelled_
 ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "approved_at" timestamp with time zone;
 ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "approved_by_id" integer;
 ALTER TABLE "condominio_app"."reservations" ADD COLUMN IF NOT EXISTS "rules_accepted" boolean DEFAULT true;
+
+-- ZELADORIA PAY
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "inspection_id" integer;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "payment_order_id" integer;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "inspection_id" integer;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "warranty_days" integer DEFAULT 90;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "contract_hash" varchar(64);
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "terms_accepted_at" timestamp with time zone;
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."payment_recipients" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"vendor_id" integer NOT NULL UNIQUE,
+	"psp_provider" varchar(24) DEFAULT 'asaas' NOT NULL,
+	"psp_account_id" varchar(80) NOT NULL,
+	"psp_api_key" text,
+	"account_type" varchar(20) DEFAULT 'individual' NOT NULL,
+	"pix_key" varchar(140),
+	"status" varchar(24) DEFAULT 'active' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."payment_orders" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" varchar(32) NOT NULL UNIQUE,
+	"condo_id" integer NOT NULL,
+	"request_id" integer NOT NULL,
+	"quote_id" integer,
+	"customer_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"purpose" varchar(20) NOT NULL,
+	"amount_gross_cents" integer NOT NULL,
+	"platform_fee_cents" integer DEFAULT 0 NOT NULL,
+	"net_vendor_cents" integer NOT NULL,
+	"commission_percent" integer DEFAULT 10 NOT NULL,
+	"billing_type" varchar(20) DEFAULT 'PIX' NOT NULL,
+	"psp_provider" varchar(24) DEFAULT 'asaas' NOT NULL,
+	"psp_payment_id" varchar(80),
+	"psp_invoice_url" text,
+	"pix_qr_code" text,
+	"pix_copia_e_cola" text,
+	"status" varchar(24) DEFAULT 'pending' NOT NULL,
+	"paid_at" timestamp with time zone,
+	"released_at" timestamp with time zone,
+	"refunded_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_inspections" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"type" varchar(20) DEFAULT 'gratuita' NOT NULL,
+	"price_cents" integer DEFAULT 0 NOT NULL,
+	"estimated_duration_minutes" integer DEFAULT 40,
+	"notes" text,
+	"available_slots" jsonb DEFAULT '[]'::jsonb,
+	"selected_slot" jsonb,
+	"hold_expires_at" timestamp with time zone,
+	"payment_order_id" integer,
+	"status" varchar(32) DEFAULT 'pendente_escolha_morador' NOT NULL,
+	"diagnostic_report" text,
+	"evidence_photos" jsonb DEFAULT '[]'::jsonb,
+	"completed_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."marketplace_settings" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer,
+	"commission_percent" integer DEFAULT 10 NOT NULL,
+	"slot_hold_minutes" integer DEFAULT 10 NOT NULL,
+	"inspection_fee_max_cents" integer DEFAULT 15000,
+	"dispute_window_hours" integer DEFAULT 48 NOT NULL,
+	"auto_release_hours" integer DEFAULT 72 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."payment_webhook_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"provider" varchar(24) NOT NULL,
+	"event_id" varchar(120) NOT NULL UNIQUE,
+	"event_type" varchar(60) NOT NULL,
+	"payload" jsonb NOT NULL,
+	"status" varchar(24) DEFAULT 'processed' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
 `;
 
 let setup: Promise<void> | null = null;

@@ -570,6 +570,8 @@ export const serviceRequests = appSchema.table("service_requests", {
   commissionRatePercent: integer("commission_rate_percent").default(10), // taxa configurável
   paymentMethod: varchar("payment_method", { length: 30 }).default("direto_prestador"),
   isPaid: boolean("is_paid").notNull().default(false),
+  inspectionId: integer("inspection_id"), // Vínculo com a vistoria técnica
+  paymentOrderId: integer("payment_order_id"), // Vínculo com a ordem de pagamento principal
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -578,11 +580,15 @@ export const serviceQuotes = appSchema.table("service_quotes", {
   id: serial("id").primaryKey(),
   requestId: integer("request_id").notNull(),
   vendorId: integer("vendor_id").notNull(),
+  inspectionId: integer("inspection_id"), // Origem da proposta na vistoria
   laborCents: integer("labor_cents").notNull().default(0),
   materialsCents: integer("materials_cents").notNull().default(0),
   totalCents: integer("total_cents").notNull().default(0),
   description: text("description").notNull(),
   estimatedDays: integer("estimated_days").default(1),
+  warrantyDays: integer("warranty_days").default(90), // Garantia informada pelo prestador no Zeladoria Protege
+  contractHash: varchar("contract_hash", { length: 64 }), // Checksum / hash do contrato digital
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   validUntil: timestamp("valid_until", { withTimezone: true }),
   status: varchar("status", { length: 24 }).notNull().default("pendente"), // pendente, aceito, recusado, expirado
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -632,6 +638,90 @@ export const serviceDisputes = appSchema.table("service_disputes", {
   resolutionNotes: text("resolution_notes"),
   resolvedById: integer("resolved_by_id"),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ------------------------------------------- ZELADORIA PAY (PAGAMENTOS, SPLIT & VISTORIAS) --- */
+
+export const paymentRecipients = appSchema.table("payment_recipients", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").notNull().unique(), // 1:1 com vendors
+  pspProvider: varchar("psp_provider", { length: 24 }).notNull().default("asaas"),
+  pspAccountId: varchar("psp_account_id", { length: 80 }).notNull(), // walletId ou subconta Asaas
+  pspApiKey: text("psp_api_key"), // chave tokenizada da subconta (se aplicável)
+  accountType: varchar("account_type", { length: 20 }).notNull().default("individual"), // individual | company
+  pixKey: varchar("pix_key", { length: 140 }),
+  status: varchar("status", { length: 24 }).notNull().default("active"), // pending_kyc | active | suspended
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const paymentOrders = appSchema.table("payment_orders", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 32 }).notNull().unique(), // ex: PAY-VIS-2026-0001 ou PAY-SRV-2026-0001
+  condoId: integer("condo_id").notNull(),
+  requestId: integer("request_id").notNull(), // FK para service_requests
+  quoteId: integer("quote_id"), // FK para service_quotes (nulo na vistoria)
+  customerId: integer("customer_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  purpose: varchar("purpose", { length: 20 }).notNull(), // 'vistoria' | 'servico' (ISOLAMENTO TOTAL)
+  amountGrossCents: integer("amount_gross_cents").notNull(), // Valor bruto total
+  platformFeeCents: integer("platform_fee_cents").notNull().default(0), // Comissão da Zeladoria
+  netVendorCents: integer("net_vendor_cents").notNull(), // Valor a ser repassado ao prestador
+  commissionPercent: integer("commission_percent").notNull().default(10), // Taxa aplicada configurável
+  billingType: varchar("billing_type", { length: 20 }).notNull().default("PIX"), // PIX | CREDIT_CARD
+  pspProvider: varchar("psp_provider", { length: 24 }).notNull().default("asaas"),
+  pspPaymentId: varchar("psp_payment_id", { length: 80 }), // ID da cobrança no PSP
+  pspInvoiceUrl: text("psp_invoice_url"),
+  pixQrCode: text("pix_qr_code"), // Imagem base64 do QR Code
+  pixCopiaECola: text("pix_copia_e_cola"), // Código copia e cola
+  status: varchar("status", { length: 24 }).notNull().default("pending"), // pending | paid | retained | released | in_dispute | refunded | cancelled
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceInspections = appSchema.table("service_inspections", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  type: varchar("type", { length: 20 }).notNull().default("gratuita"), // 'gratuita' | 'paga'
+  priceCents: integer("price_cents").notNull().default(0),
+  estimatedDurationMinutes: integer("estimated_duration_minutes").default(40),
+  notes: text("notes"),
+  availableSlots: jsonb("available_slots").$type<{ date: string; time: string; label?: string }[]>().default([]),
+  selectedSlot: jsonb("selected_slot").$type<{ date: string; time: string }>(),
+  holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }), // Reserva temporária de 10 min
+  paymentOrderId: integer("payment_order_id"), // FK para payment_orders (se paga)
+  status: varchar("status", { length: 32 }).notNull().default("pendente_escolha_morador"), // pendente_escolha_morador | aguardando_pagamento | confirmada | em_deslocamento | realizada | cancelada
+  diagnosticReport: text("diagnostic_report"),
+  evidencePhotos: jsonb("evidence_photos").$type<string[]>().default([]),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const marketplaceSettings = appSchema.table("marketplace_settings", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id"), // null para default global, ou ID do condomínio
+  commissionPercent: integer("commission_percent").notNull().default(10), // taxa configurável pelo admin (sem hardcode)
+  slotHoldMinutes: integer("slot_hold_minutes").notNull().default(10), // tempo de retenção do slot no checkout
+  inspectionFeeMaxCents: integer("inspection_fee_max_cents").default(15000), // teto para vistoria (R$ 150)
+  disputeWindowHours: integer("dispute_window_hours").notNull().default(48), // janela de contestação pelo morador
+  autoReleaseHours: integer("auto_release_hours").notNull().default(72), // liberação preventiva se não houver contestação
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const paymentWebhookEvents = appSchema.table("payment_webhook_events", {
+  id: serial("id").primaryKey(),
+  provider: varchar("provider", { length: 24 }).notNull(),
+  eventId: varchar("event_id", { length: 120 }).notNull().unique(), // idempotency dedup
+  eventType: varchar("event_type", { length: 60 }).notNull(),
+  payload: jsonb("payload").notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("processed"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

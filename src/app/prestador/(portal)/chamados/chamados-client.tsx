@@ -1,11 +1,19 @@
-"use client";
-
 import { useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import {
   acceptServiceRequestAction,
   updateServiceProgressAction,
 } from "@/lib/actions/prestador";
+import {
+  completeInspectionDiagnosisAction,
+  providerRespondInspectionAction,
+  sendDigitalProposalAction,
+} from "@/lib/actions/zeladoria-pay";
+import {
+  ProviderDiagnosisModal,
+  ProviderDigitalProposalModal,
+  ProviderInspectionResponseModal,
+} from "@/components/marketplace/zeladoria-pay-modals";
 
 export function ProviderChamadosClient({
   vendor,
@@ -20,15 +28,20 @@ export function ProviderChamadosClient({
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Modais do Zeladoria Pay
+  const [inspectionModalReq, setInspectionModalReq] = useState<any>(null);
+  const [diagnosisModalReq, setDiagnosisModalReq] = useState<any>(null);
+  const [proposalModalReq, setProposalModalReq] = useState<any>(null);
+
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
       // Tab filter
       if (activeTab === "novos") {
-        if (r.status !== "solicitado" && r.status !== "buscando_prestador") return false;
+        if (!["solicitado", "buscando_prestador", "vistoria_proposta", "aguardando_pagamento_vistoria"].includes(r.status)) return false;
       } else if (activeTab === "aceitos") {
-        if (r.status !== "aceito" && r.status !== "orcamento_aprovado") return false;
+        if (!["aceito", "VISTORIA_AGENDADA", "VISTORIA_CONFIRMADA", "diagnostico_registrado", "proposta_enviada", "orcamento_aprovado", "aguardando_pagamento_servico", "SERVICO_PAGO_LIBERADO"].includes(r.status)) return false;
       } else if (activeTab === "em_andamento") {
-        if (!["a_caminho", "chegou", "em_atendimento"].includes(r.status)) return false;
+        if (!["a_caminho", "chegou", "em_atendimento", "executado_prestador"].includes(r.status)) return false;
       } else if (activeTab === "concluidos") {
         if (r.status !== "concluido") return false;
       } else if (activeTab === "cancelados") {
@@ -233,20 +246,87 @@ export function ProviderChamadosClient({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {(req.status === "solicitado" || req.status === "buscando_prestador") && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setInspectionModalReq(req)}
+                        disabled={isPending}
+                        className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Icon name="calendar" size={13} />
+                        <span>Propor Vistoria</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAccept(req.id)}
+                        disabled={isPending}
+                        className="rounded-[8px] border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Icon name="check-circle" size={13} />
+                        <span>Aceitar Direto</span>
+                      </button>
+                    </>
+                  )}
+
+                  {req.status === "vistoria_proposta" && (
+                    <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                      Aguardando morador escolher horário da vistoria
+                    </span>
+                  )}
+
+                  {req.status === "aguardando_pagamento_vistoria" && (
+                    <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+                      Horário reservado: aguardando pagamento do morador
+                    </span>
+                  )}
+
+                  {(req.status === "VISTORIA_AGENDADA" || req.status === "VISTORIA_CONFIRMADA") && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1">
+                        <Icon name="check-circle" size={12} />
+                        <span>Vistoria Confirmada</span>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setDiagnosisModalReq(req)}
+                        disabled={isPending}
+                        className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Icon name="file-text" size={13} />
+                        <span>Registrar Diagnóstico</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {req.status === "diagnostico_registrado" && (
                     <button
                       type="button"
-                      onClick={() => handleAccept(req.id)}
+                      onClick={() => setProposalModalReq(req)}
                       disabled={isPending}
-                      className="rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-2xs"
                     >
-                      <Icon name="check-circle" size={13} />
-                      <span>Aceitar Chamado</span>
+                      <Icon name="shield" size={13} />
+                      <span>Enviar Proposta Digital</span>
                     </button>
                   )}
 
-                  {req.status === "aceito" && (
+                  {req.status === "proposta_enviada" && (
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-200">
+                      Proposta enviada: aguardando aceite do cliente
+                    </span>
+                  )}
+
+                  {req.status === "aguardando_pagamento_servico" && (
+                    <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                      Proposta aceita! Aguardando pagamento online pelo cliente
+                    </span>
+                  )}
+
+                  {(req.status === "SERVICO_PAGO_LIBERADO" || req.status === "aceito") && (
                     <button
                       type="button"
                       onClick={() => handleAdvance(req.id, "a_caminho")}
@@ -295,6 +375,61 @@ export function ProviderChamadosClient({
           ))}
         </div>
       )}
+
+      {/* MODAL 1: Propor Vistoria */}
+      <ProviderInspectionResponseModal
+        isOpen={!!inspectionModalReq}
+        onClose={() => setInspectionModalReq(null)}
+        request={inspectionModalReq}
+        isPending={isPending}
+        onSubmit={(data) => {
+          if (!inspectionModalReq) return;
+          startTransition(async () => {
+            await providerRespondInspectionAction({
+              requestId: inspectionModalReq.id,
+              ...data,
+            });
+            setInspectionModalReq(null);
+          });
+        }}
+      />
+
+      {/* MODAL 2: Registrar Diagnóstico */}
+      <ProviderDiagnosisModal
+        isOpen={!!diagnosisModalReq}
+        onClose={() => setDiagnosisModalReq(null)}
+        inspection={diagnosisModalReq}
+        isPending={isPending}
+        onSubmit={(data) => {
+          if (!diagnosisModalReq) return;
+          startTransition(async () => {
+            await completeInspectionDiagnosisAction({
+              inspectionId: diagnosisModalReq.inspectionId || diagnosisModalReq.id,
+              ...data,
+            });
+            setDiagnosisModalReq(null);
+          });
+        }}
+      />
+
+      {/* MODAL 3: Proposta Digital */}
+      <ProviderDigitalProposalModal
+        isOpen={!!proposalModalReq}
+        onClose={() => setProposalModalReq(null)}
+        request={proposalModalReq}
+        isPending={isPending}
+        onSubmit={(data) => {
+          if (!proposalModalReq) return;
+          startTransition(async () => {
+            await sendDigitalProposalAction({
+              requestId: proposalModalReq.id,
+              inspectionId: proposalModalReq.inspectionId,
+              ...data,
+            });
+            setProposalModalReq(null);
+          });
+        }}
+      />
     </div>
   );
 }

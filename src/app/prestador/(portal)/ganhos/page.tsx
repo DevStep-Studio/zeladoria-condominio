@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { serviceRequests, vendors } from "@/db/schema";
+import { paymentOrders, serviceRequests, vendors } from "@/db/schema";
 import { requireProvider } from "@/lib/auth";
 import { ProviderGanhosClient } from "./ganhos-client";
 
@@ -43,5 +43,23 @@ export default async function PrestadorGanhosPage() {
     )
     .orderBy(desc(serviceRequests.completedAt));
 
-  return <ProviderGanhosClient vendor={targetVendor} services={completedServices} />;
+  let ordersList: any[] = [];
+  try {
+    ordersList = await db
+      .select()
+      .from(paymentOrders)
+      .where(eq(paymentOrders.vendorId, targetVendor.id))
+      .orderBy(desc(paymentOrders.createdAt));
+  } catch (err) {
+    console.warn("Could not query paymentOrders for vendor:", err);
+  }
+
+  return (
+    <ProviderGanhosClient
+      vendor={targetVendor}
+      services={completedServices}
+      orders={ordersList}
+    />
+  );
 }
+

@@ -26,6 +26,18 @@ import {
   sendServiceMessageAction,
   toggleCustomerFavoriteAction,
 } from "@/lib/actions/marketplace";
+import {
+  customerSelectInspectionSlotAction,
+  customerAcceptProposalAction,
+  customerConfirmCompletionAction,
+  customerOpenDisputeAction,
+  simulateWebhookPaymentAction,
+} from "@/lib/actions/zeladoria-pay";
+import {
+  CustomerInspectionCheckoutModal,
+  CustomerServiceCheckoutModal,
+  CustomerDisputeModal,
+} from "@/components/marketplace/zeladoria-pay-modals";
 
 export function ServicosClient({
   services = [],
@@ -33,6 +45,8 @@ export function ServicosClient({
   quotes = [],
   reviews = [],
   messages = [],
+  inspections = [],
+  paymentOrders = [],
   initialFavorites = [],
   vendors = [],
   providers = [],
@@ -47,6 +61,8 @@ export function ServicosClient({
   quotes?: any[];
   reviews?: any[];
   messages?: any[];
+  inspections?: any[];
+  paymentOrders?: any[];
   initialFavorites?: number[];
   vendors?: any[];
   providers?: MarketplaceProvider[];
@@ -336,6 +352,60 @@ export function ServicosClient({
   const [activeChatRequest, setActiveChatRequest] = useState<any | null>(null);
   const [chatInput, setChatInput] = useState("");
 
+  // Zeladoria Pay Checkout & Dispute States
+  const [inspectionCheckoutData, setInspectionCheckoutData] = useState<any>(null);
+  const [serviceCheckoutData, setServiceCheckoutData] = useState<any>(null);
+  const [disputeModalReq, setDisputeModalReq] = useState<any>(null);
+  const [selectedInspectionSlots, setSelectedInspectionSlots] = useState<Record<number, { date: string; time: string }>>({});
+
+  const handleSelectSlot = (reqId: number, slot: { date: string; time: string }) => {
+    setSelectedInspectionSlots((prev) => ({ ...prev, [reqId]: slot }));
+  };
+
+  const handleConfirmInspection = (insp: any, req: any) => {
+    const slot = selectedInspectionSlots[req.id] || (insp.availableSlots && insp.availableSlots[0]);
+    if (!slot) return;
+
+    startActionTransition(async () => {
+      const res = await customerSelectInspectionSlotAction({
+        inspectionId: insp.id,
+        selectedSlot: { date: slot.date, time: slot.time },
+      });
+      if (res && res.success && 'checkoutRequired' in res && res.checkoutRequired) {
+        setInspectionCheckoutData(res);
+      }
+    });
+  };
+
+  const handleAcceptProposalZeladoriaProtege = (quoteId: number) => {
+    startActionTransition(async () => {
+      const res = await customerAcceptProposalAction({ quoteId });
+      if (res?.success) {
+        setServiceCheckoutData(res);
+      }
+    });
+  };
+
+  const handleSimulatePayment = (orderCode: string) => {
+    startActionTransition(async () => {
+      await simulateWebhookPaymentAction(orderCode);
+      setInspectionCheckoutData(null);
+      setServiceCheckoutData(null);
+    });
+  };
+
+  const handleOpenDispute = (data: { reason: string; description: string }) => {
+    if (!disputeModalReq) return;
+    startActionTransition(async () => {
+      await customerOpenDisputeAction({
+        requestId: disputeModalReq.id,
+        reason: data.reason,
+        description: data.description,
+      });
+      setDisputeModalReq(null);
+    });
+  };
+
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewRequest) return;
@@ -575,46 +645,213 @@ export function ServicosClient({
                     </p>
 
                     {/* Propostas de Orçamento Recebidas */}
-                    {reqQuotes.length > 0 && req.status === "aguardando_orcamento" && (
+                    {reqQuotes.length > 0 && (req.status === "aguardando_orcamento" || req.status === "proposta_enviada") && (
                       <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
-                        <span className="text-xs font-bold text-[#0055D4] block">
-                          Propostas de Orçamento Recebidas ({reqQuotes.length}):
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#0055D4] block">
+                            Proposta Digital & Zeladoria Protege ({reqQuotes.length}):
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                            <Icon name="shield" size={10} />
+                            <span>Garantia Assegurada</span>
+                          </span>
+                        </div>
                         <div className="space-y-2">
                           {reqQuotes.map((q) => (
                             <div
                               key={q.id}
-                              className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                              className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs"
                             >
-                              <div>
+                              <div className="space-y-1">
                                 <div className="font-bold text-[#0F172A]">{q.vendorName}</div>
-                                <div className="text-[11px] text-slate-500 mt-0.5">
-                                  Mão de obra: R$ {(q.laborCents / 100).toFixed(2)} · Materiais: R$ {(q.materialsCents / 100).toFixed(2)} · Prazo: {q.estimatedDays} dia(s)
+                                <div className="text-[11px] text-slate-500">
+                                  Mão de obra: <strong>R$ {(q.laborCents / 100).toFixed(2)}</strong> · Materiais: <strong>R$ {(q.materialsCents / 100).toFixed(2)}</strong> · Prazo: <strong>{q.estimatedDays} dia(s)</strong>
                                 </div>
-                                <p className="text-slate-600 mt-1 italic">&quot;{q.description}&quot;</p>
+                                <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                                  <Icon name="check-circle" size={12} />
+                                  <span>Garantia informada: {q.warrantyDays || 90} dias (CDC)</span>
+                                </div>
+                                <p className="text-slate-600 italic">&quot;{q.description}&quot;</p>
                               </div>
 
                               <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                                <span className="text-sm font-black text-[#0055D4]">
+                                <span className="text-base font-black text-[#0055D4]">
                                   R$ {(q.totalCents / 100).toFixed(2)}
                                 </span>
                                 {q.status === "aceito" ? (
-                                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded-lg">
-                                    Proposta Aprovada
+                                  <span className="text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                                    Proposta Aceita
                                   </span>
                                 ) : (
                                   <button
                                     type="button"
-                                    onClick={() => handleAcceptQuote(q.id)}
+                                    onClick={() => handleAcceptProposalZeladoriaProtege(q.id)}
                                     disabled={isActionPending}
-                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 font-bold cursor-pointer transition-colors shadow-xs"
+                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 font-bold cursor-pointer transition-colors shadow-xs flex items-center gap-1"
                                   >
-                                    Aprovar Proposta
+                                    <Icon name="shield" size={13} />
+                                    <span>Pagar com Zeladoria Protege</span>
                                   </button>
                                 )}
                               </div>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Vistoria Técnica: Oferta do Prestador e Seleção de Horários */}
+                    {(() => {
+                      const reqInsp = inspections.find((i: any) => i.requestId === req.id);
+                      if (!reqInsp) return null;
+
+                      if (req.status === "vistoria_proposta" && reqInsp.status === "pendente_escolha_morador") {
+                        const slots = (reqInsp.availableSlots as any[]) || [];
+                        const currentSelected = selectedInspectionSlots[req.id] || slots[0];
+
+                        return (
+                          <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 space-y-3 text-xs">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#0055D4] flex items-center gap-1.5">
+                                <Icon name="calendar" size={14} />
+                                <span>Proposta de Vistoria Técnica</span>
+                              </span>
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${reqInsp.type === 'gratuita' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
+                                {reqInsp.type === "gratuita" ? "Vistoria Gratuita" : `Vistoria Paga: R$ ${(reqInsp.priceCents / 100).toFixed(2)}`}
+                              </span>
+                            </div>
+
+                            <p className="text-slate-600">
+                              Duração estimada: <strong>{reqInsp.estimatedDurationMinutes || 40} min</strong>. {reqInsp.notes}
+                            </p>
+
+                            <div className="space-y-1.5">
+                              <span className="font-bold text-slate-700 block text-[11px]">Selecione o melhor horário para receber o profissional:</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {slots.map((s, idx) => {
+                                  const isChosen = currentSelected && currentSelected.date === s.date && currentSelected.time === s.time;
+                                  return (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => handleSelectSlot(req.id, s)}
+                                      className={`p-2.5 rounded-lg border text-left font-bold transition-all cursor-pointer ${
+                                        isChosen
+                                          ? "border-[#0055D4] bg-white text-[#0055D4] shadow-xs"
+                                          : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white"
+                                      }`}
+                                    >
+                                      <div>{s.label || `${s.date} às ${s.time}`}</div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="pt-2 flex items-center justify-end">
+                              <button
+                                type="button"
+                                disabled={isActionPending}
+                                onClick={() => handleConfirmInspection(reqInsp, req)}
+                                className={`px-4 py-2 rounded-xl text-white font-bold cursor-pointer shadow-xs transition-all flex items-center gap-1.5 ${
+                                  reqInsp.type === "gratuita"
+                                    ? "bg-emerald-600 hover:bg-emerald-700"
+                                    : "bg-[#0055D4] hover:bg-[#0047BA]"
+                                }`}
+                              >
+                                <Icon name="check-circle" size={14} />
+                                <span>
+                                  {reqInsp.type === "gratuita"
+                                    ? "Confirmar Vistoria Gratuita"
+                                    : `Pagar e Confirmar (R$ ${(reqInsp.priceCents / 100).toFixed(2)})`}
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (req.status === "aguardando_pagamento_vistoria") {
+                        const paidOrder = paymentOrders.find((p: any) => p.requestId === req.id && p.purpose === "vistoria");
+                        return (
+                          <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/70 flex items-center justify-between text-xs text-amber-900">
+                            <div className="flex items-center gap-2">
+                              <Icon name="clock" size={16} className="text-amber-700" />
+                              <div>
+                                <strong>Horário pré-reservado por 10 minutos!</strong>
+                                <p className="text-[11px] text-amber-800">Conclua o pagamento para confirmar a visita.</p>
+                              </div>
+                            </div>
+                            {paidOrder && (
+                              <button
+                                type="button"
+                                onClick={() => setInspectionCheckoutData({
+                                  orderCode: paidOrder.code,
+                                  amountCents: paidOrder.amountGrossCents,
+                                  vendorName: req.vendorName || "Prestador",
+                                  slot: reqInsp.selectedSlot || { date: req.scheduledDate, time: req.scheduledTimeSlot },
+                                  pixCopiaECola: paidOrder.pixCopiaECola,
+                                  pixQrCode: paidOrder.pixQrCode,
+                                  holdExpiresAt: reqInsp.holdExpiresAt,
+                                })}
+                                className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer shadow-xs"
+                              >
+                                Pagar Pix
+                              </button>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      if (req.status === "VISTORIA_AGENDADA" || req.status === "VISTORIA_CONFIRMADA") {
+                        return (
+                          <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70 flex items-center gap-2 text-xs text-emerald-900">
+                            <Icon name="check-circle" size={15} className="text-emerald-700 shrink-0" />
+                            <div>
+                              <strong>Vistoria Confirmada: </strong>
+                              <span>{reqInsp.selectedSlot ? `${reqInsp.selectedSlot.date} às ${reqInsp.selectedSlot.time}` : req.scheduledDate}</span>
+                              <p className="text-[10px] text-emerald-800 mt-0.5">O prestador comparecerá ao imóvel no horário acordado.</p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (req.status === "diagnostico_registrado" && reqInsp.diagnosticReport) {
+                        return (
+                          <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                              <Icon name="file-text" size={14} className="text-[#0055D4]" />
+                              <span>Diagnóstico da Vistoria Técnica:</span>
+                            </div>
+                            <p className="text-slate-700 italic bg-white p-2.5 rounded-lg border border-slate-100">
+                              &quot;{reqInsp.diagnosticReport}&quot;
+                            </p>
+                            <span className="text-[10px] text-slate-400 block pt-0.5">Aguardando envio da proposta final detalhada pelo profissional.</span>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
+                    {/* Banner Zeladoria Protege Ativo no Serviço Principal */}
+                    {req.status === "SERVICO_PAGO_LIBERADO" && (
+                      <div className="p-3 rounded-xl border border-emerald-300 bg-emerald-50 flex items-center gap-2 text-xs text-emerald-900">
+                        <Icon name="shield" size={16} className="text-emerald-700 shrink-0" />
+                        <div>
+                          <strong>Zeladoria Protege Ativo: </strong>
+                          <span>Pagamento protegido e retido no parceiro financeiro. O repasse será liberado após a sua aprovação.</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Banner Disputa / Mediação */}
+                    {req.status === "em_disputa" && (
+                      <div className="p-3 rounded-xl border border-rose-300 bg-rose-50 flex items-center gap-2 text-xs text-rose-900">
+                        <Icon name="alert" size={16} className="text-rose-700 shrink-0" />
+                        <div>
+                          <strong>Serviço em Mediação: </strong>
+                          <span>Contestação registrada no Zeladoria Protege. O repasse ao prestador está temporariamente bloqueado para análise pela administração do condomínio.</span>
                         </div>
                       </div>
                     )}
@@ -632,16 +869,28 @@ export function ServicosClient({
                           <span>Mensagens / Chat</span>
                         </button>
 
-                        {/* Confirm Completion Button */}
-                        {["em_atendimento", "chegou", "a_caminho"].includes(req.status) && (
-                          <button
-                            type="button"
-                            onClick={() => handleConfirmCompletion(req.id)}
-                            disabled={isActionPending}
-                            className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
-                          >
-                            Confirmar Conclusão
-                          </button>
+                        {/* Confirm Completion / Zeladoria Protege Buttons */}
+                        {["em_atendimento", "chegou", "a_caminho", "SERVICO_PAGO_LIBERADO"].includes(req.status) && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmCompletion(req.id)}
+                              disabled={isActionPending}
+                              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1"
+                            >
+                              <Icon name="check-circle" size={13} />
+                              <span>Confirmar Conclusão (Tudo Certo!)</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setDisputeModalReq(req)}
+                              disabled={isActionPending}
+                              className="rounded-xl border border-slate-300 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-slate-600 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Contestar
+                            </button>
+                          </>
                         )}
                       </div>
 
@@ -1521,6 +1770,33 @@ export function ServicosClient({
           </div>
         </div>
       )}
+
+      {/* MODAL CHECKOUT DA VISTORIA PAGA */}
+      <CustomerInspectionCheckoutModal
+        isOpen={!!inspectionCheckoutData}
+        onClose={() => setInspectionCheckoutData(null)}
+        checkoutData={inspectionCheckoutData}
+        onSimulatePay={handleSimulatePayment}
+        isPending={isActionPending}
+      />
+
+      {/* MODAL CHECKOUT DO SERVIÇO PRINCIPAL (ZELADORIA PROTEGE) */}
+      <CustomerServiceCheckoutModal
+        isOpen={!!serviceCheckoutData}
+        onClose={() => setServiceCheckoutData(null)}
+        checkoutData={serviceCheckoutData}
+        onSimulatePay={handleSimulatePayment}
+        isPending={isActionPending}
+      />
+
+      {/* MODAL CONTESTAÇÃO / MEDIAÇÃO */}
+      <CustomerDisputeModal
+        isOpen={!!disputeModalReq}
+        onClose={() => setDisputeModalReq(null)}
+        request={disputeModalReq}
+        onSubmit={handleOpenDispute}
+        isPending={isActionPending}
+      />
     </div>
   );
 }

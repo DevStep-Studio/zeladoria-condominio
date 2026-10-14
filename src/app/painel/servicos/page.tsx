@@ -4,6 +4,8 @@ import {
   blocks,
   condominiums,
   customerFavorites,
+  paymentOrders,
+  serviceInspections,
   serviceMessages,
   serviceQuotes,
   serviceRequests,
@@ -122,6 +124,34 @@ export default async function ServicosPage() {
     }
   }
 
+  // 4.1 Zeladoria Pay: Vistorias Técnicas
+  let inspectionsList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      inspectionsList = await db
+        .select()
+        .from(serviceInspections)
+        .where(inArray(serviceInspections.requestId, requestIds))
+        .orderBy(desc(serviceInspections.createdAt));
+    } catch (err) {
+      console.warn("Could not query service_inspections:", err);
+    }
+  }
+
+  // 4.2 Zeladoria Pay: Ordens de Pagamento
+  let paymentOrdersList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      paymentOrdersList = await db
+        .select()
+        .from(paymentOrders)
+        .where(inArray(paymentOrders.requestId, requestIds))
+        .orderBy(desc(paymentOrders.createdAt));
+    } catch (err) {
+      console.warn("Could not query payment_orders:", err);
+    }
+  }
+
   // 5. Chamados internos do condomínio (tabela tickets para manutenção predial interna)
   const ticketScope = isResident ? eq(tickets.openedById, session.user.id) : undefined;
   const serviceRows = await db
@@ -217,6 +247,8 @@ export default async function ServicosPage() {
       quotes={quotesList}
       reviews={reviewsList}
       messages={messagesList}
+      inspections={inspectionsList}
+      paymentOrders={paymentOrdersList}
       initialFavorites={userFavoriteIds}
       vendors={vendorList}
       providers={providers}

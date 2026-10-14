@@ -5,47 +5,78 @@ import { Icon } from "@/components/icon";
 export function ProviderGanhosClient({
   vendor,
   services = [],
+  orders = [],
 }: {
   vendor: any;
   services: any[];
+  orders?: any[];
 }) {
-  const totalGrossCents = services.reduce((acc, s) => acc + (s.finalAmountCents || 0), 0);
-  const totalFeesCents = services.reduce((acc, s) => acc + (s.platformFeeCents || 0), 0);
+  // Se houver ordens no Zeladoria Pay, calcula a partir delas; senão fallback para services
+  const hasOrders = orders && orders.length > 0;
+
+  const totalGrossCents = hasOrders
+    ? orders.filter((o) => o.status !== "cancelled" && o.status !== "refunded").reduce((acc, o) => acc + (o.amountGrossCents || 0), 0)
+    : services.reduce((acc, s) => acc + (s.finalAmountCents || 0), 0);
+
+  const totalFeesCents = hasOrders
+    ? orders.filter((o) => o.status !== "cancelled" && o.status !== "refunded").reduce((acc, o) => acc + (o.platformFeeCents || 0), 0)
+    : services.reduce((acc, s) => acc + (s.platformFeeCents || 0), 0);
+
   const netEarningsCents = totalGrossCents - totalFeesCents;
+
+  const retainedCents = hasOrders
+    ? orders.filter((o) => o.status === "retained" || o.status === "in_dispute").reduce((acc, o) => acc + (o.netVendorCents || 0), 0)
+    : 0;
 
   return (
     <div className="space-y-6">
       <div className="border-b border-slate-200/80 pb-4">
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-          Ganhos & Extrato Financeiro
-        </h1>
+        <div className="flex items-center gap-2">
+          <span className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <Icon name="shield" size={16} />
+          </span>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Ganhos & Extrato Zeladoria Pay
+          </h1>
+        </div>
         <p className="text-xs text-slate-500 font-medium mt-1">
-          Acompanhamento transparente dos valores de serviços concluídos através da plataforma.
+          Acompanhamento transparente dos valores com split automático no PSP Asaas e proteção Zeladoria Protege.
         </p>
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
         <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Faturamento Bruto</span>
             <Icon name="dollar" size={15} className="text-emerald-600" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900">
+          <div className="text-2xl font-black text-slate-900">
             R$ {(totalGrossCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">{services.length} serviço(s) faturado(s)</p>
+          <p className="text-[11px] text-slate-500">{hasOrders ? orders.length : services.length} transação(ões)</p>
         </div>
 
         <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Líquido Recebido</span>
-            <Icon name="check-circle" size={15} className="text-[#0055D4]" />
+            <span>Líquido do Prestador</span>
+            <Icon name="check-circle" size={15} className="text-emerald-600" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-700">
+          <div className="text-2xl font-black text-emerald-700">
             R$ {(netEarningsCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">Direto com o morador / condomínio</p>
+          <p className="text-[11px] text-slate-500">Split na subconta Asaas</p>
+        </div>
+
+        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
+            <span>Zeladoria Protege (Retido)</span>
+            <Icon name="clock" size={15} className="text-amber-600" />
+          </div>
+          <div className="text-2xl font-black text-amber-700">
+            R$ {(retainedCents / 100).toFixed(2)}
+          </div>
+          <p className="text-[11px] text-slate-500">Aguardando entrega do morador</p>
         </div>
 
         <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
@@ -53,27 +84,87 @@ export function ProviderGanhosClient({
             <span>Taxa da Plataforma</span>
             <Icon name="shield" size={15} className="text-slate-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-700">
+          <div className="text-2xl font-black text-slate-700">
             R$ {(totalFeesCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">Taxa média de 0% a 10%</p>
+          <p className="text-[11px] text-slate-500">Intermediação configurável</p>
         </div>
       </div>
 
       {/* History */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-slate-900">
-          Histórico de Serviços Faturados ({services.length})
+          Extrato Detalhado de Pagamentos & Vistorias ({hasOrders ? orders.length : services.length})
         </h2>
 
-        {services.length === 0 ? (
+        {hasOrders ? (
+          <div className="rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
+                <tr>
+                  <th className="p-3.5">Código / Finalidade</th>
+                  <th className="p-3.5">Data</th>
+                  <th className="p-3.5">Status Repasse</th>
+                  <th className="p-3.5 text-right">Valor Bruto</th>
+                  <th className="p-3.5 text-right">Comissão</th>
+                  <th className="p-3.5 text-right">Líquido Prestador</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {orders.map((o) => (
+                  <tr key={o.id} className="hover:bg-slate-50/50">
+                    <td className="p-3.5">
+                      <span className="font-bold text-[#0055D4] block">{o.code}</span>
+                      <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                        o.purpose === "vistoria" ? "bg-blue-50 text-[#0055D4]" : "bg-purple-50 text-purple-700"
+                      }`}>
+                        {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-slate-500">
+                      {o.paidAt ? new Date(o.paidAt).toLocaleDateString("pt-BR") : new Date(o.createdAt).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="p-3.5">
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                        o.status === "released" || o.status === "paid"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : o.status === "retained"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : o.status === "in_dispute"
+                          ? "bg-rose-50 text-rose-700 border border-rose-200"
+                          : "bg-slate-100 text-slate-600"
+                      }`}>
+                        {o.status === "retained"
+                          ? "Protegido (Retido)"
+                          : o.status === "released"
+                          ? "Repasse Liberado"
+                          : o.status === "paid"
+                          ? "Pago"
+                          : o.status}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right font-semibold text-slate-800">
+                      R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
+                    </td>
+                    <td className="p-3.5 text-right text-slate-500">
+                      R$ {((o.platformFeeCents || 0) / 100).toFixed(2)} ({o.commissionPercent || 10}%)
+                    </td>
+                    <td className="p-3.5 text-right font-black text-emerald-700">
+                      R$ {((o.netVendorCents || 0) / 100).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : services.length === 0 ? (
           <div className="rounded-[16px] border border-slate-200/80 bg-white p-12 text-center space-y-2 shadow-2xs">
             <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <Icon name="dollar" size={18} />
             </div>
-            <h3 className="text-xs font-bold text-slate-900">Nenhum serviço faturado ainda</h3>
+            <h3 className="text-xs font-bold text-slate-900">Nenhum pagamento faturado ainda</h3>
             <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-              Quando você concluir seus atendimentos e o morador confirmar a finalização, os valores aparecerão registrados aqui.
+              Quando você receber vistorias pagas ou concluir serviços com Zeladoria Protege, os repasses com split aparecerão registrados aqui.
             </p>
           </div>
         ) : (
