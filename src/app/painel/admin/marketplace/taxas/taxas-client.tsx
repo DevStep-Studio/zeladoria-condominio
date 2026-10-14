@@ -25,6 +25,22 @@ export function AdminTaxasClient({
   const [maxInspectionVal, setMaxInspectionVal] = useState((settings.inspectionFeeMaxCents / 100).toFixed(2));
   const [disputeHours, setDisputeHours] = useState(settings.disputeWindowHours);
   const [autoReleaseHours, setAutoReleaseHours] = useState(settings.autoReleaseHours);
+  const [feePayer, setFeePayer] = useState<"PROVIDER" | "PLATFORM" | "SHARED">((settings as any).processingFeePayer || "PROVIDER");
+  const [visitCommission, setVisitCommission] = useState((settings as any).visitCommissionPercent || 0);
+
+  // Estados do Simulador Financeiro (Cláusula 28-29)
+  const [simServiceVal, setSimServiceVal] = useState(1000);
+  const [simCommissionPercent, setSimCommissionPercent] = useState(10);
+  const [simPspFeePercent, setSimPspFeePercent] = useState(3.5);
+  const [simFeePayer, setSimFeePayer] = useState<"PROVIDER" | "PLATFORM" | "SHARED">("PROVIDER");
+
+  const simPlatformFee = (simServiceVal * simCommissionPercent) / 100;
+  const simPspFee = (simServiceVal * simPspFeePercent) / 100;
+  const simNetVendor = simFeePayer === "PROVIDER" 
+    ? simServiceVal - simPlatformFee - simPspFee
+    : simFeePayer === "SHARED"
+    ? simServiceVal - simPlatformFee - (simPspFee / 2)
+    : simServiceVal - simPlatformFee;
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -246,6 +262,40 @@ export function AdminTaxasClient({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Comissão Vistoria */}
+            <div className="space-y-1.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <label className="font-bold text-slate-800 block">Comissão da Vistoria Técnica (%)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={visitCommission}
+                  onChange={(e) => setVisitCommission(parseInt(e.target.value) || 0)}
+                  className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">%</span>
+              </div>
+              <p className="text-[10px] text-slate-500">Taxa sobre vistorias pagas (padrão: 0% / isento)</p>
+            </div>
+
+            {/* Pagador da Taxa do PSP */}
+            <div className="space-y-1.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <label className="font-bold text-slate-800 block">Responsável pelas Taxas do PSP</label>
+              <select
+                value={feePayer}
+                onChange={(e) => setFeePayer(e.target.value as any)}
+                className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-xs outline-none focus:border-[#0055D4]"
+              >
+                <option value="PROVIDER">Descontar do Prestador (Padrão)</option>
+                <option value="PLATFORM">Absorvido pela Zeladoria</option>
+                <option value="SHARED">Compartilhado (50% / 50%)</option>
+              </select>
+              <p className="text-[10px] text-slate-500">Cláusula 27: definição do responsável pelo custo financeiro</p>
+            </div>
+          </div>
+
           <div className="flex justify-end pt-2">
             <button
               type="submit"
@@ -257,6 +307,91 @@ export function AdminTaxasClient({
             </button>
           </div>
         </form>
+      </div>
+
+      {/* SIMULADOR FINANCEIRO ADMIN (CLÁUSULAS 28 E 29) */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-7 w-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+              <Icon name="wallet" size={15} />
+            </span>
+            <h2 className="text-sm font-black text-slate-900">Simulador Financeiro de Contratação (Zeladoria Pay)</h2>
+          </div>
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Cláusulas 28 e 29</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Valor do Serviço (R$)</label>
+            <input
+              type="number"
+              step="10"
+              min="50"
+              value={simServiceVal}
+              onChange={(e) => setSimServiceVal(parseFloat(e.target.value) || 0)}
+              className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-900"
+            />
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Comissão Zeladoria (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="50"
+              value={simCommissionPercent}
+              onChange={(e) => setSimCommissionPercent(parseFloat(e.target.value) || 0)}
+              className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-900"
+            />
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Taxa Estimada PSP (%)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="20"
+              value={simPspFeePercent}
+              onChange={(e) => setSimPspFeePercent(parseFloat(e.target.value) || 0)}
+              className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-900"
+            />
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Pagador da Taxa</label>
+            <select
+              value={simFeePayer}
+              onChange={(e) => setSimFeePayer(e.target.value as any)}
+              className="w-full h-8 px-2 rounded-lg border border-slate-300 bg-white font-bold text-slate-900"
+            >
+              <option value="PROVIDER">Prestador</option>
+              <option value="PLATFORM">Zeladoria</option>
+              <option value="SHARED">Compartilhado</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Resultados da Simulação */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+          <div className="p-3.5 rounded-xl border border-slate-200 bg-white">
+            <span className="text-slate-500 block text-[11px]">Cliente Paga:</span>
+            <span className="text-base font-black text-slate-900">R$ {simServiceVal.toFixed(2)}</span>
+          </div>
+          <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50">
+            <span className="text-blue-700 block text-[11px]">Comissão Zeladoria ({simCommissionPercent}%):</span>
+            <span className="text-base font-black text-[#0055D4]">R$ {simPlatformFee.toFixed(2)}</span>
+          </div>
+          <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50">
+            <span className="text-amber-700 block text-[11px]">Taxa do PSP ({simPspFeePercent}%):</span>
+            <span className="text-base font-black text-amber-800">R$ {simPspFee.toFixed(2)}</span>
+          </div>
+          <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50">
+            <span className="text-emerald-700 block text-[11px]">Líquido Prestador:</span>
+            <span className="text-base font-black text-emerald-800">R$ {simNetVendor.toFixed(2)}</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-slate-400 italic">
+          * Valores simulados para apoio de tomada de decisão. O cálculo real de liquidação e split é processado pelo parceiro financeiro (PSP) contratado.
+        </p>
       </div>
 
       {/* Tabela de Ordens Recentes */}

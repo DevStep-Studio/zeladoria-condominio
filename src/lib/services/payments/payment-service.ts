@@ -2,6 +2,8 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { db } from "@/db";
 import {
+  contractAddendums,
+  financialLedgerEntries,
   marketplaceSettings,
   paymentOrders,
   paymentRecipients,
@@ -11,6 +13,7 @@ import {
   serviceMessages,
   serviceQuotes,
   serviceRequests,
+  serviceWarrantyTickets,
   users,
   vendors,
 } from "@/db/schema";
@@ -48,7 +51,43 @@ export async function getMarketplaceSettings(condoId?: number | null) {
     inspectionFeeMaxCents: settings?.inspectionFeeMaxCents ?? 15000,
     disputeWindowHours: settings?.disputeWindowHours ?? 48,
     autoReleaseHours: settings?.autoReleaseHours ?? 72,
+    processingFeePayer: settings?.processingFeePayer ?? "PROVIDER",
+    estimatedPspFeePercent: Number(settings?.estimatedPspFeePercent ?? 3.5),
+    visitCommissionPercent: settings?.visitCommissionPercent ?? 0,
   };
+}
+
+/**
+ * Registra evento imutável no Ledger Contábil e Operacional interno
+ */
+export async function recordLedgerEntry(params: {
+  condoId: number;
+  requestId?: number | null;
+  paymentOrderId?: number | null;
+  eventType: string;
+  amountCents: number;
+  balanceType?: "credit" | "debit";
+  entityType: "platform" | "vendor" | "customer" | "psp";
+  referenceCode?: string;
+  description?: string;
+  metadata?: Record<string, any>;
+}) {
+  const [entry] = await db
+    .insert(financialLedgerEntries)
+    .values({
+      condoId: params.condoId,
+      requestId: params.requestId || null,
+      paymentOrderId: params.paymentOrderId || null,
+      eventType: params.eventType,
+      amountCents: params.amountCents,
+      balanceType: params.balanceType || "credit",
+      entityType: params.entityType,
+      referenceCode: params.referenceCode || null,
+      description: params.description || null,
+      metadata: params.metadata || {},
+    })
+    .returning();
+  return entry;
 }
 
 /**
@@ -100,6 +139,7 @@ export async function providerRespondInspection(params: {
   vendorId: number;
   type: "gratuita" | "paga";
   priceCents: number;
+  discountOnService?: boolean;
   estimatedDurationMinutes?: number;
   notes?: string;
   availableSlots: { date: string; time: string; label?: string }[];
@@ -124,6 +164,7 @@ export async function providerRespondInspection(params: {
       vendorId: params.vendorId,
       type: params.type,
       priceCents: finalPriceCents,
+      discountOnService: params.type === "paga" ? !!params.discountOnService : false,
       estimatedDurationMinutes: params.estimatedDurationMinutes || 40,
       notes: params.notes || null,
       availableSlots: params.availableSlots,
@@ -143,7 +184,11 @@ export async function providerRespondInspection(params: {
     .where(eq(serviceRequests.id, params.requestId));
 
   // Notificação no chat
-  const typeText = params.type === "gratuita" ? "Vistoria Gratuita" : `Vistoria Técnica (R$ ${(finalPriceCents / 100).toFixed(2)})`;
+  let typeText = params.type === "gratuita" ? "Vistoria Gratuita" : `Vistoria Técnica (R$ ${(finalPriceCents / 100).toFixed(2)})`;
+  if (params.type === "paga" && params.discountOnService) {
+    typeText += " [Descontada integralmente do serviço se aprovado]";
+  }
+
   await db.insert(serviceMessages).values({
     requestId: params.requestId,
     senderId: req.customerId,
@@ -152,6 +197,41 @@ export async function providerRespondInspection(params: {
   });
 
   return inspection;
+}
+
+/**
+ * Check-in da Vistoria pelo Prestador no Local
+ */
+export async function providerCheckInInspection(params: {
+  inspectionId: number;
+  vendorId: number;
+}) {
+  const [insp] = await db
+    .select()
+    .from(serviceInspections)
+    .where(eq(serviceInspections.id, params.inspectionId))
+    .limit(1);
+
+  if (!insp) throw new Error("Vistoria não encontrada.");
+  if (insp.vendorId !== params.vendorId) throw new Error("Não autorizado.");
+
+  await db
+    .update(serviceInspections)
+    .set({
+      providerArrivedAt: new Date(),
+      status: "em_deslocamento",
+      updatedAt: new Date(),
+    })
+    .where(eq(serviceInspections.id, insp.id));
+
+  await db.insert(serviceMessages).values({
+    requestId: insp.requestId,
+    senderId: params.vendorId,
+    senderRole: "prestador",
+    body: `Check-in realizado! O prestador confirmou presença no condomínio para a realização da vistoria técnica.`,
+  });
+
+  return { success: true };
 }
 
 /**
@@ -366,18 +446,65 @@ export async function sendDigitalProposal(params: {
   requestId: number;
   vendorId: number;
   inspectionId?: number;
+  title?: string;
+  scopeDescription?: string;
+  itemizedMaterials?: { name: string; amountCents: number; quantity?: number }[];
   laborCents: number;
   materialsCents: number;
+  otherCostsCents?: number;
+  discountCents?: number;
   estimatedDays: number;
   warrantyDays?: number;
+  conditions?: string;
   description: string;
 }) {
-  const totalCents = params.laborCents + params.materialsCents;
-  const warrantyDays = params.warrantyDays ?? 90; // CDC mínimo
+  // 1. Controle estrito de versionamento de propostas
+  const existingQuotes = await db
+    .select()
+    .from(serviceQuotes)
+    .where(and(eq(serviceQuotes.requestId, params.requestId), eq(serviceQuotes.vendorId, params.vendorId)))
+    .orderBy(desc(serviceQuotes.version));
 
-  // Gera contrato digital / hash de integridade
-  const contractString = `REQ_${params.requestId}_VEND_${params.vendorId}_VAL_${totalCents}_WARR_${warrantyDays}_${Date.now()}`;
-  const contractHash = createHash("sha256").update(contractString).digest("hex").slice(0, 32);
+  const activeAccepted = existingQuotes.find((q) => q.status === "aceito" || q.status === "pago_protegido");
+  if (activeAccepted) {
+    throw new Error("Proposta já aceita pelo morador não pode ser modificada silenciosamente. Utilize um aditivo de escopo.");
+  }
+
+  const latestVersion = existingQuotes.length > 0 ? (existingQuotes[0].version || 1) : 0;
+  const newVersion = latestVersion + 1;
+
+  if (existingQuotes.length > 0) {
+    await db
+      .update(serviceQuotes)
+      .set({ status: "substituida" })
+      .where(and(eq(serviceQuotes.requestId, params.requestId), eq(serviceQuotes.status, "pendente")));
+  }
+
+  // 2. Desconto da vistoria técnica paga se aplicável
+  let inspectionDiscountCents = 0;
+  if (params.inspectionId) {
+    const [insp] = await db
+      .select()
+      .from(serviceInspections)
+      .where(eq(serviceInspections.id, params.inspectionId))
+      .limit(1);
+
+    if (insp && insp.discountOnService && insp.priceCents > 0) {
+      inspectionDiscountCents = insp.priceCents;
+    }
+  }
+
+  const laborCents = params.laborCents || 0;
+  const materialsCents = params.materialsCents || 0;
+  const otherCostsCents = params.otherCostsCents || 0;
+  const discountCents = params.discountCents || 0;
+  const grossSubtotal = laborCents + materialsCents + otherCostsCents - discountCents;
+  const totalCents = Math.max(0, grossSubtotal - inspectionDiscountCents);
+  const warrantyDays = params.warrantyDays ?? 90; // CDC mínimo legal
+
+  // Gera contrato digital / hash de integridade imutável (Art. 26 CDC + Termos Zeladoria Protege)
+  const contractString = `REQ_${params.requestId}_VEND_${params.vendorId}_V${newVersion}_VAL_${totalCents}_DISC_${inspectionDiscountCents}_WARR_${warrantyDays}_${Date.now()}`;
+  const contractHash = createHash("sha256").update(contractString).digest("hex");
 
   const [quote] = await db
     .insert(serviceQuotes)
@@ -385,12 +512,20 @@ export async function sendDigitalProposal(params: {
       requestId: params.requestId,
       vendorId: params.vendorId,
       inspectionId: params.inspectionId || null,
-      laborCents: params.laborCents,
-      materialsCents: params.materialsCents,
+      version: newVersion,
+      title: params.title || "Proposta de Serviço Residencial",
+      scopeDescription: params.scopeDescription || params.description,
+      itemizedMaterials: params.itemizedMaterials || [],
+      laborCents,
+      materialsCents,
+      otherCostsCents,
+      discountCents,
+      inspectionDiscountCents,
       totalCents,
       estimatedDays: params.estimatedDays,
       warrantyDays,
       contractHash,
+      conditions: params.conditions || null,
       description: params.description,
       status: "pendente",
     })
@@ -405,11 +540,12 @@ export async function sendDigitalProposal(params: {
     })
     .where(eq(serviceRequests.id, params.requestId));
 
+  const discountMsg = inspectionDiscountCents > 0 ? ` (com crédito de -R$ ${(inspectionDiscountCents / 100).toFixed(2)} da vistoria)` : "";
   await db.insert(serviceMessages).values({
     requestId: params.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
-    body: `Proposta digital enviada: R$ ${(totalCents / 100).toFixed(2)} (Mão de obra: R$ ${(params.laborCents / 100).toFixed(2)}, Materiais: R$ ${(params.materialsCents / 100).toFixed(2)}). Garantia informada: ${warrantyDays} dias com Zeladoria Protege.`,
+    body: `Proposta digital v${newVersion} enviada: Total R$ ${(totalCents / 100).toFixed(2)}${discountMsg}. Mão de obra: R$ ${(laborCents / 100).toFixed(2)}, Materiais: R$ ${(materialsCents / 100).toFixed(2)}. Garantia informada: ${warrantyDays} dias com Zeladoria Protege.`,
   });
 
   return quote;
@@ -421,6 +557,7 @@ export async function sendDigitalProposal(params: {
 export async function customerAcceptProposalAndPay(params: {
   quoteId: number;
   billingType?: "PIX" | "CREDIT_CARD";
+  userIp?: string;
 }) {
   const [quote] = await db.select().from(serviceQuotes).where(eq(serviceQuotes.id, params.quoteId)).limit(1);
   if (!quote) throw new Error("Proposta não encontrada.");
@@ -428,12 +565,13 @@ export async function customerAcceptProposalAndPay(params: {
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, quote.requestId)).limit(1);
   if (!req) throw new Error("Chamado não encontrado.");
 
-  // Marca proposta como aceita
+  // Marca proposta como aceita com snapshot do IP e timestamp dos termos
   await db
     .update(serviceQuotes)
     .set({
       status: "aceito",
       termsAcceptedAt: new Date(),
+      userIp: params.userIp || null,
     })
     .where(eq(serviceQuotes.id, quote.id));
 
@@ -513,6 +651,25 @@ export async function customerAcceptProposalAndPay(params: {
     })
     .where(eq(serviceRequests.id, req.id));
 
+  // Registra no Ledger contábil
+  await recordLedgerEntry({
+    condoId: req.condoId,
+    requestId: req.id,
+    paymentOrderId: order.id,
+    eventType: "PAYMENT_CREATED",
+    amountCents: quote.totalCents,
+    balanceType: "credit",
+    entityType: "customer",
+    referenceCode: orderCode,
+    description: `Cobrança emitida para serviço residencial (Proposta v${quote.version || 1})`,
+    metadata: {
+      quoteId: quote.id,
+      vendorId: quote.vendorId,
+      warrantyDays: quote.warrantyDays,
+      contractHash: quote.contractHash,
+    },
+  });
+
   return {
     orderCode,
     totalCents: quote.totalCents,
@@ -590,6 +747,18 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
         .set({ status: "VISTORIA_CONFIRMADA", isPaid: true, updatedAt: new Date() })
         .where(eq(serviceRequests.id, order.requestId));
 
+      await recordLedgerEntry({
+        condoId: order.condoId,
+        requestId: order.requestId,
+        paymentOrderId: order.id,
+        eventType: "PAYMENT_APPROVED",
+        amountCents: order.amountGrossCents,
+        balanceType: "credit",
+        entityType: "customer",
+        referenceCode: order.code,
+        description: `Pagamento da vistoria técnica aprovado via ${order.billingType}`,
+      });
+
       await db.insert(serviceMessages).values({
         requestId: order.requestId,
         senderId: order.customerId,
@@ -616,6 +785,45 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
         })
         .where(eq(serviceRequests.id, order.requestId));
 
+      // Registros contábeis no Ledger
+      await recordLedgerEntry({
+        condoId: order.condoId,
+        requestId: order.requestId,
+        paymentOrderId: order.id,
+        eventType: "PAYMENT_APPROVED",
+        amountCents: order.amountGrossCents,
+        balanceType: "credit",
+        entityType: "customer",
+        referenceCode: order.code,
+        description: `Pagamento do serviço aprovado e retido sob Zeladoria Protege`,
+      });
+
+      if (order.platformFeeCents > 0) {
+        await recordLedgerEntry({
+          condoId: order.condoId,
+          requestId: order.requestId,
+          paymentOrderId: order.id,
+          eventType: "PLATFORM_FEE_RECORDED",
+          amountCents: order.platformFeeCents,
+          balanceType: "credit",
+          entityType: "platform",
+          referenceCode: `${order.code}-FEE`,
+          description: `Comissão da plataforma Zeladoria (${order.commissionPercent}%)`,
+        });
+      }
+
+      await recordLedgerEntry({
+        condoId: order.condoId,
+        requestId: order.requestId,
+        paymentOrderId: order.id,
+        eventType: "PROVIDER_RECEIVABLE_RECORDED",
+        amountCents: order.netVendorCents,
+        balanceType: "credit",
+        entityType: "vendor",
+        referenceCode: `${order.code}-NET`,
+        description: `Recebível líquido do prestador sob proteção Zeladoria Protege`,
+      });
+
       await db.insert(serviceMessages).values({
         requestId: order.requestId,
         senderId: order.customerId,
@@ -633,6 +841,18 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
       .update(serviceRequests)
       .set({ status: "reembolsado", updatedAt: new Date() })
       .where(eq(serviceRequests.id, order.requestId));
+
+    await recordLedgerEntry({
+      condoId: order.condoId,
+      requestId: order.requestId,
+      paymentOrderId: order.id,
+      eventType: "REFUND",
+      amountCents: order.amountGrossCents,
+      balanceType: "debit",
+      entityType: "customer",
+      referenceCode: `${order.code}-REFUND`,
+      description: `Reembolso total processado via gateway`,
+    });
   }
 
   return { success: true, processedOrder: order.code, eventType: event.eventType };
@@ -662,6 +882,18 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
         updatedAt: new Date(),
       })
       .where(eq(paymentOrders.id, order.id));
+
+    await recordLedgerEntry({
+      condoId: order.condoId,
+      requestId: order.requestId,
+      paymentOrderId: order.id,
+      eventType: "PAYOUT",
+      amountCents: order.netVendorCents,
+      balanceType: "debit",
+      entityType: "vendor",
+      referenceCode: `${order.code}-PAYOUT`,
+      description: `Repasse liberado ao prestador após confirmação "Tudo Certo!"`,
+    });
   }
 
   await db
@@ -718,6 +950,17 @@ export async function customerOpenDispute(params: {
     .set({ status: "em_disputa", updatedAt: new Date() })
     .where(eq(serviceRequests.id, params.requestId));
 
+  await recordLedgerEntry({
+    condoId: req.condoId,
+    requestId: req.id,
+    eventType: "DISPUTE_HELD",
+    amountCents: 0,
+    balanceType: "debit",
+    entityType: "platform",
+    referenceCode: `DISPUTE-${dispute.id}`,
+    description: `Repasse retido devido à contestação aberta: "${params.reason}"`,
+  });
+
   await db.insert(serviceMessages).values({
     requestId: params.requestId,
     senderId: params.customerId,
@@ -726,4 +969,146 @@ export async function customerOpenDispute(params: {
   });
 
   return dispute;
+}
+
+/**
+ * Prestador cria aditivo de escopo (Cláusulas 41-42: nunca alterar preço silenciosamente)
+ */
+export async function providerCreateContractAddendum(params: {
+  requestId: number;
+  quoteId: number;
+  vendorId: number;
+  title: string;
+  description: string;
+  additionalAmountCents: number;
+}) {
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  if (!req) throw new Error("Chamado não encontrado.");
+  if (req.vendorId !== params.vendorId) throw new Error("Não autorizado.");
+
+  const [addendum] = await db
+    .insert(contractAddendums)
+    .values({
+      requestId: params.requestId,
+      quoteId: params.quoteId,
+      title: params.title,
+      description: params.description,
+      additionalAmountCents: params.additionalAmountCents,
+      status: "proposto",
+    })
+    .returning();
+
+  await db.insert(serviceMessages).values({
+    requestId: params.requestId,
+    senderId: params.vendorId,
+    senderRole: "prestador",
+    body: `Aditivo contratual de escopo proposto: "${params.title}" (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}). Motivo: ${params.description}. O cliente precisa aprovar antes de prosseguir.`,
+  });
+
+  return addendum;
+}
+
+/**
+ * Morador aceita aditivo de escopo e gera nova cobrança complementar
+ */
+export async function customerAcceptContractAddendum(params: {
+  addendumId: number;
+  customerId: number;
+  billingType?: "PIX" | "CREDIT_CARD";
+}) {
+  const [addendum] = await db.select().from(contractAddendums).where(eq(contractAddendums.id, params.addendumId)).limit(1);
+  if (!addendum) throw new Error("Aditivo não encontrado.");
+
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, addendum.requestId)).limit(1);
+  if (!req || req.customerId !== params.customerId) throw new Error("Não autorizado.");
+
+  const settings = await getMarketplaceSettings(req.condoId);
+  const platformFeeCents = Math.round((addendum.additionalAmountCents * settings.commissionPercent) / 100);
+  const netVendorCents = addendum.additionalAmountCents - platformFeeCents;
+  const seqNum = Math.floor(1000 + Math.random() * 9000);
+  const orderCode = `PAY-ADD-${new Date().getFullYear()}-${seqNum}`;
+
+  const gateway = getPaymentGateway("asaas");
+  const chargeRes = await gateway.createCharge({
+    orderCode,
+    amountCents: addendum.additionalAmountCents,
+    purpose: "servico",
+    customer: {
+      name: "Morador",
+      email: "morador@zeladoria.com.br",
+    },
+    billingType: params.billingType || "PIX",
+  });
+
+  const [order] = await db
+    .insert(paymentOrders)
+    .values({
+      code: orderCode,
+      condoId: req.condoId,
+      requestId: req.id,
+      quoteId: addendum.quoteId,
+      customerId: req.customerId,
+      vendorId: req.vendorId || 0,
+      purpose: "servico",
+      amountGrossCents: addendum.additionalAmountCents,
+      platformFeeCents,
+      netVendorCents,
+      commissionPercent: settings.commissionPercent,
+      billingType: params.billingType || "PIX",
+      pspPaymentId: chargeRes.pspPaymentId,
+      status: "pending",
+    })
+    .returning();
+
+  await db
+    .update(contractAddendums)
+    .set({
+      status: "aceito",
+      paymentOrderId: order.id,
+      updatedAt: new Date(),
+    })
+    .where(eq(contractAddendums.id, addendum.id));
+
+  return { addendum, order, chargeRes };
+}
+
+/**
+ * Morador solicita retorno em garantia (Cláusulas 74-76)
+ */
+export async function customerRequestWarranty(params: {
+  requestId: number;
+  customerId: number;
+  description: string;
+}) {
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  if (!req) throw new Error("Chamado não encontrado.");
+  if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
+
+  const [quote] = await db
+    .select()
+    .from(serviceQuotes)
+    .where(eq(serviceQuotes.requestId, req.id))
+    .orderBy(desc(serviceQuotes.id))
+    .limit(1);
+
+  const [ticket] = await db
+    .insert(serviceWarrantyTickets)
+    .values({
+      requestId: req.id,
+      quoteId: quote?.id || 0,
+      customerId: params.customerId,
+      vendorId: req.vendorId || 0,
+      description: params.description,
+      status: "aberto",
+    })
+    .returning();
+
+  await db.insert(serviceMessages).values({
+    requestId: req.id,
+    senderId: params.customerId,
+    senderRole: "morador",
+    body: `Solicitação de suporte em garantia aberta: "${params.description}". O prestador foi notificado para retorno técnico gratuito dentro da garantia contratual.`,
+  });
+
+  return ticket;
 }

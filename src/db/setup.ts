@@ -18,9 +18,11 @@ const EXPECTED_TABLES = [
   "budgets",
   "charges",
   "condominiums",
+  "contract_addendums",
   "contracts",
   "customer_favorites",
   "documents",
+  "financial_ledger_entries",
   "help_articles",
   "import_jobs",
   "lost_items",
@@ -46,6 +48,7 @@ const EXPECTED_TABLES = [
   "service_quotes",
   "service_requests",
   "service_reviews",
+  "service_warranty_tickets",
   "shifts",
   "support_tickets",
   "ticket_comments",
@@ -1051,6 +1054,64 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."payment_webhook_events" (
 	"status" varchar(24) DEFAULT 'processed' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."financial_ledger_entries" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"request_id" integer,
+	"payment_order_id" integer,
+	"event_type" varchar(60) NOT NULL,
+	"amount_cents" integer NOT NULL,
+	"balance_type" varchar(12) DEFAULT 'credit' NOT NULL,
+	"entity_type" varchar(24) NOT NULL,
+	"reference_code" varchar(60),
+	"description" text,
+	"metadata" jsonb DEFAULT '{}'::jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."contract_addendums" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"quote_id" integer NOT NULL,
+	"title" varchar(180) NOT NULL,
+	"description" text NOT NULL,
+	"additional_amount_cents" integer NOT NULL,
+	"status" varchar(24) DEFAULT 'proposto' NOT NULL,
+	"payment_order_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_warranty_tickets" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_id" integer NOT NULL,
+	"quote_id" integer NOT NULL,
+	"customer_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"description" text NOT NULL,
+	"status" varchar(24) DEFAULT 'aberto' NOT NULL,
+	"resolution_notes" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"resolved_at" timestamp with time zone
+);
+
+ALTER TABLE "condominio_app"."service_inspections" ADD COLUMN IF NOT EXISTS "discount_on_service" boolean DEFAULT false NOT NULL;
+ALTER TABLE "condominio_app"."service_inspections" ADD COLUMN IF NOT EXISTS "provider_arrived_at" timestamp with time zone;
+
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "title" varchar(180);
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "scope_description" text;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "itemized_materials" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "other_costs_cents" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "discount_cents" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "inspection_discount_cents" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "conditions" text;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "user_ip" varchar(60);
+
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "visit_commission_percent" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "processing_fee_payer" varchar(20) DEFAULT 'PROVIDER' NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "estimated_psp_fee_percent" numeric(4,2) DEFAULT 3.50;
 `;
 
 let setup: Promise<void> | null = null;

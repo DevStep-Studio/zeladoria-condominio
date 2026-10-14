@@ -13,12 +13,16 @@ import {
 import { requireCondo, requireProvider, requireRole, requireSession } from "@/lib/auth";
 import {
   completeInspectionDiagnosis,
+  customerAcceptContractAddendum,
   customerAcceptProposalAndPay,
   customerConfirmServiceCompletion,
   customerOpenDispute,
+  customerRequestWarranty,
   customerSelectInspectionSlot,
   getMarketplaceSettings,
   processPaymentWebhook,
+  providerCheckInInspection,
+  providerCreateContractAddendum,
   providerRespondInspection,
   sendDigitalProposal,
 } from "@/lib/services/payments/payment-service";
@@ -30,6 +34,7 @@ export async function providerRespondInspectionAction(payload: {
   requestId: number;
   type: "gratuita" | "paga";
   priceCents: number;
+  discountOnService?: boolean;
   estimatedDurationMinutes?: number;
   notes?: string;
   availableSlots: { date: string; time: string; label?: string }[];
@@ -47,6 +52,7 @@ export async function providerRespondInspectionAction(payload: {
       vendorId: vendor.id,
       type: payload.type,
       priceCents: payload.priceCents,
+      discountOnService: payload.discountOnService,
       estimatedDurationMinutes: payload.estimatedDurationMinutes,
       notes: payload.notes,
       availableSlots: payload.availableSlots,
@@ -90,6 +96,24 @@ export async function customerSelectInspectionSlotAction(payload: {
 }
 
 /**
+ * 2.1 Prestador realiza check-in no local da vistoria
+ */
+export async function providerCheckInInspectionAction(inspectionId: number) {
+  try {
+    const { vendor } = await requireProvider();
+    if (!vendor) return { success: false, error: "Não autorizado." };
+
+    const result = await providerCheckInInspection({ inspectionId, vendorId: vendor.id });
+    revalidatePath("/prestador/chamados");
+    revalidatePath("/painel/servicos");
+    return result;
+  } catch (err: any) {
+    console.error("Erro em providerCheckInInspectionAction:", err);
+    return { success: false, error: err?.message || "Erro ao registrar check-in." };
+  }
+}
+
+/**
  * 3. Prestador registra diagnóstico e fotos da vistoria realizada
  */
 export async function completeInspectionDiagnosisAction(payload: {
@@ -122,10 +146,16 @@ export async function completeInspectionDiagnosisAction(payload: {
 export async function sendDigitalProposalAction(payload: {
   requestId: number;
   inspectionId?: number;
+  title?: string;
+  scopeDescription?: string;
+  itemizedMaterials?: { name: string; amountCents: number; quantity?: number }[];
   laborCents: number;
   materialsCents: number;
+  otherCostsCents?: number;
+  discountCents?: number;
   estimatedDays: number;
   warrantyDays?: number;
+  conditions?: string;
   description: string;
 }) {
   try {
@@ -315,7 +345,97 @@ export async function getMarketplaceSettingsAction() {
         inspectionFeeMaxCents: 15000,
         disputeWindowHours: 48,
         autoReleaseHours: 72,
+        processingFeePayer: "PROVIDER",
+        estimatedPspFeePercent: 3.5,
+        visitCommissionPercent: 0,
       },
     };
+  }
+}
+
+/**
+ * 11. Prestador propõe aditivo contratual de escopo (Cláusulas 41-42)
+ */
+export async function providerCreateContractAddendumAction(payload: {
+  requestId: number;
+  quoteId: number;
+  title: string;
+  description: string;
+  additionalAmountCents: number;
+}) {
+  try {
+    const { vendor } = await requireProvider();
+    if (!vendor) return { success: false, error: "Não autorizado." };
+
+    if (!payload.title?.trim() || !payload.description?.trim()) {
+      return { success: false, error: "Título e descrição do aditivo são obrigatórios." };
+    }
+    if (payload.additionalAmountCents <= 0) {
+      return { success: false, error: "O valor adicional deve ser superior a zero." };
+    }
+
+    const addendum = await providerCreateContractAddendum({
+      ...payload,
+      vendorId: vendor.id,
+    });
+
+    revalidatePath("/prestador/chamados");
+    revalidatePath("/painel/servicos");
+    return { success: true, addendumId: addendum.id };
+  } catch (err: any) {
+    console.error("Erro em providerCreateContractAddendumAction:", err);
+    return { success: false, error: err?.message || "Erro ao propor aditivo de escopo." };
+  }
+}
+
+/**
+ * 12. Morador aceita aditivo de escopo e gera cobrança complementar
+ */
+export async function customerAcceptContractAddendumAction(payload: {
+  addendumId: number;
+  billingType?: "PIX" | "CREDIT_CARD";
+}) {
+  try {
+    const { session } = await requireCondo();
+    const result = await customerAcceptContractAddendum({
+      addendumId: payload.addendumId,
+      customerId: session.user.id,
+      billingType: payload.billingType,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, ...result };
+  } catch (err: any) {
+    console.error("Erro em customerAcceptContractAddendumAction:", err);
+    return { success: false, error: err?.message || "Erro ao aprovar aditivo contratual." };
+  }
+}
+
+/**
+ * 13. Morador solicita retorno em garantia pós-serviço (Cláusulas 74-76)
+ */
+export async function customerRequestWarrantyAction(payload: {
+  requestId: number;
+  description: string;
+}) {
+  try {
+    const { session } = await requireCondo();
+    if (!payload.description?.trim()) {
+      return { success: false, error: "Informe os detalhes do problema em garantia." };
+    }
+
+    const ticket = await customerRequestWarranty({
+      requestId: payload.requestId,
+      customerId: session.user.id,
+      description: payload.description,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, ticketId: ticket.id };
+  } catch (err: any) {
+    console.error("Erro em customerRequestWarrantyAction:", err);
+    return { success: false, error: err?.message || "Erro ao abrir solicitação de garantia." };
   }
 }
