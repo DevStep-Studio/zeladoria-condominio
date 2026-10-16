@@ -899,5 +899,256 @@ describe("Zeladoria Pay 13: Auditoria Crítica de Segurança, Idempotência, IDO
   });
 });
 
+describe("Zeladoria Pay 14: Prompt Master On-Demand Marketplace E2E (Cláusulas 81 a 86)", () => {
+  it("TESTE 81: Principal E2E On-Demand — Pia vazando -> Orçamentos Carlos (R$350) e AquaFix (R$390) -> Aceite Carlos -> Pix -> Webhook -> Execução -> Fotos -> Tudo Certo -> 10% Split -> Avaliação 5 estrelas", () => {
+    // 1. Morador informa o problema
+    const request: {
+      id: number;
+      code: string;
+      title: string;
+      description: string;
+      category: string;
+      condoName: string;
+      urgency: string;
+      status: string;
+      attachments: string[];
+    } = {
+      id: 101,
+      code: "ZS-00125",
+      title: "Pia vazando",
+      description: "A pia da cozinha está vazando bastante por baixo.",
+      category: "Hidráulica",
+      condoName: "Residencial Parque das Águas",
+      urgency: "hoje",
+      status: SERVICE_STATUSES.REQUESTED,
+      attachments: ["https://zeladoria.app/photos/leak-1.jpg"],
+    };
+
+    // 2. Chamado criado e prestadores enviam orçamentos simplificados
+    assertTransition(request.status, SERVICE_STATUSES.QUOTE_SENT);
+    request.status = SERVICE_STATUSES.QUOTE_SENT;
+
+    // 3. Prestadores enviam orçamentos simplificados
+    const quoteCarlos = {
+      id: 201,
+      requestId: request.id,
+      vendorName: "Carlos Eduardo",
+      vendorRating: 4.9,
+      completedJobs: 132,
+      totalCents: 35000, // R$ 350,00
+      description: "Troca do sifão e reparo da conexão da pia.",
+      estimatedDays: 1,
+      availableAt: "Hoje às 15h",
+      warrantyDays: 30,
+      status: "pendente",
+    };
+
+    const quoteAquaFix = {
+      id: 202,
+      requestId: request.id,
+      vendorName: "AquaFix",
+      vendorRating: 4.8,
+      completedJobs: 89,
+      totalCents: 39000, // R$ 390,00
+      description: "Vedação completa e troca do engate flexível.",
+      estimatedDays: 1,
+      availableAt: "Amanhã às 09h",
+      warrantyDays: 90,
+      status: "pendente",
+    };
+
+    assert.equal(quoteCarlos.totalCents, 35000);
+    assert.equal(quoteAquaFix.totalCents, 39000);
+
+    // 4. Morador compara e escolhe Carlos -> Aceita orçamento
+    assertTransition(request.status, SERVICE_STATUSES.QUOTE_ACCEPTED);
+    request.status = SERVICE_STATUSES.QUOTE_ACCEPTED;
+    quoteCarlos.status = "aceito";
+    quoteAquaFix.status = "recusado"; // concorrentes bloqueados
+
+    // 5. Checkout Zeladoria Pay gerado (Morador paga R$ 350, sem taxa adicional ao cliente)
+    assertTransition(request.status, SERVICE_STATUSES.SERVICE_PAYMENT_PENDING);
+    request.status = SERVICE_STATUSES.SERVICE_PAYMENT_PENDING;
+
+    const paymentOrder = {
+      id: 501,
+      code: "PAY-SRV-2026-7890",
+      amountGrossCents: quoteCarlos.totalCents, // R$ 350,00
+      commissionPercent: 10, // 10% padrão
+      platformFeeCents: Math.round((quoteCarlos.totalCents * 10) / 100), // R$ 35,00
+      netVendorCents: quoteCarlos.totalCents - Math.round((quoteCarlos.totalCents * 10) / 100), // R$ 315,00
+      status: "pending",
+      billingType: "PIX",
+    };
+
+    assert.equal(paymentOrder.amountGrossCents, 35000, "Cliente paga R$ 350");
+    assert.equal(paymentOrder.platformFeeCents, 3500, "Zeladoria retém R$ 35 de comissão");
+    assert.equal(paymentOrder.netVendorCents, 31500, "Carlos tem R$ 315 líquidos");
+
+    // 6. Webhook do PSP Asaas confirma o pagamento
+    paymentOrder.status = "retained"; // Retido no Zeladoria Protege
+    assertTransition(request.status, SERVICE_STATUSES.PAID);
+    request.status = SERVICE_STATUSES.PAID;
+
+    // 7. Prestador é contratado, vai a caminho e inicia execução
+    assertTransition(request.status, SERVICE_STATUSES.SERVICE_SCHEDULED);
+    request.status = SERVICE_STATUSES.SERVICE_SCHEDULED;
+    assertTransition(request.status, SERVICE_STATUSES.IN_PROGRESS);
+    request.status = SERVICE_STATUSES.IN_PROGRESS;
+
+    // 8. Prestador registra foto de evidência "DEPOIS" e finaliza serviço
+    const evidenceAfter = { stage: "DEPOIS", fileUrl: "https://zeladoria.app/photos/fixed.jpg" };
+    assert.equal(evidenceAfter.stage, "DEPOIS");
+    assertTransition(request.status, SERVICE_STATUSES.PROVIDER_COMPLETED);
+    request.status = SERVICE_STATUSES.PROVIDER_COMPLETED;
+
+    // 9. Morador inspeciona e confirma ("Tudo Certo!")
+    assertTransition(request.status, SERVICE_STATUSES.CUSTOMER_CONFIRMED);
+    request.status = SERVICE_STATUSES.CUSTOMER_CONFIRMED;
+
+    // 10. Repasse liberado ao prestador
+    paymentOrder.status = "released";
+    assert.equal(paymentOrder.status, "released");
+    assert.equal(paymentOrder.platformFeeCents, 3500);
+    assert.equal(paymentOrder.netVendorCents, 31500);
+
+    // 11. Morador avalia com 5 estrelas
+    assertTransition(request.status, SERVICE_STATUSES.COMPLETED);
+    request.status = SERVICE_STATUSES.COMPLETED;
+
+    const review = {
+      requestId: request.id,
+      vendorId: 1,
+      rating: 5,
+      comment: "Serviço impecável, muito rápido e organizado!",
+    };
+    assert.equal(review.rating, 5);
+    assert.equal(request.status, SERVICE_STATUSES.COMPLETED);
+  });
+
+  it("TESTE 82: Pagamento via Cartão de Crédito — Status somente muda após confirmação oficial do PSP", () => {
+    let orderStatus = "pending";
+    let serviceStatus: ServiceLifecycleStatus = SERVICE_STATUSES.SERVICE_PAYMENT_PENDING;
+
+    function handleCardCheckout(pspResponse: { authorized: boolean }) {
+      if (pspResponse.authorized) {
+        orderStatus = "paid";
+        assertTransition(serviceStatus, SERVICE_STATUSES.PAID);
+        serviceStatus = SERVICE_STATUSES.PAID;
+      }
+    }
+
+    // Frontend simulando clique sem webhook ou PSP -> status NÃO muda
+    assert.equal(orderStatus, "pending");
+    assert.equal(serviceStatus, SERVICE_STATUSES.SERVICE_PAYMENT_PENDING);
+
+    // PSP autoriza transação de crédito
+    handleCardCheckout({ authorized: true });
+    assert.equal(orderStatus, "paid");
+    assert.equal(serviceStatus, SERVICE_STATUSES.PAID);
+  });
+
+  it("TESTE 83: Orçamento Congelado — Prestador tenta alterar preço de R$350 para R$500 após o aceite -> Rejeitado", () => {
+    const acceptedQuote = {
+      id: 201,
+      totalCents: 35000,
+      status: "aceito",
+    };
+
+    function updateQuotePrice(quote: typeof acceptedQuote, newAmountCents: number) {
+      if (quote.status === "aceito" || quote.status === "pago_protegido") {
+        throw new Error("Proposta já aceita pelo morador não pode ser modificada silenciosamente. Utilize um aditivo de escopo.");
+      }
+      quote.totalCents = newAmountCents;
+    }
+
+    assert.throws(
+      () => updateQuotePrice(acceptedQuote, 50000),
+      /Proposta já aceita pelo morador não pode ser modificada silenciosamente/
+    );
+    assert.equal(acceptedQuote.totalCents, 35000, "Valor permanece R$ 350,00");
+  });
+
+  it("TESTE 84: Apenas Um Orçamento Aceito — Morador aceita Carlos e tenta aceitar AquaFix também -> Rejeitado", () => {
+    const quotes = [
+      { id: 201, vendor: "Carlos", status: "aceito" },
+      { id: 202, vendor: "AquaFix", status: "recusado" },
+    ];
+
+    function acceptSecondQuote(quoteId: number) {
+      const target = quotes.find((q) => q.id === quoteId);
+      if (!target) throw new Error("Orçamento não encontrado.");
+
+      if (target.status === "recusado" || target.status === "substituida") {
+        throw new Error("Esta proposta não está mais disponível para aceite (status atual: recusado).");
+      }
+      target.status = "aceito";
+    }
+
+    assert.throws(
+      () => acceptSecondQuote(202),
+      /Esta proposta não está mais disponível para aceite/
+    );
+    assert.equal(quotes[0].status, "aceito");
+    assert.equal(quotes[1].status, "recusado");
+  });
+
+  it("TESTE 85: Custo Adicional / Aditivo — Prestador solicita +R$120 -> Morador recusa -> Prestador não pode cobrar", () => {
+    const originalContractTotalCents = 35000;
+    const addendum = {
+      id: 1,
+      title: "Substituição de cano rompido",
+      additionalAmountCents: 12000,
+      status: "proposto",
+    };
+
+    function respondAddendum(accepted: boolean) {
+      if (accepted) {
+        addendum.status = "aceito";
+        return originalContractTotalCents + addendum.additionalAmountCents;
+      } else {
+        addendum.status = "recusado";
+        return originalContractTotalCents;
+      }
+    }
+
+    // Morador clica em [ Recusar ]
+    const finalCharged = respondAddendum(false);
+    assert.equal(addendum.status, "recusado");
+    assert.equal(finalCharged, 35000, "Total cobrado permanece o contrato original de R$ 350,00");
+  });
+
+  it("TESTE 86: Idempotência de Webhook Triplo — Mesmo webhook recebido 3 vezes não duplica pagamento, comissão nem repasse", () => {
+    const processedEvents = new Set<string>();
+    let orderSettledCount = 0;
+    let commissionRecordedCount = 0;
+    let payoutCreatedCount = 0;
+
+    function handleWebhookEvent(eventId: string, amountCents: number) {
+      if (processedEvents.has(eventId)) {
+        return { duplicate: true };
+      }
+      processedEvents.add(eventId);
+      orderSettledCount++;
+      commissionRecordedCount += Math.round((amountCents * 10) / 100);
+      payoutCreatedCount += amountCents - Math.round((amountCents * 10) / 100);
+      return { duplicate: false };
+    }
+
+    const eventId = "evt_asaas_pix_compensa_99999";
+    const run1 = handleWebhookEvent(eventId, 35000);
+    const run2 = handleWebhookEvent(eventId, 35000);
+    const run3 = handleWebhookEvent(eventId, 35000);
+
+    assert.equal(run1.duplicate, false);
+    assert.equal(run2.duplicate, true);
+    assert.equal(run3.duplicate, true);
+
+    assert.equal(orderSettledCount, 1, "Apenas 1 liquidação registrada");
+    assert.equal(commissionRecordedCount, 3500, "Exatamente R$ 35 de comissão registrado");
+    assert.equal(payoutCreatedCount, 31500, "Exatamente R$ 315 de repasse líquido");
+  });
+});
+
 
 

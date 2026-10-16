@@ -1,6 +1,6 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/db";
-import { serviceRequests, users, vendors } from "@/db/schema";
+import { condominiums, serviceQuotes, serviceRequests, users, vendors } from "@/db/schema";
 import { requireProvider } from "@/lib/auth";
 import { ProviderChamadosClient } from "./chamados-client";
 
@@ -36,7 +36,9 @@ export default async function PrestadorChamadosPage() {
       scheduledDate: serviceRequests.scheduledDate,
       scheduledTimeSlot: serviceRequests.scheduledTimeSlot,
       location: serviceRequests.location,
+      attachments: serviceRequests.attachments,
       status: serviceRequests.status,
+      vendorId: serviceRequests.vendorId,
       estimatedAmountCents: serviceRequests.estimatedAmountCents,
       finalAmountCents: serviceRequests.finalAmountCents,
       createdAt: serviceRequests.createdAt,
@@ -44,9 +46,11 @@ export default async function PrestadorChamadosPage() {
       completedAt: serviceRequests.completedAt,
       customerName: users.name,
       customerPhone: users.phone,
+      condoName: condominiums.name,
     })
     .from(serviceRequests)
     .innerJoin(users, eq(users.id, serviceRequests.customerId))
+    .leftJoin(condominiums, eq(condominiums.id, serviceRequests.condoId))
     .where(
       and(
         eq(serviceRequests.condoId, targetVendor.condoId),
@@ -54,12 +58,29 @@ export default async function PrestadorChamadosPage() {
           eq(serviceRequests.vendorId, targetVendor.id),
           and(
             eq(serviceRequests.category, targetVendor.category),
-            eq(serviceRequests.status, "buscando_prestador")
+            inArray(serviceRequests.status, [
+              "solicitado",
+              "buscando_prestador",
+              "proposta_enviada",
+              "aguardando_orcamentos",
+            ])
           )
         )
       )
     )
     .orderBy(desc(serviceRequests.createdAt));
 
-  return <ProviderChamadosClient vendor={targetVendor} requests={requests} />;
+  const vendorQuotes = await db
+    .select()
+    .from(serviceQuotes)
+    .where(eq(serviceQuotes.vendorId, targetVendor.id))
+    .orderBy(desc(serviceQuotes.createdAt));
+
+  return (
+    <ProviderChamadosClient
+      vendor={targetVendor}
+      requests={requests}
+      quotes={vendorQuotes}
+    />
+  );
 }

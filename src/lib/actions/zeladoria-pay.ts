@@ -165,6 +165,7 @@ export async function sendDigitalProposalAction(payload: {
   otherCostsCents?: number;
   discountCents?: number;
   estimatedDays: number;
+  availableAt?: string;
   warrantyDays?: number;
   conditions?: string;
   description: string;

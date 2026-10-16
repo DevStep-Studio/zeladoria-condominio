@@ -534,6 +534,7 @@ export const vendors = appSchema.table("vendors", {
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
   verifiedById: integer("verified_by_id"),
   sponsored: boolean("sponsored").notNull().default(false), // Anúncio patrocinado (separado de ranking)
+  completedJobs: integer("completed_jobs").default(0), // Total de serviços realizados e finalizados com sucesso
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -593,6 +594,7 @@ export const serviceQuotes = appSchema.table("service_quotes", {
   inspectionDiscountCents: integer("inspection_discount_cents").notNull().default(0), // Desconto da vistoria paga
   totalCents: integer("total_cents").notNull().default(0),
   description: text("description").notNull(),
+  availableAt: varchar("available_at", { length: 120 }), // Ex: "Hoje após 15h", "Amanhã às 09h"
   conditions: text("conditions"),
   estimatedDays: integer("estimated_days").default(1),
   warrantyDays: integer("warranty_days").default(90), // Garantia informada pelo prestador no Zeladoria Protege

@@ -28,66 +28,76 @@ export function ProviderGanhosClient({
     ? orders.filter((o) => o.status === "retained" || o.status === "in_dispute").reduce((acc, o) => acc + (o.netVendorCents || 0), 0)
     : 0;
 
+  const releasedCents = hasOrders
+    ? orders.filter((o) => o.status === "released" || o.status === "paid").reduce((acc, o) => acc + (o.netVendorCents || 0), 0)
+    : netEarningsCents;
+
+  const processingCents = hasOrders
+    ? orders.filter((o) => o.status === "processing").reduce((acc, o) => acc + (o.netVendorCents || 0), 0)
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="border-b border-slate-200/80 pb-4">
         <div className="flex items-center gap-2">
-          <span className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-            <Icon name="shield" size={16} />
+          <span className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <Icon name="dollar" size={18} />
           </span>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Ganhos & Extrato Zeladoria Pay
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Financeiro & Repasses
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Valores a receber, em processamento e recebidos com comissão de 10% da Zeladoria e split automatizado.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-slate-500 font-medium mt-1">
-          Acompanhamento transparente dos valores com split automático no PSP Asaas e proteção Zeladoria Protege.
-        </p>
       </div>
 
-      {/* Metrics Cards */}
+      {/* Metrics Cards: A receber | Em processamento | Recebido | Comissão Zeladoria */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
-        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Faturamento Bruto</span>
-            <Icon name="dollar" size={15} className="text-emerald-600" />
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-amber-800 font-bold uppercase">
+            <span>A receber (Retido)</span>
+            <Icon name="clock" size={16} className="text-amber-700" />
           </div>
-          <div className="text-2xl font-black text-slate-900">
-            R$ {(totalGrossCents / 100).toFixed(2)}
-          </div>
-          <p className="text-[11px] text-slate-500">{hasOrders ? orders.length : services.length} transação(ões)</p>
-        </div>
-
-        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Líquido do Prestador</span>
-            <Icon name="check-circle" size={15} className="text-emerald-600" />
-          </div>
-          <div className="text-2xl font-black text-emerald-700">
-            R$ {(netEarningsCents / 100).toFixed(2)}
-          </div>
-          <p className="text-[11px] text-slate-500">Split na subconta Asaas</p>
-        </div>
-
-        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Zeladoria Protege (Retido)</span>
-            <Icon name="clock" size={15} className="text-amber-600" />
-          </div>
-          <div className="text-2xl font-black text-amber-700">
+          <div className="text-2xl font-black text-amber-900">
             R$ {(retainedCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">Aguardando entrega do morador</p>
+          <p className="text-[11px] text-amber-700 font-medium">Zeladoria Protege ativo</p>
         </div>
 
-        <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs space-y-1">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-5 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#0055D4] font-bold uppercase">
+            <span>Em processamento</span>
+            <Icon name="zap" size={16} className="text-[#0055D4]" />
+          </div>
+          <div className="text-2xl font-black text-blue-950">
+            R$ {(processingCents / 100).toFixed(2)}
+          </div>
+          <p className="text-[11px] text-blue-700 font-medium">Split em andamento no PSP</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-emerald-800 font-bold uppercase">
+            <span>Recebido (Líquido)</span>
+            <Icon name="check-circle" size={16} className="text-emerald-700" />
+          </div>
+          <div className="text-2xl font-black text-emerald-800">
+            R$ {(releasedCents / 100).toFixed(2)}
+          </div>
+          <p className="text-[11px] text-emerald-700 font-medium">Disponível para saque</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Taxa da Plataforma</span>
-            <Icon name="shield" size={15} className="text-slate-400" />
+            <span>Comissão Zeladoria</span>
+            <Icon name="shield" size={16} className="text-slate-400" />
           </div>
           <div className="text-2xl font-black text-slate-700">
             R$ {(totalFeesCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">Intermediação configurável</p>
+          <p className="text-[11px] text-slate-500 font-medium">10% padrão de intermediação</p>
         </div>
       </div>
 

@@ -29,6 +29,7 @@ import {
 import {
   customerSelectInspectionSlotAction,
   customerAcceptProposalAction,
+  customerAcceptContractAddendumAction,
   customerConfirmCompletionAction,
   customerOpenDisputeAction,
   simulateWebhookPaymentAction,
@@ -51,6 +52,7 @@ export function ServicosClient({
   messages = [],
   inspections = [],
   paymentOrders = [],
+  addendums = [],
   initialFavorites = [],
   vendors = [],
   providers = [],
@@ -67,6 +69,7 @@ export function ServicosClient({
   messages?: any[];
   inspections?: any[];
   paymentOrders?: any[];
+  addendums?: any[];
   initialFavorites?: number[];
   vendors?: any[];
   providers?: MarketplaceProvider[];
@@ -363,6 +366,10 @@ export function ServicosClient({
   const [receiptModalData, setReceiptModalData] = useState<any>(null);
   const [warrantyModalReq, setWarrantyModalReq] = useState<any>(null);
   const [selectedInspectionSlots, setSelectedInspectionSlots] = useState<Record<number, { date: string; time: string }>>({});
+  
+  // Marketplace: Ordenação de orçamentos e modal de resumo de aceite
+  const [quoteSortBy, setQuoteSortBy] = useState<Record<number, "recomendados" | "menor_preco" | "melhor_avaliacao" | "mais_rapido">>({});
+  const [selectedQuoteForAcceptance, setSelectedQuoteForAcceptance] = useState<{ quote: any; request: any } | null>(null);
 
   const handleSelectSlot = (reqId: number, slot: { date: string; time: string }) => {
     setSelectedInspectionSlots((prev) => ({ ...prev, [reqId]: slot }));
@@ -386,6 +393,15 @@ export function ServicosClient({
   const handleAcceptProposalZeladoriaProtege = (quoteId: number) => {
     startActionTransition(async () => {
       const res = await customerAcceptProposalAction({ quoteId });
+      if (res?.success) {
+        setServiceCheckoutData(res);
+      }
+    });
+  };
+
+  const handleAcceptAddendum = (addendumId: number) => {
+    startActionTransition(async () => {
+      const res = await customerAcceptContractAddendumAction({ addendumId });
       if (res?.success) {
         setServiceCheckoutData(res);
       }
@@ -465,12 +481,17 @@ export function ServicosClient({
     });
   };
 
-  const handleConfirmCompletion = (requestId: number) => {
+  const handleConfirmCompletion = (reqOrId: any) => {
+    const targetReq = typeof reqOrId === "object" ? reqOrId : marketplaceRequests.find((r) => r.id === reqOrId);
+    const reqId = typeof reqOrId === "object" ? reqOrId.id : reqOrId;
+
     startActionTransition(async () => {
-      const res = await customerConfirmCompletionAction(requestId);
+      const res = await customerConfirmCompletionAction(reqId);
       if (!res.success) {
-        // Fallback para ação legada caso não haja contrato Zeladoria Pay associado
-        await confirmServiceCompletionAction(requestId);
+        await confirmServiceCompletionAction(reqId);
+      }
+      if (targetReq) {
+        setReviewRequest(targetReq);
       }
     });
   };
@@ -682,61 +703,198 @@ export function ServicosClient({
                       {req.description}
                     </p>
 
-                    {/* Propostas de Orçamento Recebidas */}
-                    {reqQuotes.length > 0 && (req.status === "aguardando_orcamento" || req.status === "proposta_enviada") && (
-                      <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#0055D4] block">
-                            Proposta Digital & Zeladoria Protege ({reqQuotes.length}):
-                          </span>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                            <Icon name="shield" size={10} />
-                            <span>Garantia Assegurada</span>
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {reqQuotes.map((q) => (
-                            <div
-                              key={q.id}
-                              className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs"
-                            >
-                              <div className="space-y-1">
-                                <div className="font-bold text-[#0F172A]">{q.vendorName}</div>
-                                <div className="text-[11px] text-slate-500">
-                                  Mão de obra: <strong>R$ {(q.laborCents / 100).toFixed(2)}</strong> · Materiais: <strong>R$ {(q.materialsCents / 100).toFixed(2)}</strong> · Prazo: <strong>{q.estimatedDays} dia(s)</strong>
-                                </div>
-                                <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                                  <Icon name="check-circle" size={12} />
-                                  <span>Garantia informada: {q.warrantyDays || 90} dias (CDC)</span>
-                                </div>
-                                <p className="text-slate-600 italic">&quot;{q.description}&quot;</p>
-                              </div>
-
-                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                                <span className="text-base font-black text-[#0055D4]">
-                                  R$ {(q.totalCents / 100).toFixed(2)}
-                                </span>
-                                {q.status === "aceito" ? (
-                                  <span className="text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                                    Proposta Aceita
-                                  </span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAcceptProposalZeladoriaProtege(q.id)}
-                                    disabled={isActionPending}
-                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 font-bold cursor-pointer transition-colors shadow-xs flex items-center gap-1"
-                                  >
-                                    <Icon name="shield" size={13} />
-                                    <span>Pagar com Zeladoria Protege</span>
-                                  </button>
-                                )}
-                              </div>
+                    {/* Orçamentos para seu chamado */}
+                    {reqQuotes.length > 0 && !["concluido", "cancelado"].includes(req.status) && (
+                      <div className="p-4 rounded-2xl border border-blue-200 bg-blue-50/40 space-y-3.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-100 pb-2.5">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="h-6 w-6 rounded-lg bg-[#0055D4] text-white flex items-center justify-center font-bold text-xs">
+                                {reqQuotes.length}
+                              </span>
+                              <h4 className="text-sm font-black text-slate-900">
+                                Orçamentos para seu chamado
+                              </h4>
                             </div>
-                          ))}
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              Compare profissionais, avaliações e prazos. O valor do orçamento é o valor final garantido pelo Zeladoria Protege.
+                            </p>
+                          </div>
+
+                          {/* Ordenação Opcional */}
+                          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-[11px] self-start sm:self-auto">
+                            <span className="text-slate-400 font-bold px-1.5 text-[10px] uppercase">Ordenar:</span>
+                            {(["recomendados", "menor_preco", "melhor_avaliacao", "mais_rapido"] as const).map((mode) => {
+                              const currentMode = quoteSortBy[req.id] || "recomendados";
+                              const labels = {
+                                recomendados: "Recomendados",
+                                menor_preco: "Menor preço",
+                                melhor_avaliacao: "Melhor nota",
+                                mais_rapido: "Mais rápido",
+                              };
+                              return (
+                                <button
+                                  key={mode}
+                                  type="button"
+                                  onClick={() => setQuoteSortBy((prev) => ({ ...prev, [req.id]: mode }))}
+                                  className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                                    currentMode === mode
+                                      ? "bg-[#0055D4] text-white shadow-2xs"
+                                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {labels[mode]}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Lista de Orçamentos Ordenada */}
+                        <div className="space-y-2.5">
+                          {(() => {
+                            const mode = quoteSortBy[req.id] || "recomendados";
+                            const sorted = [...reqQuotes].sort((a, b) => {
+                              if (mode === "menor_preco") return a.totalCents - b.totalCents;
+                              if (mode === "melhor_avaliacao") return (b.vendorRating || 5) - (a.vendorRating || 5);
+                              if (mode === "mais_rapido") return (a.estimatedDays || 1) - (b.estimatedDays || 1);
+                              if (a.status === "aceito") return -1;
+                              if (b.status === "aceito") return 1;
+                              return (b.vendorRating || 5) - (a.vendorRating || 5) || a.totalCents - b.totalCents;
+                            });
+
+                            const hasAnyAccepted = reqQuotes.some((q) => q.status === "aceito");
+
+                            return sorted.map((q) => {
+                              const isThisAccepted = q.status === "aceito";
+                              return (
+                                <div
+                                  key={q.id}
+                                  className={`p-4 rounded-2xl bg-white border transition-all text-xs shadow-xs space-y-3 ${
+                                    isThisAccepted
+                                      ? "border-emerald-500 ring-2 ring-emerald-500/10"
+                                      : "border-slate-200/90 hover:border-slate-300"
+                                  }`}
+                                >
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="flex items-start gap-3">
+                                      {q.vendorPhoto ? (
+                                        <img
+                                          src={q.vendorPhoto}
+                                          alt={q.vendorName}
+                                          className="h-11 w-11 rounded-full object-cover border border-slate-200 shrink-0"
+                                        />
+                                      ) : (
+                                        <div className="h-11 w-11 rounded-full bg-blue-100 text-[#0055D4] flex items-center justify-center font-black text-sm shrink-0">
+                                          {(q.vendorName || "P")[0]}
+                                        </div>
+                                      )}
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                          <strong className="text-slate-900 text-sm font-black">
+                                            {q.vendorName}
+                                          </strong>
+                                          <span className="flex items-center text-amber-500 font-black text-[11px]">
+                                            ★ {(q.vendorRating || 4.9).toFixed(1)}
+                                          </span>
+                                        </div>
+                                        <div className="text-[11px] text-slate-500 mt-0.5">
+                                          {q.vendorCompletedJobs || 132} serviços realizados · {q.warrantyDays || 30} dias de garantia
+                                        </div>
+                                        <p className="text-slate-700 italic mt-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                          &quot;{q.description}&quot;
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    {/* Preço e Botão */}
+                                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                                      <div className="text-left sm:text-right">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                          Valor do Serviço
+                                        </span>
+                                        <span className="text-xl font-black text-[#0055D4]">
+                                          R$ {(q.totalCents / 100).toFixed(2)}
+                                        </span>
+                                        <span className="text-[10px] text-slate-500 block">
+                                          {q.availableAt ? `Disponível: ${q.availableAt}` : "Disponível Hoje"}
+                                        </span>
+                                      </div>
+
+                                      {isThisAccepted ? (
+                                        <span className="text-emerald-700 font-black bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                                          <Icon name="check-circle" size={14} />
+                                          <span>Orçamento Contratado</span>
+                                        </span>
+                                      ) : hasAnyAccepted ? (
+                                        <span className="text-slate-400 font-medium bg-slate-100 px-3 py-1.5 rounded-xl text-[11px]">
+                                          Não selecionado
+                                        </span>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          disabled={isActionPending}
+                                          onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
+                                          className="px-4 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+                                        >
+                                          <span>Aceitar orçamento</span>
+                                          <Icon name="arrow-right" size={13} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                     )}
+
+                    {/* Solicitações de Custo Adicional (Aditivos) */}
+                    {(addendums || [])
+                      .filter((a: any) => a.requestId === req.id && a.status === "proposto")
+                      .map((ad: any) => (
+                        <div
+                          key={ad.id}
+                          className="p-4 rounded-2xl border border-amber-300 bg-amber-50/80 text-xs space-y-2.5 text-amber-950"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="h-7 w-7 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center font-bold">
+                                <Icon name="alert" size={15} />
+                              </span>
+                              <div>
+                                <strong className="text-sm font-black text-slate-900 block">
+                                  Solicitação de Custo Adicional: {ad.title}
+                                </strong>
+                                <span className="text-[11px] text-amber-800">
+                                  O profissional identificou uma complexidade adicional no local.
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-lg font-black text-amber-900">
+                              + R$ {(ad.additionalAmountCents / 100).toFixed(2)}
+                            </span>
+                          </div>
+
+                          <p className="text-slate-800 bg-white p-3 rounded-xl border border-amber-200/70 leading-relaxed">
+                            {ad.description}
+                          </p>
+
+                          <div className="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              disabled={isActionPending}
+                              onClick={() => handleAcceptAddendum(ad.id)}
+                              className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5"
+                            >
+                              <Icon name="check-circle" size={13} />
+                              <span>Aceitar e Pagar Adicional</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
 
                     {/* Vistoria Técnica: Oferta do Prestador e Seleção de Horários */}
                     {(() => {
@@ -884,7 +1042,7 @@ export function ServicosClient({
                     )}
 
                     {/* Banner Prestador Informou Conclusão */}
-                    {["prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED"].includes(req.status) && (
+                    {["prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status) && (
                       <div className="p-3.5 rounded-xl border border-blue-300 bg-blue-50/70 space-y-2 text-xs text-blue-950">
                         <div className="flex items-center gap-2">
                           <Icon name="check-circle" size={16} className="text-[#0055D4] shrink-0" />
@@ -899,11 +1057,11 @@ export function ServicosClient({
                           <button
                             type="button"
                             disabled={isActionPending}
-                            onClick={() => handleConfirmCompletion(req.id)}
-                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer shadow-xs flex items-center gap-1"
+                            onClick={() => handleConfirmCompletion(req)}
+                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5"
                           >
-                            <Icon name="check-circle" size={13} />
-                            <span>Está tudo certo (Liberar Repasse)</span>
+                            <Icon name="check-circle" size={14} />
+                            <span>Está tudo certo (Liberar Repasse & Avaliar)</span>
                           </button>
                           <button
                             type="button"
@@ -946,7 +1104,7 @@ export function ServicosClient({
                           <>
                             <button
                               type="button"
-                              onClick={() => handleConfirmCompletion(req.id)}
+                              onClick={() => handleConfirmCompletion(req)}
                               disabled={isActionPending}
                               className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1"
                             >
@@ -1909,6 +2067,83 @@ export function ServicosClient({
         onSubmit={(desc) => warrantyModalReq && handleSubmitWarranty(warrantyModalReq.id, desc)}
         isPending={isActionPending}
       />
+
+      {/* MODAL RESUMO DO ACEITE (ZELADORIA PROTEGE) */}
+      {selectedQuoteForAcceptance && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-base font-black text-slate-900">Aceitar Orçamento</h2>
+                <p className="text-[11px] text-slate-500">Resumo da contratação e garantias</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQuoteForAcceptance(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer"
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Profissional:</span>
+                <strong className="text-slate-900 font-bold">{selectedQuoteForAcceptance.quote.vendorName}</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Chamado / Serviço:</span>
+                <span className="text-slate-800 font-medium truncate max-w-[200px]">{selectedQuoteForAcceptance.request.title}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Quando pode executar:</span>
+                <strong className="text-slate-800">{selectedQuoteForAcceptance.quote.availableAt || "Hoje às 15h"}</strong>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Garantia Informada:</span>
+                <strong className="text-emerald-700">{selectedQuoteForAcceptance.quote.warrantyDays || 30} dias de garantia</strong>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                <span className="text-sm font-bold text-slate-700">Valor do Serviço:</span>
+                <span className="text-xl font-black text-[#0055D4]">
+                  R$ {(selectedQuoteForAcceptance.quote.totalCents / 100).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-950 text-xs flex items-center gap-2">
+              <Icon name="shield" size={16} className="text-[#0055D4] shrink-0" />
+              <p className="text-[11px] leading-relaxed">
+                <strong>Zeladoria Protege:</strong> ✓ Contratação registrada em contrato imutável. Seu pagamento é protegido pelo Zeladoria Pay e só será liberado após a conclusão satisfatória do serviço.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                disabled={isActionPending}
+                onClick={() => {
+                  const quoteId = selectedQuoteForAcceptance.quote.id;
+                  setSelectedQuoteForAcceptance(null);
+                  handleAcceptProposalZeladoriaProtege(quoteId);
+                }}
+                className="w-full py-3 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
+              >
+                <Icon name="check-circle" size={16} />
+                <span>Continuar para Pagamento</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedQuoteForAcceptance(null)}
+                className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
+              >
+                Voltar e Comparar Outros
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

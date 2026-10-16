@@ -3,124 +3,144 @@
 import { useMemo, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { createMarketplaceRequestAction } from "@/lib/actions/marketplace";
-import type { MarketplaceProvider, ServiceOffering } from "@/lib/services/providers-data";
+import { inferCategory } from "@/lib/services/occurrence-inference";
+import type { MarketplaceProvider } from "@/lib/services/providers-data";
 
-const POPULAR_CATEGORIES: { id: string; name: string; icon: IconName; description: string }[] = [
-  { id: "eletrica", name: "Elétrica", icon: "zap", description: "Chuveiros, disjuntores, fiação e tomadas" },
-  { id: "hidraulica", name: "Hidráulica", icon: "droplet", description: "Vazamentos, registros, pias e ralos" },
-  { id: "climatizacao", name: "Climatização", icon: "wind", description: "Ar-condicionado, limpeza e recarga de gás" },
-  { id: "pintura", name: "Pintura", icon: "pencil", description: "Paredes, tetos, portas e acabamentos" },
-  { id: "marcenaria", name: "Marcenaria", icon: "wrench", description: "Armários, portas, ajustes e móveis sob medida" },
-  { id: "limpeza", name: "Limpeza", icon: "sparkles", description: "Faxina pós-obra, estofados e vidros" },
-  { id: "seguranca", name: "Segurança", icon: "shield", description: "Câmeras, alarmes e extintores" },
-  { id: "portoes", name: "Portões & Acessos", icon: "key", description: "Motores, fechaduras e controles" },
-  { id: "jardinagem", name: "Jardinagem", icon: "sparkles", description: "Poda, paisagismo e manutenção verde" },
-  { id: "servicos", name: "Outros Serviços", icon: "briefcase", description: "Pequenos reparos e serviços gerais" },
-];
-
-const QUICK_SERVICE_SUGGESTIONS: Record<string, string[]> = {
-  eletrica: ["Chuveiro queimou", "Disjuntor desarmando", "Instalação de tomada", "Troca de luminária / LED", "Quadro de força"],
-  hidraulica: ["Vazamento na pia", "Troca de registro", "Válvula de descarga", "Desentupimento de ralo", "Instalação de torneira"],
-  climatizacao: ["Ar-condicionado não gela", "Higienização / Limpeza", "Instalação de Split", "Recarga de gás"],
-  pintura: ["Pintura de quarto / sala", "Retoque de manchas", "Pintura de portas", "Massa corrida e lixamento"],
-  marcenaria: ["Regulagem de dobradiças", "Troca de puxadores", "Montagem de móveis", "Ajuste de porta"],
-  limpeza: ["Limpeza pesada / pós-obra", "Higienização de sofá", "Limpeza de vidros"],
-  seguranca: ["Instalação de câmera", "Fechadura digital", "Sensor de presença"],
-  portoes: ["Fechadura emperrada", "Controle de portão", "Troca de miolo"],
-  jardinagem: ["Poda de plantas", "Adubação e corte de grama"],
-  servicos: ["Instalação de varal / cortina", "Fixação de suporte de TV", "Pequenos consertos"],
+const CATEGORY_ICONS: Record<string, IconName> = {
+  hidraulica: "droplet",
+  vazamento: "droplet",
+  eletrica: "zap",
+  iluminacao: "zap",
+  climatizacao: "wind",
+  pintura: "pencil",
+  marcenaria: "wrench",
+  limpeza: "sparkles",
+  seguranca: "shield",
+  portao: "key",
+  portoes: "key",
+  jardinagem: "sparkles",
+  servicos: "briefcase",
+  outros: "briefcase",
 };
+
+const AVAILABLE_CATEGORIES = [
+  { id: "hidraulica", name: "Hidráulica", icon: "droplet" as IconName },
+  { id: "eletrica", name: "Elétrica", icon: "zap" as IconName },
+  { id: "climatizacao", name: "Climatização", icon: "wind" as IconName },
+  { id: "pintura", name: "Pintura", icon: "pencil" as IconName },
+  { id: "marcenaria", name: "Marcenaria", icon: "wrench" as IconName },
+  { id: "limpeza", name: "Limpeza", icon: "sparkles" as IconName },
+  { id: "seguranca", name: "Segurança", icon: "shield" as IconName },
+  { id: "portoes", name: "Portões & Acessos", icon: "key" as IconName },
+  { id: "jardinagem", name: "Jardinagem", icon: "sparkles" as IconName },
+  { id: "servicos", name: "Outros Serviços", icon: "briefcase" as IconName },
+];
 
 export function ServiceRequestWizard({
   provider,
   availableProviders = [],
-  initialService,
   onClose,
   onSuccess,
 }: {
   provider?: MarketplaceProvider | null;
   availableProviders?: MarketplaceProvider[];
-  initialService?: ServiceOffering;
+  initialService?: any;
   onClose: () => void;
   onSuccess?: () => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(initialService ? 2 : 1);
-  const [mode, setMode] = useState<"on_demand" | "quote">("on_demand");
-
-  // Category and provider state
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    provider?.category?.toLowerCase() || "eletrica"
-  );
-  const [selectedVendorId, setSelectedVendorId] = useState<number | null>(provider?.id ?? null);
-
-  // Service selection
-  const hasProviderServices = Boolean(provider?.servicesOffered && provider.servicesOffered.length > 0);
-  const [selectedServiceId, setSelectedServiceId] = useState<string>(
-    initialService?.id || (hasProviderServices ? provider!.servicesOffered[0].id : "custom")
-  );
-  const [customServiceName, setCustomServiceName] = useState<string>(initialService?.name || "");
-
-  // Step 2 & 3
+  // 1. O que está acontecendo?
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<"baixa" | "media" | "alta" | "urgente">("media");
-  const [location, setLocation] = useState("Minha Unidade (Apto)");
-  const [preferredTime, setPreferredTime] = useState("Qualquer horário");
-  const [preferredDate, setPreferredDate] = useState("O quanto antes");
 
-  // Status
+  // 2. Categoria (com inferência automática)
+  const inferred = useMemo(() => inferCategory(description), [description]);
+  const [overrideCategory, setOverrideCategory] = useState<string | null>(null);
+  const [isChangingCategory, setIsChangingCategory] = useState(false);
+
+  const activeCategoryKey = overrideCategory || inferred.key || (provider?.category?.toLowerCase()) || "servicos";
+  const activeCategoryLabel =
+    AVAILABLE_CATEGORIES.find((c) => c.id === activeCategoryKey)?.name ||
+    inferred.label ||
+    "Serviços Gerais";
+
+  // 3. Fotos
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoInput, setPhotoInput] = useState("");
+  const [showPhotoUrlInput, setShowPhotoUrlInput] = useState(false);
+
+  // 4. Local (Contexto do condomínio)
+  const [locationType, setLocationType] = useState<"minha_unidade" | "area_comum" | "outro">("minha_unidade");
+  const [customLocation, setCustomLocation] = useState("");
+
+  // 5. Quando você precisa? (Agora, Hoje, Agendar)
+  const [urgency, setUrgency] = useState<"agora" | "hoje" | "agendar">("hoje");
+  const [scheduledDate, setScheduledDate] = useState(
+    new Date(Date.now() + 86400000).toISOString().split("T")[0]
+  );
+  const [scheduledTime, setScheduledTime] = useState("09:00 - 12:00");
+
+  // Status de Envio e Sucesso
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdCode, setCreatedCode] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Active chosen vendor info
-  const effectiveVendor = useMemo(() => {
-    if (provider) return provider;
-    if (selectedVendorId) {
-      return availableProviders.find((p) => p.id === selectedVendorId) ?? null;
+  const handleAddPhoto = () => {
+    if (!photoInput.trim()) return;
+    setPhotos([...photos, photoInput.trim()]);
+    setPhotoInput("");
+    setShowPhotoUrlInput(false);
+  };
+
+  const handleRemovePhoto = (idx: number) => {
+    setPhotos(photos.filter((_, i) => i !== idx));
+  };
+
+  const handleFileUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Mock data URL para visualização instantânea de preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setPhotos([...photos, reader.result]);
+        }
+      };
+      reader.readAsDataURL(file);
     }
-    return null;
-  }, [provider, selectedVendorId, availableProviders]);
+  };
 
-  // Providers filtered by current category
-  const categoryProviders = useMemo(() => {
-    return availableProviders.filter(
-      (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
-    );
-  }, [availableProviders, selectedCategory]);
+  const finalLocation =
+    locationType === "minha_unidade"
+      ? "Minha Unidade (Apto)"
+      : locationType === "area_comum"
+      ? "Área Comum do Condomínio"
+      : customLocation.trim() || "Outro local autorizado";
 
-  const selectedService = effectiveVendor?.servicesOffered?.find((s) => s.id === selectedServiceId);
-  const serviceTitle =
-    selectedService?.name ||
-    customServiceName.trim() ||
-    `Serviço de ${effectiveVendor?.category || selectedCategory}`;
+  const isFormValid = description.trim().length >= 8;
 
-  const isStep1Valid = Boolean(
-    (selectedServiceId && selectedServiceId !== "custom") ||
-    customServiceName.trim().length > 0 ||
-    !provider
-  );
-
-  const isStep2Valid = Boolean(description.trim().length >= 5);
-
-  const handleSubmit = () => {
-    if (!description.trim()) return;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) return;
     setErrorMessage(null);
 
     startTransition(async () => {
       try {
+        const title =
+          description.trim().length > 60
+            ? `${description.trim().slice(0, 57)}...`
+            : description.trim();
+
         const res = await createMarketplaceRequestAction({
-          vendorId: effectiveVendor?.id || null,
-          mode,
-          category: (effectiveVendor?.category || selectedCategory).toLowerCase(),
-          title: effectiveVendor
-            ? `${serviceTitle} (${effectiveVendor.name})`
-            : `${customServiceName.trim() || `Serviço de ${selectedCategory}`}`,
+          vendorId: provider?.id || null,
+          mode: urgency === "agora" ? "on_demand" : "quote",
+          category: activeCategoryKey,
+          title,
           description: description.trim(),
-          urgency: mode === "on_demand" ? "agora" : priority === "urgente" ? "urgente" : "hoje",
-          scheduledDate: preferredDate,
-          scheduledTimeSlot: preferredTime,
-          location: location.trim() || "Minha Unidade",
+          urgency,
+          scheduledDate: urgency === "agendar" ? scheduledDate : undefined,
+          scheduledTimeSlot: urgency === "agendar" ? scheduledTime : undefined,
+          location: finalLocation,
+          attachments: photos,
         });
 
         if (res?.success) {
@@ -128,11 +148,11 @@ export function ServiceRequestWizard({
           setCreatedCode(res.code || "");
           onSuccess?.();
         } else {
-          setErrorMessage(res?.error || "Não foi possível registrar a solicitação. Tente novamente.");
+          setErrorMessage(res?.error || "Não foi possível registrar o chamado. Tente novamente.");
         }
       } catch (err: any) {
-        console.error("Erro ao submeter chamado:", err);
-        setErrorMessage(err?.message || "Ocorreu um erro de comunicação com o servidor.");
+        console.error("Erro ao registrar chamado:", err);
+        setErrorMessage(err?.message || "Erro de conexão ao registrar o chamado.");
       }
     });
   };
@@ -151,26 +171,14 @@ export function ServiceRequestWizard({
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100 shrink-0">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
-                {mode === "on_demand" ? "Atendimento Sob Demanda" : "Solicitar Orçamento"}
-              </span>
-              {!isSuccess && (
-                <>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-xs font-bold text-slate-500">
-                    Etapa {step} de 4
-                  </span>
-                </>
-              )}
-            </div>
-            <h3 className="text-base font-bold text-[#0F172A] mt-0.5">
-              {effectiveVendor ? effectiveVendor.name : "Novo Pedido de Serviço"}
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
+              Zeladoria Serviços · Solicitação de Atendimento
+            </span>
+            <h3 className="text-base font-black text-[#0F172A] mt-0.5">
+              {provider ? `Solicitar orçamento com ${provider.name}` : "Encontrar Profissionais"}
             </h3>
             <p className="text-xs text-slate-500 font-medium">
-              {effectiveVendor
-                ? `${effectiveVendor.company || effectiveVendor.name} (${effectiveVendor.category})`
-                : "Receba propostas rápidas de profissionais credenciados"}
+              Descreva o problema e receba propostas de prestadores compatíveis.
             </p>
           </div>
 
@@ -184,489 +192,340 @@ export function ServiceRequestWizard({
           </button>
         </div>
 
-        {/* Progress Bar (4 steps) */}
-        {!isSuccess && (
-          <div className="grid grid-cols-4 gap-1.5 shrink-0">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  step >= i ? "bg-[#0055D4]" : "bg-slate-100"
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Modal Body with scrollable content */}
+        {/* Modal Body */}
         <div className="overflow-y-auto pr-1 flex-1 min-h-0">
-          {/* SUCCESS STATE */}
+          {/* TELA DE SUCESSO */}
           {isSuccess ? (
-            <div className="py-6 text-center space-y-3">
-              <div className="h-14 w-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-xs border border-emerald-100">
+            <div className="py-6 text-center space-y-4">
+              <div className="h-16 w-16 rounded-2xl bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto shadow-xs border border-blue-100">
                 <Icon name="check-circle" size={32} />
               </div>
-              <h4 className="text-base sm:text-lg font-bold text-[#0F172A]">
-                Solicitação Enviada com Sucesso!
-              </h4>
-              {createdCode && (
-                <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-mono font-bold text-slate-800">
-                  Código: {createdCode}
-                </div>
-              )}
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                {effectiveVendor ? (
-                  <>
-                    Os detalhes da sua solicitação foram enviados para{" "}
-                    <strong className="text-[#0F172A]">{effectiveVendor.name}</strong>. Você será notificado assim que o prestador confirmar.
-                  </>
-                ) : (
-                  <>
-                    Sua solicitação foi registrada no condomínio. Os profissionais qualificados receberão os detalhes para enviar propostas.
-                  </>
+
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Chamado Criado
+                </span>
+                <h4 className="text-lg font-black text-[#0F172A] mt-2">
+                  Estamos buscando profissionais
+                </h4>
+                {createdCode && (
+                  <div className="inline-block mt-1 px-3 py-1 bg-slate-100 rounded-full text-xs font-mono font-bold text-slate-800">
+                    Solicitação #{createdCode}
+                  </div>
                 )}
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1.5 text-left max-w-sm mx-auto">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Categoria:</span>
+                  <strong className="text-slate-800">{activeCategoryLabel}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Local:</span>
+                  <strong className="text-slate-800">{finalLocation}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Quando precisa:</span>
+                  <strong className="text-slate-800 capitalize">{urgency}</strong>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                Os prestadores credenciados e compatíveis da sua região já foram notificados. Assim que enviarem orçamentos, você poderá comparar valores e escolher o melhor.
               </p>
-              <div className="pt-3">
+
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-2.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                  className="w-full rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-3 text-xs font-black transition-colors cursor-pointer shadow-xs"
                 >
-                  Concluir e Acompanhar
+                  Acompanhar Chamados
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* ETAPA 1: ESCOLHER MODO E SERVIÇO */}
-              {step === 1 && (
-                <div className="space-y-4">
-                  {/* DOIS MODOS DE CONTRATAÇÃO */}
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                      Como deseja ser atendido?
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setMode("on_demand")}
-                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                          mode === "on_demand"
-                            ? "border-[#0055D4] bg-blue-50/70 text-[#0055D4] shadow-xs ring-1 ring-[#0055D4]"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="font-bold text-xs flex items-center gap-1.5">
-                          <Icon name="zap" size={13} className="text-[#FFD000] fill-[#FFD000]" />
-                          <span>Rápido / Sob Demanda</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
-                          Para consertos imediatos ou para hoje.
-                        </p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setMode("quote")}
-                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                          mode === "quote"
-                            ? "border-[#0055D4] bg-blue-50/70 text-[#0055D4] shadow-xs ring-1 ring-[#0055D4]"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="font-bold text-xs flex items-center gap-1.5">
-                          <Icon name="clipboard" size={13} className="text-[#0055D4]" />
-                          <span>Orçamento & Propostas</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
-                          Para reformas ou comparar valores.
-                        </p>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Se NÃO tiver prestador pré-definido, permite escolher Categoria */}
-                  {!provider && (
-                    <div>
-                      <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                        1. Selecione a Categoria do Serviço:
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-1">
-                        {POPULAR_CATEGORIES.map((cat) => {
-                          const isCatSelected = selectedCategory === cat.id;
-                          return (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedCategory(cat.id);
-                                setSelectedServiceId("custom");
-                                setSelectedVendorId(null);
-                              }}
-                              className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                                isCatSelected
-                                  ? "border-[#0055D4] bg-blue-50 text-[#0055D4] font-bold shadow-2xs"
-                                  : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
-                              }`}
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <Icon name={cat.icon} size={13} className={isCatSelected ? "text-[#0055D4]" : "text-slate-500"} />
-                                <span className="text-xs truncate">{cat.name}</span>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Se tiver prestador com serviços cadastrados */}
-                  {effectiveVendor && effectiveVendor.servicesOffered && effectiveVendor.servicesOffered.length > 0 ? (
-                    <div>
-                      <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                        Qual serviço de {effectiveVendor.name} você precisa?
-                      </label>
-                      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                        {effectiveVendor.servicesOffered.map((svc) => (
-                          <div
-                            key={svc.id}
-                            onClick={() => {
-                              setSelectedServiceId(svc.id);
-                              setCustomServiceName("");
-                            }}
-                            className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${
-                              selectedServiceId === svc.id
-                                ? "border-[#0055D4] bg-blue-50/60 shadow-2xs font-semibold"
-                                : "border-slate-200 hover:border-slate-300 bg-white"
-                            }`}
-                          >
-                            <div className="min-w-0 pr-2">
-                              <h5 className="text-xs font-bold text-[#0F172A] truncate">{svc.name}</h5>
-                              {svc.description && <p className="text-[10px] text-slate-500 truncate">{svc.description}</p>}
-                            </div>
-                            <span className="text-xs font-black text-[#0055D4] shrink-0">
-                              {svc.priceFromCents != null
-                                ? `R$ ${(svc.priceFromCents / 100).toFixed(0)}`
-                                : "Sob consulta"}
-                            </span>
-                          </div>
-                        ))}
-
-                        {/* Custom Option */}
-                        <div
-                          onClick={() => setSelectedServiceId("custom")}
-                          className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
-                            selectedServiceId === "custom"
-                              ? "border-[#0055D4] bg-blue-50/60 shadow-2xs"
-                              : "border-slate-200 hover:border-slate-300 bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Icon name="pencil" size={13} className="text-[#0055D4]" />
-                            <h5 className="text-xs font-bold text-[#0F172A]">
-                              Outro serviço / Diagnóstico sob medida
-                            </h5>
-                          </div>
-                          {selectedServiceId === "custom" && (
-                            <input
-                              type="text"
-                              placeholder="Descreva o nome do serviço (ex: Troca de tomada, instalação de luminária...)"
-                              value={customServiceName}
-                              onChange={(e) => setCustomServiceName(e.target.value)}
-                              className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Sugestões e input de serviço livre */
-                    <div>
-                      <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                        O que você precisa consertar ou instalar?
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex: Chuveiro desarmando disjuntor, torneira com vazamento..."
-                        value={customServiceName}
-                        onChange={(e) => setCustomServiceName(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
-                      />
-
-                      {/* Quick chips */}
-                      {QUICK_SERVICE_SUGGESTIONS[selectedCategory] && (
-                        <div className="mt-2">
-                          <span className="text-[10px] text-slate-400 font-semibold block mb-1">
-                            Sugestões frequentes:
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {QUICK_SERVICE_SUGGESTIONS[selectedCategory].map((sug) => (
-                              <button
-                                key={sug}
-                                type="button"
-                                onClick={() => setCustomServiceName(sug)}
-                                className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-medium transition-colors cursor-pointer"
-                              >
-                                {sug}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Optional category provider picker if available */}
-                      {categoryProviders.length > 0 && !provider && (
-                        <div className="mt-3 pt-2 border-t border-slate-100">
-                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                            Preferência de Prestador (Opcional):
-                          </label>
-                          <select
-                            value={selectedVendorId ?? ""}
-                            onChange={(e) => setSelectedVendorId(e.target.value ? Number(e.target.value) : null)}
-                            className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[#0055D4]"
-                          >
-                            <option value="">Qualquer prestador disponível no condomínio</option>
-                            {categoryProviders.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name} ({p.company || p.category}) - ⭐ {p.rating.toFixed(1)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  )}
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {errorMessage && (
+                <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-medium flex items-center gap-2">
+                  <Icon name="alert-triangle" size={14} className="shrink-0" />
+                  <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* ETAPA 2: DESCREVER O PROBLEMA */}
-              {step === 2 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-[#0F172A]">
-                      2. Descreva os detalhes do serviço
-                    </label>
-                    <span className="text-[10px] text-slate-400 font-medium">Mínimo 5 caracteres</span>
-                  </div>
+              {/* 1. PERGUNTA PRINCIPAL: O QUE ESTÁ ACONTECENDO? */}
+              <div className="space-y-1.5">
+                <label className="font-black text-[#0F172A] text-sm block">
+                  O que está acontecendo?
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Exemplo: A pia da cozinha está vazando bastante por baixo e precisa de reparo no sifão."
+                  rows={3}
+                  required
+                  className="w-full p-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 text-xs placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-1 focus:ring-[#0055D4] transition-all resize-none shadow-2xs"
+                />
+                <span className="text-[11px] text-slate-400">
+                  Descreva o problema com suas palavras para os profissionais entenderem o serviço.
+                </span>
+              </div>
 
-                  <textarea
-                    rows={4}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Explique o que está ocorrendo, marcas, cômodo ou peças que já possui. Ex: O disjuntor do chuveiro começou a desarmar após 10 minutos de banho."
-                    required
-                    className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] leading-relaxed resize-none shadow-2xs"
-                  />
-
-                  {/* Urgência */}
+              {/* 2. SUGESTÃO INTELIGENTE DE CATEGORIA */}
+              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-lg bg-[#0055D4] text-white flex items-center justify-center shrink-0">
+                    <Icon name={CATEGORY_ICONS[activeCategoryKey] || "briefcase"} size={16} />
+                  </span>
                   <div>
-                    <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                      Nível de urgência:
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: "baixa", label: "Normal (Sem pressa)" },
-                        { id: "media", label: "Moderada (Esta semana)" },
-                        { id: "urgente", label: "Urgente (Hoje / Rápido)" },
-                      ].map((item) => (
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      Categoria identificada
+                    </span>
+                    <strong className="text-xs text-[#0F172A] font-black">
+                      {activeCategoryLabel}
+                    </strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsChangingCategory(!isChangingCategory)}
+                  className="text-xs font-bold text-[#0055D4] hover:underline px-2 py-1 rounded cursor-pointer"
+                >
+                  {isChangingCategory ? "Fechar" : "Alterar"}
+                </button>
+              </div>
+
+              {/* Seletor de Categoria se clicou em alterar */}
+              {isChangingCategory && (
+                <div className="grid grid-cols-2 gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                  {AVAILABLE_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setOverrideCategory(cat.id);
+                        setIsChangingCategory(false);
+                      }}
+                      className={`flex items-center gap-1.5 p-2 rounded-lg text-left transition-colors cursor-pointer text-[11px] font-bold ${
+                        activeCategoryKey === cat.id
+                          ? "bg-[#0055D4] text-white shadow-xs"
+                          : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/60"
+                      }`}
+                    >
+                      <Icon name={cat.icon} size={13} />
+                      <span className="truncate">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* 3. FOTOS DO PROBLEMA */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">
+                  Fotos (Opcional, ajuda no orçamento)
+                </label>
+
+                {photos.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {photos.map((url, idx) => (
+                      <div key={idx} className="relative h-14 w-14 rounded-xl overflow-hidden border border-slate-200 group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Foto ${idx + 1}`} className="h-full w-full object-cover" />
                         <button
-                          key={item.id}
                           type="button"
-                          onClick={() => setPriority(item.id as any)}
-                          className={`p-2 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                            priority === item.id
-                              ? "border-[#0055D4] bg-[#0055D4] text-white shadow-xs"
-                              : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
-                          }`}
+                          onClick={() => handleRemovePhoto(idx)}
+                          className="absolute inset-0 bg-rose-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
-                          {item.label}
+                          <Icon name="trash" size={14} />
                         </button>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* ETAPA 3: PREFERÊNCIA DE HORÁRIO E LOCAL */}
-              {step === 3 && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] mb-1">
-                      3. Local da execução
-                    </label>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold cursor-pointer transition-colors text-[11px]">
+                    <Icon name="camera" size={13} />
+                    <span>Tirar / Enviar foto</span>
                     <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
-                      placeholder="Ex: Apto 302 - Bloco A"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUploadMock}
+                      className="hidden"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                      Quando prefere o atendimento?
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["Hoje mesmo", "Amanhã", "Final de semana", "O quanto antes"].map((dt) => (
-                        <button
-                          key={dt}
-                          type="button"
-                          onClick={() => setPreferredDate(dt)}
-                          className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                            preferredDate === dt
-                              ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-2xs"
-                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          {dt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] mb-1.5">
-                      Turno preferencial:
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["Manhã (08h-12h)", "Tarde (13h-18h)", "Qualquer horário"].map((turno) => (
-                        <button
-                          key={turno}
-                          type="button"
-                          onClick={() => setPreferredTime(turno)}
-                          className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                            preferredTime === turno
-                              ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-2xs"
-                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          {turno}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ETAPA 4: REVISÃO & CONFIRMAÇÃO */}
-              {step === 4 && (
-                <div className="space-y-3 text-xs">
-                  <label className="block text-xs font-bold text-[#0F172A]">
-                    4. Resumo da sua solicitação
                   </label>
 
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-slate-500 font-medium">Modo:</span>
-                      <span className="font-bold text-[#0055D4]">
-                        {mode === "on_demand" ? "⚡ Atendimento Rápido / Sob Demanda" : "📋 Orçamento & Propostas"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-slate-500 font-medium">Serviço:</span>
-                      <span className="font-bold text-[#0F172A] text-right truncate max-w-[200px]">{serviceTitle}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-slate-500 font-medium">Prestador:</span>
-                      <span className="font-bold text-[#0F172A]">
-                        {effectiveVendor ? effectiveVendor.name : "Qualquer prestador credenciado"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-slate-500 font-medium">Local:</span>
-                      <span className="font-bold text-[#0F172A]">{location || "Minha Unidade"}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-slate-500 font-medium">Agendamento:</span>
-                      <span className="font-bold text-[#0F172A]">
-                        {preferredDate} ({preferredTime})
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-500 font-medium block mb-1">Descrição:</span>
-                      <p className="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 text-[11px] leading-relaxed">
-                        {description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {errorMessage && (
-                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2">
-                      <Icon name="alert-triangle" size={14} className="shrink-0" />
-                      <span>{errorMessage}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-[11px] text-[#0055D4]">
-                    <Icon name="clock" size={14} className="shrink-0" />
-                    <span>
-                      Sua solicitação ficará disponível na aba &quot;Minhas Contratações&quot; para acompanhamento em tempo real.
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPhotoUrlInput(!showPhotoUrlInput)}
+                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-2 cursor-pointer"
+                  >
+                    Adicionar link
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {showPhotoUrlInput && (
+                  <div className="flex gap-1.5 pt-1">
+                    <input
+                      type="url"
+                      placeholder="https://exemplo.com/foto.jpg"
+                      value={photoInput}
+                      onChange={(e) => setPhotoInput(e.target.value)}
+                      className="flex-1 h-8 px-2.5 rounded-lg border border-slate-300 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddPhoto}
+                      className="px-3 h-8 bg-[#0055D4] text-white rounded-lg font-bold text-xs cursor-pointer"
+                    >
+                      Inserir
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. LOCALIZAÇÃO */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">Local do serviço</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setLocationType("minha_unidade")}
+                    className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
+                      locationType === "minha_unidade"
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Minha Unidade
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocationType("area_comum")}
+                    className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
+                      locationType === "area_comum"
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Área Comum
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocationType("outro")}
+                    className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
+                      locationType === "outro"
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Outro Local
+                  </button>
+                </div>
+
+                {locationType === "outro" && (
+                  <input
+                    type="text"
+                    placeholder="Ex: Garagem Bloco B, Vaga 12"
+                    value={customLocation}
+                    onChange={(e) => setCustomLocation(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 text-xs mt-1"
+                  />
+                )}
+              </div>
+
+              {/* 5. QUANDO VOCÊ PRECISA? (Urgência simples) */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">Quando você precisa?</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUrgency("agora")}
+                    className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                      urgency === "agora"
+                        ? "border-amber-500 bg-amber-50 text-amber-800 shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="text-xs font-black flex items-center justify-center gap-1">
+                      <Icon name="zap" size={12} className="text-amber-600" />
+                      <span>Agora</span>
+                    </div>
+                    <div className="text-[10px] font-normal text-slate-500 mt-0.5">Urgente</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setUrgency("hoje")}
+                    className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                      urgency === "hoje"
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="text-xs font-black">Hoje</div>
+                    <div className="text-[10px] font-normal text-slate-500 mt-0.5">Durante o dia</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setUrgency("agendar")}
+                    className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                      urgency === "agendar"
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="text-xs font-black">Agendar</div>
+                    <div className="text-[10px] font-normal text-slate-500 mt-0.5">Outro dia</div>
+                  </button>
+                </div>
+
+                {urgency === "agendar" && (
+                  <div className="grid grid-cols-2 gap-2 pt-1.5">
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="h-8 px-2 rounded-lg border border-slate-300 text-xs"
+                    />
+                    <select
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="h-8 px-2 rounded-lg border border-slate-300 text-xs bg-white"
+                    >
+                      <option value="Manhã (08h às 12h)">Manhã (08h às 12h)</option>
+                      <option value="Tarde (13h às 18h)">Tarde (13h às 18h)</option>
+                      <option value="Noite (18h às 21h)">Noite (18h às 21h)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* RESUMO & CTA DOMINANTE (SEÇÃO 10) */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={!isFormValid || isPending}
+                  className="w-full h-11 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                >
+                  {isPending ? (
+                    <span>Buscando profissionais...</span>
+                  ) : (
+                    <>
+                      <Icon name="search" size={16} />
+                      <span>Encontrar profissionais</span>
+                    </>
+                  )}
+                </button>
+                <p className="text-[10px] text-center text-slate-400 mt-1.5">
+                  Protegido por Zeladoria Protege · Sem compromisso
+                </p>
+              </div>
+            </form>
           )}
         </div>
-
-        {/* Stepper Navigation Buttons */}
-        {!isSuccess && (
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => (s - 1) as any)}
-                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
-              >
-                Voltar
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
-            )}
-
-            {step < 4 ? (
-              <button
-                type="button"
-                disabled={
-                  (step === 1 && !isStep1Valid) ||
-                  (step === 2 && !isStep2Valid)
-                }
-                onClick={() => setStep((s) => (s + 1) as any)}
-                className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Avançar
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={isPending || !description.trim()}
-                onClick={handleSubmit}
-                className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-6 py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
-              >
-                {isPending ? (
-                  <>
-                    <Icon name="refresh" size={13} className="animate-spin text-white" />
-                    <span>Enviando...</span>
-                  </>
-                ) : (
-                  <span>Confirmar e Enviar</span>
-                )}
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import {
   blocks,
   condominiums,
+  contractAddendums,
   customerFavorites,
   paymentOrders,
   serviceInspections,
@@ -43,6 +44,7 @@ export default async function ServicosPage() {
         scheduledDate: serviceRequests.scheduledDate,
         scheduledTimeSlot: serviceRequests.scheduledTimeSlot,
         location: serviceRequests.location,
+        attachments: serviceRequests.attachments,
         status: serviceRequests.status,
         vendorId: serviceRequests.vendorId,
         finalAmountCents: serviceRequests.finalAmountCents,
@@ -77,10 +79,13 @@ export default async function ServicosPage() {
           totalCents: serviceQuotes.totalCents,
           description: serviceQuotes.description,
           estimatedDays: serviceQuotes.estimatedDays,
+          availableAt: serviceQuotes.availableAt,
+          warrantyDays: serviceQuotes.warrantyDays,
           status: serviceQuotes.status,
           vendorName: vendors.name,
           vendorPhoto: vendors.photoUrl,
           vendorRating: vendors.rating,
+          vendorCompletedJobs: vendors.completedJobs,
         })
         .from(serviceQuotes)
         .leftJoin(vendors, eq(vendors.id, serviceQuotes.vendorId))
@@ -149,6 +154,20 @@ export default async function ServicosPage() {
         .orderBy(desc(paymentOrders.createdAt));
     } catch (err) {
       console.warn("Could not query payment_orders:", err);
+    }
+  }
+
+  // 4.3 Zeladoria Pay: Aditivos Contratuais (Custos adicionais aprovados/pendentes)
+  let addendumsList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      addendumsList = await db
+        .select()
+        .from(contractAddendums)
+        .where(inArray(contractAddendums.requestId, requestIds))
+        .orderBy(desc(contractAddendums.createdAt));
+    } catch (err) {
+      console.warn("Could not query contract_addendums:", err);
     }
   }
 
@@ -249,6 +268,7 @@ export default async function ServicosPage() {
       messages={messagesList}
       inspections={inspectionsList}
       paymentOrders={paymentOrdersList}
+      addendums={addendumsList}
       initialFavorites={userFavoriteIds}
       vendors={vendorList}
       providers={providers}

@@ -1170,6 +1170,7 @@ ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "other_co
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "discount_cents" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "inspection_discount_cents" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "conditions" text;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "available_at" varchar(120);
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "user_ip" varchar(60);
 
 ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "contract_id" integer;
@@ -1189,6 +1190,7 @@ ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "in
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "payouts_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "zeladoria_protege_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "max_installments" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "completed_jobs" integer DEFAULT 0;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");

@@ -520,7 +520,7 @@ export function ProviderDiagnosisModal({
   );
 }
 
-// 4. MODAL: PRESTADOR ENVIA PROPOSTA DIGITAL (MÃO DE OBRA + PEÇAS + GARANTIA CDC)
+// 4. MODAL: PRESTADOR ENVIA ORÇAMENTO DIGITAL (5 CAMPOS SIMPLES: VALOR, SERVIÇO, PRAZO, DISPONIBILIDADE, GARANTIA)
 export function ProviderDigitalProposalModal({
   isOpen,
   onClose,
@@ -535,29 +535,31 @@ export function ProviderDigitalProposalModal({
     laborCents: number;
     materialsCents: number;
     estimatedDays: number;
+    availableAt?: string;
     warrantyDays: number;
     description: string;
   }) => void;
   isPending: boolean;
 }) {
-  const [laborVal, setLaborVal] = useState("250.00");
-  const [materialsVal, setMaterialsVal] = useState("90.00");
-  const [days, setDays] = useState(1);
-  const [warrantyDays, setWarrantyDays] = useState(90);
-  const [desc, setDesc] = useState("Execução completa do reparo hidráulico com substituição das peças danificadas.");
+  const [amountVal, setAmountVal] = useState("350.00");
+  const [desc, setDesc] = useState("Troca do sifão e reparo da conexão da pia.");
+  const [estimatedDays, setEstimatedDays] = useState(1);
+  const [availableAt, setAvailableAt] = useState("Hoje após 15h");
+  const [warrantyDays, setWarrantyDays] = useState(30);
 
   if (!isOpen || !request) return null;
 
-  const laborCents = Math.round(parseFloat(laborVal || "0") * 100);
-  const materialsCents = Math.round(parseFloat(materialsVal || "0") * 100);
-  const totalCents = laborCents + materialsCents;
+  const totalCents = Math.round(parseFloat(amountVal || "0") * 100);
+  const commissionCents = Math.round((totalCents * 10) / 100);
+  const netEarningsCents = totalCents - commissionCents;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      laborCents,
-      materialsCents,
-      estimatedDays: days,
+      laborCents: totalCents,
+      materialsCents: 0,
+      estimatedDays,
+      availableAt,
       warrantyDays,
       description: desc,
     });
@@ -568,83 +570,126 @@ export function ProviderDigitalProposalModal({
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h2 className="text-base font-black text-slate-900">Enviar Proposta Digital</h2>
-            <p className="text-xs text-slate-500">Com proteção contratual Zeladoria Protege</p>
+            <h2 className="text-base font-black text-slate-900">Enviar Orçamento</h2>
+            <p className="text-xs text-slate-500">
+              Chamado #{request.code} — {request.title || "Serviço Residencial"}
+            </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer"
+          >
             <Icon name="x" size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Mão de Obra (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={laborVal}
-                onChange={(e) => setLaborVal(e.target.value)}
-                required
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 font-bold text-slate-900"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Materiais / Peças (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={materialsVal}
-                onChange={(e) => setMaterialsVal(e.target.value)}
-                required
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 font-bold text-slate-900"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Prazo Estimado (dias)</label>
-              <input
-                type="number"
-                min="1"
-                max="60"
-                value={days}
-                onChange={(e) => setDays(parseInt(e.target.value) || 1)}
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 font-bold text-slate-900"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Garantia Informada (dias)</label>
-              <input
-                type="number"
-                min="30"
-                max="365"
-                value={warrantyDays}
-                onChange={(e) => setWarrantyDays(parseInt(e.target.value) || 90)}
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 font-bold text-slate-900"
-              />
-              <span className="text-[10px] text-slate-400">Mínimo legal CDC: 90 dias</span>
-            </div>
-          </div>
-
+          {/* 1. Valor do Serviço */}
           <div>
-            <label className="font-bold text-slate-700 block mb-1">Detalhamento dos Serviços e Materiais</label>
+            <label className="font-bold text-slate-700 block mb-1">
+              Valor do Serviço (R$) <span className="text-rose-600">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
+              <input
+                type="number"
+                step="0.01"
+                min="10"
+                value={amountVal}
+                onChange={(e) => setAmountVal(e.target.value)}
+                required
+                placeholder="350,00"
+                className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-base text-slate-900 outline-none focus:border-[#0055D4]"
+              />
+            </div>
+            <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Comissão Zeladoria (10%): <strong>-R$ {(commissionCents / 100).toFixed(2)}</strong></span>
+              <span className="text-emerald-700 font-bold">Você recebe líquido: R$ {(netEarningsCents / 100).toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* 2. Descrição do Serviço */}
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">
+              Descrição do que será feito <span className="text-rose-600">*</span>
+            </label>
             <textarea
               rows={3}
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               required
-              className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs"
+              placeholder="Ex: Troca do sifão e vedação completa da tubulação com teste hidrostático..."
+              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
             />
           </div>
 
-          {/* Resumo do Total */}
-          <div className="p-3 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-between">
-            <span className="font-bold text-blue-900 text-xs">Valor Total da Proposta:</span>
-            <span className="text-lg font-black text-[#0055D4]">R$ {(totalCents / 100).toFixed(2)}</span>
+          {/* 3. Prazo e Disponibilidade */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Prazo Estimado (dias)</label>
+              <select
+                value={estimatedDays}
+                onChange={(e) => setEstimatedDays(parseInt(e.target.value) || 1)}
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+              >
+                <option value={1}>Mesmo dia (aproximadamente 1h - 4h)</option>
+                <option value={2}>Até 2 dias</option>
+                <option value={3}>Até 3 dias</option>
+                <option value={7}>Até 1 semana</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Quando pode executar</label>
+              <input
+                type="text"
+                value={availableAt}
+                onChange={(e) => setAvailableAt(e.target.value)}
+                placeholder="Ex: Hoje após 15h, Amanhã 09h..."
+                required
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+              />
+            </div>
+          </div>
+
+          {/* Atalhos de disponibilidade */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] text-slate-400 font-bold">Sugestões:</span>
+            {["Hoje após 15h", "Hoje às 17h", "Amanhã às 09h", "Amanhã à tarde", "Fim de semana"].map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setAvailableAt(p)}
+                className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer font-medium"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {/* 4. Garantia */}
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Garantia Oferecida</label>
+            <select
+              value={warrantyDays}
+              onChange={(e) => setWarrantyDays(parseInt(e.target.value) || 30)}
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+            >
+              <option value={30}>30 dias de garantia</option>
+              <option value={60}>60 dias de garantia</option>
+              <option value={90}>90 dias de garantia (Garantia Legal CDC)</option>
+              <option value={180}>180 dias (6 meses)</option>
+              <option value={365}>1 ano de garantia</option>
+            </select>
+          </div>
+
+          {/* Selo Zeladoria Protege */}
+          <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-center gap-2">
+            <Icon name="shield" size={15} className="text-[#0055D4] shrink-0" />
+            <span>
+              Ao enviar, o morador poderá comparar com outras opções e aceitar. O valor fica garantido pelo Zeladoria Protege com repasse automático após você finalizar.
+            </span>
           </div>
 
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
@@ -657,10 +702,11 @@ export function ProviderDigitalProposalModal({
             </button>
             <button
               type="submit"
-              disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs"
+              disabled={isPending || totalCents <= 0}
+              className="px-6 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
             >
-              {isPending ? "Enviando..." : "Enviar Proposta ao Morador"}
+              <Icon name="send" size={14} />
+              <span>{isPending ? "Enviando..." : "Enviar Orçamento"}</span>
             </button>
           </div>
         </form>
@@ -669,7 +715,7 @@ export function ProviderDigitalProposalModal({
   );
 }
 
-// 5. MODAL: MORADOR FAZ O CHECKOUT DO SERVIÇO PRINCIPAL (PAGAMENTO B - ZELADORIA PROTEGE)
+// 5. MODAL: MORADOR FAZ O CHECKOUT ZELADORIA PAY (MINIMALISTA - PIX OU CARTÃO - SEM ACRÉSCIMO AO MORADOR)
 export function CustomerServiceCheckoutModal({
   isOpen,
   onClose,
@@ -682,9 +728,10 @@ export function CustomerServiceCheckoutModal({
   checkoutData: {
     orderCode: string;
     totalCents: number;
-    platformFeeCents: number;
-    netVendorCents: number;
+    platformFeeCents?: number;
+    netVendorCents?: number;
     vendorName: string;
+    serviceTitle?: string;
     warrantyDays?: number;
     contractHash?: string;
     pixCopiaECola?: string;
@@ -694,6 +741,13 @@ export function CustomerServiceCheckoutModal({
   isPending: boolean;
 }) {
   const [copied, setCopied] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "cartao">("pix");
+  
+  // Cartão state (minimalista)
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
 
   if (!isOpen || !checkoutData) return null;
 
@@ -705,17 +759,258 @@ export function CustomerServiceCheckoutModal({
     }
   };
 
+  const formattedTotal = (checkoutData.totalCents / 100).toFixed(2);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black">
               <Icon name="shield" size={16} />
             </span>
             <div>
-              <h2 className="text-base font-black text-slate-900">Zeladoria Protege</h2>
-              <p className="text-[11px] text-slate-500">Pagamento protegido com repasse após conclusão</p>
+              <h2 className="text-base font-black text-slate-900 tracking-tight">ZELADORIA PAY</h2>
+              <p className="text-[11px] text-slate-500">Checkout seguro e protegido</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer"
+          >
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        {/* Resumo do Pedido - Minimalista */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">Profissional:</span>
+            <strong className="text-slate-900 font-bold">{checkoutData.vendorName}</strong>
+          </div>
+          {checkoutData.serviceTitle && (
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">Serviço:</span>
+              <span className="text-slate-800 font-medium truncate max-w-[200px]">{checkoutData.serviceTitle}</span>
+            </div>
+          )}
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">Garantia:</span>
+            <strong className="text-emerald-700 font-bold">{checkoutData.warrantyDays || 30} dias</strong>
+          </div>
+          <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+            <span className="text-sm font-bold text-slate-800">Total a Pagar:</span>
+            <span className="text-xl font-black text-[#0055D4]">R$ {formattedTotal}</span>
+          </div>
+        </div>
+
+        {/* Selo Zeladoria Protege */}
+        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-2.5 text-emerald-950 text-xs">
+          <Icon name="check-circle" size={16} className="text-emerald-700 shrink-0" />
+          <p className="text-[11px] leading-relaxed">
+            <strong>Proteção Zeladoria ✓:</strong> Seu dinheiro fica seguro no parceiro financeiro e só é liberado ao profissional após você confirmar que o serviço foi concluído com sucesso.
+          </p>
+        </div>
+
+        {/* Seletor de Forma de Pagamento */}
+        <div className="space-y-1.5">
+          <label className="font-bold text-slate-700 block text-xs">Forma de pagamento:</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("pix")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                paymentMethod === "pix"
+                  ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              <Icon name="zap" size={14} />
+              <span>Pix</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("cartao")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                paymentMethod === "cartao"
+                  ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              <Icon name="wallet" size={14} />
+              <span>Cartão de Crédito</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Pix Content */}
+        {paymentMethod === "pix" && (
+          <div className="text-center space-y-3 pt-1">
+            <div className="inline-block p-2 rounded-xl bg-white border border-slate-200 shadow-xs">
+              {checkoutData.pixQrCode ? (
+                <img
+                  src={checkoutData.pixQrCode}
+                  alt="QR Code Pix"
+                  className="w-40 h-40 mx-auto object-contain"
+                />
+              ) : (
+                <div className="w-40 h-40 flex items-center justify-center bg-slate-100 text-slate-400 text-xs">
+                  QR Code Pix
+                </div>
+              )}
+            </div>
+
+            {checkoutData.pixCopiaECola && (
+              <div className="space-y-1.5 text-left text-xs">
+                <label className="text-[11px] font-bold text-slate-600">Código Pix Copia e Cola:</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={checkoutData.pixCopiaECola}
+                    className="h-8 w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[10px] text-slate-600 truncate font-mono select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="h-8 px-3 rounded-lg bg-emerald-600 text-white font-bold text-xs shrink-0 cursor-pointer hover:bg-emerald-700"
+                  >
+                    {copied ? "Copiado!" : "Copiar"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cartão de Crédito Content */}
+        {paymentMethod === "cartao" && (
+          <div className="space-y-2.5 text-xs">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Número do Cartão</label>
+              <input
+                type="text"
+                placeholder="0000 0000 0000 0000"
+                maxLength={19}
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Nome Impresso no Cartão</label>
+              <input
+                type="text"
+                placeholder="NOME COMO NO CARTÃO"
+                value={cardHolder}
+                onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Validade (MM/AA)</label>
+                <input
+                  type="text"
+                  placeholder="12/28"
+                  maxLength={5}
+                  value={cardExpiry}
+                  onChange={(e) => setCardExpiry(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">CVV</label>
+                <input
+                  type="password"
+                  placeholder="123"
+                  maxLength={4}
+                  value={cardCvv}
+                  onChange={(e) => setCardCvv(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Dados criptografados. Tokenização direta via Asaas PSP.
+            </p>
+          </div>
+        )}
+
+        {/* Ação Principal: CTA Dominante [ Pagar R$ XXX ] */}
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => onSimulatePay(checkoutData.orderCode)}
+            className="w-full py-3 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
+          >
+            <Icon name="check-circle" size={16} />
+            <span>
+              {isPending
+                ? "Processando..."
+                : `Pagar R$ ${formattedTotal}`}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
+          >
+            Cancelar e Voltar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 5b. MODAL: PRESTADOR SOLICITA CUSTO ADICIONAL / ADITIVO
+export function ProviderAddendumModal({
+  isOpen,
+  onClose,
+  request,
+  onSubmit,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  request: any;
+  onSubmit: (data: { title: string; description: string; additionalAmountCents: number }) => void;
+  isPending: boolean;
+}) {
+  const [title, setTitle] = useState("Substituição de tubulação oculta");
+  const [additionalVal, setAdditionalVal] = useState("120.00");
+  const [desc, setDesc] = useState("Tubulação antiga estava rompida por dentro da alvenaria e necessitou de novo cano PVC 50mm.");
+
+  if (!isOpen || !request) return null;
+
+  const additionalAmountCents = Math.round(parseFloat(additionalVal || "0") * 100);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (additionalAmountCents <= 0 || !title.trim() || !desc.trim()) return;
+    onSubmit({
+      title,
+      description: desc,
+      additionalAmountCents,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-black">
+              <Icon name="plus" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">Solicitar Adicional</h2>
+              <p className="text-[11px] text-slate-500">Chamado #{request.code}</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
@@ -723,101 +1018,72 @@ export function CustomerServiceCheckoutModal({
           </button>
         </div>
 
-        {/* Resumo Financeiro */}
-        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500">Profissional:</span>
-            <strong className="text-slate-900 font-bold">{checkoutData.vendorName}</strong>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500">Garantia Informada:</span>
-            <strong className="text-emerald-700 font-bold">{checkoutData.warrantyDays || 90} dias (CDC)</strong>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500">Contrato Digital:</span>
-            <span className="font-mono text-[10px] text-slate-400 truncate max-w-[150px]">
-              {checkoutData.contractHash || "REGISTRADO"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-            <span className="text-sm font-bold text-slate-700">Valor Total do Serviço:</span>
-            <span className="text-lg font-black text-emerald-700">
-              R$ {(checkoutData.totalCents / 100).toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        {/* Selo Zeladoria Protege */}
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-2 text-emerald-900 text-xs">
-          <Icon name="shield" size={16} className="text-emerald-700 shrink-0" />
-          <p className="text-[11px]">
-            <strong>Repasse condicionado:</strong> O valor fica retido no parceiro financeiro e só será transferido ao profissional após você confirmar que o serviço foi finalizado com sucesso.
-          </p>
-        </div>
-
-        {/* QR Code Pix */}
-        <div className="text-center space-y-3">
-          <div className="inline-block p-2 rounded-xl bg-white border border-slate-200 shadow-xs">
-            {checkoutData.pixQrCode ? (
-              <img src={checkoutData.pixQrCode} alt="QR Code Pix" className="w-44 h-44 mx-auto object-contain" />
-            ) : (
-              <div className="w-44 h-44 flex items-center justify-center bg-slate-100 text-slate-400 text-xs">
-                QR Code Pix
-              </div>
-            )}
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Título do Aditivo</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              placeholder="Ex: Troca de tubulação danificada"
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+            />
           </div>
 
-          {checkoutData.pixCopiaECola && (
-            <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-bold text-slate-600">Código Pix Copia e Cola:</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={checkoutData.pixCopiaECola}
-                  className="h-8 w-full px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[10px] text-slate-600 truncate font-mono select-all"
-                />
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="h-8 px-3 rounded-lg bg-emerald-600 text-white font-bold text-xs shrink-0 cursor-pointer hover:bg-emerald-700"
-                >
-                  {copied ? "Copiado!" : "Copiar"}
-                </button>
-              </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Valor Adicional (R$)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
+              <input
+                type="number"
+                step="0.01"
+                min="1"
+                value={additionalVal}
+                onChange={(e) => setAdditionalVal(e.target.value)}
+                required
+                placeholder="120.00"
+                className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-slate-900 outline-none focus:border-[#0055D4]"
+              />
             </div>
-          )}
-        </div>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Comissão Zeladoria de 10% aplicada sobre o adicional.
+            </p>
+          </div>
 
-        {/* Rodapé / Confirmação Segura */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          {process.env.NODE_ENV !== "production" ? (
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Motivo / Descrição para o Morador</label>
+            <textarea
+              rows={3}
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              required
+              placeholder="Explique o novo problema encontrado que justifica o custo adicional..."
+              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
+            />
+          </div>
+
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-950">
+            O morador receberá uma notificação com a opção de <strong>[ Recusar ]</strong> ou <strong>[ Aceitar e Pagar ]</strong>. O valor não pode ser alterado arbitrariamente.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
-              disabled={isPending}
-              onClick={() => onSimulatePay(checkoutData.orderCode)}
-              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-1.5"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
             >
-              <Icon name="check-circle" size={14} />
-              <span>{isPending ? "Processando..." : "[Sandbox/Dev] Simular Compensação Pix Webhook"}</span>
+              Cancelar
             </button>
-          ) : (
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#0055D4] flex items-center justify-center gap-2 font-medium">
-              <Icon name="clock" size={15} className="text-[#0055D4] shrink-0" />
-              <span>Aguardando detecção do Pix pelo Asaas PSP...</span>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
-          >
-            Fechar Janela (Acompanhar no Painel)
-          </button>
-          <p className="text-[10px] text-center text-slate-400">
-            Processado via Asaas PSP com Split Automatizado · Sem custódia informal
-          </p>
-        </div>
+            <button
+              type="submit"
+              disabled={isPending || additionalAmountCents <= 0}
+              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs"
+            >
+              {isPending ? "Enviando..." : "Enviar Solicitação de Adicional"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

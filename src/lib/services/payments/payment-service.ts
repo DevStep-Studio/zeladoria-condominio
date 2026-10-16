@@ -519,6 +519,7 @@ export async function sendDigitalProposal(params: {
   otherCostsCents?: number;
   discountCents?: number;
   estimatedDays: number;
+  availableAt?: string;
   warrantyDays?: number;
   conditions?: string;
   description: string;
@@ -618,6 +619,7 @@ export async function sendDigitalProposal(params: {
       warrantyDays,
       contractHash,
       conditions: params.conditions || null,
+      availableAt: params.availableAt || null,
       description: params.description,
       status: "pendente",
     })
