@@ -119,7 +119,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
               href={`/painel/visitantes?status=${f.key}`}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 isActive
-                  ? "bg-[#0055D4] text-white shadow-xs"
+                  ? "bg-[#1355FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -343,7 +343,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                 <input type="checkbox" name="recurring" className="h-4 w-4" />
                 Prestador recorrente (fica na lista de autorizados)
               </label>
-              <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all">
+              <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all">
                 <Icon name="shield" size={15} />
                 <span>Gerar convite com QR Code</span>
               </button>

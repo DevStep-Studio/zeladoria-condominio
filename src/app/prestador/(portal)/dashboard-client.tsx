@@ -136,7 +136,7 @@ export function ProviderDashboardClient({
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/prestador/chamados"
-            className="inline-flex items-center gap-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
           >
             <Icon name="clipboard" size={14} />
             <span>Ver chamados</span>
@@ -156,11 +156,11 @@ export function ProviderDashboardClient({
         {/* Novos Chamados */}
         <Link
           href="/prestador/chamados"
-          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-[#0055D4] transition-all block group"
+          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-[#1355FF] transition-all block group"
         >
           <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
             <span>Novos Chamados</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4] group-hover:scale-105 transition-transform">
+            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF] group-hover:scale-105 transition-transform">
               <Icon name="bell" size={14} />
             </span>
           </div>
@@ -225,7 +225,7 @@ export function ProviderDashboardClient({
       {completeness.percentage < 100 && completeness.missingItems.length > 0 && (
         <div className="rounded-[14px] border border-blue-200/80 bg-blue-50/60 p-4 sm:p-5 shadow-2xs space-y-3">
           <div className="flex items-start gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#0055D4] text-white shrink-0">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#1355FF] text-white shrink-0">
               <Icon name="sparkles" size={16} />
             </span>
             <div className="flex-1">
@@ -241,7 +241,7 @@ export function ProviderDashboardClient({
                   <Link
                     key={item.key}
                     href={item.actionUrl}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white border border-blue-200 text-xs font-bold text-[#0055D4] hover:bg-blue-100/60 transition-colors shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white border border-blue-200 text-xs font-bold text-[#1355FF] hover:bg-blue-100/60 transition-colors shadow-2xs"
                   >
                     <span>+</span>
                     <span>{item.label}</span>
@@ -270,7 +270,7 @@ export function ProviderDashboardClient({
               </div>
               <Link
                 href="/prestador/chamados"
-                className="text-xs font-bold text-[#0055D4] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[#1355FF] hover:underline flex items-center gap-1"
               >
                 <span>Ver todos ({requests.length})</span>
                 <Icon name="chevron-right" size={13} />
@@ -306,7 +306,7 @@ export function ProviderDashboardClient({
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-[6px] font-mono border border-blue-100">
+                          <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-[6px] font-mono border border-blue-100">
                             {req.code}
                           </span>
                           <h3 className="text-xs sm:text-sm font-bold text-[#0F172A]">
@@ -324,7 +324,7 @@ export function ProviderDashboardClient({
                               : req.status === "em_atendimento"
                               ? "bg-amber-50 text-amber-700 border border-amber-200"
                               : req.status === "aceito"
-                              ? "bg-blue-50 text-[#0055D4] border border-blue-200"
+                              ? "bg-blue-50 text-[#1355FF] border border-blue-200"
                               : "bg-slate-100 text-slate-700 border border-slate-200"
                           }`}
                         >
@@ -355,7 +355,7 @@ export function ProviderDashboardClient({
                           {isAccepted && req.customerPhone ? (
                             <a
                               href={`tel:${req.customerPhone}`}
-                              className="font-bold text-[#0055D4] hover:underline"
+                              className="font-bold text-[#1355FF] hover:underline"
                             >
                               {req.customerPhone}
                             </a>
@@ -386,7 +386,7 @@ export function ProviderDashboardClient({
                                 type="button"
                                 onClick={() => handleAccept(req.id)}
                                 disabled={isPending}
-                                className="px-4 py-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                                className="px-4 py-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                               >
                                 Aceitar chamado
                               </button>
@@ -398,7 +398,7 @@ export function ProviderDashboardClient({
                               type="button"
                               onClick={() => handleAdvance(req.id, "a_caminho")}
                               disabled={isPending}
-                              className="px-3.5 py-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                             >
                               Estou a caminho
                             </button>
@@ -420,7 +420,7 @@ export function ProviderDashboardClient({
                               type="button"
                               onClick={() => handleAdvance(req.id, "em_atendimento")}
                               disabled={isPending}
-                              className="px-3.5 py-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                             >
                               Iniciar serviço
                             </button>
@@ -469,7 +469,7 @@ export function ProviderDashboardClient({
                 href="/prestador/servicos"
                 className="p-3 rounded-[10px] border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all text-left block group"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4] group-hover:scale-105 transition-transform">
+                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF] group-hover:scale-105 transition-transform">
                   <Icon name="wrench" size={15} />
                 </span>
                 <p className="mt-2 text-xs font-bold text-slate-800">Serviços</p>
@@ -519,7 +519,7 @@ export function ProviderDashboardClient({
               </h3>
               <Link
                 href="/prestador/avaliacoes"
-                className="text-xs font-bold text-[#0055D4] hover:underline"
+                className="text-xs font-bold text-[#1355FF] hover:underline"
               >
                 Ver todas
               </Link>
@@ -605,7 +605,7 @@ export function ProviderDashboardClient({
                     required
                     value={laborVal}
                     onChange={(e) => setLaborVal(e.target.value)}
-                    className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+                    className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
                   />
                 </div>
                 <div>
@@ -617,7 +617,7 @@ export function ProviderDashboardClient({
                     step="0.01"
                     value={materialsVal}
                     onChange={(e) => setMaterialsVal(e.target.value)}
-                    className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+                    className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
                   />
                 </div>
               </div>
@@ -633,7 +633,7 @@ export function ProviderDashboardClient({
                   required
                   value={quoteDays}
                   onChange={(e) => setQuoteDays(parseInt(e.target.value, 10) || 1)}
-                  className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+                  className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
                 />
               </div>
 
@@ -646,13 +646,13 @@ export function ProviderDashboardClient({
                   required
                   value={quoteDesc}
                   onChange={(e) => setQuoteDesc(e.target.value)}
-                  className="w-full rounded-[8px] border border-slate-200 p-3 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 leading-relaxed"
+                  className="w-full rounded-[8px] border border-slate-200 p-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10 leading-relaxed"
                 />
               </div>
 
               <div className="p-3 rounded-[8px] bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-600">Valor Total da Proposta:</span>
-                <strong className="text-sm font-black text-[#0055D4]">
+                <strong className="text-sm font-black text-[#1355FF]">
                   R$ {(parseFloat(laborVal || "0") + parseFloat(materialsVal || "0")).toFixed(2)}
                 </strong>
               </div>
@@ -668,7 +668,7 @@ export function ProviderDashboardClient({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                  className="px-4 py-2 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                 >
                   {isPending ? "Enviando..." : "Enviar Orçamento"}
                 </button>

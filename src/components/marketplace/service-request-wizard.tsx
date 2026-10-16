@@ -171,7 +171,7 @@ export function ServiceRequestWizard({
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100 shrink-0">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#1355FF]">
               Zeladoria Serviços · Solicitação de Atendimento
             </span>
             <h3 className="text-base font-black text-[#0F172A] mt-0.5">
@@ -197,7 +197,7 @@ export function ServiceRequestWizard({
           {/* TELA DE SUCESSO */}
           {isSuccess ? (
             <div className="py-6 text-center space-y-4">
-              <div className="h-16 w-16 rounded-2xl bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto shadow-xs border border-blue-100">
+              <div className="h-16 w-16 rounded-2xl bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto shadow-xs border border-blue-100">
                 <Icon name="check-circle" size={32} />
               </div>
 
@@ -238,7 +238,7 @@ export function ServiceRequestWizard({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-3 text-xs font-black transition-colors cursor-pointer shadow-xs"
+                  className="w-full rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-3 text-xs font-black transition-colors cursor-pointer shadow-xs"
                 >
                   Acompanhar Chamados
                 </button>
@@ -264,7 +264,7 @@ export function ServiceRequestWizard({
                   placeholder="Exemplo: A pia da cozinha está vazando bastante por baixo e precisa de reparo no sifão."
                   rows={3}
                   required
-                  className="w-full p-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 text-xs placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-1 focus:ring-[#0055D4] transition-all resize-none shadow-2xs"
+                  className="w-full p-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 text-xs placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all resize-none shadow-2xs"
                 />
                 <span className="text-[11px] text-slate-400">
                   Descreva o problema com suas palavras para os profissionais entenderem o serviço.
@@ -274,7 +274,7 @@ export function ServiceRequestWizard({
               {/* 2. SUGESTÃO INTELIGENTE DE CATEGORIA */}
               <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="h-8 w-8 rounded-lg bg-[#0055D4] text-white flex items-center justify-center shrink-0">
+                  <span className="h-8 w-8 rounded-lg bg-[#1355FF] text-white flex items-center justify-center shrink-0">
                     <Icon name={CATEGORY_ICONS[activeCategoryKey] || "briefcase"} size={16} />
                   </span>
                   <div>
@@ -290,7 +290,7 @@ export function ServiceRequestWizard({
                 <button
                   type="button"
                   onClick={() => setIsChangingCategory(!isChangingCategory)}
-                  className="text-xs font-bold text-[#0055D4] hover:underline px-2 py-1 rounded cursor-pointer"
+                  className="text-xs font-bold text-[#1355FF] hover:underline px-2 py-1 rounded cursor-pointer"
                 >
                   {isChangingCategory ? "Fechar" : "Alterar"}
                 </button>
@@ -309,7 +309,7 @@ export function ServiceRequestWizard({
                       }}
                       className={`flex items-center gap-1.5 p-2 rounded-lg text-left transition-colors cursor-pointer text-[11px] font-bold ${
                         activeCategoryKey === cat.id
-                          ? "bg-[#0055D4] text-white shadow-xs"
+                          ? "bg-[#1355FF] text-white shadow-xs"
                           : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/60"
                       }`}
                     >
@@ -377,7 +377,7 @@ export function ServiceRequestWizard({
                     <button
                       type="button"
                       onClick={handleAddPhoto}
-                      className="px-3 h-8 bg-[#0055D4] text-white rounded-lg font-bold text-xs cursor-pointer"
+                      className="px-3 h-8 bg-[#1355FF] text-white rounded-lg font-bold text-xs cursor-pointer"
                     >
                       Inserir
                     </button>
@@ -394,7 +394,7 @@ export function ServiceRequestWizard({
                     onClick={() => setLocationType("minha_unidade")}
                     className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
                       locationType === "minha_unidade"
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -405,7 +405,7 @@ export function ServiceRequestWizard({
                     onClick={() => setLocationType("area_comum")}
                     className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
                       locationType === "area_comum"
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -416,7 +416,7 @@ export function ServiceRequestWizard({
                     onClick={() => setLocationType("outro")}
                     className={`p-2 rounded-xl border text-center font-bold text-[11px] cursor-pointer transition-all ${
                       locationType === "outro"
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -460,7 +460,7 @@ export function ServiceRequestWizard({
                     onClick={() => setUrgency("hoje")}
                     className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
                       urgency === "hoje"
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -473,7 +473,7 @@ export function ServiceRequestWizard({
                     onClick={() => setUrgency("agendar")}
                     className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
                       urgency === "agendar"
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -508,7 +508,7 @@ export function ServiceRequestWizard({
                 <button
                   type="submit"
                   disabled={!isFormValid || isPending}
-                  className="w-full h-11 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                  className="w-full h-11 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99]"
                 >
                   {isPending ? (
                     <span>Buscando profissionais...</span>

@@ -75,7 +75,7 @@ export function StorefrontClient({
           <button
             type="button"
             onClick={() => handleRequestService()}
-            className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+            className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
           >
             <Icon name="zap" size={13} className="text-[#FFD000] fill-[#FFD000]" />
             <span>Solicitar Atendimento</span>
@@ -111,7 +111,7 @@ export function StorefrontClient({
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (
-                    <div className="h-full w-full rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black text-2xl">
+                    <div className="h-full w-full rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black text-2xl">
                       {vendor.name.charAt(0)}
                     </div>
                   )}
@@ -123,7 +123,7 @@ export function StorefrontClient({
                       {vendor.companyName || vendor.name}
                     </h1>
                     {vendor.verified && (
-                      <span className="inline-flex items-center gap-1 text-[#0055D4] text-xs font-bold">
+                      <span className="inline-flex items-center gap-1 text-[#1355FF] text-xs font-bold">
                         <Icon name="check-circle" size={13} />
                         <span>Verificado</span>
                       </span>
@@ -145,7 +145,7 @@ export function StorefrontClient({
                 <button
                   type="button"
                   onClick={() => handleRequestService()}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                  className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   <Icon name="zap" size={14} className="text-[#FFD000] fill-[#FFD000]" />
                   <span>Solicitar Atendimento</span>
@@ -165,7 +165,7 @@ export function StorefrontClient({
                       <span className="text-[10px] text-slate-400">({reviews.length})</span>
                     </>
                   ) : (
-                    <span className="rounded bg-blue-50 text-[#0055D4] text-[10px] font-bold px-1.5 py-0.2">
+                    <span className="rounded bg-blue-50 text-[#1355FF] text-[10px] font-bold px-1.5 py-0.2">
                       Novo no Zeladoria
                     </span>
                   )}
@@ -177,7 +177,7 @@ export function StorefrontClient({
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Tempo de Resposta</span>
-                <div className="font-black text-[#0055D4] mt-0.5">{vendor.responseTimeMinutes || 15} min</div>
+                <div className="font-black text-[#1355FF] mt-0.5">{vendor.responseTimeMinutes || 15} min</div>
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Preço Inicial</span>
@@ -195,7 +195,7 @@ export function StorefrontClient({
                   <button
                     type="button"
                     onClick={() => setActiveTab("portfolio")}
-                    className="text-xs font-bold text-[#0055D4] hover:underline"
+                    className="text-xs font-bold text-[#1355FF] hover:underline"
                   >
                     Ver todos os {portfolio.length} trabalhos →
                   </button>
@@ -232,7 +232,7 @@ export function StorefrontClient({
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`pb-3 px-1 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                     activeTab === tab.id
-                      ? "border-[#0055D4] text-[#0055D4]"
+                      ? "border-[#1355FF] text-[#1355FF]"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -258,7 +258,7 @@ export function StorefrontClient({
                 <button
                   type="button"
                   onClick={() => handleRequestService()}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                  className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-all cursor-pointer shadow-xs"
                 >
                   Solicitar orçamento
                 </button>
@@ -281,7 +281,7 @@ export function StorefrontClient({
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <span className="text-sm font-black text-[#0055D4]">
+                      <span className="text-sm font-black text-[#1355FF]">
                         {svc.priceFromCents
                           ? `R$ ${(svc.priceFromCents / 100).toFixed(2)}`
                           : "Sob consulta"}
@@ -289,7 +289,7 @@ export function StorefrontClient({
                       <button
                         type="button"
                         onClick={() => handleRequestService(svc)}
-                        className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                        className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
                       >
                         Orçar este
                       </button>
@@ -374,7 +374,7 @@ export function StorefrontClient({
                           <span className="w-4 font-bold text-slate-600 text-right">{stars}</span>
                           <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
                           <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-                            <div className="h-full bg-[#0055D4] rounded-full" style={{ width: `${percent}%` }} />
+                            <div className="h-full bg-[#1355FF] rounded-full" style={{ width: `${percent}%` }} />
                           </div>
                           <span className="w-8 text-[11px] text-slate-400 text-right">{count}</span>
                         </div>
@@ -476,7 +476,7 @@ export function StorefrontClient({
         <button
           type="button"
           onClick={() => handleRequestService()}
-          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+          className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
         >
           <Icon name="zap" size={14} className="text-[#FFD000] fill-[#FFD000]" />
           <span>Solicitar Atendimento</span>

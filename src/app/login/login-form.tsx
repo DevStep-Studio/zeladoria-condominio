@@ -32,7 +32,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
       <form action={formAction} className="space-y-3.5">
         {/* E-mail / Identificação */}
         <div className="space-y-1">
-          <div className="group relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0055D4]/10 focus-within:border-slate-300 border border-transparent">
+          <div className="group relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border border-transparent">
             <input
               id="email"
               name="email"
@@ -49,7 +49,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
 
         {/* Senha */}
         <div className="space-y-1">
-          <div className="group relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0055D4]/10 focus-within:border-slate-300 border border-transparent">
+          <div className="group relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border border-transparent">
             <input
               id="password"
               name="password"
@@ -79,13 +79,13 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
               type="checkbox"
               name="remember"
               defaultChecked
-              className="h-4 w-4 rounded-md border-slate-300 accent-[#0055D4] cursor-pointer"
+              className="h-4 w-4 rounded-md border-slate-300 accent-[#1355FF] cursor-pointer"
             />
             <span>Lembrar de mim</span>
           </label>
           <Link
             href="/esqueci-senha"
-            className="font-semibold text-slate-500 hover:text-[#0055D4] transition-colors"
+            className="font-semibold text-slate-500 hover:text-[#1355FF] transition-colors"
           >
             Esqueceu a senha?
           </Link>
@@ -103,7 +103,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="group relative flex h-13 sm:h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#0055D4] hover:bg-[#0047BA] px-6 text-sm sm:text-base font-bold text-white shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          className="group relative flex h-13 sm:h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#1355FF] hover:bg-[#0D47E6] px-6 text-sm sm:text-base font-bold text-white shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           {pending ? (
             <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
                 onClick={() => selectDemo(d)}
                 className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 cursor-pointer border ${
                   isSelected
-                    ? "bg-blue-50 border-[#0055D4] text-[#0055D4] shadow-2xs font-bold"
+                    ? "bg-blue-50 border-[#1355FF] text-[#1355FF] shadow-2xs font-bold"
                     : "bg-[#F8F9FA] border-slate-200/80 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium"
                 }`}
               >
@@ -180,7 +180,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
           É um prestador de serviços parceiro?{" "}
           <Link
             href="/prestador/login"
-            className="font-bold text-[#0055D4] hover:underline"
+            className="font-bold text-[#1355FF] hover:underline"
           >
             Área do Prestador
           </Link>

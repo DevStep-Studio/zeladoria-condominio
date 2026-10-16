@@ -285,7 +285,7 @@ export function NovaOcorrenciaFlow({
 
       {/* Aviso Discreto de Rascunho Recuperado */}
       {hasDraftNotice && currentStep !== 4 && (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-[#0055D4]">
+        <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-[#1355FF]">
           <div className="flex items-center gap-2">
             <Icon name="file-text" size={15} />
             <span>Seu rascunho anterior foi recuperado automaticamente.</span>

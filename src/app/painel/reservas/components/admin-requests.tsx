@@ -68,7 +68,7 @@ export function AdminRequests({ requests }: AdminRequestsProps) {
                   <h4 className="text-sm font-bold text-slate-900 leading-snug">
                     {item.userName || "Morador"}
                   </h4>
-                  <p className="text-xs font-semibold text-[#0055D4]">
+                  <p className="text-xs font-semibold text-[#1355FF]">
                     {item.unitNumber ? `Apto ${item.unitNumber}` : "Unidade vinculada"}
                     {item.blockName ? ` (${item.blockName})` : ""}
                   </p>

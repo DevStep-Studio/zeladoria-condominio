@@ -151,7 +151,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
         >
           <Icon name="plus" size={15} />
           <span>Adicionar Trabalho</span>
@@ -168,7 +168,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
       {/* Grid de Trabalhos */}
       {portfolio.length === 0 ? (
         <div className="rounded-[16px] border-2 border-dashed border-slate-200 bg-white p-12 text-center space-y-3 shadow-2xs">
-          <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto border border-blue-200/60">
+          <div className="h-12 w-12 rounded-full bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto border border-blue-200/60">
             <Icon name="camera" size={24} />
           </div>
           <h3 className="text-sm font-bold text-slate-900">Nenhum trabalho cadastrado ainda</h3>
@@ -178,7 +178,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0047BA] shadow-2xs cursor-pointer transition-colors"
+            className="px-4 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] shadow-2xs cursor-pointer transition-colors"
           >
             Adicionar primeira foto
           </button>
@@ -225,7 +225,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => handleSetCover(item.url)}
-                    className="text-[11px] font-bold text-[#0055D4] hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#1355FF] hover:underline cursor-pointer"
                   >
                     Definir como capa
                   </button>
@@ -285,9 +285,9 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isCompressing}
-                    className="w-full py-8 border-2 border-dashed border-slate-200 hover:border-[#0055D4] rounded-[12px] flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-600 hover:bg-slate-100/50 transition-colors cursor-pointer"
+                    className="w-full py-8 border-2 border-dashed border-slate-200 hover:border-[#1355FF] rounded-[12px] flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-600 hover:bg-slate-100/50 transition-colors cursor-pointer"
                   >
-                    <Icon name="camera" size={24} className="text-[#0055D4]" />
+                    <Icon name="camera" size={24} className="text-[#1355FF]" />
                     <span className="text-xs font-bold text-slate-800">
                       {isCompressing ? "Otimizando imagem..." : "Selecionar foto da galeria"}
                     </span>
@@ -313,7 +313,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Ex.: Instalação de quadro de distribuição com DR"
-                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
                 />
               </div>
 
@@ -327,7 +327,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newCaption}
                   onChange={(e) => setNewCaption(e.target.value)}
                   placeholder="Ex.: Substituição completa de fiação e disjuntores antigos com teste de carga."
-                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   placeholder="Ex.: Elétrica, Iluminação, Hidráulica"
-                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+                  className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
                 />
               </div>
             </div>
@@ -358,7 +358,7 @@ export function PortfolioClient({ vendor }: { vendor: any }) {
                 type="button"
                 onClick={handleSaveItem}
                 disabled={!newUrl || isPending}
-                className="px-4 py-2 text-xs font-bold bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-[8px] shadow-2xs transition-colors disabled:opacity-40 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-[8px] shadow-2xs transition-colors disabled:opacity-40 cursor-pointer"
               >
                 Salvar no portfólio
               </button>

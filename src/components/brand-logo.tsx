@@ -34,11 +34,12 @@ export function BrandLogo({
 
   // Se for apenas o ícone
   if (isIconOnly) {
+    const iconSrc = variant === "white" ? "/icon-white.png" : "/favicon.png";
     return (
       <div className={`inline-flex items-center shrink-0 select-none ${className}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo-icon.png"
+          src={iconSrc}
           alt="Zeladoria Condomínio"
           style={{ height: sizeStyles.iconHeight, width: "auto" }}
           className="object-contain shrink-0"
@@ -48,7 +49,7 @@ export function BrandLogo({
     );
   }
 
-  // Versão branca para fundos escuros (4.png)
+  // Versão branca para fundos escuros
   if (variant === "white") {
     return (
       <div className={`inline-flex items-center shrink-0 select-none ${className}`}>
@@ -64,28 +65,12 @@ export function BrandLogo({
     );
   }
 
-  // Versão preta monocromática (5.png)
-  if (variant === "black") {
-    return (
-      <div className={`inline-flex items-center shrink-0 select-none ${className}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo-black.png"
-          alt="Zeladoria Condomínio"
-          style={{ height: sizeStyles.imgHeight, width: "auto" }}
-          className="object-contain shrink-0"
-          loading="eager"
-        />
-      </div>
-    );
-  }
-
-  // Versão padrão colorida oficial (6.png)
+  // Versão padrão colorida oficial
   return (
     <div className={`inline-flex items-center shrink-0 select-none ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo.png"
+        src="/logo-principal.png"
         alt="Zeladoria Condomínio"
         style={{ height: sizeStyles.imgHeight, width: "auto" }}
         className="object-contain shrink-0"

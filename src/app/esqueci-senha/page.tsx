@@ -52,7 +52,7 @@ export default function EsqueciSenhaPage() {
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#0055D4] hover:text-[#0047BA] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={13} />
           <span>Voltar ao Login</span>
@@ -66,7 +66,7 @@ export default function EsqueciSenhaPage() {
             <div className="text-center space-y-5 animate-in fade-in-50 duration-200">
               {/* Success Badge */}
               <div className="flex justify-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0055D4] border border-blue-100 shadow-2xs">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#1355FF] border border-blue-100 shadow-2xs">
                   <Icon name="mail" size={28} />
                 </span>
               </div>
@@ -79,14 +79,14 @@ export default function EsqueciSenhaPage() {
                   Enviamos as instruções e o link seguro para você redefinir sua senha no endereço:
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/80 text-xs font-bold text-slate-800">
-                  <Icon name="user" size={13} className="text-[#0055D4]" />
+                  <Icon name="user" size={13} className="text-[#1355FF]" />
                   <span>{email}</span>
                 </div>
               </div>
 
               {/* Demo Action Helper */}
               <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/70 text-left space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#0055D4]">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#1355FF]">
                   <Icon name="sparkles" size={14} />
                   <span>Ambiente de Testes / Demonstração</span>
                 </div>
@@ -95,7 +95,7 @@ export default function EsqueciSenhaPage() {
                 </p>
                 <Link
                   href="/redefinir-senha"
-                  className="inline-flex items-center justify-center gap-2 w-full h-9 rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 w-full h-9 rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
                 >
                   <span>Abrir Tela de Redefinição de Senha</span>
                   <Icon name="arrow-right" size={13} />
@@ -110,7 +110,7 @@ export default function EsqueciSenhaPage() {
                       type="button"
                       onClick={handleResend}
                       disabled={isPending}
-                      className="font-bold text-[#0055D4] hover:underline cursor-pointer"
+                      className="font-bold text-[#1355FF] hover:underline cursor-pointer"
                     >
                       {isPending ? "Reenviando..." : "Clique para reenviar"}
                     </button>
@@ -167,14 +167,14 @@ export default function EsqueciSenhaPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu.email@exemplo.com.br"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 {/* Security info pill */}
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600">
-                  <Icon name="shield" size={15} className="text-[#0055D4] shrink-0 mt-0.5" />
+                  <Icon name="shield" size={15} className="text-[#1355FF] shrink-0 mt-0.5" />
                   <span>
                     Por motivos de segurança, o link expira em <strong>30 minutos</strong> e só pode ser utilizado uma única vez.
                   </span>
@@ -183,7 +183,7 @@ export default function EsqueciSenhaPage() {
                 <button
                   type="submit"
                   disabled={isPending || !email.trim()}
-                  className="w-full h-12 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isPending ? (
                     <>
@@ -201,7 +201,7 @@ export default function EsqueciSenhaPage() {
                 <div className="pt-2 text-center">
                   <Link
                     href="/login"
-                    className="text-xs font-semibold text-slate-500 hover:text-[#0055D4] transition-colors inline-flex items-center gap-1.5"
+                    className="text-xs font-semibold text-slate-500 hover:text-[#1355FF] transition-colors inline-flex items-center gap-1.5"
                   >
                     <Icon name="arrow-left" size={13} />
                     <span>Lembrou a senha? Voltar ao Login</span>
@@ -222,11 +222,11 @@ export default function EsqueciSenhaPage() {
       <footer className="max-w-md w-full mx-auto pt-6 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
         <span>© 2026 Zeladoria Condomínio</span>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hover:text-[#0055D4] transition-colors">
+          <Link href="/login" className="hover:text-[#1355FF] transition-colors">
             Acesso Moradores
           </Link>
           <span>·</span>
-          <Link href="/prestador/login" className="hover:text-[#0055D4] transition-colors">
+          <Link href="/prestador/login" className="hover:text-[#1355FF] transition-colors">
             Área do Prestador
           </Link>
         </div>

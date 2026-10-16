@@ -135,7 +135,7 @@ export function ZeladoriaPayAdminClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black shadow-xs">
+            <span className="h-9 w-9 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black shadow-xs">
               <Icon name="shield" size={18} />
             </span>
             <div>
@@ -165,7 +165,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("overview")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "overview" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "overview" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Visão Geral
@@ -174,7 +174,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("payments")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "payments" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "payments" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Pagamentos ({orders.length})
@@ -183,7 +183,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("inspections")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "inspections" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "inspections" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Vistorias Pagas ({paidInspections.length})
@@ -192,7 +192,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("payouts")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "payouts" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "payouts" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Repasses / Split ({payouts.length})
@@ -201,7 +201,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("disputes")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "disputes" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "disputes" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Contestações ({disputes.filter((d) => d.status === "aberta").length})
@@ -210,7 +210,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("recipients")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "recipients" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "recipients" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Prestadores Financeiros ({recipients.length})
@@ -219,7 +219,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("settings")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "settings" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "settings" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Configurações & Flags
@@ -228,7 +228,7 @@ export function ZeladoriaPayAdminClient({
           type="button"
           onClick={() => setActiveTab("simulator")}
           className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "simulator" ? "bg-[#0055D4] text-white shadow-xs" : "hover:bg-slate-100"
+            activeTab === "simulator" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
           }`}
         >
           Simulador Financeiro
@@ -253,10 +253,10 @@ export function ZeladoriaPayAdminClient({
             </div>
 
             <div className="p-4 rounded-2xl bg-white border border-blue-200/80 shadow-xs space-y-1">
-              <span className="text-[10px] font-bold text-[#0055D4] uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-[#1355FF] uppercase tracking-wider block">
                 Receita da Zeladoria (Comissão)
               </span>
-              <div className="text-2xl font-black text-[#0055D4]">
+              <div className="text-2xl font-black text-[#1355FF]">
                 R$ {(totalRevenueZeladoriaCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
@@ -292,7 +292,7 @@ export function ZeladoriaPayAdminClient({
           {/* Destaque Zeladoria Protege */}
           <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="h-10 w-10 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black shrink-0">
+              <span className="h-10 w-10 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black shrink-0">
                 <Icon name="shield" size={20} />
               </span>
               <div>
@@ -305,7 +305,7 @@ export function ZeladoriaPayAdminClient({
             <button
               type="button"
               onClick={() => setActiveTab("settings")}
-              className="px-4 py-2 rounded-xl bg-white border border-blue-200 text-[#0055D4] font-black hover:bg-blue-100/50 cursor-pointer text-xs shrink-0"
+              className="px-4 py-2 rounded-xl bg-white border border-blue-200 text-[#1355FF] font-black hover:bg-blue-100/50 cursor-pointer text-xs shrink-0"
             >
               Ajustar Regras
             </button>
@@ -610,7 +610,7 @@ export function ZeladoriaPayAdminClient({
                           {r.vendorCompany || r.vendorName || `Prestador #${r.vendorId}`}
                         </td>
                         <td className="py-2.5">{r.accountType}</td>
-                        <td className="py-2.5 font-bold text-[#0055D4]">{r.pspProvider}</td>
+                        <td className="py-2.5 font-bold text-[#1355FF]">{r.pspProvider}</td>
                         <td className="py-2.5 font-mono">{r.pixKey || r.pspAccountId}</td>
                         <td className="py-2.5">
                           <span
@@ -717,7 +717,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={paymentsEnabled}
                     onChange={(e) => setPaymentsEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Pagamentos Online Habilitados</span>
                 </label>
@@ -727,7 +727,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={paidVisitsEnabled}
                     onChange={(e) => setPaidVisitsEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Vistorias Pagas Habilitadas</span>
                 </label>
@@ -737,7 +737,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={pixEnabled}
                     onChange={(e) => setPixEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Pix Habilitado</span>
                 </label>
@@ -747,7 +747,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={cardEnabled}
                     onChange={(e) => setCardEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Cartão de Crédito Habilitado</span>
                 </label>
@@ -757,7 +757,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={zeladoriaProtegeEnabled}
                     onChange={(e) => setZeladoriaProtegeEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Zeladoria Protege Ativo</span>
                 </label>
@@ -767,7 +767,7 @@ export function ZeladoriaPayAdminClient({
                     type="checkbox"
                     checked={payoutsEnabled}
                     onChange={(e) => setPayoutsEnabled(e.target.checked)}
-                    className="rounded text-[#0055D4]"
+                    className="rounded text-[#1355FF]"
                   />
                   <span>Repasses (Payouts) Habilitados</span>
                 </label>
@@ -790,7 +790,7 @@ export function ZeladoriaPayAdminClient({
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-6 py-2.5 rounded-xl bg-[#0055D4] hover:bg-blue-700 text-white font-black text-xs cursor-pointer shadow-xs"
+                className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-blue-700 text-white font-black text-xs cursor-pointer shadow-xs"
               >
                 {isPending ? "Salvando..." : "Salvar Configurações"}
               </button>
@@ -866,7 +866,7 @@ export function ZeladoriaPayAdminClient({
 
             <div>
               <span className="text-[10px] text-slate-400 block font-bold">Comissão Zeladoria</span>
-              <strong className="text-base text-[#0055D4] font-black">
+              <strong className="text-base text-[#1355FF] font-black">
                 R$ {simPlatformFee.toFixed(2)}
               </strong>
             </div>

@@ -78,7 +78,7 @@ export function ProviderShell({
   const categoryLabel = vendor?.category || "Serviços";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-[#0F172A] selection:bg-[#0055D4] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-[#0F172A] selection:bg-[#1355FF] selection:text-white">
       {/* TOP HEADER */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,7 +128,7 @@ export function ProviderShell({
                     href={item.href}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs transition-colors duration-150 ${
                       isActive
-                        ? "bg-[#0055D4] text-white font-bold shadow-2xs"
+                        ? "bg-[#1355FF] text-white font-bold shadow-2xs"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold"
                     }`}
                   >
@@ -150,7 +150,7 @@ export function ProviderShell({
                   onClick={() => setMoreMenuOpen(!moreMenuOpen)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-semibold transition-colors cursor-pointer ${
                     isMoreActive
-                      ? "bg-[#0055D4] text-white font-bold shadow-2xs"
+                      ? "bg-[#1355FF] text-white font-bold shadow-2xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
                   }`}
                 >
@@ -178,11 +178,11 @@ export function ProviderShell({
                           onClick={() => setMoreMenuOpen(false)}
                           className={`flex items-start gap-2.5 p-2 rounded-[8px] text-xs transition-colors ${
                             isActive
-                              ? "bg-blue-50 text-[#0055D4] font-bold"
+                              ? "bg-blue-50 text-[#1355FF] font-bold"
                               : "text-slate-700 hover:bg-slate-50 font-medium"
                           }`}
                         >
-                          <span className={`p-1.5 rounded-[6px] shrink-0 ${isActive ? "bg-[#0055D4] text-white" : "bg-slate-100 text-slate-500"}`}>
+                          <span className={`p-1.5 rounded-[6px] shrink-0 ${isActive ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-500"}`}>
                             <Icon name={item.icon} size={14} />
                           </span>
                           <div>
@@ -205,7 +205,7 @@ export function ProviderShell({
                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors shadow-2xs"
                 title="Ir para o Painel Geral do Condomínio"
               >
-                <Icon name="grid" size={13} className="text-[#0055D4]" />
+                <Icon name="grid" size={13} className="text-[#1355FF]" />
                 <span className="hidden md:inline">Painel Condomínio</span>
               </Link>
 
@@ -217,7 +217,7 @@ export function ProviderShell({
                   className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
                   aria-label="Menu do Usuário"
                 >
-                  <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#0055D4] text-xs font-black border border-blue-200/60">
+                  <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1355FF] text-xs font-black border border-blue-200/60">
                     {userInitial}
                     <span
                       className={`absolute bottom-0 right-0 h-2 w-2 rounded-full ring-2 ring-white ${
@@ -241,7 +241,7 @@ export function ProviderShell({
                     <div className="p-2 pb-2.5 border-b border-slate-100">
                       <p className="text-xs font-black text-slate-900 truncate">{userName}</p>
                       <p className="text-[11px] text-slate-500 truncate">{session?.user?.email}</p>
-                      <span className="mt-1 inline-block px-2 py-0.5 rounded-[4px] bg-blue-50 text-[#0055D4] text-[10px] font-bold capitalize">
+                      <span className="mt-1 inline-block px-2 py-0.5 rounded-[4px] bg-blue-50 text-[#1355FF] text-[10px] font-bold capitalize">
                         {categoryLabel}
                       </span>
                     </div>
@@ -269,9 +269,9 @@ export function ProviderShell({
                       <Link
                         href="/painel"
                         onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-[#0055D4] hover:bg-blue-50 transition-colors"
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-[#1355FF] hover:bg-blue-50 transition-colors"
                       >
-                        <Icon name="grid" size={14} className="text-[#0055D4]" />
+                        <Icon name="grid" size={14} className="text-[#1355FF]" />
                         <span>Painel do Condomínio</span>
                       </Link>
                     </div>
@@ -307,12 +307,12 @@ export function ProviderShell({
                                   onClick={() => setProfileOpen(false)}
                                   className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between gap-1 cursor-pointer ${
                                     isActive
-                                      ? "bg-blue-50 font-bold text-[#0055D4]"
+                                      ? "bg-blue-50 font-bold text-[#1355FF]"
                                       : "text-slate-600 hover:bg-slate-50"
                                   }`}
                                 >
                                   <span className="truncate flex-1 text-[11px]">{roleTitle}</span>
-                                  {isActive && <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />}
+                                  {isActive && <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />}
                                 </button>
                               </form>
                             );
@@ -354,7 +354,7 @@ export function ProviderShell({
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center py-1 px-2.5 rounded-[8px] text-[10px] font-bold transition-colors ${
-                isActive ? "text-[#0055D4]" : "text-slate-400 hover:text-slate-700"
+                isActive ? "text-[#1355FF]" : "text-slate-400 hover:text-slate-700"
               }`}
             >
               <Icon name={item.icon} size={17} strokeWidth={isActive ? 2.4 : 1.8} />

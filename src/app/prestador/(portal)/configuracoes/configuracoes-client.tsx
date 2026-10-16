@@ -89,7 +89,7 @@ export function ConfiguracoesClient({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 99999-9999"
-                className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+                className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
               />
             </div>
 
@@ -102,7 +102,7 @@ export function ConfiguracoesClient({
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="(11) 99999-9999"
-                className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+                className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export function ConfiguracoesClient({
           <button
             type="submit"
             disabled={isPending}
-            className="px-5 py-2 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isPending ? "Salvando..." : "Salvar Alterações"}
           </button>

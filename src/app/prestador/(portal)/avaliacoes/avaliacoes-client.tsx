@@ -91,11 +91,11 @@ export function AvaliacoesClient({
           <div>
             <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
               <span>Qualidade do Serviço</span>
-              <span className="text-[#0055D4]">{qualityAvg.toFixed(1)} / 5.0</span>
+              <span className="text-[#1355FF]">{qualityAvg.toFixed(1)} / 5.0</span>
             </div>
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#0055D4] rounded-full"
+                className="h-full bg-[#1355FF] rounded-full"
                 style={{ width: `${(qualityAvg / 5) * 100}%` }}
               />
             </div>
@@ -104,7 +104,7 @@ export function AvaliacoesClient({
           <div>
             <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
               <span>Pontualidade</span>
-              <span className="text-[#0055D4]">{punctualityAvg.toFixed(1)} / 5.0</span>
+              <span className="text-[#1355FF]">{punctualityAvg.toFixed(1)} / 5.0</span>
             </div>
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
               <div
@@ -117,7 +117,7 @@ export function AvaliacoesClient({
           <div>
             <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
               <span>Comunicação e Cordialidade</span>
-              <span className="text-[#0055D4]">{communicationAvg.toFixed(1)} / 5.0</span>
+              <span className="text-[#1355FF]">{communicationAvg.toFixed(1)} / 5.0</span>
             </div>
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
               <div
@@ -136,7 +136,7 @@ export function AvaliacoesClient({
           onClick={() => setFilterRating("todos")}
           className={`px-3 py-1.5 rounded-[8px] text-xs font-bold border transition-colors cursor-pointer ${
             filterRating === "todos"
-              ? "bg-[#0055D4] text-white border-[#0055D4] shadow-2xs"
+              ? "bg-[#1355FF] text-white border-[#1355FF] shadow-2xs"
               : "bg-white text-slate-700 border-slate-200/80 hover:bg-slate-50"
           }`}
         >
@@ -149,7 +149,7 @@ export function AvaliacoesClient({
             onClick={() => setFilterRating(stars)}
             className={`px-3 py-1.5 rounded-[8px] text-xs font-bold border transition-colors flex items-center gap-1 cursor-pointer ${
               filterRating === stars
-                ? "bg-[#0055D4] text-white border-[#0055D4] shadow-2xs"
+                ? "bg-[#1355FF] text-white border-[#1355FF] shadow-2xs"
                 : "bg-white text-slate-700 border-slate-200/80 hover:bg-slate-50"
             }`}
           >

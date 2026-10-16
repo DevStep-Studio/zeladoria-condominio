@@ -14,7 +14,7 @@
 - NÃO criar quatro sistemas independentes; manter arquitetura única baseada em Role + Permissions + Condomínio + Contexto.
 - NÃO espalhar `if (role === ...)` por múltiplos componentes; utilizar configuração centralizada em `src/lib/navigation.ts`.
 - NÃO proteger somente no frontend; toda rota e backend valida autorização e retorna 403.
-- Identidade visual estrita Zeladoria: Azul `#0055D4`, Amarelo `#FFD000`, Branco, Slate neutros. PROIBIDO o uso de gradientes.
+- Identidade visual estrita Zeladoria: Azul `#1355FF`, Amarelo `#FFD000`, Branco, Slate neutros. PROIBIDO o uso de gradientes.
 - Item ativo: background azul, texto branco, ícone branco, pequeno detalhe amarelo quando apropriado.
 - Header adaptativo por perfil: Morador/Síndico com seletor de condomínio; Prestador com status disponível/online e sem condomínio global; Admin com busca administrativa e sem condomínio global.
 - Bottom navigation mobile específica com no máximo 5 itens prioritários por perfil.

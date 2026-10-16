@@ -61,7 +61,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 shrink-0"
+          className="rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 shrink-0"
         >
           <Icon name="check" size={14} />
           <span>{isPending ? "Salvando..." : savedSuccess ? "Salvo com Sucesso!" : "Salvar Alterações"}</span>
@@ -91,7 +91,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               placeholder="Ex: Instalação de Chuveiro, Troca de Tomada..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
             <select
               value={priceType}
               onChange={(e) => setPriceType(e.target.value as any)}
-              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 bg-white"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10 bg-white"
             >
               <option value="a_partir">A partir de (Estimativa inicial)</option>
               <option value="fixo">Preço Fixo</option>
@@ -123,7 +123,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               disabled={priceType === "sob_consulta"}
-              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 disabled:bg-slate-100"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10 disabled:bg-slate-100"
             />
           </div>
 
@@ -136,7 +136,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
               placeholder="Ex: Substituição completa e conferência de segurança da fiação"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+              className="h-10 w-full rounded-[8px] border border-slate-200 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
             />
           </div>
         </div>
@@ -145,7 +145,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
           <button
             type="button"
             onClick={addService}
-            className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+            className="rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
           >
             <Icon name="plus" size={14} />
             <span>Adicionar à Lista</span>
@@ -181,7 +181,7 @@ export function ProviderServicosEditorClient({ vendor }: { vendor: any }) {
                 </div>
 
                 <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                  <span className="text-sm font-black text-[#0055D4]">
+                  <span className="text-sm font-black text-[#1355FF]">
                     {svc.priceFromCents
                       ? `R$ ${(svc.priceFromCents / 100).toFixed(2)}`
                       : "Sob consulta"}

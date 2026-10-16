@@ -15,8 +15,8 @@ export function ZeladoriaProtegeCard({
 }: ZeladoriaProtegeProps) {
   if (variant === "badge") {
     return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0055D4] text-[11px] font-bold">
-        <Icon name="shield" size={13} className="text-[#0055D4]" />
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#1355FF] text-[11px] font-bold">
+        <Icon name="shield" size={13} className="text-[#1355FF]" />
         <span>Zeladoria Protege</span>
       </div>
     );
@@ -27,7 +27,7 @@ export function ZeladoriaProtegeCard({
       <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-lg bg-[#0055D4] text-white flex items-center justify-center font-bold">
+            <span className="h-6 w-6 rounded-lg bg-[#1355FF] text-white flex items-center justify-center font-bold">
               <Icon name="shield" size={13} />
             </span>
             <span className="text-xs font-black text-slate-900 tracking-tight">
@@ -50,7 +50,7 @@ export function ZeladoriaProtegeCard({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black shadow-xs">
+          <div className="h-9 w-9 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black shadow-xs">
             <Icon name="shield" size={18} />
           </div>
           <div>

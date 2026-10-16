@@ -51,7 +51,7 @@ export function ProviderCard({
           ) : (
             /* Fallback elegante e neutro: Ícone da categoria + nome da categoria */
             <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-3 border-b border-slate-100">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#0055D4] shadow-2xs">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#1355FF] shadow-2xs">
                 <Icon name={catIconName} size={20} />
               </span>
               <span className="text-xs font-bold text-slate-600 capitalize">
@@ -96,7 +96,7 @@ export function ProviderCard({
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#0055D4] rounded-lg text-sm shadow-2xs">
+                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#1355FF] rounded-lg text-sm shadow-2xs">
                   {provider.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -105,7 +105,7 @@ export function ProviderCard({
               {provider.isVerified && (
                 <div
                   title="Documento e antecedentes verificados"
-                  className="absolute bottom-0 right-0 bg-[#0055D4] text-white rounded-tl-md rounded-br-lg p-0.5"
+                  className="absolute bottom-0 right-0 bg-[#1355FF] text-white rounded-tl-md rounded-br-lg p-0.5"
                 >
                   <Icon name="check" size={8} strokeWidth={3} />
                 </div>
@@ -114,7 +114,7 @@ export function ProviderCard({
 
             {/* Selo de Ranking (#1, #2, #3) */}
             {rankingPosition && rankingPosition <= 3 ? (
-              <span className="text-[10px] font-black text-[#0055D4] bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-lg shrink-0 mb-1">
+              <span className="text-[10px] font-black text-[#1355FF] bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-lg shrink-0 mb-1">
                 #{rankingPosition}
               </span>
             ) : null}
@@ -122,7 +122,7 @@ export function ProviderCard({
 
           {/* Identidade: Nome & Empresa / Especialidade */}
           <div>
-            <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
+            <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
               {provider.name}
             </h3>
             <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
@@ -146,7 +146,7 @@ export function ProviderCard({
                 </span>
               </div>
             ) : (
-              <span className="text-[10px] font-bold text-[#0055D4]">
+              <span className="text-[10px] font-bold text-[#1355FF]">
                 Novo no Zeladoria
               </span>
             )}
@@ -164,7 +164,7 @@ export function ProviderCard({
               ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço no condomínio" : "serviços no condomínio"}
             </p>
           ) : hasHiredBefore ? (
-            <p className="text-[10px] font-semibold text-[#0055D4] truncate">
+            <p className="text-[10px] font-semibold text-[#1355FF] truncate">
               ✓ Já contratado anteriormente
             </p>
           ) : null}
@@ -221,7 +221,7 @@ export function ProviderCard({
             e.stopPropagation();
             onRequestBudget(provider);
           }}
-          className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
+          className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
         >
           Solicitar
         </button>

@@ -68,9 +68,9 @@ export function ProviderGanhosClient({
         </div>
 
         <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#0055D4] font-bold uppercase">
+          <div className="flex items-center justify-between text-xs text-[#1355FF] font-bold uppercase">
             <span>Em processamento</span>
-            <Icon name="zap" size={16} className="text-[#0055D4]" />
+            <Icon name="zap" size={16} className="text-[#1355FF]" />
           </div>
           <div className="text-2xl font-black text-blue-950">
             R$ {(processingCents / 100).toFixed(2)}
@@ -124,9 +124,9 @@ export function ProviderGanhosClient({
                 {orders.map((o) => (
                   <tr key={o.id} className="hover:bg-slate-50/50">
                     <td className="p-3.5">
-                      <span className="font-bold text-[#0055D4] block">{o.code}</span>
+                      <span className="font-bold text-[#1355FF] block">{o.code}</span>
                       <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
-                        o.purpose === "vistoria" ? "bg-blue-50 text-[#0055D4]" : "bg-purple-50 text-purple-700"
+                        o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
                       }`}>
                         {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
                       </span>
@@ -192,7 +192,7 @@ export function ProviderGanhosClient({
                 {services.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-50/50">
                     <td className="p-3.5">
-                      <span className="font-bold text-[#0055D4] block">{s.code}</span>
+                      <span className="font-bold text-[#1355FF] block">{s.code}</span>
                       <span className="text-slate-600">{s.title}</span>
                     </td>
                     <td className="p-3.5 text-slate-500">

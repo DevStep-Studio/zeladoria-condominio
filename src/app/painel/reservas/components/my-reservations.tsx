@@ -97,7 +97,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
           onClick={() => setFilter("upcoming")}
           className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
             filter === "upcoming"
-              ? "bg-[#0055D4] text-white shadow-xs"
+              ? "bg-[#1355FF] text-white shadow-xs"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -112,7 +112,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
           onClick={() => setFilter("pending")}
           className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
             filter === "pending"
-              ? "bg-[#0055D4] text-white shadow-xs"
+              ? "bg-[#1355FF] text-white shadow-xs"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -127,7 +127,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
           onClick={() => setFilter("history")}
           className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
             filter === "history"
-              ? "bg-[#0055D4] text-white shadow-xs"
+              ? "bg-[#1355FF] text-white shadow-xs"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -142,7 +142,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
           onClick={() => setFilter("cancelled")}
           className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
             filter === "cancelled"
-              ? "bg-[#0055D4] text-white shadow-xs"
+              ? "bg-[#1355FF] text-white shadow-xs"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -219,7 +219,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
                           </span>
                         )}
                         {isCompleted && (
-                          <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0055D4] border border-blue-200">
+                          <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#1355FF] border border-blue-200">
                             Concluída
                           </span>
                         )}
@@ -299,7 +299,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2">
                 <div className="flex justify-between font-bold text-sm text-slate-900 border-b border-slate-200 pb-1.5">
                   <span>{selectedDetail.amenityName}</span>
-                  <span className="capitalize text-[#0055D4]">{selectedDetail.status}</span>
+                  <span className="capitalize text-[#1355FF]">{selectedDetail.status}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-y-1 text-slate-700">
                   <div><strong>Data:</strong> {dateBR(selectedDetail.date)}</div>
@@ -315,7 +315,7 @@ export function MyReservations({ reservations, amenities, currentUserId }: MyRes
               {selectedDetail.qrToken && (
                 <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-center space-y-1">
                   <p className="text-[11px] font-bold text-slate-600 uppercase">Token de Validação na Portaria</p>
-                  <p className="font-mono text-base font-black tracking-widest text-[#0055D4]">
+                  <p className="font-mono text-base font-black tracking-widest text-[#1355FF]">
                     {selectedDetail.qrToken}
                   </p>
                   <p className="text-[10px] text-slate-500">Apresente este código caso solicitado na portaria ou zeladoria.</p>

@@ -176,13 +176,13 @@ const PRIORITY_THEME: Record<
   },
   baixa: {
     label: "Baixa",
-    pinBg: "#0055D4",
+    pinBg: "#1355FF",
     pinRing: "#0040A1",
     pinText: "#FFFFFF",
     badgeBg: "bg-blue-50",
-    badgeText: "text-[#0055D4]",
+    badgeText: "text-[#1355FF]",
     badgeBorder: "border-blue-200",
-    dotColor: "#0055D4",
+    dotColor: "#1355FF",
   },
 };
 
@@ -232,8 +232,8 @@ function getStatusMeta(rawStatus: string) {
   if (bucket === "em_andamento") {
     return {
       label: "Em andamento",
-      badgeClass: "bg-blue-50 text-[#0055D4] border-blue-200",
-      dotClass: "bg-[#0055D4]",
+      badgeClass: "bg-blue-50 text-[#1355FF] border-blue-200",
+      dotClass: "bg-[#1355FF]",
       icon: "activity" as IconName,
     };
   }
@@ -483,7 +483,7 @@ export function CondoMap({
             html: `
               <div style="position: relative; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;">
                 <div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; background-color: rgba(0, 85, 212, 0.25); animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-                <div style="position: relative; width: 14px; height: 14px; border-radius: 50%; background-color: #0055D4; border: 2.5px solid #FFFFFF; box-shadow: 0 1px 4px rgba(0,0,0,0.35);"></div>
+                <div style="position: relative; width: 14px; height: 14px; border-radius: 50%; background-color: #1355FF; border: 2.5px solid #FFFFFF; box-shadow: 0 1px 4px rgba(0,0,0,0.35);"></div>
               </div>
             `,
             iconSize: [26, 26],
@@ -579,7 +579,7 @@ export function CondoMap({
           const hasMed = cluster.items.some((i) => i.severity?.toLowerCase() === "media");
 
           const clusterBg = "#1E293B"; // Slate 800 - elegant executive
-          const dotColor = hasHigh ? "#EF4444" : hasMed ? "#F59E0B" : "#0055D4";
+          const dotColor = hasHigh ? "#EF4444" : hasMed ? "#F59E0B" : "#1355FF";
 
           const clusterIcon = L.divIcon({
             className: "custom-map-cluster",
@@ -647,7 +647,7 @@ export function CondoMap({
             occ._bucket === "resolvida"
               ? "#10B981"
               : occ._bucket === "em_andamento"
-                ? "#0055D4"
+                ? "#1355FF"
                 : "#F59E0B";
 
           const singleIcon = L.divIcon({
@@ -723,7 +723,7 @@ export function CondoMap({
           marker.bindTooltip(
             `
             <div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
-              <span style="font-weight: 800; color: #0055D4;">${occ.code}</span> · <span style="font-weight: 600;">${occ.title}</span>
+              <span style="font-weight: 800; color: #1355FF;">${occ.code}</span> · <span style="font-weight: 600;">${occ.title}</span>
             </div>
           `,
             { direction: "top", offset: [0, -40] }
@@ -902,8 +902,8 @@ export function CondoMap({
             <h3 className="text-base sm:text-lg font-extrabold text-[#0F172A] tracking-tight">
               MAPA DO CONDOMÍNIO
             </h3>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-[#0055D4]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4] animate-pulse" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-[#1355FF]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF] animate-pulse" />
               Tempo Real
             </span>
           </div>
@@ -918,7 +918,7 @@ export function CondoMap({
             <span className="text-slate-300">•</span>
             <span className="text-amber-700">{counts.abertas} abertas</span>
             <span className="text-slate-300">•</span>
-            <span className="text-[#0055D4]">{counts.emAndamento} em andamento</span>
+            <span className="text-[#1355FF]">{counts.emAndamento} em andamento</span>
             <span className="text-slate-300">•</span>
             <span className="text-emerald-700">{counts.resolvidas} resolvidas</span>
           </div>
@@ -936,7 +936,7 @@ export function CondoMap({
             <Icon
               name="navigation"
               size={14}
-              className={userLocationLoading ? "animate-spin text-[#0055D4]" : "text-slate-600"}
+              className={userLocationLoading ? "animate-spin text-[#1355FF]" : "text-slate-600"}
             />
             <span>{userLocationLoading ? "Localizando..." : "Minha localização"}</span>
           </button>
@@ -947,7 +947,7 @@ export function CondoMap({
             className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs transition-colors cursor-pointer"
             title="Retornar à posição central do condomínio"
           >
-            <Icon name="target" size={14} className="text-[#0055D4]" />
+            <Icon name="target" size={14} className="text-[#1355FF]" />
             <span>Centralizar condomínio</span>
           </button>
 
@@ -955,7 +955,7 @@ export function CondoMap({
             <button
               type="button"
               onClick={onExpand}
-              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[8px] border border-blue-200 bg-blue-50/80 hover:bg-blue-100 px-3 py-1.5 text-xs font-bold text-[#0055D4] transition-colors cursor-pointer"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[8px] border border-blue-200 bg-blue-50/80 hover:bg-blue-100 px-3 py-1.5 text-xs font-bold text-[#1355FF] transition-colors cursor-pointer"
               title="Expandir mapa em tela cheia"
             >
               <Icon name="arrow-up-right" size={14} />
@@ -999,7 +999,7 @@ export function CondoMap({
               }}
               onFocus={() => setSearchDropdownOpen(true)}
               placeholder="Buscar ocorrência, local ou número... (ex: OC-101, Lâmpada, Bloco A, Portaria)"
-              className="w-full h-10 pl-9 pr-8 rounded-[10px] border border-slate-200 bg-slate-50/70 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#0055D4] focus:ring-1 focus:ring-[#0055D4] focus:outline-none transition-all"
+              className="w-full h-10 pl-9 pr-8 rounded-[10px] border border-slate-200 bg-slate-50/70 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -1031,7 +1031,7 @@ export function CondoMap({
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-[#0055D4]">
+                          <span className="font-mono text-xs font-bold text-[#1355FF]">
                             {occ.code}
                           </span>
                           <span className="text-xs font-semibold text-slate-900 truncate">
@@ -1073,7 +1073,7 @@ export function CondoMap({
                 onClick={() => setStatusFilter(tab.key)}
                 className={`rounded-[6px] px-3 py-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   statusFilter === tab.key
-                    ? "bg-white text-[#0055D4] shadow-xs"
+                    ? "bg-white text-[#1355FF] shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -1089,7 +1089,7 @@ export function CondoMap({
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#0055D4] focus:outline-none cursor-pointer appearance-none"
+                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#1355FF] focus:outline-none cursor-pointer appearance-none"
               >
                 <option value="todas">Categoria: Todas</option>
                 {Object.entries(CATEGORY_MAP).map(([key, info]) => (
@@ -1108,7 +1108,7 @@ export function CondoMap({
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#0055D4] focus:outline-none cursor-pointer appearance-none"
+                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#1355FF] focus:outline-none cursor-pointer appearance-none"
               >
                 <option value="todas">Prioridade: Todas</option>
                 <option value="alta">🔴 Alta / Urgente</option>
@@ -1125,7 +1125,7 @@ export function CondoMap({
               <select
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
-                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#0055D4] focus:outline-none cursor-pointer appearance-none"
+                className="h-8.5 rounded-[8px] border border-slate-200 bg-white px-2.5 pr-7 text-xs font-semibold text-slate-700 hover:border-slate-300 focus:border-[#1355FF] focus:outline-none cursor-pointer appearance-none"
               >
                 <option value="todos">Local: Todos</option>
                 <option value="Bloco A">Bloco A</option>
@@ -1188,7 +1188,7 @@ export function CondoMap({
                 setMapError(false);
                 setMapReady(false);
               }}
-              className="mt-3 px-3.5 py-1.5 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold shadow-xs hover:bg-[#0047B3] transition-colors cursor-pointer"
+              className="mt-3 px-3.5 py-1.5 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold shadow-xs hover:bg-[#0047B3] transition-colors cursor-pointer"
             >
               Tentar novamente
             </button>
@@ -1206,7 +1206,7 @@ export function CondoMap({
             {/* Header do Popover */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-extrabold text-[#0055D4]">
+                <span className="font-mono text-xs font-extrabold text-[#1355FF]">
                   {selectedOccurrence.code}
                 </span>
                 <span
@@ -1278,7 +1278,7 @@ export function CondoMap({
             <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
               <Link
                 href={`/painel/ocorrencias?highlight=${selectedOccurrence.code}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047B3] active:bg-[#003B94] text-white py-2 px-3 text-xs font-bold transition-colors shadow-xs cursor-pointer text-center"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0047B3] active:bg-[#003B94] text-white py-2 px-3 text-xs font-bold transition-colors shadow-xs cursor-pointer text-center"
               >
                 <span>Ver ocorrência</span>
                 <Icon name="arrow-up-right" size={13} strokeWidth={2.4} />
@@ -1353,7 +1353,7 @@ export function CondoMap({
             <span className="text-[11px] font-medium text-slate-700">Média</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#0055D4]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#1355FF]" />
             <span className="text-[11px] font-medium text-slate-700">Baixa</span>
           </div>
         </div>
@@ -1368,7 +1368,7 @@ export function CondoMap({
             <span className="text-[11px] font-medium text-slate-700">Aberta</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
+            <span className="h-2 w-2 rounded-full bg-[#1355FF]" />
             <span className="text-[11px] font-medium text-slate-700">Em andamento</span>
           </div>
           <div className="flex items-center gap-1.5">

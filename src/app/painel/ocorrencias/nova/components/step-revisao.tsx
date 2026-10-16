@@ -102,7 +102,7 @@ export function StepRevisao({
             <div>
               <span className="text-[11px] text-slate-400 block font-medium">Categoria</span>
               <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mt-0.5">
-                <Icon name={category.icon as IconName} size={15} className="text-[#0055D4]" />
+                <Icon name={category.icon as IconName} size={15} className="text-[#1355FF]" />
                 {category.label}
               </span>
             </div>
@@ -120,7 +120,7 @@ export function StepRevisao({
             <div className="min-w-0 pr-2">
               <span className="text-[11px] text-slate-400 block font-medium">Localização</span>
               <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mt-0.5 truncate">
-                <Icon name="map-pin" size={15} className="text-[#0055D4] shrink-0" />
+                <Icon name="map-pin" size={15} className="text-[#1355FF] shrink-0" />
                 <span className="truncate">{locationSummary}</span>
               </span>
             </div>

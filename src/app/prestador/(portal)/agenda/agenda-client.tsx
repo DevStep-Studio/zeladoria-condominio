@@ -33,7 +33,7 @@ export function ProviderAgendaClient({
               onClick={() => setViewMode(mode)}
               className={`px-3 py-1.5 rounded-[6px] text-xs font-bold capitalize transition-all cursor-pointer ${
                 viewMode === mode
-                  ? "bg-white text-[#0055D4] shadow-2xs"
+                  ? "bg-white text-[#1355FF] shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -67,7 +67,7 @@ export function ProviderAgendaClient({
                 className="rounded-[16px] border border-slate-200/80 bg-white p-4 shadow-2xs space-y-2 hover:border-slate-300 transition-colors"
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-[6px] border border-blue-200/60">
+                  <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-[6px] border border-blue-200/60">
                     {app.code}
                   </span>
                   <span className="text-[11px] font-bold text-slate-600">
@@ -86,7 +86,7 @@ export function ProviderAgendaClient({
 
       {/* Working Hours Info Box */}
       <div className="rounded-[16px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs flex items-start gap-3">
-        <div className="p-2 rounded-[8px] bg-blue-50 text-[#0055D4] shrink-0 border border-blue-200/60">
+        <div className="p-2 rounded-[8px] bg-blue-50 text-[#1355FF] shrink-0 border border-blue-200/60">
           <Icon name="clock" size={18} />
         </div>
         <div className="text-xs space-y-1">

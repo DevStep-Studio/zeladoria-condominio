@@ -3,15 +3,15 @@
 @import "@fullcalendar/react/themes/forma/theme.css";
 @import "@fullcalendar/react/themes/forma/palettes/green.css";
 
-/* ============ Design tokens: Zeladoria Condomínio (Azul #0055D4 + Amarelo #FFD000 Corporativo) ============ */
+/* ============ Design tokens: Zeladoria Condomínio (Azul #1355FF + Amarelo #FFD000 Corporativo) ============ */
 @theme {
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
   --color-surface-muted: #f1f5f9;
-  --color-primary: #0055d4;
-  --color-primary-hover: #0047ba;
-  --color-primary-dark: #003e99;
-  --color-primary-soft: #eff6ff;
+  --color-primary: #1355ff;
+  --color-primary-hover: #0d47e6;
+  --color-primary-dark: #0a3bc2;
+  --color-primary-soft: #eff4ff;
   --color-secondary: #ffd000;
   --color-secondary-hover: #e6bc00;
   --color-secondary-dark: #b8860b;
@@ -112,10 +112,10 @@ summary::-webkit-details-marker {
     @apply flex items-center gap-3 rounded-[10px] bg-white border border-slate-200/80 p-3 hover:border-blue-200 hover:bg-blue-50/20 transition-all text-left;
   }
   .action-icon-box {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4];
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF];
   }
   .nav-item-active {
-    @apply relative font-bold text-[#0055D4] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#0055D4] before:rounded-r;
+    @apply relative font-bold text-[#1355FF] bg-blue-50/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-[#1355FF] before:rounded-r;
   }
   .page-grid {
     @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px];

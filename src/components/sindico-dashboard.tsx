@@ -205,8 +205,8 @@ export function SindicoDashboard({
         </div>
       )}
 
-      {/* 1. HERO DO SÍNDICO (Azul Sólido #0055D4, sem gradiente) */}
-      <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#0055D4] p-5 sm:p-7 text-white shadow-sm select-none">
+      {/* 1. HERO DO SÍNDICO (Azul Sólido #1355FF, sem gradiente) */}
+      <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#1355FF] p-5 sm:p-7 text-white shadow-sm select-none">
         {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
         <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -242,7 +242,7 @@ export function SindicoDashboard({
             </Link>
             <Link
               href="/painel/configuracoes"
-              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white hover:bg-blue-50 active:bg-blue-100 text-[#0055D4] px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white hover:bg-blue-50 active:bg-blue-100 text-[#1355FF] px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
             >
               <Icon name="settings" size={15} strokeWidth={2.4} />
               <span>Configurações</span>
@@ -349,7 +349,7 @@ export function SindicoDashboard({
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Ocorrências
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF]">
                 <Icon name="clipboard" size={16} />
               </span>
             </div>
@@ -367,7 +367,7 @@ export function SindicoDashboard({
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
-              <Link href="/painel/ocorrencias" className="text-[#0055D4] hover:underline flex items-center gap-1">
+              <Link href="/painel/ocorrencias" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Gerenciar todas</span>
                 <Icon name="arrow-up-right" size={13} />
               </Link>
@@ -398,7 +398,7 @@ export function SindicoDashboard({
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
-              <Link href="/painel/manutencao" className="text-[#0055D4] hover:underline flex items-center gap-1">
+              <Link href="/painel/manutencao" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Plano preventivo</span>
                 <Icon name="arrow-up-right" size={13} />
               </Link>
@@ -429,7 +429,7 @@ export function SindicoDashboard({
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
-              <Link href="/painel/reservas" className="text-[#0055D4] hover:underline flex items-center gap-1">
+              <Link href="/painel/reservas" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Ver calendário</span>
                 <Icon name="arrow-up-right" size={13} />
               </Link>
@@ -460,7 +460,7 @@ export function SindicoDashboard({
               </p>
             </div>
             <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
-              <Link href="/painel/visitantes" className="text-[#0055D4] hover:underline flex items-center gap-1">
+              <Link href="/painel/visitantes" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Portaria ao vivo</span>
                 <Icon name="arrow-up-right" size={13} />
               </Link>
@@ -475,7 +475,7 @@ export function SindicoDashboard({
         <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
                 <Icon name="shield" size={13} />
               </span>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
@@ -489,7 +489,7 @@ export function SindicoDashboard({
 
           {smartAlerts.length === 0 ? (
             <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-50 text-[#0055D4] mb-1">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-50 text-[#1355FF] mb-1">
                 <Icon name="shield" size={20} />
               </span>
               <p className="text-xs font-bold text-slate-800">Ativos com Saúde Normal</p>
@@ -517,7 +517,7 @@ export function SindicoDashboard({
                     <span className="text-[11px] font-bold text-amber-900">{alert.recommendedAction}</span>
                     <Link
                       href="/painel/manutencao"
-                      className="px-2.5 py-1 bg-[#0055D4] hover:bg-[#0047BA] text-white text-[11px] font-bold rounded-lg transition-colors shrink-0"
+                      className="px-2.5 py-1 bg-[#1355FF] hover:bg-[#0D47E6] text-white text-[11px] font-bold rounded-lg transition-colors shrink-0"
                     >
                       Agendar
                     </Link>
@@ -539,7 +539,7 @@ export function SindicoDashboard({
                 Livro Digital da Portaria
               </h3>
             </div>
-            <Link href="/painel/livro" className="text-xs font-bold text-[#0055D4] hover:underline">
+            <Link href="/painel/livro" className="text-xs font-bold text-[#1355FF] hover:underline">
               Ver todos
             </Link>
           </div>
@@ -570,7 +570,7 @@ export function SindicoDashboard({
                       <button
                         onClick={() => handleAck(log.id)}
                         disabled={isPending}
-                        className="px-2.5 py-1 bg-[#0055D4] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044AA] cursor-pointer"
+                        className="px-2.5 py-1 bg-[#1355FF] text-white text-[11px] font-bold rounded-lg hover:bg-[#0044AA] cursor-pointer"
                       >
                         Dar Ciência
                       </button>
@@ -597,14 +597,14 @@ export function SindicoDashboard({
       <section className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
               <Icon name="clipboard" size={13} />
             </span>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
               Ocorrências em Andamento
             </h3>
           </div>
-          <Link href="/painel/ocorrencias" className="text-xs font-bold text-[#0055D4] hover:underline">
+          <Link href="/painel/ocorrencias" className="text-xs font-bold text-[#1355FF] hover:underline">
             Gerenciar todas
           </Link>
         </div>
@@ -621,7 +621,7 @@ export function SindicoDashboard({
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs font-black text-slate-700">{occ.code}</span>
                     <span className="text-xs font-bold text-slate-900 truncate">{occ.title}</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-[#0055D4] text-[10px] font-bold rounded">
+                    <span className="px-2 py-0.5 bg-blue-50 text-[#1355FF] text-[10px] font-bold rounded">
                       {occ.category}
                     </span>
                   </div>
@@ -631,7 +631,7 @@ export function SindicoDashboard({
                 </div>
                 <button
                   onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                  className="px-3 py-1.5 bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
+                  className="px-3 py-1.5 bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
                 >
                   Gerar OS
                 </button>
@@ -647,7 +647,7 @@ export function SindicoDashboard({
           <div className="bg-white rounded-[16px] max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Icon name="wrench" size={18} className="text-[#0055D4]" />
+                <Icon name="wrench" size={18} className="text-[#1355FF]" />
                 Criar Ordem de Serviço
               </h3>
               <button
@@ -702,7 +702,7 @@ export function SindicoDashboard({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 py-2 bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl font-bold cursor-pointer"
+                  className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer"
                 >
                   {isPending ? "Criando OS..." : "Criar Ordem & Vincular"}
                 </button>

@@ -88,7 +88,7 @@ export function AdminTaxasClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black">
               <Icon name="shield" size={16} />
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -109,7 +109,7 @@ export function AdminTaxasClient({
           </Link>
           <Link
             href="/painel/servicos"
-            className="px-3.5 py-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-xs font-bold text-white transition-colors shadow-xs"
+            className="px-3.5 py-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-xs font-bold text-white transition-colors shadow-xs"
           >
             Ver Marketplace
           </Link>
@@ -128,7 +128,7 @@ export function AdminTaxasClient({
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
           <span className="text-xs font-bold text-slate-400 uppercase">Comissão da Plataforma</span>
-          <div className="text-2xl font-black text-[#0055D4]">
+          <div className="text-2xl font-black text-[#1355FF]">
             R$ {(totalFeesCents / 100).toFixed(2)}
           </div>
           <p className="text-[11px] text-slate-500">Taxa configurável ({commission}%)</p>
@@ -179,7 +179,7 @@ export function AdminTaxasClient({
                   value={commission}
                   onChange={(e) => setCommission(parseInt(e.target.value) || 0)}
                   required
-                  className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">%</span>
               </div>
@@ -197,7 +197,7 @@ export function AdminTaxasClient({
                   value={holdMinutes}
                   onChange={(e) => setHoldMinutes(parseInt(e.target.value) || 10)}
                   required
-                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">min</span>
               </div>
@@ -217,7 +217,7 @@ export function AdminTaxasClient({
                   value={maxInspectionVal}
                   onChange={(e) => setMaxInspectionVal(e.target.value)}
                   required
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
               </div>
               <p className="text-[10px] text-slate-500">Limite de segurança para cobrança de visita diagnóstica</p>
@@ -236,7 +236,7 @@ export function AdminTaxasClient({
                   value={disputeHours}
                   onChange={(e) => setDisputeHours(parseInt(e.target.value) || 48)}
                   required
-                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">horas</span>
               </div>
@@ -254,7 +254,7 @@ export function AdminTaxasClient({
                   value={autoReleaseHours}
                   onChange={(e) => setAutoReleaseHours(parseInt(e.target.value) || 72)}
                   required
-                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">horas</span>
               </div>
@@ -273,7 +273,7 @@ export function AdminTaxasClient({
                   max="50"
                   value={visitCommission}
                   onChange={(e) => setVisitCommission(parseInt(e.target.value) || 0)}
-                  className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-sm outline-none focus:border-[#1355FF]"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">%</span>
               </div>
@@ -286,7 +286,7 @@ export function AdminTaxasClient({
               <select
                 value={feePayer}
                 onChange={(e) => setFeePayer(e.target.value as any)}
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-xs outline-none focus:border-[#0055D4]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 text-xs outline-none focus:border-[#1355FF]"
               >
                 <option value="PROVIDER">Descontar do Prestador (Padrão)</option>
                 <option value="PLATFORM">Absorvido pela Zeladoria</option>
@@ -300,7 +300,7 @@ export function AdminTaxasClient({
             <button
               type="submit"
               disabled={isPending}
-              className="px-6 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs transition-colors flex items-center gap-1.5"
             >
               <Icon name="check" size={14} />
               <span>{isPending ? "Salvando..." : "Salvar Configurações Financeiras"}</span>
@@ -378,7 +378,7 @@ export function AdminTaxasClient({
           </div>
           <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50">
             <span className="text-blue-700 block text-[11px]">Comissão Zeladoria ({simCommissionPercent}%):</span>
-            <span className="text-base font-black text-[#0055D4]">R$ {simPlatformFee.toFixed(2)}</span>
+            <span className="text-base font-black text-[#1355FF]">R$ {simPlatformFee.toFixed(2)}</span>
           </div>
           <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50">
             <span className="text-amber-700 block text-[11px]">Taxa do PSP ({simPspFeePercent}%):</span>
@@ -421,9 +421,9 @@ export function AdminTaxasClient({
                 {recentOrders.map((o) => (
                   <tr key={o.id} className="hover:bg-slate-50/50">
                     <td className="p-3.5">
-                      <span className="font-bold text-[#0055D4] block">{o.code}</span>
+                      <span className="font-bold text-[#1355FF] block">{o.code}</span>
                       <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
-                        o.purpose === "vistoria" ? "bg-blue-50 text-[#0055D4]" : "bg-purple-50 text-purple-700"
+                        o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
                       }`}>
                         {o.purpose === "vistoria" ? "Vistoria" : "Serviço"}
                       </span>

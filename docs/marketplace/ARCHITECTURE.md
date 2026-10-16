@@ -15,7 +15,7 @@ Diferente de marketplaces genéricos de mobilidade ou delivery, ele opera sobre 
 | :--- | :--- | :--- |
 | **Frontend Web** | Next.js 16 (App Router + Turbopack) | Server Components por padrão, Client Components isolados (`"use client"`), Server Actions para mutações com revalidação estrita |
 | **Linguagem** | TypeScript 5.9 | Tipagem estrita com checagem estática em tempo de compilação |
-| **Estilização** | CSS Nativo (Design System 2.0) | Paleta Azul Institucional (`#0055D4`) e Amarelo Destaque (`#FFD000`), sem gradientes, sem glassmorphism, mobile-first |
+| **Estilização** | CSS Nativo (Design System 2.0) | Paleta Azul Institucional (`#1355FF`) e Amarelo Destaque (`#FFD000`), sem gradientes, sem glassmorphism, mobile-first |
 | **Banco de Dados** | PostgreSQL 16+ | Schema dedicado `condominio_app`, gerenciado por Drizzle ORM |
 | **Autenticação & RBAC** | HMAC SHA-256 Stateless Cookies | Camada centralizada de permissões granulares (`src/lib/permissions.ts`) e papéis (`src/lib/rbac.ts`) |
 | **Geolocalização & Mapas**| Leaflet / OpenStreetMap | Renderização dinâmica no cliente com anonimização de localização privada |

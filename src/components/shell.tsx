@@ -333,14 +333,14 @@ export function Shell({
           <button
             type="button"
             onClick={toggleCollapse}
-            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-500 hover:text-[#0055D4] hover:bg-blue-50 transition-all cursor-pointer group"
+            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-500 hover:text-[#1355FF] hover:bg-blue-50 transition-all cursor-pointer group"
             title="Expandir menu lateral"
             aria-label="Expandir menu lateral"
           >
             <Icon
               name="panel"
               size={16}
-              className="rotate-180 text-slate-500 group-hover:text-[#0055D4] transition-transform group-hover:scale-110"
+              className="rotate-180 text-slate-500 group-hover:text-[#1355FF] transition-transform group-hover:scale-110"
             />
           </button>
         )}
@@ -355,7 +355,7 @@ export function Shell({
             onClick={() => setMobileOpen(false)}
             className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
               isTopActive
-                ? "bg-[#0055D4] text-white font-semibold shadow-xs"
+                ? "bg-[#1355FF] text-white font-semibold shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
             } ${collapsed ? "justify-center px-2" : ""}`}
             title={collapsed ? topItemLabel : undefined}
@@ -393,7 +393,7 @@ export function Shell({
                   className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className={hasActiveChild ? "text-[#0055D4]" : ""}>{group.title}</span>
+                    <span className={hasActiveChild ? "text-[#1355FF]" : ""}>{group.title}</span>
                   </span>
                   <Icon
                     name="chevron-down"
@@ -417,7 +417,7 @@ export function Shell({
                         onClick={() => setMobileOpen(false)}
                         className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
                           active
-                            ? "bg-[#0055D4] text-white font-semibold shadow-xs"
+                            ? "bg-[#1355FF] text-white font-semibold shadow-xs"
                             : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
                         } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
@@ -434,7 +434,7 @@ export function Shell({
                         {!collapsed && item.badge && item.badge > 0 ? (
                           <span
                             className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black ${
-                              active ? "bg-white text-[#0055D4]" : "bg-[#FFD000] text-[#12162A]"
+                              active ? "bg-white text-[#1355FF]" : "bg-[#FFD000] text-[#12162A]"
                             }`}
                           >
                             {item.badge}
@@ -471,7 +471,7 @@ export function Shell({
               collapsed ? "justify-center" : ""
             }`}
           >
-            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#0055D4] text-xs font-extrabold border border-blue-200/60 shadow-2xs">
+            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1355FF] text-xs font-extrabold border border-blue-200/60 shadow-2xs">
               {userName.slice(0, 1).toUpperCase()}
               <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
             </span>
@@ -505,9 +505,9 @@ export function Shell({
                 <Link
                   href="/painel/perfil"
                   onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0055D4] transition-colors"
+                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1355FF] transition-colors"
                 >
-                  <Icon name="user" size={14} className="text-[#0055D4]" />
+                  <Icon name="user" size={14} className="text-[#1355FF]" />
                   <span>Meu Perfil</span>
                 </Link>
 
@@ -543,15 +543,15 @@ export function Shell({
                             onClick={() => handleRoleSwitch(r)}
                             className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
                               isActiveRole
-                                ? "bg-blue-50 font-bold text-[#0055D4]"
+                                ? "bg-blue-50 font-bold text-[#1355FF]"
                                 : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
                             <span className="truncate flex-1 text-[11px] leading-snug">{roleTitle}</span>
                             {isSwitchingThis ? (
-                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4] shrink-0" />
+                              <Icon name="refresh" size={12} className="animate-spin text-[#1355FF] shrink-0" />
                             ) : isActiveRole ? (
-                              <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />
+                              <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />
                             ) : null}
                           </button>
                         );
@@ -577,15 +577,15 @@ export function Shell({
                             onClick={() => handleCondoSwitch(c.id)}
                             className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
                               isActive
-                                ? "bg-blue-50 font-bold text-[#0055D4]"
+                                ? "bg-blue-50 font-bold text-[#1355FF]"
                                 : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
                             <span className="truncate flex-1 text-[11px] leading-snug">{c.name}</span>
                             {isSwitchingThis ? (
-                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4] shrink-0" />
+                              <Icon name="refresh" size={12} className="animate-spin text-[#1355FF] shrink-0" />
                             ) : isActive ? (
-                              <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />
+                              <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />
                             ) : null}
                           </button>
                         );
@@ -598,7 +598,7 @@ export function Shell({
                   <Link
                     href="/painel/configuracoes"
                     onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0055D4] transition-colors"
+                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1355FF] transition-colors"
                   >
                     <Icon name="settings" size={14} className="text-slate-500" />
                     <span>Configurações</span>
@@ -684,9 +684,9 @@ export function Shell({
                   }`}
                   title={condos.length > 1 ? "Trocar condomínio" : condoName}
                 >
-                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#0055D4]">
+                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#1355FF]">
                     {isSwitchingCondo ? (
-                      <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
+                      <Icon name="refresh" size={12} className="animate-spin text-[#1355FF]" />
                     ) : (
                       <Icon name="building" size={12} strokeWidth={2} />
                     )}
@@ -722,15 +722,15 @@ export function Shell({
                             onClick={() => handleCondoSwitch(c.id)}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors cursor-pointer ${
                               isActive
-                                ? "font-bold text-[#0055D4] bg-blue-50"
+                                ? "font-bold text-[#1355FF] bg-blue-50"
                                 : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
                             <span className="truncate">{c.name}</span>
                             {isSwitchingThis ? (
-                              <Icon name="refresh" size={13} className="animate-spin text-[#0055D4]" />
+                              <Icon name="refresh" size={13} className="animate-spin text-[#1355FF]" />
                             ) : isActive ? (
-                              <Icon name="check" size={13} className="text-[#0055D4]" />
+                              <Icon name="check" size={13} className="text-[#1355FF]" />
                             ) : null}
                           </button>
                         );
@@ -752,7 +752,7 @@ export function Shell({
             {/* Context Badge for Admin */}
             {role === "superadmin" && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold select-none">
-                <Icon name="shield" size={13} className="text-[#0055D4]" />
+                <Icon name="shield" size={13} className="text-[#1355FF]" />
                 <span className="hidden xs:inline">Admin da Plataforma</span>
               </div>
             )}
@@ -767,7 +767,7 @@ export function Shell({
               value={searchQuery}
               onFocus={() => setSearchFocused(true)}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-[8px] border border-slate-200 bg-slate-50/70 hover:bg-white pl-9 pr-12 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
+              className="h-9 w-full rounded-[8px] border border-slate-200 bg-slate-50/70 hover:bg-white pl-9 pr-12 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
             />
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
               <kbd className="text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-[4px] shadow-2xs">⌘K</kbd>
@@ -844,7 +844,7 @@ export function Shell({
                       <button
                         type="button"
                         onClick={markAllAsRead}
-                        className="text-[10px] font-bold text-[#0055D4] hover:underline"
+                        className="text-[10px] font-bold text-[#1355FF] hover:underline"
                       >
                         Marcar lidas
                       </button>
@@ -866,7 +866,7 @@ export function Shell({
                       >
                         <span
                           className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[6px] text-xs ${
-                            !notif.read ? "bg-[#0055D4] text-white" : "bg-slate-100 text-slate-500"
+                            !notif.read ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-500"
                           }`}
                         >
                           <Icon name={notif.icon} size={13} />
@@ -883,7 +883,7 @@ export function Shell({
                           </span>
                         </div>
                         {!notif.read && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4] shrink-0 mt-1" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF] shrink-0 mt-1" />
                         )}
                       </Link>
                     ))}
@@ -898,7 +898,7 @@ export function Shell({
               title="Meu Perfil"
               className="relative flex items-center justify-center rounded-[8px] p-0.5 hover:ring-2 hover:ring-blue-100 transition-all group"
             >
-              <span className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#0055D4] text-white text-xs font-bold shadow-2xs group-hover:bg-[#0043A8] transition-colors">
+              <span className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#1355FF] text-white text-xs font-bold shadow-2xs group-hover:bg-[#0D47E6] transition-colors">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/20" />
@@ -912,7 +912,7 @@ export function Shell({
         </main>
 
         {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#0055D4] px-1 py-1 lg:hidden shadow-lg select-none text-white">
+        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#1355FF] px-1 py-1 lg:hidden shadow-lg select-none text-white">
           {(mobileNav && mobileNav.length > 0
             ? mobileNav
             : [

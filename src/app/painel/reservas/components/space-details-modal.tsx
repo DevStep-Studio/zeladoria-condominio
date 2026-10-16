@@ -266,7 +266,7 @@ export function SpaceDetailsModal({
                       type="button"
                       onClick={() => setSelectedPhotoIndex(idx)}
                       className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                        selectedPhotoIndex === idx ? "border-[#0055D4] shadow-xs" : "border-slate-200 opacity-60 hover:opacity-100"
+                        selectedPhotoIndex === idx ? "border-[#1355FF] shadow-xs" : "border-slate-200 opacity-60 hover:opacity-100"
                       }`}
                     >
                       <Image src={img} alt={`Foto ${idx + 1}`} fill className="object-cover" />
@@ -281,7 +281,7 @@ export function SpaceDetailsModal({
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase">Capacidade</p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
-                  <Icon name="users" size={15} className="text-[#0055D4]" />
+                  <Icon name="users" size={15} className="text-[#1355FF]" />
                   <span>{space.capacity ? `Até ${space.capacity} pessoas` : "Livre"}</span>
                 </p>
               </div>
@@ -289,7 +289,7 @@ export function SpaceDetailsModal({
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase">Funcionamento</p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
-                  <Icon name="clock" size={15} className="text-[#0055D4]" />
+                  <Icon name="clock" size={15} className="text-[#1355FF]" />
                   <span>{openTime} – {closeTime}</span>
                 </p>
               </div>
@@ -297,7 +297,7 @@ export function SpaceDetailsModal({
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase">Taxa de Uso</p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
-                  <Icon name="wallet" size={15} className="text-[#0055D4]" />
+                  <Icon name="wallet" size={15} className="text-[#1355FF]" />
                   <span>{isFree ? "Grátis" : money(space.feeCents)}</span>
                 </p>
               </div>
@@ -305,7 +305,7 @@ export function SpaceDetailsModal({
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase">Cancelamento</p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
-                  <Icon name="calendar" size={15} className="text-[#0055D4]" />
+                  <Icon name="calendar" size={15} className="text-[#1355FF]" />
                   <span>Até {space.cancellationDeadlineHours || 24}h antes</span>
                 </p>
               </div>
@@ -333,7 +333,7 @@ export function SpaceDetailsModal({
                         key={f}
                         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-800"
                       >
-                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[#0055D4]">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                           <Icon name={feat.icon} size={14} />
                         </div>
                         <span className="font-medium">{feat.label}</span>
@@ -386,7 +386,7 @@ export function SpaceDetailsModal({
                 <div className="flex items-center gap-2">
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                      step >= 1 ? "bg-[#0055D4] text-white" : "bg-slate-200 text-slate-600"
+                      step >= 1 ? "bg-[#1355FF] text-white" : "bg-slate-200 text-slate-600"
                     }`}
                   >
                     1
@@ -397,7 +397,7 @@ export function SpaceDetailsModal({
                   <span className="text-slate-300">/</span>
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                      step >= 2 ? "bg-[#0055D4] text-white" : "bg-slate-200 text-slate-600"
+                      step >= 2 ? "bg-[#1355FF] text-white" : "bg-slate-200 text-slate-600"
                     }`}
                   >
                     2
@@ -408,7 +408,7 @@ export function SpaceDetailsModal({
                   <span className="text-slate-300">/</span>
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                      step >= 3 ? "bg-[#0055D4] text-white" : "bg-slate-200 text-slate-600"
+                      step >= 3 ? "bg-[#1355FF] text-white" : "bg-slate-200 text-slate-600"
                     }`}
                   >
                     3
@@ -421,7 +421,7 @@ export function SpaceDetailsModal({
                 <button
                   type="button"
                   onClick={() => setViewMode("details")}
-                  className="text-xs font-semibold text-[#0055D4] hover:underline"
+                  className="text-xs font-semibold text-[#1355FF] hover:underline"
                 >
                   Ver fotos e regras
                 </button>
@@ -493,15 +493,15 @@ export function SpaceDetailsModal({
                           onClick={() => setSelectedDate(day.dateStr)}
                           className={`relative flex h-10 flex-col items-center justify-center rounded-xl text-xs font-bold transition-all ${
                             isSelected
-                              ? "bg-[#0055D4] text-white shadow-xs"
+                              ? "bg-[#1355FF] text-white shadow-xs"
                               : disabled
                               ? "bg-slate-50 text-slate-300 cursor-not-allowed"
-                              : "text-slate-800 hover:bg-blue-50 hover:text-[#0055D4] border border-slate-100"
+                              : "text-slate-800 hover:bg-blue-50 hover:text-[#1355FF] border border-slate-100"
                           }`}
                         >
                           <span>{day.dayNum}</span>
                           {day.isToday && !isSelected && (
-                            <span className="h-1 w-1 rounded-full bg-[#0055D4]" />
+                            <span className="h-1 w-1 rounded-full bg-[#1355FF]" />
                           )}
                           {day.isBlocked && (
                             <span className="text-[9px] text-red-500 font-normal">Bloq.</span>
@@ -559,7 +559,7 @@ export function SpaceDetailsModal({
                             }}
                             className={`rounded-xl p-3 text-left border transition-all ${
                               isSelected
-                                ? "border-[#0055D4] bg-blue-50 text-[#0055D4] font-bold shadow-xs"
+                                ? "border-[#1355FF] bg-blue-50 text-[#1355FF] font-bold shadow-xs"
                                 : !slot.available
                                 ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
                                 : "border-slate-200 bg-white text-slate-800 hover:border-slate-300"
@@ -751,7 +751,7 @@ export function SpaceDetailsModal({
                       type="checkbox"
                       checked={rulesAccepted}
                       onChange={(e) => setRulesAccepted(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0055D4] focus:ring-[#0055D4]"
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
                     />
                     <div className="text-xs text-slate-700 leading-normal">
                       <strong className="text-slate-900">Li e concordo com o regulamento de uso</strong> deste espaço,

@@ -127,7 +127,7 @@ export function AdminDestaquesClient({
             <button
               type="button"
               onClick={() => setIsNewPlanModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
             >
               <Icon name="plus" size={13} />
               <span>Novo Plano</span>
@@ -155,7 +155,7 @@ export function AdminDestaquesClient({
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-slate-400 uppercase">Campanhas Ativas</span>
-          <div className="text-2xl font-black text-[#0055D4]">{activeCount}</div>
+          <div className="text-2xl font-black text-[#1355FF]">{activeCount}</div>
           <span className="text-xs text-slate-500">Prestadores com destaque no ar</span>
         </div>
 
@@ -408,7 +408,7 @@ export function AdminDestaquesClient({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 text-xs font-bold bg-[#0055D4] hover:bg-[#0047BA] text-white rounded-xl shadow-xs"
+                  className="px-4 py-2 text-xs font-bold bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl shadow-xs"
                 >
                   Criar plano
                 </button>

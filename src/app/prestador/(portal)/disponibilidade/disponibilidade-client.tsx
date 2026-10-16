@@ -126,7 +126,7 @@ export function DisponibilidadeClient({ vendor }: { vendor: any }) {
               value={workingHours}
               onChange={(e) => setWorkingHours(e.target.value)}
               placeholder="Ex.: Seg a Sex 08:00 - 18:00 | Sáb 08:00 - 13:00"
-              className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
               required
             />
             <span className="text-[11px] text-slate-400 block mt-1">
@@ -146,9 +146,9 @@ export function DisponibilidadeClient({ vendor }: { vendor: any }) {
                 step={1}
                 value={serviceRadiusKm}
                 onChange={(e) => setServiceRadiusKm(Number(e.target.value))}
-                className="flex-1 accent-[#0055D4]"
+                className="flex-1 accent-[#1355FF]"
               />
-              <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2.5 py-1 rounded-[6px] border border-blue-200/60">
+              <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2.5 py-1 rounded-[6px] border border-blue-200/60">
                 Até {serviceRadiusKm} km
               </span>
             </div>
@@ -167,7 +167,7 @@ export function DisponibilidadeClient({ vendor }: { vendor: any }) {
             value={serviceArea}
             onChange={(e) => setServiceArea(e.target.value)}
             placeholder="Ex.: São Paulo, Jardins, Pinheiros, Itaim Bibi, Vila Mariana"
-            className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+            className="w-full rounded-[8px] border border-slate-200/80 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
           />
           <span className="text-[11px] text-slate-400 block mt-1">
             Separe as regiões por vírgulas.
@@ -178,7 +178,7 @@ export function DisponibilidadeClient({ vendor }: { vendor: any }) {
           <button
             type="submit"
             disabled={isPending}
-            className="px-6 py-2 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-6 py-2 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isPending ? "Salvando..." : "Salvar Configurações"}
           </button>

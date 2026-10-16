@@ -102,7 +102,7 @@ export function CategoryPickerSheet({
                   }}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? "border-[#0070F3] bg-blue-50/70 text-[#0055D4] shadow-2xs"
+                      ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-2xs"
                       : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
                   }`}
                 >

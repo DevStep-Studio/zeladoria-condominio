@@ -428,7 +428,7 @@ export function AssembliesClientView({
           onClick={() => setTab("proximas")}
           className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
             tab === "proximas"
-              ? "border-[#0055D4] bg-blue-50/20 ring-2 ring-blue-500/10"
+              ? "border-[#1355FF] bg-blue-50/20 ring-2 ring-blue-500/10"
               : "border-slate-200/80 bg-white hover:border-slate-300"
           }`}
         >
@@ -447,7 +447,7 @@ export function AssembliesClientView({
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {upcomingList.length}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
               Próximas
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -458,7 +458,7 @@ export function AssembliesClientView({
 
         <div className="group relative flex flex-col justify-between text-left rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] transition-transform group-hover:scale-110">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] transition-transform group-hover:scale-110">
               <Icon name="user-check" size={18} strokeWidth={2.2} />
             </span>
             <Icon
@@ -472,7 +472,7 @@ export function AssembliesClientView({
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {confirmedAttendanceCount}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#0055D4] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
               Presenças
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -545,10 +545,10 @@ export function AssembliesClientView({
         <Card title="Sua próxima assembleia convocada">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-line)] pb-3">
             <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-[#0055D4] animate-pulse" />
+              <span className="flex h-2.5 w-2.5 rounded-full bg-[#1355FF] animate-pulse" />
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Convocação digital</p>
             </div>
-            <span className="rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4]">
+            <span className="rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF]">
               {nextAssembly.kind}
             </span>
           </div>
@@ -582,7 +582,7 @@ export function AssembliesClientView({
                 <form action={confirmAttendanceAction}>
                   <input type="hidden" name="assemblyId" value={nextAssembly.id} />
                   <input type="hidden" name="status" value="confirmado" />
-                  <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2.5 text-xs font-bold shadow-xs transition-all">
+                  <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2.5 text-xs font-bold shadow-xs transition-all">
                     <Icon name="check-circle" size={14} /> Confirmar presença
                   </button>
                 </form>
@@ -608,7 +608,7 @@ export function AssembliesClientView({
             onClick={() => setTab("proximas")}
             className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               tab === "proximas"
-                ? "bg-[#0055D4] text-white shadow-xs"
+                ? "bg-[#1355FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -628,7 +628,7 @@ export function AssembliesClientView({
             onClick={() => setTab("realizadas")}
             className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               tab === "realizadas"
-                ? "bg-[#0055D4] text-white shadow-xs"
+                ? "bg-[#1355FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -648,7 +648,7 @@ export function AssembliesClientView({
             onClick={() => setTab("canceladas")}
             className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               tab === "canceladas"
-                ? "bg-[#0055D4] text-white shadow-xs"
+                ? "bg-[#1355FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -699,7 +699,7 @@ export function AssembliesClientView({
                 setEditingAssembly(null);
                 setNewModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0043A8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs"
             >
               <Icon name="plus" size={15} />
               <span>Nova assembleia</span>

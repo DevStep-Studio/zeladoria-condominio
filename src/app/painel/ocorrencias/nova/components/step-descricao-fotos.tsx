@@ -162,8 +162,8 @@ export function StepDescricaoFotos({
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
             Categoria sugerida:
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-[#0055D4] shadow-2xs truncate">
-            <Icon name={category.icon as IconName} size={14} className="text-[#0055D4]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-[#1355FF] shadow-2xs truncate">
+            <Icon name={category.icon as IconName} size={14} className="text-[#1355FF]" />
             <span>{category.label}</span>
           </span>
         </div>
@@ -171,7 +171,7 @@ export function StepDescricaoFotos({
         <button
           type="button"
           onClick={onOpenCategoryPicker}
-          className="text-xs font-bold text-[#0070F3] hover:text-[#0055D4] hover:underline px-2 py-1 shrink-0 transition-colors"
+          className="text-xs font-bold text-[#0070F3] hover:text-[#1355FF] hover:underline px-2 py-1 shrink-0 transition-colors"
         >
           Alterar
         </button>
@@ -224,7 +224,7 @@ export function StepDescricaoFotos({
               disabled={photoBusy}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-2xs disabled:opacity-50"
             >
-              <Icon name="camera" size={18} className="text-[#0055D4]" />
+              <Icon name="camera" size={18} className="text-[#1355FF]" />
               <span>Tirar foto</span>
             </button>
 

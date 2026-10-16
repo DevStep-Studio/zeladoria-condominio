@@ -119,7 +119,7 @@ export function BlockModal({ amenities, onClose, onSuccess }: BlockModalProps) {
                 type="checkbox"
                 checked={isFullDay}
                 onChange={(e) => setIsFullDay(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-[#0055D4]"
+                className="h-4 w-4 rounded border-slate-300 text-[#1355FF]"
               />
               <span className="text-xs font-semibold text-slate-700">Bloquear o dia inteiro</span>
             </label>

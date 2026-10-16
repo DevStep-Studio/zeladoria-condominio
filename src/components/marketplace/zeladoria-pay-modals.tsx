@@ -104,7 +104,7 @@ export function ProviderInspectionResponseModal({
                 onClick={() => setType("paga")}
                 className={`p-3 rounded-xl border text-center font-bold transition-all cursor-pointer ${
                   type === "paga"
-                    ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                    ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                     : "border-slate-200 hover:bg-slate-50 text-slate-600"
                 }`}
               >
@@ -129,7 +129,7 @@ export function ProviderInspectionResponseModal({
                     value={priceVal}
                     onChange={(e) => setPriceVal(e.target.value)}
                     required
-                    className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 outline-none focus:border-[#0055D4]"
+                    className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 outline-none focus:border-[#1355FF]"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400 mt-1">Exemplo: R$ 80,00</p>
@@ -145,7 +145,7 @@ export function ProviderInspectionResponseModal({
                     value={duration}
                     onChange={(e) => setDuration(parseInt(e.target.value) || 40)}
                     required
-                    className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 outline-none focus:border-[#0055D4]"
+                    className="w-full h-9 px-3 pr-12 rounded-lg border border-slate-300 bg-white font-bold text-slate-900 outline-none focus:border-[#1355FF]"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">min</span>
                 </div>
@@ -161,7 +161,7 @@ export function ProviderInspectionResponseModal({
               <button
                 type="button"
                 onClick={handleAddSlot}
-                className="text-[11px] font-bold text-[#0055D4] hover:underline cursor-pointer flex items-center gap-1"
+                className="text-[11px] font-bold text-[#1355FF] hover:underline cursor-pointer flex items-center gap-1"
               >
                 <Icon name="plus" size={12} />
                 <span>Adicionar horário</span>
@@ -206,7 +206,7 @@ export function ProviderInspectionResponseModal({
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
+              className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#1355FF]"
               placeholder="Ex: Por favor manter o registro de água acessível..."
             />
           </div>
@@ -222,7 +222,7 @@ export function ProviderInspectionResponseModal({
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs"
+              className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs"
             >
               {isPending ? "Enviando..." : "Enviar Proposta de Vistoria"}
             </button>
@@ -291,7 +291,7 @@ export function CustomerInspectionCheckoutModal({
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black">
               <Icon name="calendar" size={16} />
             </span>
             <div>
@@ -320,7 +320,7 @@ export function CustomerInspectionCheckoutModal({
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-slate-200">
             <span className="text-sm font-bold text-slate-700">Valor da Vistoria:</span>
-            <span className="text-base font-black text-[#0055D4]">
+            <span className="text-base font-black text-[#1355FF]">
               R$ {(checkoutData.amountCents / 100).toFixed(2)}
             </span>
           </div>
@@ -368,7 +368,7 @@ export function CustomerInspectionCheckoutModal({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="h-8 px-3 rounded-lg bg-[#0055D4] text-white font-bold text-xs shrink-0 cursor-pointer hover:bg-[#0047BA] transition-colors"
+                  className="h-8 px-3 rounded-lg bg-[#1355FF] text-white font-bold text-xs shrink-0 cursor-pointer hover:bg-[#0D47E6] transition-colors"
                 >
                   {copied ? "Copiado!" : "Copiar"}
                 </button>
@@ -390,8 +390,8 @@ export function CustomerInspectionCheckoutModal({
               <span>{isPending ? "Processando..." : "[Sandbox/Dev] Simular Compensação Pix Webhook"}</span>
             </button>
           ) : (
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#0055D4] flex items-center justify-center gap-2 font-medium">
-              <Icon name="clock" size={15} className="text-[#0055D4] shrink-0" />
+            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#1355FF] flex items-center justify-center gap-2 font-medium">
+              <Icon name="clock" size={15} className="text-[#1355FF] shrink-0" />
               <span>Aguardando detecção do Pix pelo Asaas PSP...</span>
             </div>
           )}
@@ -463,7 +463,7 @@ export function ProviderDiagnosisModal({
               value={report}
               onChange={(e) => setReport(e.target.value)}
               required
-              className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#1355FF]"
               placeholder="Descreva detalhadamente o que foi identificado na visita (ex: Luva de 3/4 com trinca interna, necessidade de troca do reparo e vedação da bancada)..."
             />
           </div>
@@ -509,7 +509,7 @@ export function ProviderDiagnosisModal({
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs"
+              className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs"
             >
               {isPending ? "Salvando..." : "Salvar Diagnóstico e Avançar"}
             </button>
@@ -603,7 +603,7 @@ export function ProviderDigitalProposalModal({
                 onChange={(e) => setAmountVal(e.target.value)}
                 required
                 placeholder="350,00"
-                className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-base text-slate-900 outline-none focus:border-[#0055D4]"
+                className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-base text-slate-900 outline-none focus:border-[#1355FF]"
               />
             </div>
             <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
@@ -623,7 +623,7 @@ export function ProviderDigitalProposalModal({
               onChange={(e) => setDesc(e.target.value)}
               required
               placeholder="Ex: Troca do sifão e vedação completa da tubulação com teste hidrostático..."
-              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
+              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#1355FF]"
             />
           </div>
 
@@ -634,7 +634,7 @@ export function ProviderDigitalProposalModal({
               <select
                 value={estimatedDays}
                 onChange={(e) => setEstimatedDays(parseInt(e.target.value) || 1)}
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#1355FF]"
               >
                 <option value={1}>Mesmo dia (aproximadamente 1h - 4h)</option>
                 <option value={2}>Até 2 dias</option>
@@ -651,7 +651,7 @@ export function ProviderDigitalProposalModal({
                 onChange={(e) => setAvailableAt(e.target.value)}
                 placeholder="Ex: Hoje após 15h, Amanhã 09h..."
                 required
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#1355FF]"
               />
             </div>
           </div>
@@ -677,7 +677,7 @@ export function ProviderDigitalProposalModal({
             <select
               value={warrantyDays}
               onChange={(e) => setWarrantyDays(parseInt(e.target.value) || 30)}
-              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#0055D4]"
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-800 outline-none focus:border-[#1355FF]"
             >
               <option value={30}>30 dias de garantia</option>
               <option value={60}>60 dias de garantia</option>
@@ -703,7 +703,7 @@ export function ProviderDigitalProposalModal({
                   onClick={() => setValidityHours(opt.hours)}
                   className={`py-2 px-1 text-center rounded-xl border text-[11px] font-bold cursor-pointer transition-all ${
                     validityHours === opt.hours
-                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -718,7 +718,7 @@ export function ProviderDigitalProposalModal({
 
           {/* Selo Zeladoria Protege */}
           <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-center gap-2">
-            <Icon name="shield" size={15} className="text-[#0055D4] shrink-0" />
+            <Icon name="shield" size={15} className="text-[#1355FF] shrink-0" />
             <span>
               Ao enviar, o morador poderá comparar com outras opções e aceitar. O valor fica garantido pelo Zeladoria Protege com repasse automático após você finalizar.
             </span>
@@ -735,7 +735,7 @@ export function ProviderDigitalProposalModal({
             <button
               type="submit"
               disabled={isPending || totalCents <= 0}
-              className="px-6 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
             >
               <Icon name="send" size={14} />
               <span>{isPending ? "Enviando..." : "Enviar Orçamento"}</span>
@@ -799,7 +799,7 @@ export function CustomerServiceCheckoutModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black">
               <Icon name="shield" size={16} />
             </span>
             <div>
@@ -834,7 +834,7 @@ export function CustomerServiceCheckoutModal({
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-slate-200">
             <span className="text-sm font-bold text-slate-800">Total a Pagar:</span>
-            <span className="text-xl font-black text-[#0055D4]">R$ {formattedTotal}</span>
+            <span className="text-xl font-black text-[#1355FF]">R$ {formattedTotal}</span>
           </div>
         </div>
 
@@ -855,7 +855,7 @@ export function CustomerServiceCheckoutModal({
               onClick={() => setPaymentMethod("pix")}
               className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 paymentMethod === "pix"
-                  ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                  ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                   : "border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -867,7 +867,7 @@ export function CustomerServiceCheckoutModal({
               onClick={() => setPaymentMethod("cartao")}
               className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 paymentMethod === "cartao"
-                  ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                  ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                   : "border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -928,7 +928,7 @@ export function CustomerServiceCheckoutModal({
                 maxLength={19}
                 value={cardNumber}
                 onChange={(e) => setCardNumber(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
               />
             </div>
             <div>
@@ -938,7 +938,7 @@ export function CustomerServiceCheckoutModal({
                 placeholder="NOME COMO NO CARTÃO"
                 value={cardHolder}
                 onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#1355FF]"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -950,7 +950,7 @@ export function CustomerServiceCheckoutModal({
                   maxLength={5}
                   value={cardExpiry}
                   onChange={(e) => setCardExpiry(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
                 />
               </div>
               <div>
@@ -961,7 +961,7 @@ export function CustomerServiceCheckoutModal({
                   maxLength={4}
                   value={cardCvv}
                   onChange={(e) => setCardCvv(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
                 />
               </div>
             </div>
@@ -977,7 +977,7 @@ export function CustomerServiceCheckoutModal({
             type="button"
             disabled={isPending}
             onClick={() => onSimulatePay(checkoutData.orderCode)}
-            className="w-full py-3 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
           >
             <Icon name="check-circle" size={16} />
             <span>
@@ -1059,7 +1059,7 @@ export function ProviderAddendumModal({
               onChange={(e) => setTitle(e.target.value)}
               required
               placeholder="Ex: Troca de tubulação danificada"
-              className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#1355FF]"
             />
           </div>
 
@@ -1075,7 +1075,7 @@ export function ProviderAddendumModal({
                 onChange={(e) => setAdditionalVal(e.target.value)}
                 required
                 placeholder="120.00"
-                className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-slate-900 outline-none focus:border-[#0055D4]"
+                className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-300 font-black text-slate-900 outline-none focus:border-[#1355FF]"
               />
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
@@ -1091,7 +1091,7 @@ export function ProviderAddendumModal({
               onChange={(e) => setDesc(e.target.value)}
               required
               placeholder="Explique o novo problema encontrado que justifica o custo adicional..."
-              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#0055D4]"
+              className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs outline-none focus:border-[#1355FF]"
             />
           </div>
 
@@ -1110,7 +1110,7 @@ export function ProviderAddendumModal({
             <button
               type="submit"
               disabled={isPending || additionalAmountCents <= 0}
-              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs"
+              className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs"
             >
               {isPending ? "Enviando..." : "Enviar Solicitação de Adicional"}
             </button>
@@ -1251,7 +1251,7 @@ export function ProviderEvidenceModal({
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black">
               <Icon name="camera" size={16} />
             </span>
             <div>
@@ -1275,7 +1275,7 @@ export function ProviderEvidenceModal({
                   onClick={() => setStage(s)}
                   className={`py-2 rounded-xl border text-center font-bold cursor-pointer transition-all ${
                     stage === s
-                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4]"
+                      ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -1319,7 +1319,7 @@ export function ProviderEvidenceModal({
             <button
               type="submit"
               disabled={isPending || !fileUrl.trim()}
-              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
+              className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
             >
               {isPending ? "Salvando..." : "Salvar Evidência"}
             </button>
@@ -1489,7 +1489,7 @@ export function CustomerContractReceiptModal({
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black">
               <Icon name="file-text" size={16} />
             </span>
             <div>
@@ -1538,7 +1538,7 @@ export function CustomerContractReceiptModal({
             )}
             <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-black text-slate-900">
               <span>Valor Total Pago:</span>
-              <span className="text-[#0055D4]">R$ {((receipt.financial?.totalCents || 0) / 100).toFixed(2)}</span>
+              <span className="text-[#1355FF]">R$ {((receipt.financial?.totalCents || 0) / 100).toFixed(2)}</span>
             </div>
           </div>
 
@@ -1568,7 +1568,7 @@ export function CustomerContractReceiptModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-blue-700 text-white font-bold text-xs cursor-pointer shadow-xs"
+            className="px-4 py-2 rounded-xl bg-[#1355FF] hover:bg-blue-700 text-white font-bold text-xs cursor-pointer shadow-xs"
           >
             Fechar
           </button>
@@ -1818,7 +1818,7 @@ export function RebookServiceModal({
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black">
+            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black">
               <Icon name="refresh" size={16} />
             </span>
             <div>
@@ -1863,7 +1863,7 @@ export function RebookServiceModal({
                   onClick={() => setServiceType("same_service")}
                   className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
                     serviceType === "same_service"
-                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -1875,7 +1875,7 @@ export function RebookServiceModal({
                   onClick={() => setServiceType("catalog_service")}
                   className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
                     serviceType === "catalog_service"
-                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -1891,7 +1891,7 @@ export function RebookServiceModal({
                 <select
                   value={selectedService}
                   onChange={(e) => setSelectedService(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 outline-none focus:border-[#1355FF]"
                 >
                   {vendor.services.map((s: any, idx: number) => (
                     <option key={idx} value={s.name}>
@@ -1913,7 +1913,7 @@ export function RebookServiceModal({
                 onChange={(e) => setDesc(e.target.value)}
                 required
                 placeholder="Descreva a nova situação que precisa de reparo ou instalação..."
-                className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium outline-none focus:border-[#0055D4]"
+                className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium outline-none focus:border-[#1355FF]"
               />
             </div>
 
@@ -1928,7 +1928,7 @@ export function RebookServiceModal({
                     onClick={() => setUrgency(u)}
                     className={`py-2 px-1 text-center rounded-xl border text-[11px] font-bold capitalize cursor-pointer transition-all ${
                       urgency === u
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -1971,7 +1971,7 @@ export function RebookServiceModal({
 
             {/* Informação sobre novo orçamento */}
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-center gap-2">
-              <Icon name="shield" size={14} className="text-[#0055D4] shrink-0" />
+              <Icon name="shield" size={14} className="text-[#1355FF] shrink-0" />
               <span>
                 Um novo chamado será enviado diretamente para <strong>{vendor.name}</strong>, que responderá com um novo orçamento para sua aprovação.
               </span>
@@ -1988,7 +1988,7 @@ export function RebookServiceModal({
               <button
                 type="submit"
                 disabled={isPending || !desc.trim()}
-                className="px-5 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
               >
                 <Icon name="send" size={14} />
                 <span>{isPending ? "Solicitando..." : "Solicitar Novo Orçamento"}</span>

@@ -5,11 +5,11 @@
   "start_url": "/painel",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0d9488",
+  "theme_color": "#1355FF",
   "icons": [
     {
-      "src": "/8.png",
-      "sizes": "1024x1024",
+      "src": "/favicon.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]

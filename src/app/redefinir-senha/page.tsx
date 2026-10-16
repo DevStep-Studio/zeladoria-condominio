@@ -46,7 +46,7 @@ export default function RedefinirSenhaPage() {
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#0055D4] hover:text-[#0047BA] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={13} />
           <span>Voltar ao Login</span>
@@ -76,7 +76,7 @@ export default function RedefinirSenhaPage() {
               <div className="pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
                 >
                   <span>Fazer Login Agora</span>
                   <Icon name="arrow-right" size={15} />
@@ -127,7 +127,7 @@ export default function RedefinirSenhaPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Mínimo de 8 caracteres"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                     <button
                       type="button"
@@ -161,7 +161,7 @@ export default function RedefinirSenhaPage() {
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                       placeholder="Repita a nova senha"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                     <button
                       type="button"
@@ -211,7 +211,7 @@ export default function RedefinirSenhaPage() {
                 <button
                   type="submit"
                   disabled={isPending || !hasMinLength || !hasMatch}
-                  className="w-full h-12 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isPending ? (
                     <>
@@ -235,11 +235,11 @@ export default function RedefinirSenhaPage() {
       <footer className="max-w-md w-full mx-auto pt-6 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
         <span>© 2026 Zeladoria Condomínio</span>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hover:text-[#0055D4] transition-colors">
+          <Link href="/login" className="hover:text-[#1355FF] transition-colors">
             Acesso Moradores
           </Link>
           <span>·</span>
-          <Link href="/prestador/login" className="hover:text-[#0055D4] transition-colors">
+          <Link href="/prestador/login" className="hover:text-[#1355FF] transition-colors">
             Área do Prestador
           </Link>
         </div>

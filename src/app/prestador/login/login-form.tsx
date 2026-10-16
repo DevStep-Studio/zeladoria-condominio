@@ -46,7 +46,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
                   onClick={() => selectDemo(d)}
                   className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                     isSelected
-                      ? "border-[#0055D4] bg-blue-50/70 shadow-xs ring-1 ring-[#0055D4]"
+                      ? "border-[#1355FF] bg-blue-50/70 shadow-xs ring-1 ring-[#1355FF]"
                       : "border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300"
                   }`}
                 >
@@ -56,7 +56,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[11px]">
                     <span className="text-slate-500 truncate">{d.category}</span>
-                    <span className="text-[#0055D4] font-bold text-[10px]">{d.role}</span>
+                    <span className="text-[#1355FF] font-bold text-[10px]">{d.role}</span>
                   </div>
                 </button>
               );
@@ -100,7 +100,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
                 }
               }}
               placeholder="carlos@eletrica.com.br"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-1 focus:ring-[#0055D4] transition-all"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all"
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
             </label>
             <Link
               href="/esqueci-senha"
-              className="text-[11px] font-semibold text-[#0055D4] hover:underline"
+              className="text-[11px] font-semibold text-[#1355FF] hover:underline"
             >
               Esqueci minha senha
             </Link>
@@ -135,7 +135,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-medium text-slate-900 outline-none focus:border-[#0055D4] focus:ring-1 focus:ring-[#0055D4] transition-all"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all"
             />
             <button
               type="button"
@@ -150,7 +150,7 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
         >
           {isPending ? (
             <>

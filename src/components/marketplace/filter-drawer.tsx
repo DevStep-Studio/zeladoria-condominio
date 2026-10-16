@@ -56,7 +56,7 @@ export function FilterDrawer({
           {/* Header */}
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
                 <Icon name="filter" size={16} />
               </span>
               <div>
@@ -109,7 +109,7 @@ export function FilterDrawer({
                   type="checkbox"
                   checked={filters.availableNowOnly}
                   onChange={(e) => onChange({ availableNowOnly: e.target.checked })}
-                  className="rounded h-4 w-4 text-[#0055D4] focus:ring-[#0055D4]"
+                  className="rounded h-4 w-4 text-[#1355FF] focus:ring-[#1355FF]"
                 />
               </label>
             </div>
@@ -127,7 +127,7 @@ export function FilterDrawer({
                     onClick={() => onChange({ category: cat.id, subcategory: undefined })}
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                       filters.category === cat.id
-                        ? "bg-[#0055D4] text-white shadow-xs"
+                        ? "bg-[#1355FF] text-white shadow-xs"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
@@ -153,7 +153,7 @@ export function FilterDrawer({
                         onClick={() => onChange({ subcategory: isSelected ? undefined : sub })}
                         className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer border ${
                           isSelected
-                            ? "bg-[#0055D4] text-white border-[#0055D4]"
+                            ? "bg-[#1355FF] text-white border-[#1355FF]"
                             : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
                         }`}
                       >
@@ -182,7 +182,7 @@ export function FilterDrawer({
                     onClick={() => onChange({ minRating: item.val })}
                     className={`py-2 px-2 rounded-xl border text-center font-bold transition-all cursor-pointer text-xs ${
                       filters.minRating === item.val
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] font-black shadow-2xs"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] font-black shadow-2xs"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -198,7 +198,7 @@ export function FilterDrawer({
                 <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400">
                   Preço Inicial Máximo
                 </label>
-                <span className="font-black text-[#0055D4]">
+                <span className="font-black text-[#1355FF]">
                   {filters.maxPrice >= 50000 ? "Sem limite" : `Até R$ ${(filters.maxPrice / 100).toFixed(0)}`}
                 </span>
               </div>
@@ -209,7 +209,7 @@ export function FilterDrawer({
                 step={2000}
                 value={filters.maxPrice}
                 onChange={(e) => onChange({ maxPrice: Number(e.target.value) })}
-                className="w-full accent-[#0055D4] cursor-pointer"
+                className="w-full accent-[#1355FF] cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-medium">
                 <span>R$ 40</span>
@@ -236,7 +236,7 @@ export function FilterDrawer({
                     onClick={() => onChange({ maxDistanceKm: item.val })}
                     className={`py-2 px-1 rounded-xl border text-center font-bold transition-all cursor-pointer text-xs ${
                       filters.maxDistanceKm === item.val
-                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] font-black"
+                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF] font-black"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -254,7 +254,7 @@ export function FilterDrawer({
               <div className="space-y-2">
                 <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <Icon name="check-circle" size={15} className="text-[#0055D4]" />
+                    <Icon name="check-circle" size={15} className="text-[#1355FF]" />
                     <div>
                       <span className="font-bold text-slate-800 block">Profissional Verificado</span>
                       <span className="text-[11px] text-slate-400">Documentação e antecedentes validados</span>
@@ -264,7 +264,7 @@ export function FilterDrawer({
                     type="checkbox"
                     checked={filters.verifiedOnly}
                     onChange={(e) => onChange({ verifiedOnly: e.target.checked })}
-                    className="rounded h-4 w-4 text-[#0055D4] focus:ring-[#0055D4]"
+                    className="rounded h-4 w-4 text-[#1355FF] focus:ring-[#1355FF]"
                   />
                 </label>
 
@@ -280,7 +280,7 @@ export function FilterDrawer({
                     type="checkbox"
                     checked={filters.condoHiredOnly}
                     onChange={(e) => onChange({ condoHiredOnly: e.target.checked })}
-                    className="rounded h-4 w-4 text-[#0055D4] focus:ring-[#0055D4]"
+                    className="rounded h-4 w-4 text-[#1355FF] focus:ring-[#1355FF]"
                   />
                 </label>
               </div>
@@ -299,7 +299,7 @@ export function FilterDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="flex-[2] rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white py-3 text-xs font-bold transition-colors cursor-pointer text-center shadow-xs"
+              className="flex-[2] rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-3 text-xs font-bold transition-colors cursor-pointer text-center shadow-xs"
             >
               Ver {totalResultsCount} profissional{totalResultsCount === 1 ? "" : "is"}
             </button>

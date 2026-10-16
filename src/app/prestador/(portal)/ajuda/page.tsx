@@ -50,7 +50,7 @@ export default function PrestadorAjudaPage() {
 
       {/* Destaque Zeladoria Protege para Prestadores */}
       <div className="p-5 rounded-[12px] bg-blue-50 border border-blue-200/80 flex items-start gap-4">
-        <span className="p-2.5 rounded-[10px] bg-[#0055D4] text-white shrink-0 mt-0.5">
+        <span className="p-2.5 rounded-[10px] bg-[#1355FF] text-white shrink-0 mt-0.5">
           <Icon name="shield" size={20} strokeWidth={2} />
         </span>
         <div className="space-y-1">
@@ -94,7 +94,7 @@ export default function PrestadorAjudaPage() {
         </div>
         <a
           href="mailto:suporte@zeladoriacondominio.com.br"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0043A8] transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors"
         >
           <Icon name="mail" size={14} />
           <span>Falar com o Suporte</span>

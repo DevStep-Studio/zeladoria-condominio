@@ -9,18 +9,17 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/8.png", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png" },
     ],
-    shortcut: "/8.png",
-    apple: "/8.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
   applicationName: "Zeladoria Condomínio",
   appleWebApp: { capable: true, title: "Zeladoria Condomínio", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0D9488",
+  themeColor: "#1355FF",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

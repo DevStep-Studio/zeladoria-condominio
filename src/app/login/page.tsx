@@ -21,7 +21,7 @@ export default async function LoginPage() {
   if (session) redirect("/painel");
 
   return (
-    <main className="w-full min-h-screen lg:h-screen bg-white flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-[#0055D4] selection:text-white">
+    <main className="w-full min-h-screen lg:h-screen bg-white flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-[#1355FF] selection:text-white">
       {/* LEFT COLUMN: Clean Form taking full height, not centered in a floating box */}
       <section className="flex-1 w-full lg:w-[48%] xl:w-[45%] h-full flex flex-col justify-between px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 overflow-y-auto">
         {/* Top Brand Header */}
@@ -55,11 +55,11 @@ export default async function LoginPage() {
         <footer className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
           <span>© 2026 Zeladoria Cidades</span>
           <div className="flex items-center gap-3">
-            <a href="#" className="hover:text-[#0055D4] transition-colors">
+            <a href="#" className="hover:text-[#1355FF] transition-colors">
               Termos
             </a>
             <span>·</span>
-            <a href="#" className="hover:text-[#0055D4] transition-colors">
+            <a href="#" className="hover:text-[#1355FF] transition-colors">
               Privacidade
             </a>
           </div>
@@ -98,7 +98,7 @@ export default async function LoginPage() {
               <div className="w-[1.5px] h-7 bg-white/80" />
               <div className="relative flex h-3.5 w-3.5 items-center justify-center">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#0055D4]" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#1355FF]" />
               </div>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default async function LoginPage() {
           <div className="absolute bottom-8 left-[30%] sm:left-[35%] z-20 flex flex-col items-center gap-1 group/m3 transition-transform duration-300 hover:scale-105 cursor-pointer">
             <div className="relative flex h-3.5 w-3.5 items-center justify-center">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#0055D4]" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#1355FF]" />
             </div>
             <div className="w-[1.5px] h-6 bg-white/80" />
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-slate-900 font-bold text-xs shadow-xl border border-slate-100">

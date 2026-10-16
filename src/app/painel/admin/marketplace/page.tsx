@@ -73,7 +73,7 @@ export default async function AdminMarketplacePage({
           </Link>
           <Link
             href="/painel/admin/marketplace/taxas"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-blue-50 text-[#0055D4] border border-blue-200/80 text-xs font-bold hover:bg-blue-100/70 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-blue-50 text-[#1355FF] border border-blue-200/80 text-xs font-bold hover:bg-blue-100/70 transition-colors"
           >
             <Icon name="chart" size={13} />
             <span>Comissões & Taxas</span>
@@ -91,14 +91,14 @@ export default async function AdminMarketplacePage({
               href={`/painel/admin/marketplace?tab=${t.id}`}
               className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${
                 isActive
-                  ? "border-[#0055D4] text-[#0055D4]"
+                  ? "border-[#1355FF] text-[#1355FF]"
                   : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
               <span>{t.label}</span>
               {t.count !== undefined && (
                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                  isActive ? "bg-blue-100 text-[#0055D4]" : "bg-slate-100 text-slate-600"
+                  isActive ? "bg-blue-100 text-[#1355FF]" : "bg-slate-100 text-slate-600"
                 }`}>
                   {t.count}
                 </span>
@@ -129,7 +129,7 @@ export default async function AdminMarketplacePage({
                     <p className="text-[11px] text-slate-400">{v.companyName || "Autônomo"}</p>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0055D4] text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] text-[10px] font-bold">
                       {v.category}
                     </span>
                   </td>
@@ -252,7 +252,7 @@ export default async function AdminMarketplacePage({
           </p>
           <Link
             href="/painel/admin/marketplace/destaques"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0043A8]"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6]"
           >
             <Icon name="sparkles" size={14} />
             <span>Abrir Painel de Destaques & Patrocinados</span>

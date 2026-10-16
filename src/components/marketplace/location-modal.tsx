@@ -106,7 +106,7 @@ export function LocationModal({
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#1355FF]">
               Local de Atendimento
             </span>
             <h3 className="text-base sm:text-lg font-black text-[#0F172A] tracking-tight">
@@ -132,13 +132,13 @@ export function LocationModal({
             onClick={() => setSelectedType("meu_condominio")}
             className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
               selectedType === "meu_condominio"
-                ? "border-[#0055D4] bg-blue-50/50 shadow-2xs"
+                ? "border-[#1355FF] bg-blue-50/50 shadow-2xs"
                 : "border-slate-200 hover:border-slate-300 bg-white"
             }`}
           >
             <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
               selectedType === "meu_condominio"
-                ? "border-[#0055D4] bg-[#0055D4]"
+                ? "border-[#1355FF] bg-[#1355FF]"
                 : "border-slate-300 bg-white"
             }`}>
               {selectedType === "meu_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -146,11 +146,11 @@ export function LocationModal({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <Icon name="building" size={14} className="text-[#0055D4] shrink-0" />
+                <Icon name="building" size={14} className="text-[#1355FF] shrink-0" />
                 <span className="text-xs font-bold text-[#0F172A]">
                   Meu Condomínio Atual
                 </span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-blue-100 text-[#0055D4]">
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-blue-100 text-[#1355FF]">
                   Padrão
                 </span>
               </div>
@@ -171,7 +171,7 @@ export function LocationModal({
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
                     placeholder="Ex: Apto 302, Bloco B"
-                    className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                   />
                 </div>
               )}
@@ -184,13 +184,13 @@ export function LocationModal({
               onClick={() => setSelectedType("outro_condominio")}
               className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                 selectedType === "outro_condominio"
-                  ? "border-[#0055D4] bg-blue-50/50 shadow-2xs"
+                  ? "border-[#1355FF] bg-blue-50/50 shadow-2xs"
                   : "border-slate-200 hover:border-slate-300 bg-white"
               }`}
             >
               <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                 selectedType === "outro_condominio"
-                  ? "border-[#0055D4] bg-[#0055D4]"
+                  ? "border-[#1355FF] bg-[#1355FF]"
                   : "border-slate-300 bg-white"
               }`}>
                 {selectedType === "outro_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -209,7 +209,7 @@ export function LocationModal({
                     <select
                       value={selectedCondoId || availableCondos[0]?.id}
                       onChange={(e) => setSelectedCondoId(Number(e.target.value))}
-                      className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                      className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                     >
                       {availableCondos.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -228,13 +228,13 @@ export function LocationModal({
             onClick={() => setSelectedType("outro_endereco")}
             className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
               selectedType === "outro_endereco"
-                ? "border-[#0055D4] bg-blue-50/50 shadow-2xs"
+                ? "border-[#1355FF] bg-blue-50/50 shadow-2xs"
                 : "border-slate-200 hover:border-slate-300 bg-white"
             }`}
           >
             <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
               selectedType === "outro_endereco"
-                ? "border-[#0055D4] bg-[#0055D4]"
+                ? "border-[#1355FF] bg-[#1355FF]"
                 : "border-slate-300 bg-white"
             }`}>
               {selectedType === "outro_endereco" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -258,7 +258,7 @@ export function LocationModal({
                         value={cep}
                         onChange={(e) => setCep(e.target.value)}
                         placeholder="80000-000"
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                       />
                     </div>
                     <div className="col-span-2">
@@ -268,7 +268,7 @@ export function LocationModal({
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
                         placeholder="Nome da rua ou avenida"
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export function LocationModal({
                         value={number}
                         onChange={(e) => setNumber(e.target.value)}
                         placeholder="123"
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                       />
                     </div>
                     <div className="col-span-2">
@@ -291,7 +291,7 @@ export function LocationModal({
                         value={complement}
                         onChange={(e) => setComplement(e.target.value)}
                         placeholder="Apto, Casa 2, Sala"
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                       />
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export function LocationModal({
                         value={neighborhood}
                         onChange={(e) => setNeighborhood(e.target.value)}
                         placeholder="Bairro"
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                       />
                     </div>
                     <div>
@@ -315,14 +315,14 @@ export function LocationModal({
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
                           placeholder="Cidade"
-                          className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                          className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                         />
                         <input
                           type="text"
                           value={state}
                           onChange={(e) => setState(e.target.value)}
                           placeholder="UF"
-                          className="w-12 h-8 px-1.5 text-center uppercase rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#0055D4]"
+                          className="w-12 h-8 px-1.5 text-center uppercase rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
                         />
                       </div>
                     </div>
@@ -335,7 +335,7 @@ export function LocationModal({
 
         {/* Privacy Note */}
         <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500">
-          <Icon name="shield" size={14} className="text-[#0055D4] shrink-0" />
+          <Icon name="shield" size={14} className="text-[#1355FF] shrink-0" />
           <span>
             <strong>Privacidade garantida:</strong> Durante a busca, prestadores visualizam apenas a região. Sua unidade e telefone só são liberados após você confirmar a contratação.
           </span>
@@ -353,7 +353,7 @@ export function LocationModal({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             Confirmar Local
           </button>

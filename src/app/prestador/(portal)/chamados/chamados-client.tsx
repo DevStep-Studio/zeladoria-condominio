@@ -159,7 +159,7 @@ export function ProviderChamadosClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar chamado..."
-            className="h-9 w-full rounded-xl border border-slate-200/80 bg-white pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+            className="h-9 w-full rounded-xl border border-slate-200/80 bg-white pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
           />
         </div>
       </div>
@@ -175,7 +175,7 @@ export function ProviderChamadosClient({
               onClick={() => setActiveTab(t.id as any)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? "bg-[#0055D4] text-white shadow-2xs"
+                  ? "bg-[#1355FF] text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
@@ -220,7 +220,7 @@ export function ProviderChamadosClient({
                 {/* Header do Card */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 font-mono">
+                    <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 font-mono">
                       {req.code}
                     </span>
                     <span className="rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-2 py-1">
@@ -339,7 +339,7 @@ export function ProviderChamadosClient({
                       }`}
                     >
                       <div>
-                        <span className="text-[10px] font-black uppercase text-[#0055D4] block">
+                        <span className="text-[10px] font-black uppercase text-[#1355FF] block">
                           Seu Orçamento Enviado:
                         </span>
                         <strong className="text-slate-900 text-sm">
@@ -394,7 +394,7 @@ export function ProviderChamadosClient({
                       type="button"
                       onClick={() => setProposalModalReq(req)}
                       disabled={isPending}
-                      className="px-5 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                      className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                     >
                       <Icon name="send" size={14} />
                       <span>Enviar Orçamento</span>
@@ -413,7 +413,7 @@ export function ProviderChamadosClient({
                             type="button"
                             onClick={() => setProposalModalReq(req)}
                             disabled={isPending}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                            className="px-3.5 py-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
                           >
                             Enviar novo orçamento
                           </button>
@@ -442,7 +442,7 @@ export function ProviderChamadosClient({
                       type="button"
                       onClick={() => handleAdvance(req.id, "a_caminho")}
                       disabled={isPending}
-                      className="px-6 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                      className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-2"
                     >
                       <Icon name="navigation" size={14} />
                       <span>A caminho</span>
@@ -457,7 +457,7 @@ export function ProviderChamadosClient({
                           type="button"
                           onClick={() => handleAdvance(req.id, "chegou")}
                           disabled={isPending}
-                          className="px-5 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                         >
                           <Icon name="map-pin" size={14} />
                           <span>Cheguei ao condomínio</span>

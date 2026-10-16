@@ -95,7 +95,7 @@ export default async function AdminCondominiosPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#0055D4] font-bold text-[10px] capitalize">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
                         {c.plan || "Padrão"}
                       </span>
                     </td>

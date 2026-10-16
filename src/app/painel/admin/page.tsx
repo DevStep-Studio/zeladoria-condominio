@@ -91,7 +91,7 @@ export default async function AdminDashboardPage() {
       {/* Header do Dashboard da Plataforma */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-5">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#0055D4] text-[11px] font-bold mb-1">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#1355FF] text-[11px] font-bold mb-1">
             <Icon name="shield" size={13} />
             <span>Ecossistema Zeladoria</span>
           </div>
@@ -106,7 +106,7 @@ export default async function AdminDashboardPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/painel/admin/zeladoria-pay"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0043A8] transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-2xs"
           >
             <Icon name="wallet" size={14} />
             <span>Zeladoria Pay</span>
@@ -135,7 +135,7 @@ export default async function AdminDashboardPage() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate">
                 {kpi.label}
               </span>
-              <span className="p-1.5 rounded-[6px] bg-slate-50 group-hover:bg-blue-50 group-hover:text-[#0055D4] transition-colors">
+              <span className="p-1.5 rounded-[6px] bg-slate-50 group-hover:bg-blue-50 group-hover:text-[#1355FF] transition-colors">
                 <Icon name={kpi.icon} size={15} />
               </span>
             </div>
@@ -159,7 +159,7 @@ export default async function AdminDashboardPage() {
               className="flex items-center justify-between p-3.5 rounded-[10px] bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all group"
             >
               <div className="flex items-center gap-3">
-                <span className="p-2 rounded-[8px] bg-blue-50 text-[#0055D4]">
+                <span className="p-2 rounded-[8px] bg-blue-50 text-[#1355FF]">
                   <Icon name="building" size={16} />
                 </span>
                 <div>
@@ -228,7 +228,7 @@ export default async function AdminDashboardPage() {
             </h2>
             <Link
               href="/painel/auditoria"
-              className="text-[11px] font-bold text-[#0055D4] hover:underline"
+              className="text-[11px] font-bold text-[#1355FF] hover:underline"
             >
               Ver todos os logs
             </Link>

@@ -75,7 +75,7 @@ export function MarketplaceMap({
           className: "condo-center-pin",
           html: `
             <div style="
-              background-color: #0055D4;
+              background-color: #1355FF;
               color: #FFFFFF;
               width: 34px;
               height: 34px;
@@ -114,7 +114,7 @@ export function MarketplaceMap({
             className: `provider-pin-${p.id}`,
             html: `
               <div style="
-                background-color: ${isSelected ? "#0055D4" : "#FFFFFF"};
+                background-color: ${isSelected ? "#1355FF" : "#FFFFFF"};
                 color: ${isSelected ? "#FFFFFF" : "#0F172A"};
                 min-width: 32px;
                 height: 32px;
@@ -176,7 +176,7 @@ export function MarketplaceMap({
         {/* Legenda Limpa do Mapa */}
         <div className="absolute top-3 left-3 z-20 bg-white p-2.5 rounded-xl border border-slate-200 text-xs shadow-xs space-y-1">
           <div className="flex items-center gap-1.5 font-bold text-[#0F172A]">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#0055D4]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#1355FF]" />
             <span>Local do Atendimento ({condoName})</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
@@ -190,7 +190,7 @@ export function MarketplaceMap({
           <div className="lg:hidden absolute bottom-3 left-3 right-3 z-20 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xl space-y-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
+                <div className="h-11 w-11 rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
                   {selectedProvider.avatarUrl ? (
                     <img src={selectedProvider.avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
@@ -203,7 +203,7 @@ export function MarketplaceMap({
                       {selectedProvider.name}
                     </h4>
                     {selectedProvider.isVerified && (
-                      <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
+                      <Icon name="check-circle" size={13} className="text-[#1355FF] shrink-0" />
                     )}
                   </div>
                   <p className="text-[11px] text-slate-500 truncate">
@@ -241,7 +241,7 @@ export function MarketplaceMap({
                 <button
                   type="button"
                   onClick={() => onRequestBudget(selectedProvider)}
-                  className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                  className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
                 >
                   Solicitar
                 </button>
@@ -288,7 +288,7 @@ export function MarketplaceMap({
                   onClick={() => setSelectedProvider(p)}
                   className={`p-3 rounded-2xl border transition-all cursor-pointer bg-white ${
                     isSelected
-                      ? "border-[#0055D4] ring-2 ring-blue-100 shadow-sm"
+                      ? "border-[#1355FF] ring-2 ring-blue-100 shadow-sm"
                       : "border-slate-200 hover:border-slate-300 shadow-2xs"
                   }`}
                 >
@@ -298,7 +298,7 @@ export function MarketplaceMap({
                       {photo ? (
                         <img src={photo} alt={p.name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center font-black text-sm text-[#0055D4] bg-blue-50">
+                        <div className="h-full w-full flex items-center justify-center font-black text-sm text-[#1355FF] bg-blue-50">
                           {p.name.charAt(0)}
                         </div>
                       )}
@@ -311,7 +311,7 @@ export function MarketplaceMap({
                           {p.name}
                         </h4>
                         {p.isVerified && (
-                          <Icon name="check-circle" size={13} className="text-[#0055D4] shrink-0" />
+                          <Icon name="check-circle" size={13} className="text-[#1355FF] shrink-0" />
                         )}
                       </div>
                       <p className="text-[11px] text-slate-500 truncate">
@@ -364,7 +364,7 @@ export function MarketplaceMap({
                           e.stopPropagation();
                           onRequestBudget(p);
                         }}
-                        className="rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white px-3 py-1 text-[11px] font-bold transition-colors shadow-2xs"
+                        className="rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3 py-1 text-[11px] font-bold transition-colors shadow-2xs"
                       >
                         Solicitar
                       </button>

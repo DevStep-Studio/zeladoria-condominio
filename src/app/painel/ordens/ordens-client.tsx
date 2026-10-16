@@ -136,8 +136,8 @@ export function OrdensClient() {
         title="Ordens de Serviço"
         description="Acompanhamento de manutenções, prestadores e ordens executadas no condomínio."
         badge={
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200/60">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF] border border-blue-200/60">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
             {SAMPLE_ORDERS.length} ordens
           </span>
         }
@@ -156,7 +156,7 @@ export function OrdensClient() {
                 onClick={() => setFilter(tab.key)}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-[#0055D4] text-white shadow-xs"
+                    ? "bg-[#1355FF] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
@@ -190,7 +190,7 @@ export function OrdensClient() {
               placeholder="Buscar por código, serviço ou prestador..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-full rounded-2xl border border-slate-200/80 bg-white pl-9.5 pr-8 text-xs text-slate-900 placeholder:text-slate-400 shadow-2xs outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/15 transition-all"
+              className="h-10 w-full rounded-2xl border border-slate-200/80 bg-white pl-9.5 pr-8 text-xs text-slate-900 placeholder:text-slate-400 shadow-2xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15 transition-all"
             />
             {search && (
               <button

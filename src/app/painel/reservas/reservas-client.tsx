@@ -97,8 +97,8 @@ export function ReservasClient({
             : "Reserve os espaços de lazer e convivência do seu condomínio com poucos cliques."
         }
         badge={
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF] border border-blue-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
             {initialAmenities.filter((a) => a.active).length} espaços disponíveis
           </span>
         }
@@ -124,7 +124,7 @@ export function ReservasClient({
             onClick={() => setActiveTab("areas")}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === "areas"
-                ? "bg-[#0055D4] text-white shadow-xs"
+                ? "bg-[#1355FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
@@ -145,7 +145,7 @@ export function ReservasClient({
               onClick={() => setActiveTab("calendar")}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === "calendar"
-                  ? "bg-[#0055D4] text-white shadow-xs"
+                  ? "bg-[#1355FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -160,7 +160,7 @@ export function ReservasClient({
               onClick={() => setActiveTab("requests")}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === "requests"
-                  ? "bg-[#0055D4] text-white shadow-xs"
+                  ? "bg-[#1355FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -183,7 +183,7 @@ export function ReservasClient({
             onClick={() => setActiveTab("minhas")}
             className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === "minhas"
-                ? "bg-[#0055D4] text-white shadow-xs"
+                ? "bg-[#1355FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >

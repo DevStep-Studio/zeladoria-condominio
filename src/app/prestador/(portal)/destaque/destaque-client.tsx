@@ -105,7 +105,7 @@ export function DestaqueClient({
 
       {/* Regra Máxima e Ética */}
       <div className="rounded-[16px] border border-blue-200/80 bg-blue-50/70 p-5 shadow-2xs space-y-2">
-        <div className="flex items-center gap-2 text-[#0055D4]">
+        <div className="flex items-center gap-2 text-[#1355FF]">
           <Icon name="shield" size={18} />
           <h2 className="text-xs sm:text-sm font-bold">
             Transparência Máxima com os Moradores
@@ -126,10 +126,10 @@ export function DestaqueClient({
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col justify-between space-y-4 hover:border-[#0055D4] transition-all"
+              className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col justify-between space-y-4 hover:border-[#1355FF] transition-all"
             >
               <div className="space-y-2">
-                <span className="inline-flex px-2.5 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#0055D4] border border-blue-200/60">
+                <span className="inline-flex px-2.5 py-0.5 rounded-[6px] text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#1355FF] border border-blue-200/60">
                   {plan.type === "categoria" ? "Destaque por Especialidade" : "Destaque Local"}
                 </span>
 
@@ -151,7 +151,7 @@ export function DestaqueClient({
                 type="button"
                 onClick={() => handleHirePlan(plan.id)}
                 disabled={isPending && selectedPlanId === plan.id}
-                className="w-full py-2.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+                className="w-full py-2.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isPending && selectedPlanId === plan.id ? "Ativando..." : "Contratar Destaque"}
               </button>

@@ -55,7 +55,7 @@ export type StaffMember = {
 
 type FilterTab = "todas" | "recebidas" | "em_atendimento" | "concluidas";
 
-// Cores sólidas padrão do Design System: Azul (#0055D4), Amarelo (#FFD000), Verde, Vermelho, Neutros
+// Cores sólidas padrão do Design System: Azul (#1355FF), Amarelo (#FFD000), Verde, Vermelho, Neutros
 const STATUS_CONFIG: Record<
   string,
   { label: string; badgeBg: string; badgeText: string; dotColor: string }
@@ -75,14 +75,14 @@ const STATUS_CONFIG: Record<
   em_execucao: {
     label: "Em atendimento",
     badgeBg: "bg-blue-100",
-    badgeText: "text-[#0055D4]",
-    dotColor: "bg-[#0055D4]",
+    badgeText: "text-[#1355FF]",
+    dotColor: "bg-[#1355FF]",
   },
   em_andamento: {
     label: "Em atendimento",
     badgeBg: "bg-blue-100",
-    badgeText: "text-[#0055D4]",
-    dotColor: "bg-[#0055D4]",
+    badgeText: "text-[#1355FF]",
+    dotColor: "bg-[#1355FF]",
   },
   aguardando_morador: {
     label: "Aguardando morador",
@@ -401,8 +401,8 @@ export function OcorrenciasClient({
         title="Ocorrências"
         description="Acompanhe os problemas e solicitações do seu condomínio."
         badge={
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF] border border-blue-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
             {occurrences.length} {occurrences.length === 1 ? "registro" : "registros"}
           </span>
         }
@@ -462,7 +462,7 @@ export function OcorrenciasClient({
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-[#0055D4] text-white shadow-xs"
+                    ? "bg-[#1355FF] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
@@ -493,7 +493,7 @@ export function OcorrenciasClient({
               placeholder="Buscar ocorrência..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/15 transition-all"
+              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15 transition-all"
             />
             {search && (
               <button
@@ -512,14 +512,14 @@ export function OcorrenciasClient({
             onClick={() => setFilterModalOpen(true)}
             className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer ${
               selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly
-                ? "border-[#0055D4] bg-blue-50 text-[#0055D4]"
+                ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             <Icon name="filter" size={13} />
             <span>Filtros</span>
             {(selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly) && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
             )}
           </button>
 
@@ -544,7 +544,7 @@ export function OcorrenciasClient({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#0055D4] cursor-pointer"
+            className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#1355FF] cursor-pointer"
           >
             <option value="recentes">Mais recentes</option>
             <option value="antigas">Mais antigas</option>
@@ -583,7 +583,7 @@ export function OcorrenciasClient({
             )}
             <Link
               href="/painel/ocorrencias/nova"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0055D4] text-white hover:bg-[#0047BA] px-3.5 py-1.5 text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1355FF] text-white hover:bg-[#0D47E6] px-3.5 py-1.5 text-xs font-bold transition-colors"
             >
               <Icon name="plus" size={13} strokeWidth={2.5} />
               <span>Registrar ocorrência</span>
@@ -621,13 +621,13 @@ export function OcorrenciasClient({
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                     >
                       {/* Código */}
-                      <td className="px-4 py-3.5 font-mono font-bold text-[#0055D4] whitespace-nowrap">
+                      <td className="px-4 py-3.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
                         {occ.code}
                       </td>
 
                       {/* Título + Morador */}
                       <td className="px-4 py-3.5 max-w-[280px]">
-                        <p className="font-bold text-[#0F172A] truncate group-hover:text-[#0055D4] transition-colors">
+                        <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
                           {occ.title}
                         </p>
                         <p className="text-[11px] text-slate-400 truncate mt-0.5">
@@ -680,7 +680,7 @@ export function OcorrenciasClient({
 
                       {/* Ação */}
                       <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        <span className="text-xs font-bold text-[#0055D4] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
+                        <span className="text-xs font-bold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
                           Ver detalhe
                           <Icon name="chevron-right" size={12} />
                         </span>
@@ -711,7 +711,7 @@ export function OcorrenciasClient({
                 <div className="space-y-1.5 min-w-0 flex-1">
                   {/* Linha 1: Código + Status + Tag Categoria */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-[#0055D4]">
+                    <span className="font-mono text-xs font-bold text-[#1355FF]">
                       {occ.code}
                     </span>
 
@@ -734,15 +734,15 @@ export function OcorrenciasClient({
                     )}
 
                     {hasComments && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0055D4]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#0055D4]" />
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#1355FF]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
                         Atualização
                       </span>
                     )}
                   </div>
 
                   {/* Linha 2: Título Principal */}
-                  <h3 className="text-sm sm:text-base font-bold text-[#0F172A] group-hover:text-[#0055D4] transition-colors leading-snug">
+                  <h3 className="text-sm sm:text-base font-bold text-[#0F172A] group-hover:text-[#1355FF] transition-colors leading-snug">
                     {occ.title}
                   </h3>
 
@@ -764,7 +764,7 @@ export function OcorrenciasClient({
                 </div>
 
                 {/* Seta Chevron Indicativa */}
-                <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-full text-slate-300 group-hover:text-[#0055D4] group-hover:translate-x-0.5 transition-all">
+                <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-full text-slate-300 group-hover:text-[#1355FF] group-hover:translate-x-0.5 transition-all">
                   <Icon name="chevron-right" size={18} strokeWidth={2.2} />
                 </div>
               </div>
@@ -791,7 +791,7 @@ export function OcorrenciasClient({
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-start justify-between gap-3 bg-white shrink-0">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[#0055D4]">
+                  <span className="font-mono text-xs font-bold text-[#1355FF]">
                     {activeOccurrence.code}
                   </span>
                   <span
@@ -878,7 +878,7 @@ export function OcorrenciasClient({
                             step.isDone
                               ? "bg-emerald-500 text-white"
                               : step.isCurrent
-                              ? "bg-[#0055D4] text-white ring-4 ring-blue-100"
+                              ? "bg-[#1355FF] text-white ring-4 ring-blue-100"
                               : "bg-slate-200 text-slate-500"
                           }`}
                         >
@@ -962,7 +962,7 @@ export function OcorrenciasClient({
               {isStaff && (
                 <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-[#0055D4] uppercase tracking-wider">
+                    <span className="text-xs font-black text-[#1355FF] uppercase tracking-wider">
                       Gestão da Ocorrência
                     </span>
                     <span className="text-[10px] font-bold text-slate-400">Acesso Síndico / Gestor</span>
@@ -975,7 +975,7 @@ export function OcorrenciasClient({
                       <select
                         value={adminStatus}
                         onChange={(e) => setAdminStatus(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#0055D4]"
+                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1355FF]"
                       >
                         <option value="recebida">Recebida</option>
                         <option value="em_analise">Em análise</option>
@@ -992,7 +992,7 @@ export function OcorrenciasClient({
                       <select
                         value={adminSeverity}
                         onChange={(e) => setAdminSeverity(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#0055D4]"
+                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1355FF]"
                       >
                         <option value="baixa">Baixa</option>
                         <option value="media">Média</option>
@@ -1007,7 +1007,7 @@ export function OcorrenciasClient({
                       <select
                         value={adminAssignedId}
                         onChange={(e) => setAdminAssignedId(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#0055D4]"
+                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1355FF]"
                       >
                         <option value="none">— Sem responsável atribuído —</option>
                         {staffMembers.map((m) => (
@@ -1026,7 +1026,7 @@ export function OcorrenciasClient({
                         value={adminActionsTaken}
                         onChange={(e) => setAdminActionsTaken(e.target.value)}
                         placeholder="Ex: Equipe de manutenção esteve no local..."
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
                       />
                     </div>
                   </div>
@@ -1034,7 +1034,7 @@ export function OcorrenciasClient({
                   <div className="flex items-center justify-between pt-1">
                     <Link
                       href={`/painel/servicos?categoria=${activeOccurrence.category}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1355FF] hover:underline"
                     >
                       <Icon name="briefcase" size={13} />
                       <span>Buscar prestador parceiro</span>
@@ -1044,7 +1044,7 @@ export function OcorrenciasClient({
                       type="button"
                       disabled={isPending}
                       onClick={handleSaveAdminDetails}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-3.5 py-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
                     >
                       <span>Salvar alterações</span>
                     </button>
@@ -1118,7 +1118,7 @@ export function OcorrenciasClient({
                         <div
                           className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-2xs ${
                             isCurrentUser
-                              ? "bg-[#0055D4] text-white rounded-br-xs"
+                              ? "bg-[#1355FF] text-white rounded-br-xs"
                               : "bg-slate-100 text-slate-800 rounded-bl-xs"
                           }`}
                         >
@@ -1148,12 +1148,12 @@ export function OcorrenciasClient({
                   placeholder="Escreva uma mensagem para a administração..."
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
-                  className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={isPending || !newCommentText.trim()}
-                  className="h-10 px-4 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-10 px-4 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <span>Enviar</span>
                   <Icon name="arrow-right" size={13} strokeWidth={2.4} />
@@ -1238,7 +1238,7 @@ export function OcorrenciasClient({
                 <button
                   type="button"
                   onClick={() => setFilterModalOpen(false)}
-                  className="rounded-xl bg-[#0055D4] text-white px-4 py-2 text-xs font-bold shadow-xs hover:bg-[#0047BA]"
+                  className="rounded-xl bg-[#1355FF] text-white px-4 py-2 text-xs font-bold shadow-xs hover:bg-[#0D47E6]"
                 >
                   Aplicar filtros
                 </button>
@@ -1283,7 +1283,7 @@ export function OcorrenciasClient({
               value={reopenReason}
               onChange={(e) => setReopenReason(e.target.value)}
               placeholder="Descreva o que ainda não foi solucionado..."
-              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-500/10"
+              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
             />
 
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -1298,7 +1298,7 @@ export function OcorrenciasClient({
                 type="button"
                 disabled={isPending}
                 onClick={handleReopenOccurrence}
-                className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-1.5 text-xs font-bold shadow-xs disabled:opacity-50"
+                className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-1.5 text-xs font-bold shadow-xs disabled:opacity-50"
               >
                 Confirmar reabertura
               </button>
@@ -1350,7 +1350,7 @@ export function OcorrenciasClient({
               value={ratingComment}
               onChange={(e) => setRatingComment(e.target.value)}
               placeholder="Deixe um comentário opcional sobre a equipe..."
-              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
             />
 
             <div className="flex items-center justify-center gap-2 pt-2">

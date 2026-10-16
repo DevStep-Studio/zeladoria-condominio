@@ -69,8 +69,8 @@ const NOTICE_META: Record<
   comunicado: {
     label: "Comunicado",
     icon: "megaphone",
-    badge: "bg-blue-50 text-[#0055D4]",
-    chip: "bg-blue-50 text-[#0055D4]",
+    badge: "bg-blue-50 text-[#1355FF]",
+    chip: "bg-blue-50 text-[#1355FF]",
   },
   alerta: {
     label: "Alerta",
@@ -424,8 +424,8 @@ export function DashboardClient({
   if (isResident) {
     return (
       <div className="space-y-6">
-        {/* 1. NOVO HERO DO DASHBOARD (Grande bloco AZUL SÓLIDO #0055D4, sem gradiente) */}
-        <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#0055D4] p-5 sm:p-7 text-white shadow-sm select-none">
+        {/* 1. NOVO HERO DO DASHBOARD (Grande bloco AZUL SÓLIDO #1355FF, sem gradiente) */}
+        <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#1355FF] p-5 sm:p-7 text-white shadow-sm select-none">
           {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
           <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -577,7 +577,7 @@ export function DashboardClient({
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   Minhas ocorrências
                 </span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#0055D4]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF]">
                   <Icon name="clipboard" size={16} />
                 </span>
               </div>
@@ -610,7 +610,7 @@ export function DashboardClient({
               <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
                 <Link
                   href={residentStats.myOccurrences > 0 ? "/painel/ocorrencias" : "/painel/ocorrencias/nova"}
-                  className="text-[#0055D4] hover:underline flex items-center gap-1"
+                  className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
                   <span>{residentStats.myOccurrences > 0 ? "Acompanhar ocorrências" : "Relatar um problema"}</span>
                   <Icon name="arrow-up-right" size={13} />
@@ -657,7 +657,7 @@ export function DashboardClient({
               <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
                 <Link
                   href="/painel/reservas"
-                  className="text-[#0055D4] hover:underline flex items-center gap-1"
+                  className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
                   <span>{upcomingReservations.length > 0 ? "Ver todas as reservas" : "Reservar área comum"}</span>
                   <Icon name="arrow-up-right" size={13} />
@@ -704,7 +704,7 @@ export function DashboardClient({
               <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
                 <Link
                   href="/painel/encomendas"
-                  className="text-[#0055D4] hover:underline flex items-center gap-1"
+                  className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
                   <span>Ver encomendas</span>
                   <Icon name="arrow-up-right" size={13} />
@@ -763,7 +763,7 @@ export function DashboardClient({
                         <Icon name={item.urgent ? "package" : "clipboard"} size={14} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 group-hover:text-[#0055D4] transition-colors truncate">
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                           {item.count} {item.label}
                         </p>
                         {item.detail && (
@@ -789,7 +789,7 @@ export function DashboardClient({
           <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
                   <Icon name="megaphone" size={13} />
                 </span>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
@@ -798,7 +798,7 @@ export function DashboardClient({
               </div>
               <Link
                 href="/painel/comunicados"
-                className="text-[11px] font-bold text-[#0055D4] hover:underline"
+                className="text-[11px] font-bold text-[#1355FF] hover:underline"
               >
                 Ver todos
               </Link>
@@ -835,7 +835,7 @@ export function DashboardClient({
                         </span>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors">
                               {n.title}
                             </span>
                             <span className="text-[10px] font-medium text-slate-400">
@@ -895,7 +895,7 @@ export function DashboardClient({
             <div className="shrink-0 flex items-center">
               <Link
                 href="/painel/servicos"
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-[#0055D4] hover:bg-[#0043A8] active:bg-[#00388F] text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-[#1355FF] hover:bg-[#0D47E6] active:bg-[#0A3BC2] text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
               >
                 <span>Encontrar prestador</span>
                 <Icon name="arrow-up-right" size={14} strokeWidth={2.4} />
@@ -923,7 +923,7 @@ export function DashboardClient({
             <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-slate-900">
               Olá, {userName}
             </h1>
-            <span className="inline-flex items-center gap-1.5 rounded-[6px] bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-[#0055D4]">
+            <span className="inline-flex items-center gap-1.5 rounded-[6px] bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-[#1355FF]">
               Gestão do Condomínio
             </span>
           </div>
@@ -950,9 +950,9 @@ export function DashboardClient({
             type="button"
             onClick={() => setAssistantOpen(true)}
             title="Assistente Virtual de Dúvidas e Regras do Condomínio"
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#0055D4] px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#1355FF] px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
           >
-            <Icon name="sparkles" size={14} className="text-[#0055D4] shrink-0" />
+            <Icon name="sparkles" size={14} className="text-[#1355FF] shrink-0" />
             <span>Zeladoria IA</span>
           </button>
         </div>
@@ -1089,7 +1089,7 @@ export function DashboardClient({
             </h2>
             <Link
               href="/painel/comunicados"
-              className="text-[11px] font-bold text-[#0055D4] hover:underline"
+              className="text-[11px] font-bold text-[#1355FF] hover:underline"
             >
               Ver todos
             </Link>
@@ -1115,7 +1115,7 @@ export function DashboardClient({
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors">
+                        <span className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors">
                           {n.title}
                         </span>
                         <span className="text-[10px] font-medium text-slate-400">
@@ -1167,7 +1167,7 @@ export function DashboardClient({
                     <Icon name={item.urgent ? "alert-triangle" : "clipboard"} size={14} />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors truncate">
+                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                       {item.count} {item.label}
                     </p>
                     {item.detail && (
@@ -1233,7 +1233,7 @@ export function DashboardClient({
               className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
                   <Icon name="clipboard" size={16} />
                 </span>
                 <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
@@ -1242,7 +1242,7 @@ export function DashboardClient({
                 <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {residentStats.myOccurrences}
                 </span>
-                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#0055D4] transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#1355FF] transition-colors">
                   Minhas ocorrências
                 </p>
                 <p className="text-[11px] text-slate-400 truncate">Ativas</p>
@@ -1319,7 +1319,7 @@ export function DashboardClient({
               className="flex flex-col justify-between rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 transition-all group"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#0055D4]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
                   <Icon name="alert" size={16} />
                 </span>
                 <Icon name="arrow-up-right" size={13} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
@@ -1328,7 +1328,7 @@ export function DashboardClient({
                 <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {stats.openOccurrences}
                 </span>
-                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#0055D4] transition-colors">
+                <p className="text-xs font-semibold text-slate-700 mt-0.5 group-hover:text-[#1355FF] transition-colors">
                   Ocorrências abertas
                 </p>
                 <p className="text-[11px] text-slate-400 truncate">Demandas ativas</p>
@@ -1403,7 +1403,7 @@ export function DashboardClient({
             </h3>
             <Link
               href="/painel/ocorrencias"
-              className="text-xs font-semibold text-[#0055D4] hover:underline"
+              className="text-xs font-semibold text-[#1355FF] hover:underline"
             >
               Ver todas
             </Link>
@@ -1429,14 +1429,14 @@ export function DashboardClient({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-mono text-[11px] font-semibold text-[#0055D4]">
+                      <span className="font-mono text-[11px] font-semibold text-[#1355FF]">
                         {item.code}
                       </span>
                       <span className="text-[10px] text-slate-400">
                         {item.timeAgo}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#0055D4] transition-colors truncate">
+                    <p className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                       {item.title}
                     </p>
                     <p className="text-[11px] text-slate-500 truncate mt-0.5">
@@ -1461,7 +1461,7 @@ export function DashboardClient({
             </h3>
             <Link
               href="/painel/reservas"
-              className="text-xs font-semibold text-[#0055D4] hover:underline"
+              className="text-xs font-semibold text-[#1355FF] hover:underline"
             >
               Ver todas
             </Link>
@@ -1535,7 +1535,7 @@ export function DashboardClient({
             </div>
             <Link
               href="/painel/servicos"
-              className="text-xs font-semibold text-[#0055D4] hover:underline"
+              className="text-xs font-semibold text-[#1355FF] hover:underline"
             >
               Ver todos
             </Link>
@@ -1548,16 +1548,16 @@ export function DashboardClient({
                 className="group flex items-center justify-between p-3 rounded-[8px] bg-slate-50/70 border border-slate-200/80 hover:bg-white hover:border-slate-300 transition-all"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-white border border-slate-200 text-[#0055D4] text-xs font-semibold">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-white border border-slate-200 text-[#1355FF] text-xs font-semibold">
                     <Icon name="briefcase" size={15} />
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#0055D4] transition-colors">
+                      <h4 className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#1355FF] transition-colors">
                         {vendor.name}
                       </h4>
                       {vendor.verified && (
-                        <Icon name="check-circle" size={12} className="text-[#0055D4] shrink-0" />
+                        <Icon name="check-circle" size={12} className="text-[#1355FF] shrink-0" />
                       )}
                     </div>
                     <p className="text-[11px] text-slate-500 truncate mt-0.5">

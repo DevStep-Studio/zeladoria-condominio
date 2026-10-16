@@ -53,7 +53,7 @@ export default async function AdminPrestadoresPage() {
 
         <Link
           href="/painel/admin/marketplace"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#0055D4] text-white text-xs font-bold hover:bg-[#0043A8] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors"
         >
           <Icon name="sparkles" size={14} />
           <span>Marketplace & Aprovações</span>
@@ -81,7 +81,7 @@ export default async function AdminPrestadoresPage() {
                     <p className="text-[11px] text-slate-500">{v.companyName || "Profissional Autônomo"}</p>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#0055D4] font-bold text-[10px] capitalize">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
                       {v.category || "Geral"}
                     </span>
                   </td>

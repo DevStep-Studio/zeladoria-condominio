@@ -75,13 +75,13 @@ describe("Módulo Mapa do Condomínio — Testes Funcionais & E2E", () => {
     );
   });
 
-  it("4. Mapeamento de Cores Funcionais: Alta 🔴 (#EF4444), Média 🟡 (#F59E0B), Baixa 🔵 (#0055D4)", () => {
+  it("4. Mapeamento de Cores Funcionais: Alta 🔴 (#EF4444), Média 🟡 (#F59E0B), Baixa 🔵 (#1355FF)", () => {
     const mapFilePath = path.join(process.cwd(), "src/components/condo-map.tsx");
     const content = fs.readFileSync(mapFilePath, "utf8");
 
     assert.equal(content.includes("#EF4444"), true, "Cor de alta prioridade #EF4444 presente");
     assert.equal(content.includes("#F59E0B"), true, "Cor de média prioridade #F59E0B presente");
-    assert.equal(content.includes("#0055D4"), true, "Cor de baixa prioridade #0055D4 presente");
+    assert.equal(content.includes("#1355FF"), true, "Cor de baixa prioridade #1355FF presente");
   });
 
   it("5. Regra Zero Gradientes: Componente de mapa e dashboard não devem conter gradientes Tailwind", () => {

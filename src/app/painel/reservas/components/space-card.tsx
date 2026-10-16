@@ -114,7 +114,7 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
                 Aprovação prévia
               </span>
             ) : (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-[#0055D4] border border-blue-200">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-[#1355FF] border border-blue-200">
                 Confirmação direta
               </span>
             )}

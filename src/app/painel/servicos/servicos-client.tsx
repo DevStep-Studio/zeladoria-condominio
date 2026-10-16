@@ -622,7 +622,7 @@ export function ServicosClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1355FF] text-white shadow-xs">
               <Icon name="briefcase" size={16} />
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
@@ -641,7 +641,7 @@ export function ServicosClient({
             onClick={() => setActiveView("marketplace")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === "marketplace"
-                ? "bg-white text-[#0055D4] shadow-xs"
+                ? "bg-white text-[#1355FF] shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -654,14 +654,14 @@ export function ServicosClient({
             onClick={() => setActiveView("contratacoes")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === "contratacoes"
-                ? "bg-white text-[#0055D4] shadow-xs"
+                ? "bg-white text-[#1355FF] shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Icon name="clipboard" size={13} />
             <span>Minhas Contratações</span>
             {totalContractedCount > 0 && (
-              <span className="rounded-[4px] bg-[#0055D4] text-white px-1.5 py-0.2 text-[9px] font-bold">
+              <span className="rounded-[4px] bg-[#1355FF] text-white px-1.5 py-0.2 text-[9px] font-bold">
                 {totalContractedCount}
               </span>
             )}
@@ -670,7 +670,7 @@ export function ServicosClient({
           {(role === "sindico" || role === "superadmin") && (
             <Link
               href="/painel/admin/marketplace/destaques"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-[#0055D4] hover:bg-white transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-[#1355FF] hover:bg-white transition-all"
               title="Gerenciar Planos de Publicidade e Destaques"
             >
               <Icon name="sparkles" size={13} />
@@ -680,7 +680,7 @@ export function ServicosClient({
 
           <Link
             href="/prestador"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#0055D4] bg-white border border-blue-200 hover:bg-blue-50 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1355FF] bg-white border border-blue-200 hover:bg-blue-50 transition-all shadow-2xs"
           >
             <Icon name="briefcase" size={13} />
             <span>Portal do Prestador</span>
@@ -701,7 +701,7 @@ export function ServicosClient({
                 setIsGeneralBudgetOpen(true);
                 setBudgetVendor(providers.length > 0 ? providers[0] : null);
               }}
-              className="text-xs font-bold text-[#0055D4] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#1355FF] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>+ Solicitar novo serviço</span>
             </button>
@@ -709,7 +709,7 @@ export function ServicosClient({
 
           {marketplaceRequests.length === 0 && services.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0055D4] flex items-center justify-center mx-auto">
+              <div className="h-12 w-12 rounded-full bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto">
                 <Icon name="clipboard" size={22} />
               </div>
               <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma contratação registrada</h3>
@@ -719,7 +719,7 @@ export function ServicosClient({
               <button
                 type="button"
                 onClick={() => setActiveView("marketplace")}
-                className="rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
+                className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
               >
                 Buscar Profissionais
               </button>
@@ -740,7 +740,7 @@ export function ServicosClient({
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-[#0055D4] bg-blue-50 px-2 py-0.5 rounded-md">
+                        <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-md">
                           {req.code}
                         </span>
                         <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">{req.title}</h3>
@@ -756,7 +756,7 @@ export function ServicosClient({
                             : req.status === "em_atendimento"
                             ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
                             : req.status === "a_caminho" || req.status === "chegou"
-                            ? "bg-blue-50 text-[#0055D4] border border-blue-200"
+                            ? "bg-blue-50 text-[#1355FF] border border-blue-200"
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
@@ -766,16 +766,16 @@ export function ServicosClient({
 
                     {/* Progress State Machine Indicators */}
                     <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold text-slate-400 pt-1">
-                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "aceito", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "aceito", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         1. Solicitado
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         2. Aceito
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         3. Deslocamento
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#0055D4]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         4. Atendimento
                       </div>
                       <div className={`p-1.5 rounded-lg ${req.status === "concluido" ? "bg-emerald-50 text-emerald-700" : "bg-slate-50"}`}>
@@ -809,7 +809,7 @@ export function ServicosClient({
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-100 pb-2.5">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="h-6 w-6 rounded-lg bg-[#0055D4] text-white flex items-center justify-center font-bold text-xs">
+                              <span className="h-6 w-6 rounded-lg bg-[#1355FF] text-white flex items-center justify-center font-bold text-xs">
                                 {reqQuotes.length}
                               </span>
                               <h4 className="text-sm font-black text-slate-900">
@@ -839,7 +839,7 @@ export function ServicosClient({
                                   onClick={() => setQuoteSortBy((prev) => ({ ...prev, [req.id]: mode }))}
                                   className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
                                     currentMode === mode
-                                      ? "bg-[#0055D4] text-white shadow-2xs"
+                                      ? "bg-[#1355FF] text-white shadow-2xs"
                                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                                   }`}
                                 >
@@ -885,7 +885,7 @@ export function ServicosClient({
                                           className="h-11 w-11 rounded-full object-cover border border-slate-200 shrink-0"
                                         />
                                       ) : (
-                                        <div className="h-11 w-11 rounded-full bg-blue-100 text-[#0055D4] flex items-center justify-center font-black text-sm shrink-0">
+                                        <div className="h-11 w-11 rounded-full bg-blue-100 text-[#1355FF] flex items-center justify-center font-black text-sm shrink-0">
                                           {(q.vendorName || "P")[0]}
                                         </div>
                                       )}
@@ -918,7 +918,7 @@ export function ServicosClient({
                                             <span className="text-[10px] text-slate-400 font-bold uppercase block">
                                               Valor do Serviço
                                             </span>
-                                            <span className="text-xl font-black text-[#0055D4]">
+                                            <span className="text-xl font-black text-[#1355FF]">
                                               R$ {(q.totalCents / 100).toFixed(2)}
                                             </span>
                                             <span className="text-[10px] text-slate-500 block">
@@ -953,7 +953,7 @@ export function ServicosClient({
                                                   const target = providers.find((p) => p.id === q.vendorId) || { id: q.vendorId, name: q.vendorName };
                                                   setBudgetVendor(target as any);
                                                 }}
-                                                className="px-3 py-1 rounded-lg border border-blue-200 text-[#0055D4] hover:bg-blue-50 text-[11px] font-bold transition-colors cursor-pointer"
+                                                className="px-3 py-1 rounded-lg border border-blue-200 text-[#1355FF] hover:bg-blue-50 text-[11px] font-bold transition-colors cursor-pointer"
                                               >
                                                 Solicitar novo orçamento
                                               </button>
@@ -967,7 +967,7 @@ export function ServicosClient({
                                               type="button"
                                               disabled={isActionPending}
                                               onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
-                                              className="px-4 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+                                              className="px-4 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
                                             >
                                               <span>Aceitar orçamento</span>
                                               <Icon name="arrow-right" size={13} />
@@ -1041,7 +1041,7 @@ export function ServicosClient({
                               </div>
                               <div className="flex justify-between items-center text-slate-900 font-black border-t border-amber-300 pt-1 text-xs">
                                 <span>NOVO TOTAL:</span>
-                                <span className="text-[#0055D4]">R$ {(newTotalCents / 100).toFixed(2)}</span>
+                                <span className="text-[#1355FF]">R$ {(newTotalCents / 100).toFixed(2)}</span>
                               </div>
                             </div>
 
@@ -1058,7 +1058,7 @@ export function ServicosClient({
                                 type="button"
                                 disabled={isActionPending}
                                 onClick={() => handleAcceptAddendum(ad.id)}
-                                className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5 transition-colors"
+                                className="px-4 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5 transition-colors"
                               >
                                 <Icon name="check-circle" size={13} />
                                 <span>Aceitar e Pagar Adicional</span>
@@ -1082,7 +1082,7 @@ export function ServicosClient({
                         <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2.5 text-xs">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                              <Icon name="camera" size={14} className="text-[#0055D4]" />
+                              <Icon name="camera" size={14} className="text-[#1355FF]" />
                               <span>Evidências Técnicas do Serviço</span>
                             </span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase">
@@ -1187,7 +1187,7 @@ export function ServicosClient({
                         return (
                           <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 space-y-3 text-xs">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-[#0055D4] flex items-center gap-1.5">
+                              <span className="font-bold text-[#1355FF] flex items-center gap-1.5">
                                 <Icon name="calendar" size={14} />
                                 <span>Proposta de Vistoria Técnica</span>
                               </span>
@@ -1212,7 +1212,7 @@ export function ServicosClient({
                                       onClick={() => handleSelectSlot(req.id, s)}
                                       className={`p-2.5 rounded-lg border text-left font-bold transition-all cursor-pointer ${
                                         isChosen
-                                          ? "border-[#0055D4] bg-white text-[#0055D4] shadow-xs"
+                                          ? "border-[#1355FF] bg-white text-[#1355FF] shadow-xs"
                                           : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white"
                                       }`}
                                     >
@@ -1231,7 +1231,7 @@ export function ServicosClient({
                                 className={`px-4 py-2 rounded-xl text-white font-bold cursor-pointer shadow-xs transition-all flex items-center gap-1.5 ${
                                   reqInsp.type === "gratuita"
                                     ? "bg-emerald-600 hover:bg-emerald-700"
-                                    : "bg-[#0055D4] hover:bg-[#0047BA]"
+                                    : "bg-[#1355FF] hover:bg-[#0D47E6]"
                                 }`}
                               >
                                 <Icon name="check-circle" size={14} />
@@ -1295,7 +1295,7 @@ export function ServicosClient({
                         return (
                           <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
                             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                              <Icon name="file-text" size={14} className="text-[#0055D4]" />
+                              <Icon name="file-text" size={14} className="text-[#1355FF]" />
                               <span>Diagnóstico da Vistoria Técnica:</span>
                             </div>
                             <p className="text-slate-700 italic bg-white p-2.5 rounded-lg border border-slate-100">
@@ -1324,7 +1324,7 @@ export function ServicosClient({
                     {["prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status) && (
                       <div className="p-3.5 rounded-xl border border-blue-300 bg-blue-50/70 space-y-2 text-xs text-blue-950">
                         <div className="flex items-center gap-2">
-                          <Icon name="check-circle" size={16} className="text-[#0055D4] shrink-0" />
+                          <Icon name="check-circle" size={16} className="text-[#1355FF] shrink-0" />
                           <div>
                             <strong>O prestador informou que concluiu o serviço!</strong>
                             <p className="text-[11px] text-slate-700">
@@ -1372,7 +1372,7 @@ export function ServicosClient({
                         <button
                           type="button"
                           onClick={() => setActiveChatRequest(req)}
-                          className="flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 text-xs font-bold text-[#1355FF] hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors cursor-pointer"
                         >
                           <Icon name="mail" size={13} />
                           <span>Mensagens / Chat</span>
@@ -1411,7 +1411,7 @@ export function ServicosClient({
                               type="button"
                               onClick={() => handleOpenReceipt(req.id)}
                               disabled={isActionPending}
-                              className="rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-[#0055D4] px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                              className="rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-[#1355FF] px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
                               title="Visualizar Comprovante Oficial Zeladoria Protege"
                             >
                               <Icon name="file-text" size={12} />
@@ -1481,7 +1481,7 @@ export function ServicosClient({
           {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs w-full">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0055D4] shrink-0 border border-blue-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] shrink-0 border border-blue-100">
                 <Icon name="map-pin" size={18} />
               </div>
               <div className="min-w-0">
@@ -1501,7 +1501,7 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055D4] hover:text-[#0047BA] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer shrink-0"
             >
               <span>Alterar local</span>
               <Icon name="chevron-down" size={13} />
@@ -1536,7 +1536,7 @@ export function ServicosClient({
                     setShowSuggestions(true);
                   }}
                   placeholder="Ex.: chuveiro queimado, pia vazando, instalar ar-condicionado..."
-                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0055D4] focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
                 />
                 {search && (
                   <button
@@ -1566,7 +1566,7 @@ export function ServicosClient({
                         className="flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors cursor-pointer text-xs"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <Icon name="search" size={13} className="text-[#0055D4] shrink-0" />
+                          <Icon name="search" size={13} className="text-[#1355FF] shrink-0" />
                           <span className="font-bold text-[#0F172A] truncate">{sug.serviceTitle}</span>
                           <span className="text-[11px] text-slate-400 shrink-0">em {sug.category}</span>
                         </div>
@@ -1600,7 +1600,7 @@ export function ServicosClient({
                     handleSearchChange(item.q);
                     setSelectedCategory(item.cat);
                   }}
-                  className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0055D4] text-slate-600 px-3 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
+                  className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#1355FF] text-slate-600 px-3 py-1 text-[11px] font-semibold transition-colors cursor-pointer"
                 >
                   {item.tag}
                 </button>
@@ -1612,7 +1612,7 @@ export function ServicosClient({
           <div className="space-y-3 pt-1 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#0055D4]" />
+                <span className="h-2 w-2 rounded-full bg-[#1355FF]" />
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-700">
                   Categorias de Serviços
                 </h2>
@@ -1621,7 +1621,7 @@ export function ServicosClient({
                 <button
                   type="button"
                   onClick={() => handleCategoryChange("Todas")}
-                  className="text-xs font-bold text-[#0055D4] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-[#1355FF] hover:underline cursor-pointer"
                 >
                   Ver todas as categorias
                 </button>
@@ -1639,7 +1639,7 @@ export function ServicosClient({
                     onClick={() => handleCategoryChange(cat.id)}
                     className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all w-full cursor-pointer border ${
                       isActive
-                        ? "bg-blue-50/70 border-[#0055D4] shadow-xs ring-2 ring-[#0055D4]/20"
+                        ? "bg-blue-50/70 border-[#1355FF] shadow-xs ring-2 ring-[#1355FF]/20"
                         : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                     }`}
                   >
@@ -1657,22 +1657,22 @@ export function ServicosClient({
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
                           />
-                          <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#0055D4]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
+                          <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#1355FF]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
                           <span className="absolute bottom-1 right-1 p-1 rounded-md bg-white/95 text-slate-800 shadow-2xs">
-                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#0055D4]" : "text-slate-700"} />
+                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#1355FF]" : "text-slate-700"} />
                           </span>
                         </>
                       ) : (
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#0055D4] text-white" : "bg-blue-50 text-[#0055D4]"}`}>
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#1355FF] text-white" : "bg-blue-50 text-[#1355FF]"}`}>
                           <Icon name={cat.icon as any} size={20} />
                         </span>
                       )}
                     </div>
 
-                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#0055D4]" : "text-[#0F172A]"}`}>
+                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#1355FF]" : "text-[#0F172A]"}`}>
                       {cat.name}
                     </span>
-                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#0055D4]" : "text-slate-400"}`}>
+                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#1355FF]" : "text-slate-400"}`}>
                       {cat.count} {cat.count === 1 ? "profissional" : "profissionais"}
                     </span>
                   </button>
@@ -1703,8 +1703,8 @@ export function ServicosClient({
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
                         isSelected
-                          ? "bg-[#0055D4] text-white border-[#0055D4] shadow-xs"
-                          : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#0055D4]"
+                          ? "bg-[#1355FF] text-white border-[#1355FF] shadow-xs"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1355FF]"
                       }`}
                     >
                       {subcat}
@@ -1741,7 +1741,7 @@ export function ServicosClient({
               className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-2 ${
                 onlyAvailableNow
                   ? "bg-slate-900 text-white"
-                  : "bg-[#0055D4] hover:bg-[#0047BA] text-white"
+                  : "bg-[#1355FF] hover:bg-[#0D47E6] text-white"
               }`}
             >
               {onlyAvailableNow ? (
@@ -1783,7 +1783,7 @@ export function ServicosClient({
                     onClick={() => setDisplayMode("lista")}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "lista"
-                        ? "bg-[#0055D4] text-white shadow-xs"
+                        ? "bg-[#1355FF] text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -1795,7 +1795,7 @@ export function ServicosClient({
                     onClick={() => setDisplayMode("mapa")}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "mapa"
-                        ? "bg-[#0055D4] text-white shadow-xs"
+                        ? "bg-[#1355FF] text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
@@ -1810,10 +1810,10 @@ export function ServicosClient({
                   onClick={() => setIsFilterSheetOpen(true)}
                   className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <Icon name="filter" size={13} className="text-[#0055D4]" />
+                  <Icon name="filter" size={13} className="text-[#1355FF]" />
                   <span>Filtros</span>
                   {activeFiltersCount > 0 && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0055D4] text-white text-[9px] font-black">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1355FF] text-white text-[9px] font-black">
                       {activeFiltersCount}
                     </span>
                   )}
@@ -1886,7 +1886,7 @@ export function ServicosClient({
                         });
                         updateUrlParams("Todas", "", "score");
                       }}
-                      className="rounded-xl bg-[#0055D4] text-white px-4 py-2 text-xs font-bold cursor-pointer"
+                      className="rounded-xl bg-[#1355FF] text-white px-4 py-2 text-xs font-bold cursor-pointer"
                     >
                       Limpar Filtros
                     </button>
@@ -1898,7 +1898,7 @@ export function ServicosClient({
                       <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0055D4] text-white">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#1355FF] text-white">
                               <Icon name="user-check" size={14} />
                             </span>
                             <div>
@@ -1927,7 +1927,7 @@ export function ServicosClient({
                                       className="h-11 w-11 rounded-full object-cover border border-slate-100 shrink-0"
                                     />
                                   ) : (
-                                    <div className="h-11 w-11 rounded-full bg-blue-100 text-[#0055D4] flex items-center justify-center font-black text-sm shrink-0">
+                                    <div className="h-11 w-11 rounded-full bg-blue-100 text-[#1355FF] flex items-center justify-center font-black text-sm shrink-0">
                                       {hp.name[0]}
                                     </div>
                                   )}
@@ -1939,7 +1939,7 @@ export function ServicosClient({
                                       </span>
                                     </div>
                                     <span className="text-[11px] text-slate-500 block truncate">{hp.category}</span>
-                                    <span className="text-[10px] font-bold text-[#0055D4] bg-blue-50 px-1.5 py-0.2 rounded inline-block mt-0.5">
+                                    <span className="text-[10px] font-bold text-[#1355FF] bg-blue-50 px-1.5 py-0.2 rounded inline-block mt-0.5">
                                       Você contratou {hp.hireCount} {hp.hireCount === 1 ? "vez" : "vezes"}
                                     </span>
                                   </div>
@@ -1950,7 +1950,7 @@ export function ServicosClient({
                                     <button
                                       type="button"
                                       onClick={() => handleRehire(hp)}
-                                      className="w-full py-2 rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                                      className="w-full py-2 rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                                     >
                                       <Icon name="refresh" size={12} />
                                       <span>Contratar novamente</span>
@@ -1963,7 +1963,7 @@ export function ServicosClient({
                                         onClick={() => {
                                           handleCategoryChange(hp.category);
                                         }}
-                                        className="text-[#0055D4] hover:underline font-bold"
+                                        className="text-[#1355FF] hover:underline font-bold"
                                       >
                                         Ver semelhantes
                                       </button>
@@ -2178,7 +2178,7 @@ export function ServicosClient({
           <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl z-10 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#0055D4]">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#1355FF]">
                   Avaliação Verificada
                 </span>
                 <h3 className="text-base font-bold text-[#0F172A]">
@@ -2292,7 +2292,7 @@ export function ServicosClient({
                   value={revComment}
                   onChange={(e) => setRevComment(e.target.value)}
                   placeholder="Conte para outros moradores como foi a sua experiência com este prestador..."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
                 />
               </div>
 
@@ -2307,7 +2307,7 @@ export function ServicosClient({
                 <button
                   type="submit"
                   disabled={isActionPending}
-                  className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   {isActionPending ? "Enviando avaliação..." : "Publicar Avaliação"}
                 </button>
@@ -2328,7 +2328,7 @@ export function ServicosClient({
             {/* Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black uppercase text-[#0055D4]">Chat do Atendimento</span>
+                <span className="text-[10px] font-black uppercase text-[#1355FF]">Chat do Atendimento</span>
                 <h3 className="text-sm font-bold text-[#0F172A]">{activeChatRequest.title}</h3>
                 <p className="text-[11px] text-slate-400">Chamado: {activeChatRequest.code}</p>
               </div>
@@ -2357,7 +2357,7 @@ export function ServicosClient({
                         msg.senderRole === "sistema"
                           ? "bg-slate-200 text-slate-700 mx-auto text-center"
                           : msg.senderRole === "morador"
-                          ? "bg-[#0055D4] text-white ml-auto rounded-tr-xs"
+                          ? "bg-[#1355FF] text-white ml-auto rounded-tr-xs"
                           : "bg-white text-slate-800 border border-slate-200 mr-auto rounded-tl-xs"
                       }`}
                     >
@@ -2375,12 +2375,12 @@ export function ServicosClient({
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Escreva uma mensagem para o prestador..."
-                className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#0055D4]"
+                className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
               />
               <button
                 type="submit"
                 disabled={isActionPending || !chatInput.trim()}
-                className="h-10 px-4 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-xs"
+                className="h-10 px-4 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-xs"
               >
                 <Icon name="send" size={13} />
                 <span>Enviar</span>
@@ -2470,14 +2470,14 @@ export function ServicosClient({
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                 <span className="text-sm font-bold text-slate-700">Valor do Serviço:</span>
-                <span className="text-xl font-black text-[#0055D4]">
+                <span className="text-xl font-black text-[#1355FF]">
                   R$ {(selectedQuoteForAcceptance.quote.totalCents / 100).toFixed(2)}
                 </span>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-950 text-xs flex items-center gap-2">
-              <Icon name="shield" size={16} className="text-[#0055D4] shrink-0" />
+              <Icon name="shield" size={16} className="text-[#1355FF] shrink-0" />
               <p className="text-[11px] leading-relaxed">
                 <strong>Zeladoria Protege:</strong> ✓ Contratação registrada em contrato imutável. Seu pagamento é protegido pelo Zeladoria Pay e só será liberado após a conclusão satisfatória do serviço.
               </p>
@@ -2492,7 +2492,7 @@ export function ServicosClient({
                   setSelectedQuoteForAcceptance(null);
                   handleAcceptProposalZeladoriaProtege(quoteId);
                 }}
-                className="w-full py-3 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
               >
                 <Icon name="check-circle" size={16} />
                 <span>Continuar para Pagamento</span>

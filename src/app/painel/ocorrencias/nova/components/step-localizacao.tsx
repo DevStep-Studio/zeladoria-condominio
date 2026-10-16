@@ -116,7 +116,7 @@ export function StepLocalizacao({
           onClick={handleSelectUnit}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
             locationType === "unidade"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#0055D4] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
           }`}
         >
@@ -150,7 +150,7 @@ export function StepLocalizacao({
           }}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
             locationType === "area_comum"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#0055D4] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
           }`}
         >
@@ -180,7 +180,7 @@ export function StepLocalizacao({
           }}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
             locationType === "outro"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#0055D4] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
           }`}
         >
@@ -208,7 +208,7 @@ export function StepLocalizacao({
       {locationType === "unidade" && (
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
           <div className="flex items-center gap-2">
-            <Icon name="check-circle" size={16} className="text-[#0055D4]" />
+            <Icon name="check-circle" size={16} className="text-[#1355FF]" />
             <span className="text-xs font-bold text-slate-900">
               Local selecionado: {locationString || `${userUnit?.blockName ? `${userUnit.blockName} • ` : ""}Unidade ${userUnit?.unitNumber || "Não vinculada"}`}
             </span>
@@ -294,7 +294,7 @@ export function StepLocalizacao({
                 <button
                   type="button"
                   onClick={handleApplyHierarchical}
-                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#0070F3] text-[#0055D4] text-xs font-bold transition-colors shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#0070F3] text-[#1355FF] text-xs font-bold transition-colors shadow-2xs"
                 >
                   Aplicar esta localização
                 </button>
@@ -387,8 +387,8 @@ export function StepLocalizacao({
       {/* Resumo visual da localização */}
       {locationString && (
         <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200 flex items-center gap-2">
-          <Icon name="map-pin" size={16} className="text-[#0055D4] shrink-0" />
-          <p className="text-xs font-bold text-[#0055D4] truncate">
+          <Icon name="map-pin" size={16} className="text-[#1355FF] shrink-0" />
+          <p className="text-xs font-bold text-[#1355FF] truncate">
             {locationString}
             {locationDetail ? ` (${locationDetail})` : ""}
           </p>

@@ -69,7 +69,7 @@ export function PageHeader({
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4 mb-6 ${className}`}>
       <div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0055D4] text-white shadow-xs shrink-0">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1355FF] text-white shadow-xs shrink-0">
             <Icon name={resolvedIcon} size={16} />
           </span>
           <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
@@ -172,7 +172,7 @@ export function StatCard({
       ? "bg-emerald-50 text-emerald-600"
       : tone === "purple"
       ? "bg-indigo-50 text-indigo-600"
-      : "bg-blue-50 text-[#0055D4]";
+      : "bg-blue-50 text-[#1355FF]";
 
   const body = (
     <div className="flex h-full min-h-[92px] items-start gap-3.5 rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition-all duration-150 hover:border-slate-300 hover:shadow-xs">

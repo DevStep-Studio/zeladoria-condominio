@@ -42,7 +42,7 @@ export function SuccessScreen({
       <div className="rounded-2xl border border-slate-200 bg-white p-5 text-left space-y-3.5 shadow-xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <span className="text-xs text-slate-500 font-medium">Protocolo gerado</span>
-          <span className="text-sm font-extrabold text-[#0055D4] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 font-mono tracking-wide">
+          <span className="text-sm font-extrabold text-[#1355FF] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 font-mono tracking-wide">
             {code}
           </span>
         </div>

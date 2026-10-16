@@ -51,3 +51,6 @@ Thumbs.db
 *.sqlite
 logs/
 .autocommit.pid
+
+# Serena
+.serena/

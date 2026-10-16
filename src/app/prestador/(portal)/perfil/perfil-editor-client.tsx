@@ -83,7 +83,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+            className="rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
           >
             <Icon name="check" size={14} />
             <span>{isPending ? "Salvando..." : savedSuccess ? "Salvo!" : "Salvar Loja"}</span>
@@ -144,7 +144,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
             {/* Progress bar */}
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
               <div
-                className="h-full bg-[#0055D4] transition-all duration-500 rounded-full"
+                className="h-full bg-[#1355FF] transition-all duration-500 rounded-full"
                 style={{ width: `${completeness}%` }}
               />
             </div>
@@ -169,8 +169,8 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
 
             {/* Photo & Portfolio Incentive Callout */}
             {(!hasPhoto || !hasPortfolio) && (
-              <div className="p-3.5 rounded-[12px] bg-blue-50 border border-blue-200/80 text-[#0055D4] text-xs font-medium flex items-center gap-3">
-                <Icon name="camera" size={20} className="shrink-0 text-[#0055D4]" />
+              <div className="p-3.5 rounded-[12px] bg-blue-50 border border-blue-200/80 text-[#1355FF] text-xs font-medium flex items-center gap-3">
+                <Icon name="camera" size={20} className="shrink-0 text-[#1355FF]" />
                 <p>
                   <strong>Dica de visibilidade:</strong> Perfis com fotos dos trabalhos ajudam moradores a conhecer melhor seu serviço e aumentam a confiança na contratação.
                 </p>
@@ -196,7 +196,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               value={photoUrl}
               onChange={(e) => setPhotoUrl(e.target.value)}
               placeholder="https://exemplo.com/minha-foto.jpg"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
 
@@ -209,7 +209,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               value={coverUrl}
               onChange={(e) => setCoverUrl(e.target.value)}
               placeholder="https://exemplo.com/banner-capa.jpg"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
         </div>
@@ -223,7 +223,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
 
@@ -235,7 +235,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               type="text"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
         </div>
@@ -248,7 +248,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-[8px] border border-slate-200/80 p-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+            className="w-full rounded-[8px] border border-slate-200/80 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
           />
         </div>
 
@@ -261,7 +261,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               type="text"
               value={serviceArea}
               onChange={(e) => setServiceArea(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
 
@@ -274,7 +274,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               value={workingHours}
               onChange={(e) => setWorkingHours(e.target.value)}
               placeholder="Ex: Seg a Sex 08:00 - 18:00"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#0055D4] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
             />
           </div>
         </div>
@@ -319,21 +319,21 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
               placeholder="URL da imagem (ex: https://...)"
               value={newPhotoUrl}
               onChange={(e) => setNewPhotoUrl(e.target.value)}
-              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
             />
             <input
               type="text"
               placeholder="Legenda do trabalho"
               value={newPhotoCaption}
               onChange={(e) => setNewPhotoCaption(e.target.value)}
-              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#0055D4]"
+              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
             />
           </div>
           <div className="flex justify-end">
             <button
               type="button"
               onClick={addPortfolio}
-              className="h-9 px-3.5 rounded-[8px] bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold cursor-pointer transition-colors shadow-2xs"
+              className="h-9 px-3.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold cursor-pointer transition-colors shadow-2xs"
             >
               Adicionar ao Portfólio
             </button>

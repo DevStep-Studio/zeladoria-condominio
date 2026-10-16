@@ -24,7 +24,7 @@ export default function ForbiddenPage() {
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/painel"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-blue-500/20"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-blue-500/20"
         >
           <Icon name="arrow-right" size={14} className="rotate-180" />
           <span>Voltar ao início</span>
