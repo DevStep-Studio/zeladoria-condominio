@@ -1096,6 +1096,69 @@ CREATE TABLE IF NOT EXISTS "condominio_app"."service_warranty_tickets" (
 	"resolved_at" timestamp with time zone
 );
 
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_contracts" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"request_id" integer NOT NULL,
+	"quote_id" integer NOT NULL,
+	"quote_version" integer DEFAULT 1 NOT NULL,
+	"customer_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"service_title" varchar(200) NOT NULL,
+	"scope_description" text NOT NULL,
+	"itemized_materials" jsonb DEFAULT '[]'::jsonb,
+	"labor_cents" integer DEFAULT 0 NOT NULL,
+	"materials_cents" integer DEFAULT 0 NOT NULL,
+	"other_costs_cents" integer DEFAULT 0 NOT NULL,
+	"discount_cents" integer DEFAULT 0 NOT NULL,
+	"inspection_discount_cents" integer DEFAULT 0 NOT NULL,
+	"total_cents" integer NOT NULL,
+	"commission_rate_snapshot" integer NOT NULL,
+	"platform_fee_cents" integer NOT NULL,
+	"net_vendor_cents" integer NOT NULL,
+	"warranty_days" integer DEFAULT 90 NOT NULL,
+	"contract_hash" varchar(64) NOT NULL,
+	"terms_version" varchar(20) DEFAULT '1.0' NOT NULL,
+	"terms_accepted_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"user_ip" varchar(60),
+	"conditions" text,
+	"status" varchar(30) DEFAULT 'AWAITING_PAYMENT' NOT NULL,
+	"payment_order_id" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."service_evidences" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"request_id" integer NOT NULL,
+	"contract_id" integer,
+	"vendor_id" integer NOT NULL,
+	"stage" varchar(20) NOT NULL,
+	"file_url" text NOT NULL,
+	"caption" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."payouts" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"condo_id" integer NOT NULL,
+	"vendor_id" integer NOT NULL,
+	"contract_id" integer,
+	"payment_order_id" integer,
+	"gateway" varchar(24) DEFAULT 'asaas' NOT NULL,
+	"gateway_payout_id" varchar(80),
+	"gross_amount_cents" integer NOT NULL,
+	"platform_fee_cents" integer DEFAULT 0 NOT NULL,
+	"processing_fee_cents" integer DEFAULT 0 NOT NULL,
+	"net_amount_cents" integer NOT NULL,
+	"status" varchar(24) DEFAULT 'ELIGIBLE' NOT NULL,
+	"eligible_at" timestamp with time zone,
+	"paid_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
 ALTER TABLE "condominio_app"."service_inspections" ADD COLUMN IF NOT EXISTS "discount_on_service" boolean DEFAULT false NOT NULL;
 ALTER TABLE "condominio_app"."service_inspections" ADD COLUMN IF NOT EXISTS "provider_arrived_at" timestamp with time zone;
 
@@ -1109,9 +1172,23 @@ ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "inspecti
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "conditions" text;
 ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "user_ip" varchar(60);
 
+ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "contract_id" integer;
+ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "installments" integer DEFAULT 1;
+ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "currency" varchar(10) DEFAULT 'BRL' NOT NULL;
+ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "external_reference" varchar(120);
+ALTER TABLE "condominio_app"."payment_orders" ADD COLUMN IF NOT EXISTS "failed_at" timestamp with time zone;
+
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "visit_commission_percent" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "processing_fee_payer" varchar(20) DEFAULT 'PROVIDER' NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "estimated_psp_fee_percent" numeric(4,2) DEFAULT 3.50;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "payments_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "paid_visits_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "pix_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "card_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "installments_enabled" boolean DEFAULT false NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "payouts_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "zeladoria_protege_enabled" boolean DEFAULT true NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "max_installments" integer DEFAULT 1 NOT NULL;
 `;
 
 let setup: Promise<void> | null = null;

@@ -32,11 +32,15 @@ import {
   customerConfirmCompletionAction,
   customerOpenDisputeAction,
   simulateWebhookPaymentAction,
+  getContractReceiptAction,
+  customerRequestWarrantyAction,
 } from "@/lib/actions/zeladoria-pay";
 import {
   CustomerInspectionCheckoutModal,
   CustomerServiceCheckoutModal,
   CustomerDisputeModal,
+  CustomerContractReceiptModal,
+  CustomerWarrantyRequestModal,
 } from "@/components/marketplace/zeladoria-pay-modals";
 
 export function ServicosClient({
@@ -356,6 +360,8 @@ export function ServicosClient({
   const [inspectionCheckoutData, setInspectionCheckoutData] = useState<any>(null);
   const [serviceCheckoutData, setServiceCheckoutData] = useState<any>(null);
   const [disputeModalReq, setDisputeModalReq] = useState<any>(null);
+  const [receiptModalData, setReceiptModalData] = useState<any>(null);
+  const [warrantyModalReq, setWarrantyModalReq] = useState<any>(null);
   const [selectedInspectionSlots, setSelectedInspectionSlots] = useState<Record<number, { date: string; time: string }>>({});
 
   const handleSelectSlot = (reqId: number, slot: { date: string; time: string }) => {
@@ -406,6 +412,34 @@ export function ServicosClient({
     });
   };
 
+  const handleOpenReceipt = (requestId: number) => {
+    startActionTransition(async () => {
+      const res = await getContractReceiptAction(requestId);
+      if (res.success && res.receipt) {
+        setReceiptModalData(res.receipt);
+      } else {
+        alert(res.error || "Não foi possível carregar o recibo da contratação.");
+      }
+    });
+  };
+
+  const handleOpenWarranty = (req: any) => {
+    setWarrantyModalReq(req);
+  };
+
+  const handleSubmitWarranty = (requestId: number, description: string) => {
+    startActionTransition(async () => {
+      const res = await customerRequestWarrantyAction({ requestId, description });
+      if (res.success) {
+        alert("Solicitação de garantia registrada com sucesso! A equipe de suporte e o prestador foram notificados.");
+        setWarrantyModalReq(null);
+        router.refresh();
+      } else {
+        alert(res.error || "Erro ao registrar solicitação de garantia.");
+      }
+    });
+  };
+
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewRequest) return;
@@ -433,7 +467,11 @@ export function ServicosClient({
 
   const handleConfirmCompletion = (requestId: number) => {
     startActionTransition(async () => {
-      await confirmServiceCompletionAction(requestId);
+      const res = await customerConfirmCompletionAction(requestId);
+      if (!res.success) {
+        // Fallback para ação legada caso não haja contrato Zeladoria Pay associado
+        await confirmServiceCompletionAction(requestId);
+      }
     });
   };
 
@@ -845,6 +883,40 @@ export function ServicosClient({
                       </div>
                     )}
 
+                    {/* Banner Prestador Informou Conclusão */}
+                    {["prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED"].includes(req.status) && (
+                      <div className="p-3.5 rounded-xl border border-blue-300 bg-blue-50/70 space-y-2 text-xs text-blue-950">
+                        <div className="flex items-center gap-2">
+                          <Icon name="check-circle" size={16} className="text-[#0055D4] shrink-0" />
+                          <div>
+                            <strong>O prestador informou que concluiu o serviço!</strong>
+                            <p className="text-[11px] text-slate-700">
+                              Verifique o resultado e as evidências. Confirme para liberar o repasse ou abra uma contestação caso haja alguma inconformidade.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            disabled={isActionPending}
+                            onClick={() => handleConfirmCompletion(req.id)}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer shadow-xs flex items-center gap-1"
+                          >
+                            <Icon name="check-circle" size={13} />
+                            <span>Está tudo certo (Liberar Repasse)</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isActionPending}
+                            onClick={() => setDisputeModalReq(req)}
+                            className="px-3.5 py-1.5 rounded-xl border border-rose-300 bg-white hover:bg-rose-50 text-rose-700 font-bold cursor-pointer shadow-xs"
+                          >
+                            Tenho um problema (Contestar)
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Banner Disputa / Mediação */}
                     {req.status === "em_disputa" && (
                       <div className="p-3 rounded-xl border border-rose-300 bg-rose-50 flex items-center gap-2 text-xs text-rose-900">
@@ -897,6 +969,30 @@ export function ServicosClient({
                       <div className="flex items-center gap-2">
                         {isCompleted && (
                           <>
+                            {/* Ver Comprovante da Contratação */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReceipt(req.id)}
+                              disabled={isActionPending}
+                              className="rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-[#0055D4] px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                              title="Visualizar Comprovante Oficial Zeladoria Protege"
+                            >
+                              <Icon name="file-text" size={12} />
+                              <span>Comprovante</span>
+                            </button>
+
+                            {/* Acionar Garantia CDC */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenWarranty(req)}
+                              disabled={isActionPending}
+                              className="rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                              title="Solicitar suporte ou acionar garantia do serviço"
+                            >
+                              <Icon name="shield" size={12} />
+                              <span>Garantia CDC</span>
+                            </button>
+
                             {reqReview ? (
                               <div className="flex items-center gap-1.5 text-xs">
                                 <span className="font-bold text-slate-500">Sua avaliação:</span>
@@ -1795,6 +1891,22 @@ export function ServicosClient({
         onClose={() => setDisputeModalReq(null)}
         request={disputeModalReq}
         onSubmit={handleOpenDispute}
+        isPending={isActionPending}
+      />
+
+      {/* MODAL COMPROVANTE OFICIAL DE CONTRATAÇÃO */}
+      <CustomerContractReceiptModal
+        isOpen={!!receiptModalData}
+        onClose={() => setReceiptModalData(null)}
+        receipt={receiptModalData}
+      />
+
+      {/* MODAL SOLICITAÇÃO DE SUPORTE EM GARANTIA CDC */}
+      <CustomerWarrantyRequestModal
+        isOpen={!!warrantyModalReq}
+        onClose={() => setWarrantyModalReq(null)}
+        request={warrantyModalReq}
+        onSubmit={(desc) => warrantyModalReq && handleSubmitWarranty(warrantyModalReq.id, desc)}
         isPending={isActionPending}
       />
     </div>

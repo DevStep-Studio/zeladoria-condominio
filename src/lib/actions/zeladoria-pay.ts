@@ -19,10 +19,15 @@ import {
   customerOpenDispute,
   customerRequestWarranty,
   customerSelectInspectionSlot,
+  getAdminFinancialDashboard,
+  getContractReceipt,
   getMarketplaceSettings,
+  getProviderFinancialSummary,
   processPaymentWebhook,
   providerCheckInInspection,
   providerCreateContractAddendum,
+  providerFinalizeService,
+  providerRecordEvidence,
   providerRespondInspection,
   sendDigitalProposal,
 } from "@/lib/services/payments/payment-service";
@@ -437,5 +442,118 @@ export async function customerRequestWarrantyAction(payload: {
   } catch (err: any) {
     console.error("Erro em customerRequestWarrantyAction:", err);
     return { success: false, error: err?.message || "Erro ao abrir solicitação de garantia." };
+  }
+}
+
+/**
+ * 14. Prestador registra fotos de evidência técnica por estágio (ANTES, DURANTE, DEPOIS)
+ */
+export async function providerRecordEvidenceAction(payload: {
+  requestId: number;
+  contractId?: number;
+  stage: "ANTES" | "DURANTE" | "DEPOIS";
+  fileUrl: string;
+  caption?: string;
+}) {
+  try {
+    const { vendor, session } = await requireProvider();
+    if (!vendor) return { success: false, error: "Não autorizado." };
+
+    const condoId = vendor.condoId || session.condo?.id || 1;
+
+    const evidence = await providerRecordEvidence({
+      condoId,
+      requestId: payload.requestId,
+      contractId: payload.contractId,
+      vendorId: vendor.id,
+      stage: payload.stage,
+      fileUrl: payload.fileUrl,
+      caption: payload.caption,
+    });
+
+    revalidatePath("/prestador/chamados");
+    revalidatePath("/painel/servicos");
+    return { success: true, evidenceId: evidence.id };
+  } catch (err: any) {
+    console.error("Erro em providerRecordEvidenceAction:", err);
+    return { success: false, error: err?.message || "Erro ao registrar evidência." };
+  }
+}
+
+/**
+ * 15. Prestador finaliza serviço (Cláusula 39: PROVIDER_COMPLETED)
+ */
+export async function providerFinalizeServiceAction(payload: {
+  requestId: number;
+  finalNotes: string;
+  finalPhotos?: string[];
+  warrantyDays?: number;
+}) {
+  try {
+    const { vendor } = await requireProvider();
+    if (!vendor) return { success: false, error: "Não autorizado." };
+
+    if (!payload.finalNotes?.trim()) {
+      return { success: false, error: "Informe o resumo do serviço executado." };
+    }
+
+    const result = await providerFinalizeService({
+      requestId: payload.requestId,
+      vendorId: vendor.id,
+      finalNotes: payload.finalNotes,
+      finalPhotos: payload.finalPhotos,
+      warrantyDays: payload.warrantyDays,
+    });
+
+    revalidatePath("/prestador/chamados");
+    revalidatePath("/painel/servicos");
+    return result;
+  } catch (err: any) {
+    console.error("Erro em providerFinalizeServiceAction:", err);
+    return { success: false, error: err?.message || "Erro ao finalizar serviço." };
+  }
+}
+
+/**
+ * 16. Obter Comprovante Oficial de Contratação (Cláusula 53)
+ */
+export async function getContractReceiptAction(contractId: number) {
+  try {
+    await requireSession();
+    const receipt = await getContractReceipt(contractId);
+    return { success: true, receipt };
+  } catch (err: any) {
+    console.error("Erro em getContractReceiptAction:", err);
+    return { success: false, error: err?.message || "Erro ao emitir recibo." };
+  }
+}
+
+/**
+ * 17. Obter extrato e painel financeiro do prestador (Cláusula 47)
+ */
+export async function getProviderFinancialSummaryAction() {
+  try {
+    const { vendor } = await requireProvider();
+    if (!vendor) return { success: false, error: "Perfil de prestador não localizado." };
+
+    const summary = await getProviderFinancialSummary(vendor.id);
+    return { success: true, summary };
+  } catch (err: any) {
+    console.error("Erro em getProviderFinancialSummaryAction:", err);
+    return { success: false, error: err?.message || "Erro ao obter resumo financeiro." };
+  }
+}
+
+/**
+ * 18. Obter métricas consolidadas do painel admin Zeladoria Pay (Cláusula 55-56)
+ */
+export async function getAdminFinancialDashboardAction() {
+  try {
+    const { condoId } = await requireRole(["sindico", "superadmin"]);
+    const dashboard = await getAdminFinancialDashboard(condoId);
+    return { success: true, dashboard };
+  } catch (err: any) {
+    console.error("Erro em getAdminFinancialDashboardAction:", err);
+    return { success: false, error: err?.message || "Erro ao carregar dados administrativos." };
   }
 }

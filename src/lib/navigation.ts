@@ -110,6 +110,7 @@ const SINDICO_NAVIGATION: NavGroup[] = [
     title: "Serviços & Parceiros",
     items: [
       { id: "prestadores", label: "Prestadores de Serviços", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
+      { id: "zeladoria_pay", label: "Zeladoria Pay", href: "/painel/admin/zeladoria-pay", icon: "shield", permission: "provider.manage" },
       { id: "fornecedores", label: "Fornecedores Cadastrados", href: "/painel/fornecedores", icon: "sparkles", permission: "provider.manage" },
     ],
   },

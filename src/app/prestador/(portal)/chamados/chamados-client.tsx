@@ -8,12 +8,16 @@ import {
 } from "@/lib/actions/prestador";
 import {
   completeInspectionDiagnosisAction,
+  providerFinalizeServiceAction,
+  providerRecordEvidenceAction,
   providerRespondInspectionAction,
   sendDigitalProposalAction,
 } from "@/lib/actions/zeladoria-pay";
 import {
   ProviderDiagnosisModal,
   ProviderDigitalProposalModal,
+  ProviderEvidenceModal,
+  ProviderFinalizeModal,
   ProviderInspectionResponseModal,
 } from "@/components/marketplace/zeladoria-pay-modals";
 
@@ -34,6 +38,8 @@ export function ProviderChamadosClient({
   const [inspectionModalReq, setInspectionModalReq] = useState<any>(null);
   const [diagnosisModalReq, setDiagnosisModalReq] = useState<any>(null);
   const [proposalModalReq, setProposalModalReq] = useState<any>(null);
+  const [evidenceModalReq, setEvidenceModalReq] = useState<any>(null);
+  const [finalizeModalReq, setFinalizeModalReq] = useState<any>(null);
 
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
@@ -362,14 +368,24 @@ export function ProviderChamadosClient({
                   )}
 
                   {req.status === "em_atendimento" && (
-                    <button
-                      type="button"
-                      onClick={() => handleAdvance(req.id, "concluido")}
-                      className="rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Icon name="check-circle" size={13} />
-                      <span>Finalizar Serviço</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEvidenceModalReq(req)}
+                        className="rounded-[8px] bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Icon name="camera" size={13} />
+                        <span>Evidências (Fotos)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFinalizeModalReq(req)}
+                        className="rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Icon name="check-circle" size={13} />
+                        <span>Finalizar Serviço</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -429,6 +445,42 @@ export function ProviderChamadosClient({
               ...data,
             });
             setProposalModalReq(null);
+          });
+        }}
+      />
+
+      {/* MODAL 4: Evidências Técnicas (Antes, Durante, Depois) */}
+      <ProviderEvidenceModal
+        isOpen={!!evidenceModalReq}
+        onClose={() => setEvidenceModalReq(null)}
+        requestId={evidenceModalReq?.id || 0}
+        isPending={isPending}
+        onSubmit={(data) => {
+          if (!evidenceModalReq) return;
+          startTransition(async () => {
+            await providerRecordEvidenceAction({
+              requestId: evidenceModalReq.id,
+              ...data,
+            });
+            setEvidenceModalReq(null);
+          });
+        }}
+      />
+
+      {/* MODAL 5: Finalizar Serviço (PROVIDER_COMPLETED) */}
+      <ProviderFinalizeModal
+        isOpen={!!finalizeModalReq}
+        onClose={() => setFinalizeModalReq(null)}
+        request={finalizeModalReq}
+        isPending={isPending}
+        onSubmit={(data) => {
+          if (!finalizeModalReq) return;
+          startTransition(async () => {
+            await providerFinalizeServiceAction({
+              requestId: finalizeModalReq.id,
+              ...data,
+            });
+            setFinalizeModalReq(null);
           });
         }}
       />

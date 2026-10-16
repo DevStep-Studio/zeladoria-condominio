@@ -27,6 +27,12 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
    * https://docs.asaas.com/reference/criar-uma-subconta
    */
   async createRecipient(input: CreateRecipientInput): Promise<CreateRecipientResult> {
+    if (process.env.NODE_ENV === "production" && !this.apiKey) {
+      throw new Error(
+        "Credenciais do PSP (ASAAS_API_KEY) ausentes em ambiente de produção. Simulação de gateway proibida em produção."
+      );
+    }
+
     if (this.apiKey) {
       try {
         const res = await fetch(`${this.baseUrl}/accounts`, {
@@ -47,7 +53,10 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           console.warn("Asaas API subconta warning:", errData);
-          // Fallback para sandbox simulation se endpoint falhar em ambiente de testes
+          if (process.env.NODE_ENV === "production") {
+            throw new Error(`Falha ao registrar subconta no PSP Asaas: ${JSON.stringify(errData)}`);
+          }
+          // Fallback para sandbox simulation se endpoint falhar em ambiente de testes/dev
           return this.simulateRecipient(input);
         }
 
@@ -58,6 +67,7 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
           status: "active",
         };
       } catch (err) {
+        if (process.env.NODE_ENV === "production") throw err;
         console.warn("Erro ao comunicar com Asaas API, usando simulação sandbox:", err);
         return this.simulateRecipient(input);
       }
@@ -168,7 +178,35 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
   }
 
   /**
-   * 4. Validação de assinatura do Webhook
+   * 4. Liberação do Repasse / Payout condicionado
+   */
+  async releasePayout(pspPaymentId: string): Promise<{ success: boolean; payoutId?: string }> {
+    if (this.apiKey && !pspPaymentId.startsWith("pay_sim_")) {
+      try {
+        const res = await fetch(`${this.baseUrl}/payments/${pspPaymentId}/release`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            access_token: this.apiKey,
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        return { success: res.ok, payoutId: data.id || `payout_${Date.now()}` };
+      } catch (err) {
+        if (process.env.NODE_ENV === "production") throw err;
+        console.warn("Asaas releasePayout warning:", err);
+      }
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Simulated payout is prohibited in production mode.");
+    }
+
+    return { success: true, payoutId: `payout_sim_${Date.now()}` };
+  }
+
+  /**
+   * 5. Validação de assinatura do Webhook
    */
   verifyWebhookSignature(headers: Record<string, string>, rawBody: string): boolean {
     const token =
@@ -187,7 +225,7 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
   }
 
   /**
-   * 5. Parse do evento do Webhook do Asaas
+   * 6. Parse do evento do Webhook do Asaas
    */
   parseWebhookEvent(rawBody: string): ParsedWebhookEvent {
     const parsed = typeof rawBody === "string" ? JSON.parse(rawBody) : rawBody;
@@ -218,6 +256,10 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
   // --- MÉTODOS AUXILIARES DE SIMULAÇÃO (SANDBOX FIRST) ---
 
   private simulateRecipient(input: CreateRecipientInput): CreateRecipientResult {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Simulated recipient is prohibited in production mode.");
+    }
+
     const slug = input.name.toLowerCase().replace(/[^a-z0-9]/g, "");
     return {
       pspAccountId: `cacc_asaas_vendor_${input.vendorId}_${slug.slice(0, 8)}`,
@@ -227,6 +269,10 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
   }
 
   private simulateCharge(input: CreateChargeInput): CreateChargeResult {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Simulated charge is prohibited in production mode.");
+    }
+
     const paymentId = `pay_sim_${input.orderCode.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}`;
     const value = (input.amountCents / 100).toFixed(2);
 

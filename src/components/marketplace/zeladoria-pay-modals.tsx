@@ -891,3 +891,444 @@ export function CustomerDisputeModal({
     </div>
   );
 }
+
+// 7. MODAL: PRESTADOR REGISTRA FOTOS DE EVIDÊNCIA (ANTES, DURANTE, DEPOIS - Cláusula 36)
+export function ProviderEvidenceModal({
+  isOpen,
+  onClose,
+  requestId,
+  onSubmit,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  requestId: number;
+  onSubmit: (data: { stage: "ANTES" | "DURANTE" | "DEPOIS"; fileUrl: string; caption?: string }) => void;
+  isPending: boolean;
+}) {
+  const [stage, setStage] = useState<"ANTES" | "DURANTE" | "DEPOIS">("ANTES");
+  const [fileUrl, setFileUrl] = useState("");
+  const [caption, setCaption] = useState("");
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fileUrl.trim()) return;
+    onSubmit({ stage, fileUrl, caption });
+    setFileUrl("");
+    setCaption("");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black">
+              <Icon name="camera" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">Registrar Evidência Técnica</h2>
+              <p className="text-[11px] text-slate-500">Fotos do serviço sob Zeladoria Protege</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Estágio da Foto</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["ANTES", "DURANTE", "DEPOIS"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStage(s)}
+                  className={`py-2 rounded-xl border text-center font-bold cursor-pointer transition-all ${
+                    stage === s
+                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4]"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">URL da Imagem / Foto</label>
+            <input
+              type="text"
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+              required
+              placeholder="https://... ou caminho da foto no sistema"
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Legenda Técnica (Opcional)</label>
+            <input
+              type="text"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Ex: Fiação antiga antes da substituição"
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !fileUrl.trim()}
+              className="px-5 py-2 rounded-xl bg-[#0055D4] hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
+            >
+              {isPending ? "Salvando..." : "Salvar Evidência"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// 8. MODAL: PRESTADOR FINALIZA O SERVIÇO (PROVIDER_COMPLETED - Cláusula 39)
+export function ProviderFinalizeModal({
+  isOpen,
+  onClose,
+  request,
+  onSubmit,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  request: any;
+  onSubmit: (data: { finalNotes: string; finalPhotos?: string[]; warrantyDays?: number }) => void;
+  isPending: boolean;
+}) {
+  const [finalNotes, setFinalNotes] = useState("Serviço executado conforme proposta técnica e testes operacionais realizados.");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photosList, setPhotosList] = useState<string[]>([]);
+  const [warrantyDays, setWarrantyDays] = useState(90);
+
+  if (!isOpen || !request) return null;
+
+  const handleAddPhoto = () => {
+    if (photoUrl.trim()) {
+      setPhotosList([...photosList, photoUrl.trim()]);
+      setPhotoUrl("");
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!finalNotes.trim()) return;
+    onSubmit({
+      finalNotes,
+      finalPhotos: photosList,
+      warrantyDays,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black">
+              <Icon name="check-circle" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">Finalizar Serviço</h2>
+              <p className="text-[11px] text-slate-500">Chamado #{request.code} — {request.title}</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Resumo do que foi executado</label>
+            <textarea
+              rows={3}
+              value={finalNotes}
+              onChange={(e) => setFinalNotes(e.target.value)}
+              required
+              placeholder="Descreva as tarefas concluídas, peças substituídas e testes..."
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Garantia Informada (Dias)</label>
+            <select
+              value={warrantyDays}
+              onChange={(e) => setWarrantyDays(Number(e.target.value))}
+              className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white"
+            >
+              <option value={90}>90 dias (Garantia Legal CDC Art. 26)</option>
+              <option value={180}>180 dias (6 meses)</option>
+              <option value={365}>365 dias (1 ano)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Fotos Finais da Entrega</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                placeholder="Cole a URL da foto de entrega..."
+                className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white"
+              />
+              <button
+                type="button"
+                onClick={handleAddPhoto}
+                className="px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold shrink-0 cursor-pointer"
+              >
+                + Adicionar
+              </button>
+            </div>
+            {photosList.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {photosList.map((p, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-[10px] text-slate-700 font-medium truncate max-w-[200px]">
+                    {p}
+                    <button type="button" onClick={() => setPhotosList(photosList.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-rose-600">×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-[11px] text-indigo-900">
+            Ao finalizar, o morador será notificado para inspecionar o trabalho e clicar em <strong>"Tudo Certo!"</strong>, momento em que o repasse do split financeiro é liberado.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+            >
+              Voltar
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !finalNotes.trim()}
+              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer shadow-xs"
+            >
+              {isPending ? "Finalizando..." : "Concluir Entrega do Serviço"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// 9. MODAL: COMPROVANTE OFICIAL DE CONTRATAÇÃO (Cláusula 53 - NÃO CHAMAR DE NOTA FISCAL)
+export function CustomerContractReceiptModal({
+  isOpen,
+  onClose,
+  receipt,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  receipt: any;
+}) {
+  if (!isOpen || !receipt) return null;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-[#0055D4] text-white flex items-center justify-center font-black">
+              <Icon name="file-text" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">{receipt.receiptType}</h2>
+              <p className="text-[10px] text-slate-500 font-mono">Código: {receipt.code}</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        {/* Informações Oficiais */}
+        <div className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+            <div>
+              <span className="text-[10px] text-slate-400 block font-medium">Contratante (Morador)</span>
+              <strong className="text-slate-900">{receipt.customer?.name}</strong>
+              <span className="text-[11px] text-slate-500 block">{receipt.customer?.phone}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 block font-medium">Prestador Verificado</span>
+              <strong className="text-slate-900">{receipt.provider?.name}</strong>
+              <span className="text-[11px] text-slate-500 block">Doc: {receipt.provider?.cnpjOrCpf || "Cadastrado"}</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Serviço:</span>
+              <strong className="text-slate-900">{receipt.serviceTitle}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Mão de Obra:</span>
+              <span>R$ {((receipt.financial?.laborCents || 0) / 100).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Materiais:</span>
+              <span>R$ {((receipt.financial?.materialsCents || 0) / 100).toFixed(2)}</span>
+            </div>
+            {receipt.financial?.inspectionDiscountCents > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <span>Crédito da Vistoria:</span>
+                <span>- R$ {((receipt.financial?.inspectionDiscountCents || 0) / 100).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-black text-slate-900">
+              <span>Valor Total Pago:</span>
+              <span className="text-[#0055D4]">R$ {((receipt.financial?.totalCents || 0) / 100).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
+            <span>Garantia Contratual Ativa:</span>
+            <strong className="font-black">{receipt.warranty?.days || 90} dias (CDC)</strong>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-100 text-[10px] text-slate-500 leading-normal font-mono">
+            Hash SHA-256: {receipt.contractHash || "N/A"}
+          </div>
+
+          <p className="text-[10px] text-slate-400 italic text-center">
+            {receipt.receiptNotice}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+          >
+            <Icon name="file-text" size={14} />
+            <span>Imprimir / Salvar PDF</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-blue-700 text-white font-bold text-xs cursor-pointer shadow-xs"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 10. MODAL: MORADOR SOLICITA SUPORTE EM GARANTIA (Cláusula 50-51)
+export function CustomerWarrantyRequestModal({
+  isOpen,
+  onClose,
+  request,
+  onSubmit,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  request: any;
+  onSubmit: (description: string) => void;
+  isPending: boolean;
+}) {
+  const [desc, setDesc] = useState("");
+
+  if (!isOpen || !request) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!desc.trim()) return;
+    onSubmit(desc);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-black">
+              <Icon name="shield" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">Solicitar Suporte em Garantia</h2>
+              <p className="text-[11px] text-slate-500">Chamado #{request.code} — Zeladoria Protege</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Descreva o problema observado</label>
+            <textarea
+              rows={4}
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              required
+              placeholder="Explique o que ocorreu após a entrega do serviço para que o prestador realize o retorno sem custo adicional..."
+              className="w-full p-3 rounded-xl border border-slate-300 bg-white"
+            />
+          </div>
+
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-950">
+            A garantia cobre defeitos decorrentes da mão de obra ou divergências de instalação pelo período contratado. O prestador será notificado para agendar o retorno técnico.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !desc.trim()}
+              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer shadow-xs"
+            >
+              {isPending ? "Enviando..." : "Abrir Chamado de Garantia"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

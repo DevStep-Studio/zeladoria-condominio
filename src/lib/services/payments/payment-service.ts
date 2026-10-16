@@ -8,7 +8,10 @@ import {
   paymentOrders,
   paymentRecipients,
   paymentWebhookEvents,
+  payouts,
+  serviceContracts,
   serviceDisputes,
+  serviceEvidences,
   serviceInspections,
   serviceMessages,
   serviceQuotes,
@@ -19,6 +22,12 @@ import {
 } from "@/db/schema";
 import { getPaymentGateway } from "./gateway-factory";
 import { CreateChargeInput, SplitRule } from "./types";
+import {
+  assertTransition,
+  canTransition,
+  normalizeServiceStatus,
+  SERVICE_STATUSES,
+} from "./state-machine";
 
 /**
  * Busca configurações do marketplace (condomínio ou global)
@@ -54,6 +63,14 @@ export async function getMarketplaceSettings(condoId?: number | null) {
     processingFeePayer: settings?.processingFeePayer ?? "PROVIDER",
     estimatedPspFeePercent: Number(settings?.estimatedPspFeePercent ?? 3.5),
     visitCommissionPercent: settings?.visitCommissionPercent ?? 0,
+    paymentsEnabled: settings?.paymentsEnabled ?? true,
+    paidVisitsEnabled: settings?.paidVisitsEnabled ?? true,
+    pixEnabled: settings?.pixEnabled ?? true,
+    cardEnabled: settings?.cardEnabled ?? true,
+    installmentsEnabled: settings?.installmentsEnabled ?? false,
+    payoutsEnabled: settings?.payoutsEnabled ?? true,
+    zeladoriaProtegeEnabled: settings?.zeladoriaProtegeEnabled ?? true,
+    maxInstallments: settings?.maxInstallments ?? 1,
   };
 }
 
@@ -565,6 +582,15 @@ export async function customerAcceptProposalAndPay(params: {
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, quote.requestId)).limit(1);
   if (!req) throw new Error("Chamado não encontrado.");
 
+  // Valida transição de estado na state machine
+  assertTransition(req.status, "QUOTE_ACCEPTED");
+
+  // Garante recebedor PSP e valida onboarding KYC do prestador (Cláusula 48-49)
+  const recipient = await ensurePaymentRecipient(quote.vendorId);
+  if (recipient.status === "suspended") {
+    throw new Error("O prestador está temporariamente suspenso para receber pagamentos online pela plataforma.");
+  }
+
   // Marca proposta como aceita com snapshot do IP e timestamp dos termos
   await db
     .update(serviceQuotes)
@@ -587,10 +613,40 @@ export async function customerAcceptProposalAndPay(params: {
   const platformFeeCents = Math.round((quote.totalCents * commissionPercent) / 100);
   const netVendorCents = quote.totalCents - platformFeeCents;
 
-  // Garante recebedor PSP para o prestador
-  const recipient = await ensurePaymentRecipient(quote.vendorId);
   const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
   const [vendor] = await db.select().from(vendors).where(eq(vendors.id, quote.vendorId)).limit(1);
+
+  // 1. CONGELAMENTO IMUTÁVEL: Criação do Contrato Digital (ServiceContract - Cláusula 17)
+  const [contract] = await db
+    .insert(serviceContracts)
+    .values({
+      condoId: req.condoId,
+      requestId: req.id,
+      quoteId: quote.id,
+      quoteVersion: quote.version || 1,
+      customerId: req.customerId,
+      vendorId: quote.vendorId,
+      serviceTitle: quote.title || req.title,
+      scopeDescription: quote.scopeDescription || req.description,
+      itemizedMaterials: quote.itemizedMaterials || [],
+      laborCents: quote.laborCents,
+      materialsCents: quote.materialsCents,
+      otherCostsCents: quote.otherCostsCents,
+      discountCents: quote.discountCents,
+      inspectionDiscountCents: quote.inspectionDiscountCents,
+      totalCents: quote.totalCents,
+      commissionRateSnapshot: commissionPercent,
+      platformFeeCents,
+      netVendorCents,
+      warrantyDays: quote.warrantyDays || 90,
+      contractHash: quote.contractHash || "",
+      termsVersion: "1.0",
+      termsAcceptedAt: new Date(),
+      userIp: params.userIp || null,
+      conditions: quote.conditions || null,
+      status: "AWAITING_PAYMENT",
+    })
+    .returning();
 
   // Gera código único da ordem do serviço principal: PAY-SRV-YYYY-XXXX
   const seqNum = Math.floor(1000 + Math.random() * 9000);
@@ -620,6 +676,7 @@ export async function customerAcceptProposalAndPay(params: {
       code: orderCode,
       condoId: req.condoId,
       requestId: req.id,
+      contractId: contract.id,
       quoteId: quote.id,
       customerId: req.customerId,
       vendorId: quote.vendorId,
@@ -637,6 +694,12 @@ export async function customerAcceptProposalAndPay(params: {
       status: "pending",
     })
     .returning();
+
+  // Vincula paymentOrderId ao contrato digital
+  await db
+    .update(serviceContracts)
+    .set({ paymentOrderId: order.id, updatedAt: new Date() })
+    .where(eq(serviceContracts.id, contract.id));
 
   await db
     .update(serviceRequests)
@@ -661,8 +724,9 @@ export async function customerAcceptProposalAndPay(params: {
     balanceType: "credit",
     entityType: "customer",
     referenceCode: orderCode,
-    description: `Cobrança emitida para serviço residencial (Proposta v${quote.version || 1})`,
+    description: `Cobrança emitida para serviço residencial (Contrato #${contract.id} - Proposta v${quote.version || 1})`,
     metadata: {
+      contractId: contract.id,
       quoteId: quote.id,
       vendorId: quote.vendorId,
       warrantyDays: quote.warrantyDays,
@@ -672,6 +736,7 @@ export async function customerAcceptProposalAndPay(params: {
 
   return {
     orderCode,
+    contractId: contract.id,
     totalCents: quote.totalCents,
     platformFeeCents,
     netVendorCents,
@@ -785,6 +850,29 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
         })
         .where(eq(serviceRequests.id, order.requestId));
 
+      // Atualiza contrato digital se vinculado
+      if (order.contractId) {
+        await db
+          .update(serviceContracts)
+          .set({ status: "PAID", updatedAt: new Date() })
+          .where(eq(serviceContracts.id, order.contractId));
+      }
+
+      // Cria registro de elegibilidade de repasse (Payout - Cláusula 46)
+      await db.insert(payouts).values({
+        condoId: order.condoId,
+        vendorId: order.vendorId,
+        contractId: order.contractId || null,
+        paymentOrderId: order.id,
+        gateway: order.pspProvider || "asaas",
+        grossAmountCents: order.amountGrossCents,
+        platformFeeCents: order.platformFeeCents,
+        processingFeeCents: 0,
+        netAmountCents: order.netVendorCents,
+        status: "ELIGIBLE",
+        eligibleAt: new Date(Date.now() + 72 * 3600 * 1000),
+      });
+
       // Registros contábeis no Ledger
       await recordLedgerEntry({
         condoId: order.condoId,
@@ -842,6 +930,13 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
       .set({ status: "reembolsado", updatedAt: new Date() })
       .where(eq(serviceRequests.id, order.requestId));
 
+    if (order.contractId) {
+      await db
+        .update(serviceContracts)
+        .set({ status: "CANCELLED", updatedAt: new Date() })
+        .where(eq(serviceContracts.id, order.contractId));
+    }
+
     await recordLedgerEntry({
       condoId: order.condoId,
       requestId: order.requestId,
@@ -883,6 +978,26 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
       })
       .where(eq(paymentOrders.id, order.id));
 
+    // Atualiza status do repasse para PAID
+    await db
+      .update(payouts)
+      .set({
+        status: "PAID",
+        paidAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(payouts.paymentOrderId, order.id));
+
+    // Executa liberação do repasse junto ao PSP se houver suporte
+    const gateway = getPaymentGateway(order.pspProvider as any);
+    if (gateway.releasePayout && order.pspPaymentId) {
+      try {
+        await gateway.releasePayout(order.pspPaymentId);
+      } catch (err) {
+        console.warn("Aviso ao liberar payout no PSP:", err);
+      }
+    }
+
     await recordLedgerEntry({
       condoId: order.condoId,
       requestId: order.requestId,
@@ -895,6 +1010,12 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
       description: `Repasse liberado ao prestador após confirmação "Tudo Certo!"`,
     });
   }
+
+  // Atualiza contrato se houver
+  await db
+    .update(serviceContracts)
+    .set({ status: "COMPLETED", updatedAt: new Date() })
+    .where(eq(serviceContracts.requestId, requestId));
 
   await db
     .update(serviceRequests)
@@ -933,6 +1054,18 @@ export async function customerOpenDispute(params: {
     .update(paymentOrders)
     .set({ status: "in_dispute", updatedAt: new Date() })
     .where(and(eq(paymentOrders.requestId, params.requestId), eq(paymentOrders.purpose, "servico")));
+
+  // Trava o repasse financeiro do prestador
+  await db
+    .update(payouts)
+    .set({ status: "BLOCKED_DISPUTE", updatedAt: new Date() })
+    .where(eq(payouts.contractId, req.id));
+
+  // Atualiza contrato
+  await db
+    .update(serviceContracts)
+    .set({ status: "DISPUTED", updatedAt: new Date() })
+    .where(eq(serviceContracts.requestId, params.requestId));
 
   const [dispute] = await db
     .insert(serviceDisputes)
@@ -1111,4 +1244,248 @@ export async function customerRequestWarranty(params: {
   });
 
   return ticket;
+}
+
+/**
+ * 14. Prestador registra fotos de evidência técnica por estágio (Cláusula 36: ANTES, DURANTE, DEPOIS)
+ */
+export async function providerRecordEvidence(params: {
+  condoId: number;
+  requestId: number;
+  contractId?: number;
+  vendorId: number;
+  stage: "ANTES" | "DURANTE" | "DEPOIS";
+  fileUrl: string;
+  caption?: string;
+}) {
+  const [evidence] = await db
+    .insert(serviceEvidences)
+    .values({
+      condoId: params.condoId,
+      requestId: params.requestId,
+      contractId: params.contractId || null,
+      vendorId: params.vendorId,
+      stage: params.stage,
+      fileUrl: params.fileUrl,
+      caption: params.caption || null,
+    })
+    .returning();
+
+  return evidence;
+}
+
+/**
+ * 15. Prestador finaliza a execução do serviço (Cláusula 39: PROVIDER_COMPLETED)
+ */
+export async function providerFinalizeService(params: {
+  requestId: number;
+  vendorId: number;
+  finalNotes: string;
+  finalPhotos?: string[];
+  warrantyDays?: number;
+}) {
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  if (!req) throw new Error("Chamado não encontrado.");
+  if (req.vendorId !== params.vendorId) throw new Error("Não autorizado.");
+
+  // Valida transição
+  assertTransition(req.status, "PROVIDER_COMPLETED");
+
+  // Salva fotos finais como evidências DEPOIS
+  if (params.finalPhotos && params.finalPhotos.length > 0) {
+    for (const url of params.finalPhotos) {
+      await db.insert(serviceEvidences).values({
+        condoId: req.condoId,
+        requestId: req.id,
+        vendorId: params.vendorId,
+        stage: "DEPOIS",
+        fileUrl: url,
+        caption: "Evidência de conclusão do serviço",
+      });
+    }
+  }
+
+  await db
+    .update(serviceRequests)
+    .set({
+      status: "prestador_concluiu",
+      updatedAt: new Date(),
+    })
+    .where(eq(serviceRequests.id, req.id));
+
+  await db.insert(serviceMessages).values({
+    requestId: req.id,
+    senderId: params.vendorId,
+    senderRole: "prestador",
+    body: `Serviço finalizado pelo profissional! Laudo de entrega: "${params.finalNotes}". Por favor, verifique o resultado e confirme a conclusão no painel para liberação do repasse.`,
+  });
+
+  return { success: true };
+}
+
+/**
+ * 16. Obter Comprovante Oficial de Contratação (Cláusula 53: NÃO chamar de nota fiscal)
+ */
+export async function getContractReceipt(contractIdOrRequestId: number) {
+  let [contract] = await db
+    .select()
+    .from(serviceContracts)
+    .where(eq(serviceContracts.id, contractIdOrRequestId))
+    .limit(1);
+
+  if (!contract) {
+    [contract] = await db
+      .select()
+      .from(serviceContracts)
+      .where(eq(serviceContracts.requestId, contractIdOrRequestId))
+      .limit(1);
+  }
+
+  if (!contract) throw new Error("Contrato digital não localizado.");
+
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, contract.requestId)).limit(1);
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, contract.vendorId)).limit(1);
+  const [customer] = await db.select().from(users).where(eq(users.id, contract.customerId)).limit(1);
+  const [order] = contract.paymentOrderId
+    ? await db.select().from(paymentOrders).where(eq(paymentOrders.id, contract.paymentOrderId)).limit(1)
+    : [undefined];
+
+  return {
+    receiptType: "Comprovante de Contratação e Intermediação",
+    receiptNotice: "Documento oficial de registro operacional do Zeladoria Protege. Não substitui a Nota Fiscal de Serviços.",
+    code: order?.code || `REC-${contract.id}-${new Date(contract.createdAt).getFullYear()}`,
+    contractId: contract.id,
+    contractHash: contract.contractHash,
+    status: contract.status,
+    createdAt: contract.createdAt,
+    serviceTitle: contract.serviceTitle,
+    scopeDescription: contract.scopeDescription,
+    customer: {
+      name: customer?.name || "Morador",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+    },
+    provider: {
+      name: vendor?.companyName || vendor?.name || "Prestador",
+      cnpjOrCpf: vendor?.cnpj || "",
+      phone: vendor?.phone || "",
+      verified: true,
+    },
+    financial: {
+      laborCents: contract.laborCents,
+      materialsCents: contract.materialsCents,
+      otherCostsCents: contract.otherCostsCents,
+      discountCents: contract.discountCents,
+      inspectionDiscountCents: contract.inspectionDiscountCents,
+      totalCents: contract.totalCents,
+      billingType: order?.billingType || "PIX",
+      paidAt: order?.paidAt || null,
+    },
+    warranty: {
+      days: contract.warrantyDays,
+      validUntil: new Date(new Date(contract.createdAt).getTime() + contract.warrantyDays * 86400000),
+    },
+    termsVersion: contract.termsVersion,
+  };
+}
+
+/**
+ * 17. Painel financeiro do prestador (Cláusula 47: A receber, Em processamento, Recebido)
+ */
+export async function getProviderFinancialSummary(vendorId: number) {
+  const orders = await db
+    .select({
+      id: paymentOrders.id,
+      code: paymentOrders.code,
+      purpose: paymentOrders.purpose,
+      amountGrossCents: paymentOrders.amountGrossCents,
+      platformFeeCents: paymentOrders.platformFeeCents,
+      netVendorCents: paymentOrders.netVendorCents,
+      status: paymentOrders.status,
+      billingType: paymentOrders.billingType,
+      paidAt: paymentOrders.paidAt,
+      releasedAt: paymentOrders.releasedAt,
+      createdAt: paymentOrders.createdAt,
+      requestId: paymentOrders.requestId,
+      serviceTitle: serviceRequests.title,
+    })
+    .from(paymentOrders)
+    .leftJoin(serviceRequests, eq(serviceRequests.id, paymentOrders.requestId))
+    .where(eq(paymentOrders.vendorId, vendorId))
+    .orderBy(desc(paymentOrders.createdAt));
+
+  // A receber: ordens pagas pelo cliente mas ainda retidas sob proteção (retained)
+  const pendingReleaseCents = orders
+    .filter((o) => o.status === "retained" || o.status === "paid")
+    .reduce((acc, o) => acc + o.netVendorCents, 0);
+
+  // Em processamento: repasses liberados em trânsito bancário
+  const inProcessingCents = orders
+    .filter((o) => o.status === "pending")
+    .reduce((acc, o) => acc + o.netVendorCents, 0);
+
+  // Recebido / Liquidado: ordens já liberadas ao prestador (released)
+  const receivedCents = orders
+    .filter((o) => o.status === "released")
+    .reduce((acc, o) => acc + o.netVendorCents, 0);
+
+  return {
+    totals: {
+      pendingReleaseCents,
+      inProcessingCents,
+      receivedCents,
+      totalTransactions: orders.length,
+    },
+    transactions: orders,
+  };
+}
+
+/**
+ * 18. Dashboard Administrativo Consolidado do Zeladoria Pay (Cláusula 55-56)
+ */
+export async function getAdminFinancialDashboard(condoId: number) {
+  const allOrders = await db
+    .select()
+    .from(paymentOrders)
+    .where(eq(paymentOrders.condoId, condoId))
+    .orderBy(desc(paymentOrders.createdAt));
+
+  const allDisputes = await db
+    .select()
+    .from(serviceDisputes)
+    .orderBy(desc(serviceDisputes.createdAt));
+
+  const activeOrders = allOrders.filter((o) => o.status !== "cancelled" && o.status !== "refunded");
+  const approvedOrders = allOrders.filter(
+    (o) => o.status === "paid" || o.status === "retained" || o.status === "released"
+  );
+
+  // GMV = Volume total bruto transacionado
+  const totalVolumeGrossCents = approvedOrders.reduce((acc, o) => acc + o.amountGrossCents, 0);
+  
+  // Receita da Zeladoria = Comissões efetivamente retidas
+  const platformRevenueCents = approvedOrders.reduce((acc, o) => acc + o.platformFeeCents, 0);
+
+  // Repasses aos prestadores
+  const payoutsReleasedCents = approvedOrders
+    .filter((o) => o.status === "released")
+    .reduce((acc, o) => acc + o.netVendorCents, 0);
+
+  // Reembolsos
+  const refundedCents = allOrders
+    .filter((o) => o.status === "refunded")
+    .reduce((acc, o) => acc + o.amountGrossCents, 0);
+
+  return {
+    metrics: {
+      totalVolumeGrossCents,
+      platformRevenueCents,
+      payoutsReleasedCents,
+      refundedCents,
+      approvedOrdersCount: approvedOrders.length,
+      disputesCount: allDisputes.filter((d) => d.status === "aberta").length,
+    },
+    recentOrders: allOrders.slice(0, 30),
+    disputes: allDisputes.slice(0, 20),
+  };
 }

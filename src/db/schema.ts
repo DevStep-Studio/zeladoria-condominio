@@ -671,6 +671,7 @@ export const paymentOrders = appSchema.table("payment_orders", {
   code: varchar("code", { length: 32 }).notNull().unique(), // ex: PAY-VIS-2026-0001 ou PAY-SRV-2026-0001
   condoId: integer("condo_id").notNull(),
   requestId: integer("request_id").notNull(), // FK para service_requests
+  contractId: integer("contract_id"), // FK para service_contracts (Section 17 & 22)
   quoteId: integer("quote_id"), // FK para service_quotes (nulo na vistoria)
   customerId: integer("customer_id").notNull(),
   vendorId: integer("vendor_id").notNull(),
@@ -680,6 +681,9 @@ export const paymentOrders = appSchema.table("payment_orders", {
   netVendorCents: integer("net_vendor_cents").notNull(), // Valor a ser repassado ao prestador
   commissionPercent: integer("commission_percent").notNull().default(10), // Taxa aplicada configurável
   billingType: varchar("billing_type", { length: 20 }).notNull().default("PIX"), // PIX | CREDIT_CARD
+  installments: integer("installments").default(1),
+  currency: varchar("currency", { length: 10 }).notNull().default("BRL"),
+  externalReference: varchar("external_reference", { length: 120 }),
   pspProvider: varchar("psp_provider", { length: 24 }).notNull().default("asaas"),
   pspPaymentId: varchar("psp_payment_id", { length: 80 }), // ID da cobrança no PSP
   pspInvoiceUrl: text("psp_invoice_url"),
@@ -688,6 +692,7 @@ export const paymentOrders = appSchema.table("payment_orders", {
   status: varchar("status", { length: 24 }).notNull().default("pending"), // pending | paid | retained | released | in_dispute | refunded | cancelled
   paidAt: timestamp("paid_at", { withTimezone: true }),
   releasedAt: timestamp("released_at", { withTimezone: true }),
+  failedAt: timestamp("failed_at", { withTimezone: true }),
   refundedAt: timestamp("refunded_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -726,6 +731,77 @@ export const marketplaceSettings = appSchema.table("marketplace_settings", {
   autoReleaseHours: integer("auto_release_hours").notNull().default(72), // liberação preventiva se não houver contestação
   processingFeePayer: varchar("processing_fee_payer", { length: 20 }).notNull().default("PROVIDER"), // PLATFORM | PROVIDER | SHARED
   estimatedPspFeePercent: numeric("estimated_psp_fee_percent", { precision: 4, scale: 2 }).default("3.50"),
+  paymentsEnabled: boolean("payments_enabled").notNull().default(true),
+  paidVisitsEnabled: boolean("paid_visits_enabled").notNull().default(true),
+  pixEnabled: boolean("pix_enabled").notNull().default(true),
+  cardEnabled: boolean("card_enabled").notNull().default(true),
+  installmentsEnabled: boolean("installments_enabled").notNull().default(false),
+  payoutsEnabled: boolean("payouts_enabled").notNull().default(true),
+  zeladoriaProtegeEnabled: boolean("zeladoria_protege_enabled").notNull().default(true),
+  maxInstallments: integer("max_installments").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceContracts = appSchema.table("service_contracts", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  requestId: integer("request_id").notNull(),
+  quoteId: integer("quote_id").notNull(),
+  quoteVersion: integer("quote_version").notNull().default(1),
+  customerId: integer("customer_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  serviceTitle: varchar("service_title", { length: 200 }).notNull(),
+  scopeDescription: text("scope_description").notNull(),
+  itemizedMaterials: jsonb("itemized_materials").$type<{ name: string; amountCents: number; quantity?: number }[]>().default([]),
+  laborCents: integer("labor_cents").notNull().default(0),
+  materialsCents: integer("materials_cents").notNull().default(0),
+  otherCostsCents: integer("other_costs_cents").notNull().default(0),
+  discountCents: integer("discount_cents").notNull().default(0),
+  inspectionDiscountCents: integer("inspection_discount_cents").notNull().default(0),
+  totalCents: integer("total_cents").notNull(),
+  commissionRateSnapshot: integer("commission_rate_snapshot").notNull(),
+  platformFeeCents: integer("platform_fee_cents").notNull(),
+  netVendorCents: integer("net_vendor_cents").notNull(),
+  warrantyDays: integer("warranty_days").notNull().default(90),
+  contractHash: varchar("contract_hash", { length: 64 }).notNull(),
+  termsVersion: varchar("terms_version", { length: 20 }).notNull().default("1.0"),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }).notNull().defaultNow(),
+  userIp: varchar("user_ip", { length: 60 }),
+  conditions: text("conditions"),
+  status: varchar("status", { length: 30 }).notNull().default("AWAITING_PAYMENT"), // AWAITING_PAYMENT, PAID, IN_PROGRESS, COMPLETED, DISPUTED, CANCELLED
+  paymentOrderId: integer("payment_order_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const serviceEvidences = appSchema.table("service_evidences", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  requestId: integer("request_id").notNull(),
+  contractId: integer("contract_id"),
+  vendorId: integer("vendor_id").notNull(),
+  stage: varchar("stage", { length: 20 }).notNull(), // 'ANTES' | 'DURANTE' | 'DEPOIS'
+  fileUrl: text("file_url").notNull(),
+  caption: text("caption"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const payouts = appSchema.table("payouts", {
+  id: serial("id").primaryKey(),
+  condoId: integer("condo_id").notNull(),
+  vendorId: integer("vendor_id").notNull(),
+  contractId: integer("contract_id"),
+  paymentOrderId: integer("payment_order_id"),
+  gateway: varchar("gateway", { length: 24 }).notNull().default("asaas"),
+  gatewayPayoutId: varchar("gateway_payout_id", { length: 80 }),
+  grossAmountCents: integer("gross_amount_cents").notNull(),
+  platformFeeCents: integer("platform_fee_cents").notNull().default(0),
+  processingFeeCents: integer("processing_fee_cents").notNull().default(0),
+  netAmountCents: integer("net_amount_cents").notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("ELIGIBLE"), // NOT_ELIGIBLE | ELIGIBLE | PROCESSING | PAID | BLOCKED_DISPUTE | CANCELLED
+  eligibleAt: timestamp("eligible_at", { withTimezone: true }),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
