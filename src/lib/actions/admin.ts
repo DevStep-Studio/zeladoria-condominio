@@ -9,6 +9,7 @@ import {
   assemblyAttendance,
   assemblyVotes,
   assets,
+  blocks,
   charges,
   condominiums,
   contracts,
@@ -763,6 +764,143 @@ export async function seedDemoCondoAction() {
     .returning();
   await logAudit({ session, condoId: condo.id, action: "criar", entity: "condominio", entityId: condo.id, summary: `Criou ${condo.name}`, critical: true });
   revalidatePath("/painel/adocao");
+}
+
+export async function createCondominiumAction(formData: FormData): Promise<{ success: boolean; condoId?: number; error?: string }> {
+  const { session } = await requireRole(["superadmin"]);
+  const name = str(formData, "name");
+  if (!name) return { success: false, error: "Nome do condomínio é obrigatório." };
+
+  const cnpj = str(formData, "cnpj") || null;
+  const plan = str(formData, "plan", "pro");
+  const address = str(formData, "address") || null;
+  const city = str(formData, "city", "São Paulo");
+  const state = str(formData, "state", "SP");
+  const initialBlocks = num(formData, "initialBlocks", 0);
+  const unitsPerBlock = num(formData, "unitsPerBlock", 0);
+  const sindicoName = str(formData, "sindicoName");
+  const sindicoEmail = str(formData, "sindicoEmail")?.toLowerCase().trim();
+
+  // Generate clean slug
+  const baseSlug = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 45) || "condo";
+  const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+
+  // 1. Insert Condominium
+  const [condo] = await db
+    .insert(condominiums)
+    .values({
+      name,
+      slug,
+      cnpj,
+      address,
+      city,
+      state,
+      plan,
+      brandColor: "#1355FF",
+      onboardingStep: 4,
+      onboardingDone: true,
+      publicPage: true,
+    })
+    .returning();
+
+  // 2. Auto-generate Blocks and Units if specified
+  if (initialBlocks > 0) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let b = 0; b < Math.min(initialBlocks, 26); b++) {
+      const blockLetter = letters[b];
+      const [block] = await db
+        .insert(blocks)
+        .values({
+          condoId: condo.id,
+          name: `Bloco ${blockLetter}`,
+          floors: Math.max(1, Math.ceil(unitsPerBlock / 4)),
+        })
+        .returning();
+
+      if (unitsPerBlock > 0) {
+        const unitsToInsert = [];
+        for (let u = 1; u <= Math.min(unitsPerBlock, 50); u++) {
+          const floor = Math.floor((u - 1) / 4) + 1;
+          const pos = ((u - 1) % 4) + 1;
+          const unitNumber = `${floor}${pos < 10 ? "0" : ""}${pos}`;
+          unitsToInsert.push({
+            condoId: condo.id,
+            blockId: block.id,
+            number: unitNumber,
+            floor,
+            kind: "apartamento",
+            status: "vaga",
+          });
+        }
+        if (unitsToInsert.length > 0) {
+          await db.insert(units).values(unitsToInsert);
+        }
+      }
+    }
+  }
+
+  // 3. Assign Initial Síndico if provided
+  if (sindicoEmail && sindicoName) {
+    let [existingUser] = await db.select().from(users).where(eq(users.email, sindicoEmail)).limit(1);
+    let userId = existingUser?.id;
+
+    if (!existingUser) {
+      const tempPass = `zc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          name: sindicoName,
+          email: sindicoEmail,
+          passwordHash: hashPassword(tempPass),
+          status: "ativo",
+        })
+        .returning();
+      userId = newUser.id;
+    }
+
+    // Check if membership already exists
+    const [existingMembership] = await db
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.userId, userId!), eq(memberships.condoId, condo.id)))
+      .limit(1);
+
+    if (existingMembership) {
+      await db
+        .update(memberships)
+        .set({ role: "sindico", status: "ativo" })
+        .where(eq(memberships.id, existingMembership.id));
+    } else {
+      await db.insert(memberships).values({
+        condoId: condo.id,
+        userId: userId!,
+        role: "sindico",
+        status: "ativo",
+      });
+    }
+  }
+
+  // 4. Audit Log
+  await logAudit({
+    session,
+    condoId: condo.id,
+    action: "criar",
+    entity: "condominio",
+    entityId: condo.id,
+    summary: `Cadastrou condomínio ${condo.name} (${slug}) com ${initialBlocks} blocos`,
+    critical: true,
+  });
+
+  revalidatePath("/painel/admin");
+  revalidatePath("/painel/admin/condominios");
+
+  return { success: true, condoId: condo.id };
 }
 
 /* --------------------------------------------------- GESTÃO DE USUÁRIOS & CONVITES */

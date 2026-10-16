@@ -6,6 +6,8 @@ import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
 
+import { CreateCondoModal } from "./create-condo-modal";
+
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -58,6 +60,9 @@ export default async function AdminCondominiosPage() {
           <p className="text-xs text-slate-500">
             Gerenciamento global de empreendimentos atendidos pelo Zeladoria.
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <CreateCondoModal />
         </div>
       </div>
 
