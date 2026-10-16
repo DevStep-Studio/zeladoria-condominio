@@ -42,7 +42,7 @@ export default function RedefinirSenhaPage() {
       {/* Top Header */}
       <header className="max-w-md w-full mx-auto flex items-center justify-between">
         <Link href="/" className="transition-opacity hover:opacity-90">
-          <BrandLogo size="md" variant="default" />
+          <BrandLogo size="lg" variant="default" />
         </Link>
         <Link
           href="/login"
@@ -87,7 +87,7 @@ export default function RedefinirSenhaPage() {
             <>
               <div className="text-center space-y-2.5">
                 <div className="flex justify-center pb-1">
-                  <BrandLogo size="md" variant="default" />
+                  <BrandLogo size="lg" variant="default" />
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
                   Criar Nova Senha

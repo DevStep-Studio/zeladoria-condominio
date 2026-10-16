@@ -13,20 +13,20 @@ export function BrandLogo({
 }) {
   const sizeStyles = {
     sm: {
-      imgHeight: 28,
-      iconHeight: 26,
+      imgHeight: 38,
+      iconHeight: 36,
     },
     md: {
-      imgHeight: 36,
-      iconHeight: 32,
+      imgHeight: 48,
+      iconHeight: 44,
     },
     lg: {
-      imgHeight: 46,
-      iconHeight: 40,
+      imgHeight: 62,
+      iconHeight: 56,
     },
     xl: {
-      imgHeight: 56,
-      iconHeight: 48,
+      imgHeight: 80,
+      iconHeight: 72,
     },
   }[size];
 

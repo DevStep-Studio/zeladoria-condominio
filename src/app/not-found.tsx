@@ -8,7 +8,7 @@ export default function NotFoundPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#F8FAFC] px-4 text-center selection:bg-[#1355FF] selection:text-white">
       <div className="mb-6">
-        <BrandLogo size="md" variant="default" showText={true} />
+        <BrandLogo size="lg" variant="default" showText={true} />
       </div>
 
       <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-blue-50 text-[#1355FF] border border-blue-200/80 shadow-xs">
