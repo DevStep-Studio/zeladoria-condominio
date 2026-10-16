@@ -25,6 +25,7 @@ import {
 } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { num, sequence, str } from "@/lib/utils";
+import { sendDigitalProposal } from "@/lib/services/payments/payment-service";
 
 /**
  * Onboarding / Cadastro de Prestador em 8 etapas
@@ -267,68 +268,47 @@ export async function sendQuoteAction(payload: {
   requestId: number;
   laborCents: number;
   materialsCents: number;
-  totalCents: number;
+  totalCents?: number;
   description: string;
   estimatedDays?: number;
 }) {
   const { vendor, session } = await requireProvider();
   if (!vendor) return { success: false, error: "Prestador não autorizado." };
 
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, payload.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Solicitação não encontrada." };
-
-  // Inserir proposta formal
-  const [quote] = await db
-    .insert(serviceQuotes)
-    .values({
+  try {
+    const quote = await sendDigitalProposal({
       requestId: payload.requestId,
       vendorId: vendor.id,
-      laborCents: payload.laborCents,
-      materialsCents: payload.materialsCents,
-      totalCents: payload.totalCents,
+      laborCents: payload.laborCents || 0,
+      materialsCents: payload.materialsCents || 0,
       description: payload.description,
       estimatedDays: payload.estimatedDays || 1,
-      status: "pendente",
-    })
-    .returning();
+    });
 
-  // Atualiza chamado para aguardando aprovação
-  await db
-    .update(serviceRequests)
-    .set({
-      status: "aguardando_orcamento",
-      vendorId: req.vendorId || vendor.id,
-      estimatedAmountCents: payload.totalCents,
-      updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, payload.requestId));
+    const [req] = await db
+      .select()
+      .from(serviceRequests)
+      .where(eq(serviceRequests.id, payload.requestId))
+      .limit(1);
 
-  // Mensagem no chat
-  await db.insert(serviceMessages).values({
-    requestId: payload.requestId,
-    senderId: session.user.id,
-    senderRole: "prestador",
-    body: `Orçamento enviado: R$ ${(payload.totalCents / 100).toFixed(2)} (Mão de obra: R$ ${(payload.laborCents / 100).toFixed(2)} | Materiais: R$ ${(payload.materialsCents / 100).toFixed(2)}). Previsão: ${payload.estimatedDays || 1} dia(s).`,
-  });
+    if (req) {
+      await notify(
+        req.condoId,
+        [req.customerId],
+        `Novo orçamento recebido!`,
+        `${vendor.name} enviou uma proposta de R$ ${(quote.totalCents / 100).toFixed(2)} para seu serviço.`,
+        `/painel/servicos`
+      );
+    }
 
-  // Notificar morador
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Novo orçamento recebido!`,
-    `${vendor.name} enviou uma proposta de R$ ${(payload.totalCents / 100).toFixed(2)} para seu serviço.`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/chamados");
-  revalidatePath("/painel/servicos");
-  return { success: true, quoteId: quote.id };
+    revalidatePath("/prestador");
+    revalidatePath("/prestador/chamados");
+    revalidatePath("/painel/servicos");
+    return { success: true, quoteId: quote.id };
+  } catch (err: any) {
+    console.error("Erro em sendQuoteAction:", err);
+    return { success: false, error: err?.message || "Erro ao enviar proposta." };
+  }
 }
 
 /**

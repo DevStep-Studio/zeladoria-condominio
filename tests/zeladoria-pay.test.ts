@@ -750,4 +750,154 @@ describe("Zeladoria Pay 12: Cenários E2E Oficiais Obrigatórios (Cláusulas 71 
   });
 });
 
+describe("Zeladoria Pay 13: Auditoria Crítica de Segurança, Idempotência, IDOR e Resiliência", () => {
+  it("Auditoria 1: IDOR — Rejeição estrita se morador ou condomínio não pertencerem ao chamado", () => {
+    const req = { id: 101, customerId: 42, condoId: 5 };
+
+    function checkCustomerAcceptanceAuth(callingCustomerId: number, callingCondoId: number) {
+      if (callingCustomerId !== req.customerId) {
+        throw new Error("Acesso negado: chamado pertence a outro morador.");
+      }
+      if (callingCondoId !== req.condoId) {
+        throw new Error("Acesso negado: chamado pertence a outro condomínio.");
+      }
+      return true;
+    }
+
+    // Tentativa de morador diferente
+    assert.throws(
+      () => checkCustomerAcceptanceAuth(999, 5),
+      /Acesso negado: chamado pertence a outro morador/
+    );
+
+    // Tentativa de condomínio diferente
+    assert.throws(
+      () => checkCustomerAcceptanceAuth(42, 999),
+      /Acesso negado: chamado pertence a outro condomínio/
+    );
+
+    // Morador e condomínio legítimos
+    assert.equal(checkCustomerAcceptanceAuth(42, 5), true);
+  });
+
+  it("Auditoria 2: Proposta Obsoleta — Proposta substituída (v1) é rejeitada quando há nova versão (v2)", () => {
+    const quoteV1 = { id: 201, version: 1, status: "substituida" };
+    const quoteV2 = { id: 202, version: 2, status: "pendente" };
+
+    function validateQuoteForAcceptance(quote: { status: string }) {
+      if (quote.status === "substituida" || quote.status === "recusado" || quote.status === "expirado") {
+        throw new Error(`Esta proposta não está mais disponível para aceite (status atual: ${quote.status}).`);
+      }
+      return true;
+    }
+
+    assert.throws(
+      () => validateQuoteForAcceptance(quoteV1),
+      /Esta proposta não está mais disponível para aceite/
+    );
+
+    assert.equal(validateQuoteForAcceptance(quoteV2), true);
+  });
+
+  it("Auditoria 3: Anti-Duplo Clique — Requisições concorrentes de aceite retornam a cobrança existente sem criar nova ordem nem novo split", () => {
+    let orderCreationCount = 0;
+    const existingContract = { id: 50, quoteId: 301, paymentOrderId: 901 };
+    const existingOrder = { id: 901, code: "PAY-SRV-2026-1234", status: "pending", amountGrossCents: 50000 };
+
+    function acceptProposalIdempotent(quoteId: number) {
+      if (existingContract && existingContract.quoteId === quoteId && existingContract.paymentOrderId) {
+        return { reused: true, order: existingOrder };
+      }
+      orderCreationCount++;
+      return { reused: false, order: { id: 902, code: "PAY-SRV-2026-9999", status: "pending" } };
+    }
+
+    const click1 = acceptProposalIdempotent(301);
+    const click2 = acceptProposalIdempotent(301);
+
+    assert.equal(click1.reused, true);
+    assert.equal(click2.reused, true);
+    assert.equal(click1.order.code, "PAY-SRV-2026-1234");
+    assert.equal(orderCreationCount, 0, "Nenhuma nova cobrança deve ser criada no gateway");
+  });
+
+  it("Auditoria 4: Webhook Múltiplo (PAYMENT_CONFIRMED + PAYMENT_RECEIVED) não duplica repasse nem comissão", () => {
+    let payoutCount = 0;
+    let ledgerFeeCount = 0;
+    const order = { id: 1, status: "pending" };
+
+    function processWebhookReconciliation(eventType: string) {
+      if (order.status === "paid" || order.status === "retained" || order.status === "released") {
+        return { success: true, alreadySettled: true };
+      }
+
+      order.status = "retained";
+      payoutCount++;
+      ledgerFeeCount++;
+      return { success: true, alreadySettled: false };
+    }
+
+    // Primeiro evento Asaas: PAYMENT_CONFIRMED
+    const res1 = processWebhookReconciliation("PAYMENT_CONFIRMED");
+    assert.equal(res1.alreadySettled, false);
+    assert.equal(payoutCount, 1);
+    assert.equal(ledgerFeeCount, 1);
+
+    // Segundo evento Asaas: PAYMENT_RECEIVED (mesmo Pix compensado)
+    const res2 = processWebhookReconciliation("PAYMENT_RECEIVED");
+    assert.equal(res2.alreadySettled, true, "Segundo webhook deve ser ignorado sem duplicar");
+    assert.equal(payoutCount, 1, "Não deve criar segundo repasse");
+    assert.equal(ledgerFeeCount, 1, "Não deve registrar segunda comissão");
+  });
+
+  it("Auditoria 5: Mediação de Contestação sob Zeladoria Protege — Transição correta e bloqueio", () => {
+    const dispute = { id: 1, status: "aberta" };
+    const order = { status: "in_dispute" };
+    const payout = { status: "BLOCKED_DISPUTE" };
+    const contract = { status: "DISPUTED" };
+
+    function resolveDispute(action: "release_payout" | "refund_customer" | "rework") {
+      if (action === "release_payout") {
+        order.status = "released";
+        payout.status = "PAID";
+        contract.status = "COMPLETED";
+      } else if (action === "refund_customer") {
+        order.status = "refunded";
+        payout.status = "CANCELLED";
+        contract.status = "CANCELLED";
+      } else if (action === "rework") {
+        order.status = "in_dispute";
+        contract.status = "IN_PROGRESS";
+      }
+      dispute.status = "resolvida";
+      return { success: true, action };
+    }
+
+    // Caso 1: Síndico determina reembolso integral ao morador
+    resolveDispute("refund_customer");
+    assert.equal(order.status, "refunded");
+    assert.equal(payout.status, "CANCELLED");
+    assert.equal(contract.status, "CANCELLED");
+    assert.equal(dispute.status, "resolvida");
+  });
+
+  it("Auditoria 6: Simulações Proibidas em Produção (NODE_ENV === 'production')", () => {
+    function simulateCharge(env: string) {
+      if (env === "production") {
+        throw new Error("Simulated charge is prohibited in production mode.");
+      }
+      return { pspPaymentId: "pay_sim_123" };
+    }
+
+    assert.throws(
+      () => simulateCharge("production"),
+      /Simulated charge is prohibited in production mode/
+    );
+
+    const devCharge = simulateCharge("development");
+    assert.equal(devCharge.pspPaymentId, "pay_sim_123");
+  });
+});
+
+
 

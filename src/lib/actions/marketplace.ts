@@ -17,6 +17,7 @@ import {
 import { requireCondo, requireSession } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { num, sequence, str } from "@/lib/utils";
+import { customerAcceptProposalAndPay } from "@/lib/services/payments/payment-service";
 
 /**
  * Criação de Chamado / Solicitação no Marketplace (Modo Sob Demanda ou Orçamento)
@@ -125,78 +126,45 @@ export async function createMarketplaceRequestAction(payload: {
  * Morador aceita um orçamento específico entre várias propostas recebidas
  */
 export async function acceptQuoteAction(quoteId: number) {
-  const { session, condoId } = await requireCondo();
-
-  const [quote] = await db
-    .select()
-    .from(serviceQuotes)
-    .where(eq(serviceQuotes.id, quoteId))
-    .limit(1);
-
-  if (!quote) return { success: false, error: "Orçamento não encontrado." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, quote.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.customerId !== session.user.id && session.role !== "superadmin") {
-    return { success: false, error: "Apenas o solicitante pode aprovar o orçamento." };
-  }
-
-  // 1. Aprovar a proposta selecionada
-  await db
-    .update(serviceQuotes)
-    .set({ status: "aceito" })
-    .where(eq(serviceQuotes.id, quoteId));
-
-  // 2. Recusar outras propostas concorrentes do mesmo chamado
-  await db
-    .update(serviceQuotes)
-    .set({ status: "recusado" })
-    .where(and(eq(serviceQuotes.requestId, req.id), sql`${serviceQuotes.id} != ${quoteId}`));
-
-  // 3. Atualizar status do chamado para orcamento_aprovado
-  await db
-    .update(serviceRequests)
-    .set({
-      vendorId: quote.vendorId,
-      status: "orcamento_aprovado",
-      finalAmountCents: quote.totalCents,
-      updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, req.id));
-
-  // Mensagem no chat
-  await db.insert(serviceMessages).values({
-    requestId: req.id,
-    senderId: session.user.id,
-    senderRole: "morador",
-    body: `Orçamento de R$ ${(quote.totalCents / 100).toFixed(2)} aprovado pelo cliente. Serviço pronto para agendamento e execução.`,
-  });
-
-  // Notificar prestador vencedor
-  const [vendor] = await db
-    .select({ userId: vendors.userId, name: vendors.name })
-    .from(vendors)
-    .where(eq(vendors.id, quote.vendorId))
-    .limit(1);
-
-  if (vendor?.userId) {
-    await notify(
+  try {
+    const { session, condoId } = await requireCondo();
+    const result = await customerAcceptProposalAndPay({
+      quoteId,
+      customerId: session.user.id,
       condoId,
-      [vendor.userId],
-      `Orçamento aprovado pelo cliente!`,
-      `Sua proposta de R$ ${(quote.totalCents / 100).toFixed(2)} para "${req.title}" foi aprovada.`,
-      `/prestador/chamados`
-    );
-  }
+    });
 
-  revalidatePath("/painel/servicos");
-  revalidatePath("/prestador/chamados");
-  return { success: true };
+    const [quote] = await db
+      .select()
+      .from(serviceQuotes)
+      .where(eq(serviceQuotes.id, quoteId))
+      .limit(1);
+
+    if (quote) {
+      const [vendor] = await db
+        .select({ userId: vendors.userId, name: vendors.name })
+        .from(vendors)
+        .where(eq(vendors.id, quote.vendorId))
+        .limit(1);
+
+      if (vendor?.userId) {
+        await notify(
+          condoId,
+          [vendor.userId],
+          `Orçamento aprovado pelo cliente!`,
+          `Sua proposta de R$ ${(quote.totalCents / 100).toFixed(2)} foi aprovada sob proteção Zeladoria Protege.`,
+          `/prestador/chamados`
+        );
+      }
+    }
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, ...result };
+  } catch (err: any) {
+    console.error("Erro em acceptQuoteAction:", err);
+    return { success: false, error: err?.message || "Erro ao aprovar proposta." };
+  }
 }
 
 /**

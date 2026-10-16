@@ -1189,6 +1189,9 @@ ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "in
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "payouts_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "zeladoria_protege_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "max_installments" integer DEFAULT 1 NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");
 `;
 
 let setup: Promise<void> | null = null;

@@ -141,10 +141,21 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
               : undefined,
             status: "pending",
           };
+        } else {
+          const errData = await res.text();
+          console.warn("Erro ao criar cobrança no Asaas:", res.status, errData);
+          if (process.env.NODE_ENV === "production") {
+            throw new Error(`Asaas PSP retornou erro ${res.status}: ${errData}`);
+          }
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (process.env.NODE_ENV === "production") {
+          throw err;
+        }
         console.warn("Erro ao criar cobrança no Asaas, usando simulação:", err);
       }
+    } else if (process.env.NODE_ENV === "production") {
+      throw new Error("Chave de API do gateway Asaas (ASAAS_API_KEY) não configurada no ambiente de produção.");
     }
 
     return this.simulateCharge(input);
@@ -168,10 +179,18 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
           body: JSON.stringify(payload),
         });
         const data = await res.json();
+        if (!res.ok && process.env.NODE_ENV === "production") {
+          throw new Error(`Falha no reembolso no Asaas: ${JSON.stringify(data)}`);
+        }
         return { success: res.ok, refundId: data.id };
-      } catch {
+      } catch (err) {
+        if (process.env.NODE_ENV === "production") throw err;
         // Fallback simulation
       }
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Simulated refund is prohibited in production mode.");
     }
 
     return { success: true, refundId: `ref_sim_${Date.now()}` };
@@ -216,9 +235,16 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
       headers["x-webhook-token"];
 
     if (!token) {
-      // Em desenvolvimento/testes, permitir chave default
-      if (process.env.NODE_ENV !== "production") return true;
-      return false;
+      if (process.env.NODE_ENV === "production") return false;
+      return true;
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      if (!process.env.ASAAS_WEBHOOK_SECRET) {
+        console.error("Segurança: ASAAS_WEBHOOK_SECRET não configurado em ambiente de produção!");
+        return false;
+      }
+      return token === this.webhookSecret;
     }
 
     return token === this.webhookSecret || token.includes("zeladoria");

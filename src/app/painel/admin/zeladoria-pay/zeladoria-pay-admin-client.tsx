@@ -3,7 +3,10 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { adminUpdateMarketplaceSettingsAction } from "@/lib/actions/zeladoria-pay";
+import {
+  adminUpdateMarketplaceSettingsAction,
+  adminResolveDisputeAction,
+} from "@/lib/actions/zeladoria-pay";
 
 export function ZeladoriaPayAdminClient({
   condoId,
@@ -98,6 +101,30 @@ export function ZeladoriaPayAdminClient({
         setTimeout(() => setSavedSuccess(false), 4000);
       } else {
         setErrorMsg(res?.error || "Erro ao salvar configurações.");
+      }
+    });
+  };
+
+  const handleResolveDispute = (
+    disputeId: number,
+    action: "release_payout" | "refund_customer" | "rework"
+  ) => {
+    const actionLabel =
+      action === "release_payout"
+        ? "liberar o repasse ao prestador"
+        : action === "refund_customer"
+        ? "reembolsar integralmente o morador"
+        : "solicitar retrabalho em garantia";
+
+    if (!confirm(`Confirma a mediação para ${actionLabel}?`)) return;
+
+    startTransition(async () => {
+      const res = await adminResolveDisputeAction({ disputeId, action });
+      if (res?.success) {
+        alert("Contestação mediada e resolvida com sucesso!");
+        window.location.reload();
+      } else {
+        alert(('error' in res ? res.error : undefined) || "Erro ao mediar contestação.");
       }
     });
   };
@@ -505,11 +532,45 @@ export function ZeladoriaPayAdminClient({
                       <strong className="text-slate-900 block font-bold">Motivo: {d.reason}</strong>
                       <p className="text-slate-700 mt-1">{d.description}</p>
                     </div>
-                    <div className="pt-2 border-t border-rose-200/80 flex items-center justify-between text-[11px] text-rose-800 font-medium">
+                    <div className="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-rose-800 font-medium">
                       <span>Repasse bloqueado preventivamente sob Zeladoria Protege</span>
-                      <Link href={`/painel/servicos`} className="font-bold underline text-rose-900">
-                        Ver Chamado
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        {d.status === "aberta" ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={() => handleResolveDispute(d.id, "release_payout")}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] cursor-pointer shadow-xs transition-colors"
+                            >
+                              Liberar Repasse
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={() => handleResolveDispute(d.id, "refund_customer")}
+                              className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] cursor-pointer shadow-xs transition-colors"
+                            >
+                              Reembolsar Morador
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={() => handleResolveDispute(d.id, "rework")}
+                              className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[10px] cursor-pointer transition-colors"
+                            >
+                              Retrabalho
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded text-[10px]">
+                            Resolvida
+                          </span>
+                        )}
+                        <Link href={`/painel/servicos`} className="font-bold underline text-rose-900 ml-1">
+                          Ver Chamado
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))

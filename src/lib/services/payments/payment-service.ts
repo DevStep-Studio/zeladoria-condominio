@@ -169,6 +169,12 @@ export async function providerRespondInspection(params: {
 
   if (!req) throw new Error("Chamado não encontrado.");
 
+  if (req.vendorId && req.vendorId !== params.vendorId) {
+    throw new Error("Não autorizado: chamado atribuído a outro prestador de serviço.");
+  }
+
+  assertTransition(req.status, "VISIT_OFFERED");
+
   // Se for paga, valida teto configurado
   const settings = await getMarketplaceSettings(req.condoId);
   const finalPriceCents = params.type === "gratuita" ? 0 : Math.min(params.priceCents, settings.inspectionFeeMaxCents);
@@ -258,6 +264,8 @@ export async function providerCheckInInspection(params: {
  */
 export async function customerSelectInspectionSlot(params: {
   inspectionId: number;
+  customerId?: number;
+  condoId?: number;
   selectedSlot: { date: string; time: string };
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
@@ -277,8 +285,18 @@ export async function customerSelectInspectionSlot(params: {
 
   if (!req) throw new Error("Chamado vinculado não encontrado.");
 
+  // Proteção contra IDOR e vazamento entre condomínios
+  if (params.customerId && req.customerId !== params.customerId) {
+    throw new Error("Acesso negado: chamado pertence a outro morador.");
+  }
+  if (params.condoId && req.condoId !== params.condoId) {
+    throw new Error("Acesso negado: chamado pertence a outro condomínio.");
+  }
+
   // 1. CASO VISTORIA GRATUITA: Nenhum checkout é criado!
   if (insp.type === "gratuita" || insp.priceCents === 0) {
+    assertTransition(req.status, "VISIT_SCHEDULED");
+
     await db
       .update(serviceInspections)
       .set({
@@ -313,6 +331,8 @@ export async function customerSelectInspectionSlot(params: {
   }
 
   // 2. CASO VISTORIA PAGA: Reserva temporária de horário (Slot Hold) + Checkout
+  assertTransition(req.status, "VISIT_PAYMENT_PENDING");
+
   const settings = await getMarketplaceSettings(req.condoId);
   const holdMinutes = settings.slotHoldMinutes;
   const holdExpiresAt = new Date(Date.now() + holdMinutes * 60 * 1000);
@@ -320,6 +340,30 @@ export async function customerSelectInspectionSlot(params: {
   // Busca dados do prestador e morador
   const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
   const [vendor] = await db.select().from(vendors).where(eq(vendors.id, insp.vendorId)).limit(1);
+
+  // Idempotência anti-duplo clique: se já existe ordem pendente para esta vistoria, reusa
+  if (insp.paymentOrderId) {
+    const [existingOrder] = await db
+      .select()
+      .from(paymentOrders)
+      .where(eq(paymentOrders.id, insp.paymentOrderId))
+      .limit(1);
+
+    if (existingOrder && (existingOrder.status === "pending" || existingOrder.status === "paid")) {
+      return {
+        checkoutRequired: true,
+        orderCode: existingOrder.code,
+        amountCents: existingOrder.amountGrossCents,
+        vendorName: vendor?.name || "Prestador",
+        slot: params.selectedSlot,
+        holdExpiresAt: insp.holdExpiresAt || holdExpiresAt,
+        holdMinutes,
+        pixCopiaECola: existingOrder.pixCopiaECola,
+        pixQrCode: existingOrder.pixQrCode,
+        invoiceUrl: existingOrder.pspInvoiceUrl,
+      };
+    }
+  }
 
   // Código único para ordem de vistoria: PAY-VIS-YYYY-XXXX
   const seqNum = Math.floor(1000 + Math.random() * 9000);
@@ -416,6 +460,7 @@ export async function customerSelectInspectionSlot(params: {
  */
 export async function completeInspectionDiagnosis(params: {
   inspectionId: number;
+  vendorId?: number;
   diagnosticReport: string;
   evidencePhotos?: string[];
 }) {
@@ -426,6 +471,9 @@ export async function completeInspectionDiagnosis(params: {
     .limit(1);
 
   if (!insp) throw new Error("Vistoria não encontrada.");
+  if (params.vendorId && insp.vendorId !== params.vendorId) {
+    throw new Error("Não autorizado: vistoria pertence a outro prestador de serviço.");
+  }
 
   await db
     .update(serviceInspections)
@@ -475,6 +523,33 @@ export async function sendDigitalProposal(params: {
   conditions?: string;
   description: string;
 }) {
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, params.requestId))
+    .limit(1);
+
+  if (!req) {
+    throw new Error("Solicitação de serviço não encontrada.");
+  }
+
+  if (req.vendorId && req.vendorId !== params.vendorId) {
+    throw new Error("Não autorizado: chamado atribuído a outro prestador de serviço.");
+  }
+
+  // Valida integridade do ciclo de vida
+  assertTransition(req.status, "QUOTE_SENT");
+
+  const [existingContract] = await db
+    .select()
+    .from(serviceContracts)
+    .where(eq(serviceContracts.requestId, req.id))
+    .limit(1);
+
+  if (existingContract) {
+    throw new Error("Este serviço já possui um contrato formalizado. Para alterações de valor ou escopo, utilize um Aditivo Contratual.");
+  }
+
   // 1. Controle estrito de versionamento de propostas
   const existingQuotes = await db
     .select()
@@ -573,14 +648,67 @@ export async function sendDigitalProposal(params: {
  */
 export async function customerAcceptProposalAndPay(params: {
   quoteId: number;
+  customerId?: number;
+  condoId?: number;
   billingType?: "PIX" | "CREDIT_CARD";
   userIp?: string;
 }) {
   const [quote] = await db.select().from(serviceQuotes).where(eq(serviceQuotes.id, params.quoteId)).limit(1);
   if (!quote) throw new Error("Proposta não encontrada.");
 
+  if (quote.status === "substituida" || quote.status === "recusado" || quote.status === "expirado") {
+    throw new Error(`Esta proposta não está mais disponível para aceite (status atual: ${quote.status}). Por favor, consulte a versão mais recente enviada pelo prestador.`);
+  }
+
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, quote.requestId)).limit(1);
   if (!req) throw new Error("Chamado não encontrado.");
+
+  // Proteção contra IDOR e vazamento entre condomínios
+  if (params.customerId && req.customerId !== params.customerId) {
+    throw new Error("Acesso negado: chamado pertence a outro morador.");
+  }
+  if (params.condoId && req.condoId !== params.condoId) {
+    throw new Error("Acesso negado: chamado pertence a outro condomínio.");
+  }
+
+  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, quote.vendorId)).limit(1);
+
+  // 0. Idempotência anti-duplo clique: se já existe contrato gerado para esta proposta, reaproveita a cobrança
+  const [existingContract] = await db
+    .select()
+    .from(serviceContracts)
+    .where(eq(serviceContracts.quoteId, quote.id))
+    .limit(1);
+
+  if (existingContract && existingContract.paymentOrderId) {
+    const [existingOrder] = await db
+      .select()
+      .from(paymentOrders)
+      .where(eq(paymentOrders.id, existingContract.paymentOrderId))
+      .limit(1);
+
+    if (
+      existingOrder &&
+      (existingOrder.status === "pending" ||
+        existingOrder.status === "paid" ||
+        existingOrder.status === "retained")
+    ) {
+      return {
+        orderCode: existingOrder.code,
+        amountCents: existingOrder.amountGrossCents,
+        totalCents: existingOrder.amountGrossCents,
+        platformFeeCents: existingOrder.platformFeeCents,
+        netVendorCents: existingOrder.netVendorCents,
+        vendorName: vendor?.name || "Prestador",
+        warrantyDays: quote.warrantyDays,
+        contractHash: existingContract.contractHash,
+        pixCopiaECola: existingOrder.pixCopiaECola,
+        pixQrCode: existingOrder.pixQrCode,
+        invoiceUrl: existingOrder.pspInvoiceUrl,
+      };
+    }
+  }
 
   // Valida transição de estado na state machine
   assertTransition(req.status, "QUOTE_ACCEPTED");
@@ -612,9 +740,6 @@ export async function customerAcceptProposalAndPay(params: {
   const commissionPercent = settings.commissionPercent;
   const platformFeeCents = Math.round((quote.totalCents * commissionPercent) / 100);
   const netVendorCents = quote.totalCents - platformFeeCents;
-
-  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, quote.vendorId)).limit(1);
 
   // 1. CONGELAMENTO IMUTÁVEL: Criação do Contrato Digital (ServiceContract - Cláusula 17)
   const [contract] = await db
@@ -795,6 +920,13 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
 
   // 3. Aplica regras de transição conforme o evento
   if (event.eventType === "PAYMENT_CONFIRMED") {
+    // Idempotência de conciliação: se a ordem já está quitada ou sob custódia, não duplica
+    const isAlreadySettled =
+      order.status === "paid" || order.status === "retained" || order.status === "released";
+    if (isAlreadySettled) {
+      return { success: true, alreadySettled: true, orderCode: order.code };
+    }
+
     if (order.purpose === "vistoria") {
       // PAGAMENTO A: Vistoria confirmada
       await db
@@ -858,20 +990,28 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
           .where(eq(serviceContracts.id, order.contractId));
       }
 
-      // Cria registro de elegibilidade de repasse (Payout - Cláusula 46)
-      await db.insert(payouts).values({
-        condoId: order.condoId,
-        vendorId: order.vendorId,
-        contractId: order.contractId || null,
-        paymentOrderId: order.id,
-        gateway: order.pspProvider || "asaas",
-        grossAmountCents: order.amountGrossCents,
-        platformFeeCents: order.platformFeeCents,
-        processingFeeCents: 0,
-        netAmountCents: order.netVendorCents,
-        status: "ELIGIBLE",
-        eligibleAt: new Date(Date.now() + 72 * 3600 * 1000),
-      });
+      // Cria registro de elegibilidade de repasse (Payout - Cláusula 46) com checagem anti-duplicação
+      const [existingPayout] = await db
+        .select()
+        .from(payouts)
+        .where(eq(payouts.paymentOrderId, order.id))
+        .limit(1);
+
+      if (!existingPayout) {
+        await db.insert(payouts).values({
+          condoId: order.condoId,
+          vendorId: order.vendorId,
+          contractId: order.contractId || null,
+          paymentOrderId: order.id,
+          gateway: order.pspProvider || "asaas",
+          grossAmountCents: order.amountGrossCents,
+          platformFeeCents: order.platformFeeCents,
+          processingFeeCents: 0,
+          netAmountCents: order.netVendorCents,
+          status: "ELIGIBLE",
+          eligibleAt: new Date(Date.now() + 72 * 3600 * 1000),
+        });
+      }
 
       // Registros contábeis no Ledger
       await recordLedgerEntry({
@@ -961,6 +1101,9 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== customerId) throw new Error("Não autorizado.");
 
+  // Valida transição de estado na State Machine
+  assertTransition(req.status, "CUSTOMER_CONFIRMED");
+
   // Localiza a ordem de pagamento do serviço
   const [order] = await db
     .select()
@@ -969,6 +1112,11 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
     .limit(1);
 
   if (order) {
+    // Idempotência: se já liberado anteriormente, não processa repasse duplo
+    if (order.status === "released") {
+      return { success: true, alreadyReleased: true };
+    }
+
     await db
       .update(paymentOrders)
       .set({
@@ -1050,16 +1198,24 @@ export async function customerOpenDispute(params: {
   if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
   // Trava a ordem de pagamento
-  await db
-    .update(paymentOrders)
-    .set({ status: "in_dispute", updatedAt: new Date() })
-    .where(and(eq(paymentOrders.requestId, params.requestId), eq(paymentOrders.purpose, "servico")));
+  const [order] = await db
+    .select()
+    .from(paymentOrders)
+    .where(and(eq(paymentOrders.requestId, params.requestId), eq(paymentOrders.purpose, "servico")))
+    .limit(1);
 
-  // Trava o repasse financeiro do prestador
-  await db
-    .update(payouts)
-    .set({ status: "BLOCKED_DISPUTE", updatedAt: new Date() })
-    .where(eq(payouts.contractId, req.id));
+  if (order) {
+    await db
+      .update(paymentOrders)
+      .set({ status: "in_dispute", updatedAt: new Date() })
+      .where(eq(paymentOrders.id, order.id));
+
+    // Trava o repasse financeiro do prestador associado à ordem de pagamento
+    await db
+      .update(payouts)
+      .set({ status: "BLOCKED_DISPUTE", updatedAt: new Date() })
+      .where(eq(payouts.paymentOrderId, order.id));
+  }
 
   // Atualiza contrato
   await db
@@ -1147,6 +1303,7 @@ export async function providerCreateContractAddendum(params: {
 export async function customerAcceptContractAddendum(params: {
   addendumId: number;
   customerId: number;
+  condoId?: number;
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
   const [addendum] = await db.select().from(contractAddendums).where(eq(contractAddendums.id, params.addendumId)).limit(1);
@@ -1155,22 +1312,59 @@ export async function customerAcceptContractAddendum(params: {
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, addendum.requestId)).limit(1);
   if (!req || req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
+  if (params.condoId && req.condoId !== params.condoId) {
+    throw new Error("Acesso negado: aditivo pertence a outro condomínio.");
+  }
+
+  // Idempotência anti-duplo clique: se já existe cobrança gerada para este aditivo, reaproveita
+  if (addendum.paymentOrderId) {
+    const [existingOrder] = await db
+      .select()
+      .from(paymentOrders)
+      .where(eq(paymentOrders.id, addendum.paymentOrderId))
+      .limit(1);
+
+    if (
+      existingOrder &&
+      (existingOrder.status === "pending" ||
+        existingOrder.status === "paid" ||
+        existingOrder.status === "retained")
+    ) {
+      return {
+        addendum,
+        order: existingOrder,
+        orderCode: existingOrder.code,
+        pixCopiaECola: existingOrder.pixCopiaECola,
+        pixQrCode: existingOrder.pixQrCode,
+        invoiceUrl: existingOrder.pspInvoiceUrl,
+      };
+    }
+  }
+
+  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
   const settings = await getMarketplaceSettings(req.condoId);
   const platformFeeCents = Math.round((addendum.additionalAmountCents * settings.commissionPercent) / 100);
   const netVendorCents = addendum.additionalAmountCents - platformFeeCents;
   const seqNum = Math.floor(1000 + Math.random() * 9000);
   const orderCode = `PAY-ADD-${new Date().getFullYear()}-${seqNum}`;
 
+  const recipient = await ensurePaymentRecipient(req.vendorId || 0);
   const gateway = getPaymentGateway("asaas");
   const chargeRes = await gateway.createCharge({
     orderCode,
     amountCents: addendum.additionalAmountCents,
     purpose: "servico",
     customer: {
-      name: "Morador",
-      email: "morador@zeladoria.com.br",
+      name: customerUser?.name || "Morador",
+      email: customerUser?.email || "morador@zeladoria.com.br",
+      phone: customerUser?.phone || "11999999999",
     },
     billingType: params.billingType || "PIX",
+    split: {
+      recipientAccountId: recipient.pspAccountId,
+      netVendorCents,
+      platformFeeCents,
+    },
   });
 
   const [order] = await db
@@ -1189,6 +1383,9 @@ export async function customerAcceptContractAddendum(params: {
       commissionPercent: settings.commissionPercent,
       billingType: params.billingType || "PIX",
       pspPaymentId: chargeRes.pspPaymentId,
+      pspInvoiceUrl: chargeRes.invoiceUrl,
+      pixQrCode: chargeRes.pixQrCode,
+      pixCopiaECola: chargeRes.pixCopiaECola,
       status: "pending",
     })
     .returning();
@@ -1201,6 +1398,18 @@ export async function customerAcceptContractAddendum(params: {
       updatedAt: new Date(),
     })
     .where(eq(contractAddendums.id, addendum.id));
+
+  await recordLedgerEntry({
+    condoId: req.condoId,
+    requestId: req.id,
+    paymentOrderId: order.id,
+    eventType: "PAYMENT_CREATED",
+    amountCents: addendum.additionalAmountCents,
+    balanceType: "credit",
+    entityType: "customer",
+    referenceCode: orderCode,
+    description: `Cobrança de aditivo contratual emitida (${addendum.title})`,
+  });
 
   return { addendum, order, chargeRes };
 }
@@ -1216,6 +1425,11 @@ export async function customerRequestWarranty(params: {
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
+
+  const normalized = normalizeServiceStatus(req.status);
+  if (normalized !== "COMPLETED" && normalized !== "CUSTOMER_CONFIRMED") {
+    throw new Error("Garantia só pode ser acionada para serviços concluídos.");
+  }
 
   const [quote] = await db
     .select()
@@ -1258,6 +1472,20 @@ export async function providerRecordEvidence(params: {
   fileUrl: string;
   caption?: string;
 }) {
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, params.requestId))
+    .limit(1);
+
+  if (!req) throw new Error("Chamado não encontrado.");
+  if (req.vendorId && req.vendorId !== params.vendorId) {
+    throw new Error("Não autorizado: chamado atribuído a outro prestador de serviço.");
+  }
+  if (req.condoId !== params.condoId) {
+    throw new Error("Não autorizado: condomínio divergente.");
+  }
+
   const [evidence] = await db
     .insert(serviceEvidences)
     .values({
@@ -1326,7 +1554,16 @@ export async function providerFinalizeService(params: {
 /**
  * 16. Obter Comprovante Oficial de Contratação (Cláusula 53: NÃO chamar de nota fiscal)
  */
-export async function getContractReceipt(contractIdOrRequestId: number) {
+export async function getContractReceipt(
+  contractIdOrRequestId: number,
+  userContext?: {
+    userId: number;
+    condoId: number;
+    role: string;
+    vendorId?: number;
+    isSuperAdmin?: boolean;
+  }
+) {
   let [contract] = await db
     .select()
     .from(serviceContracts)
@@ -1342,6 +1579,19 @@ export async function getContractReceipt(contractIdOrRequestId: number) {
   }
 
   if (!contract) throw new Error("Contrato digital não localizado.");
+
+  // Proteção contra IDOR e vazamento de dados do comprovante
+  if (userContext && !userContext.isSuperAdmin) {
+    const isCustomer = contract.customerId === userContext.userId;
+    const isProvider = userContext.vendorId && contract.vendorId === userContext.vendorId;
+    const isCondoAdmin =
+      ["sindico", "superadmin", "admin", "zelador"].includes(userContext.role) &&
+      contract.condoId === userContext.condoId;
+
+    if (!isCustomer && !isProvider && !isCondoAdmin) {
+      throw new Error("Acesso negado: você não tem permissão para visualizar este comprovante.");
+    }
+  }
 
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, contract.requestId)).limit(1);
   const [vendor] = await db.select().from(vendors).where(eq(vendors.id, contract.vendorId)).limit(1);
@@ -1450,9 +1700,23 @@ export async function getAdminFinancialDashboard(condoId: number) {
     .where(eq(paymentOrders.condoId, condoId))
     .orderBy(desc(paymentOrders.createdAt));
 
+  // Isolamento multi-tenant estrito: contestações apenas do condomínio logado
   const allDisputes = await db
-    .select()
+    .select({
+      id: serviceDisputes.id,
+      requestId: serviceDisputes.requestId,
+      openedById: serviceDisputes.openedById,
+      reason: serviceDisputes.reason,
+      description: serviceDisputes.description,
+      status: serviceDisputes.status,
+      resolutionNotes: serviceDisputes.resolutionNotes,
+      resolvedById: serviceDisputes.resolvedById,
+      resolvedAt: serviceDisputes.resolvedAt,
+      createdAt: serviceDisputes.createdAt,
+    })
     .from(serviceDisputes)
+    .innerJoin(serviceRequests, eq(serviceRequests.id, serviceDisputes.requestId))
+    .where(eq(serviceRequests.condoId, condoId))
     .orderBy(desc(serviceDisputes.createdAt));
 
   const activeOrders = allOrders.filter((o) => o.status !== "cancelled" && o.status !== "refunded");
@@ -1488,4 +1752,165 @@ export async function getAdminFinancialDashboard(condoId: number) {
     recentOrders: allOrders.slice(0, 30),
     disputes: allDisputes.slice(0, 20),
   };
+}
+
+/**
+ * 19. Admin resolve contestação (Mediação de conflitos sob Zeladoria Protege)
+ */
+export async function adminResolveDispute(params: {
+  disputeId: number;
+  condoId: number;
+  resolvedById: number;
+  action: "release_payout" | "refund_customer" | "rework";
+  resolutionNotes: string;
+}) {
+  const [dispute] = await db
+    .select()
+    .from(serviceDisputes)
+    .where(eq(serviceDisputes.id, params.disputeId))
+    .limit(1);
+
+  if (!dispute) throw new Error("Contestação não encontrada.");
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, dispute.requestId))
+    .limit(1);
+
+  if (!req || req.condoId !== params.condoId) {
+    throw new Error("Acesso negado: contestação pertence a outro condomínio.");
+  }
+
+  const [order] = await db
+    .select()
+    .from(paymentOrders)
+    .where(and(eq(paymentOrders.requestId, req.id), eq(paymentOrders.purpose, "servico")))
+    .limit(1);
+
+  const gateway = getPaymentGateway(order?.pspProvider as any || "asaas");
+
+  if (params.action === "release_payout") {
+    if (order) {
+      await db
+        .update(paymentOrders)
+        .set({ status: "released", releasedAt: new Date(), updatedAt: new Date() })
+        .where(eq(paymentOrders.id, order.id));
+
+      await db
+        .update(payouts)
+        .set({ status: "PAID", paidAt: new Date(), updatedAt: new Date() })
+        .where(eq(payouts.paymentOrderId, order.id));
+
+      if (gateway.releasePayout && order.pspPaymentId) {
+        try {
+          await gateway.releasePayout(order.pspPaymentId);
+        } catch (err) {
+          console.warn("Aviso ao liberar payout no PSP após mediação:", err);
+        }
+      }
+
+      await recordLedgerEntry({
+        condoId: order.condoId,
+        requestId: order.requestId,
+        paymentOrderId: order.id,
+        eventType: "PAYOUT",
+        amountCents: order.netVendorCents,
+        balanceType: "debit",
+        entityType: "vendor",
+        referenceCode: `${order.code}-MEDIATION-RELEASE`,
+        description: `Repasse liberado após mediação de contestação: ${params.resolutionNotes}`,
+      });
+    }
+
+    await db
+      .update(serviceContracts)
+      .set({ status: "COMPLETED", updatedAt: new Date() })
+      .where(eq(serviceContracts.requestId, req.id));
+
+    await db
+      .update(serviceRequests)
+      .set({ status: "concluido", completedAt: new Date(), updatedAt: new Date() })
+      .where(eq(serviceRequests.id, req.id));
+
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: req.customerId,
+      senderRole: "sistema",
+      body: `Mediação Zeladoria Protege concluída: o repasse ao prestador foi liberado. Resolução: "${params.resolutionNotes}".`,
+    });
+  } else if (params.action === "refund_customer") {
+    if (order) {
+      await db
+        .update(paymentOrders)
+        .set({ status: "refunded", refundedAt: new Date(), updatedAt: new Date() })
+        .where(eq(paymentOrders.id, order.id));
+
+      await db
+        .update(payouts)
+        .set({ status: "CANCELLED", updatedAt: new Date() })
+        .where(eq(payouts.paymentOrderId, order.id));
+
+      if (gateway.refundCharge && order.pspPaymentId) {
+        try {
+          await gateway.refundCharge(order.pspPaymentId, order.amountGrossCents);
+        } catch (err) {
+          console.warn("Aviso ao solicitar estorno no PSP após mediação:", err);
+        }
+      }
+
+      await recordLedgerEntry({
+        condoId: order.condoId,
+        requestId: order.requestId,
+        paymentOrderId: order.id,
+        eventType: "REFUND",
+        amountCents: order.amountGrossCents,
+        balanceType: "debit",
+        entityType: "customer",
+        referenceCode: `${order.code}-MEDIATION-REFUND`,
+        description: `Reembolso total aprovado após mediação: ${params.resolutionNotes}`,
+      });
+    }
+
+    await db
+      .update(serviceContracts)
+      .set({ status: "CANCELLED", updatedAt: new Date() })
+      .where(eq(serviceContracts.requestId, req.id));
+
+    await db
+      .update(serviceRequests)
+      .set({ status: "cancelado", updatedAt: new Date() })
+      .where(eq(serviceRequests.id, req.id));
+
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: req.customerId,
+      senderRole: "sistema",
+      body: `Mediação Zeladoria Protege concluída: reembolso integral ao morador aprovado. Resolução: "${params.resolutionNotes}".`,
+    });
+  } else if (params.action === "rework") {
+    await db
+      .update(serviceRequests)
+      .set({ status: "em_atendimento", updatedAt: new Date() })
+      .where(eq(serviceRequests.id, req.id));
+
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: req.customerId,
+      senderRole: "sistema",
+      body: `Mediação Zeladoria Protege concluída: determinado retrabalho técnico em garantia sem custos adicionais. Resolução: "${params.resolutionNotes}".`,
+    });
+  }
+
+  await db
+    .update(serviceDisputes)
+    .set({
+      status: "resolvida",
+      resolvedById: params.resolvedById,
+      resolvedAt: new Date(),
+      resolutionNotes: params.resolutionNotes,
+    })
+    .where(eq(serviceDisputes.id, params.disputeId));
+
+  return { success: true, disputeId: params.disputeId };
 }

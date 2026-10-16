@@ -12,6 +12,7 @@ import {
 } from "@/db/schema";
 import { requireCondo, requireProvider, requireRole, requireSession } from "@/lib/auth";
 import {
+  adminResolveDispute,
   completeInspectionDiagnosis,
   customerAcceptContractAddendum,
   customerAcceptProposalAndPay,
@@ -84,9 +85,11 @@ export async function customerSelectInspectionSlotAction(payload: {
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
   try {
-    await requireCondo();
+    const { session, condoId } = await requireCondo();
     const result = await customerSelectInspectionSlot({
       inspectionId: payload.inspectionId,
+      customerId: session.user.id,
+      condoId,
       selectedSlot: payload.selectedSlot,
       billingType: payload.billingType,
     });
@@ -134,7 +137,10 @@ export async function completeInspectionDiagnosisAction(payload: {
       return { success: false, error: "O laudo/diagnóstico técnico é obrigatório." };
     }
 
-    const result = await completeInspectionDiagnosis(payload);
+    const result = await completeInspectionDiagnosis({
+      ...payload,
+      vendorId: vendor.id,
+    });
 
     revalidatePath("/prestador/chamados");
     revalidatePath("/painel/servicos");
@@ -193,8 +199,12 @@ export async function customerAcceptProposalAction(payload: {
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
   try {
-    await requireCondo();
-    const result = await customerAcceptProposalAndPay(payload);
+    const { session, condoId } = await requireCondo();
+    const result = await customerAcceptProposalAndPay({
+      ...payload,
+      customerId: session.user.id,
+      condoId,
+    });
 
     revalidatePath("/painel/servicos");
     revalidatePath("/prestador/chamados");
@@ -254,6 +264,13 @@ export async function customerOpenDisputeAction(payload: {
  */
 export async function simulateWebhookPaymentAction(orderCode: string) {
   try {
+    if (process.env.NODE_ENV === "production") {
+      return {
+        success: false,
+        error: "Simulação de pagamento é estritamente proibida em ambiente de produção.",
+      };
+    }
+
     const [order] = await db.select().from(paymentOrders).where(eq(paymentOrders.code, orderCode)).limit(1);
     if (!order) return { success: false, error: "Ordem de pagamento não encontrada." };
 
@@ -401,10 +418,11 @@ export async function customerAcceptContractAddendumAction(payload: {
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
   try {
-    const { session } = await requireCondo();
+    const { session, condoId } = await requireCondo();
     const result = await customerAcceptContractAddendum({
       addendumId: payload.addendumId,
       customerId: session.user.id,
+      condoId,
       billingType: payload.billingType,
     });
 
@@ -519,8 +537,13 @@ export async function providerFinalizeServiceAction(payload: {
  */
 export async function getContractReceiptAction(contractId: number) {
   try {
-    await requireSession();
-    const receipt = await getContractReceipt(contractId);
+    const session = await requireSession();
+    const receipt = await getContractReceipt(contractId, {
+      userId: session.user.id,
+      condoId: session.condo?.id || 1,
+      role: session.role,
+      isSuperAdmin: session.user.isSuperAdmin,
+    });
     return { success: true, receipt };
   } catch (err: any) {
     console.error("Erro em getContractReceiptAction:", err);
@@ -555,5 +578,33 @@ export async function getAdminFinancialDashboardAction() {
   } catch (err: any) {
     console.error("Erro em getAdminFinancialDashboardAction:", err);
     return { success: false, error: err?.message || "Erro ao carregar dados administrativos." };
+  }
+}
+
+/**
+ * 19. Admin resolve contestação de serviço (Mediação Zeladoria Protege)
+ */
+export async function adminResolveDisputeAction(payload: {
+  disputeId: number;
+  action: "release_payout" | "refund_customer" | "rework";
+  notes?: string;
+}) {
+  try {
+    const { session, condoId } = await requireRole(["sindico", "superadmin"]);
+    const result = await adminResolveDispute({
+      disputeId: payload.disputeId,
+      condoId,
+      resolvedById: session.user.id,
+      action: payload.action,
+      resolutionNotes: payload.notes || `Mediação concluída com ação: ${payload.action}`,
+    });
+
+    revalidatePath("/painel/admin/zeladoria-pay");
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return result;
+  } catch (err: any) {
+    console.error("Erro em adminResolveDisputeAction:", err);
+    return { success: false, error: err?.message || "Erro ao resolver contestação." };
   }
 }

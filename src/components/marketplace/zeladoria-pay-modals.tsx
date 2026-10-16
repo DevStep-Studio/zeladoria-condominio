@@ -377,16 +377,30 @@ export function CustomerInspectionCheckoutModal({
           )}
         </div>
 
-        {/* Rodapé / Simulação no Sandbox */}
+        {/* Rodapé / Confirmação Segura */}
         <div className="space-y-2 pt-2 border-t border-slate-100">
+          {process.env.NODE_ENV !== "production" ? (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => onSimulatePay(checkoutData.orderCode)}
+              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-1.5"
+            >
+              <Icon name="check-circle" size={14} />
+              <span>{isPending ? "Processando..." : "[Sandbox/Dev] Simular Compensação Pix Webhook"}</span>
+            </button>
+          ) : (
+            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#0055D4] flex items-center justify-center gap-2 font-medium">
+              <Icon name="clock" size={15} className="text-[#0055D4] shrink-0" />
+              <span>Aguardando detecção do Pix pelo Asaas PSP...</span>
+            </div>
+          )}
           <button
             type="button"
-            disabled={isPending}
-            onClick={() => onSimulatePay(checkoutData.orderCode)}
-            className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-1.5"
+            onClick={onClose}
+            className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
           >
-            <Icon name="check-circle" size={14} />
-            <span>{isPending ? "Confirmando pagamento..." : "Confirmar Pagamento da Vistoria"}</span>
+            Fechar Janela (Acompanhar no Painel)
           </button>
           <p className="text-[10px] text-center text-slate-400">
             Ambiente seguro homologado com Asaas PSP · Zeladoria Pay
@@ -775,16 +789,30 @@ export function CustomerServiceCheckoutModal({
           )}
         </div>
 
-        {/* Botão de Confirmação */}
+        {/* Rodapé / Confirmação Segura */}
         <div className="space-y-2 pt-2 border-t border-slate-100">
+          {process.env.NODE_ENV !== "production" ? (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => onSimulatePay(checkoutData.orderCode)}
+              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-1.5"
+            >
+              <Icon name="check-circle" size={14} />
+              <span>{isPending ? "Processando..." : "[Sandbox/Dev] Simular Compensação Pix Webhook"}</span>
+            </button>
+          ) : (
+            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#0055D4] flex items-center justify-center gap-2 font-medium">
+              <Icon name="clock" size={15} className="text-[#0055D4] shrink-0" />
+              <span>Aguardando detecção do Pix pelo Asaas PSP...</span>
+            </div>
+          )}
           <button
             type="button"
-            disabled={isPending}
-            onClick={() => onSimulatePay(checkoutData.orderCode)}
-            className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-1.5"
+            onClick={onClose}
+            className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
           >
-            <Icon name="check-circle" size={14} />
-            <span>{isPending ? "Confirmando..." : "Confirmar Pagamento e Iniciar Serviço"}</span>
+            Fechar Janela (Acompanhar no Painel)
           </button>
           <p className="text-[10px] text-center text-slate-400">
             Processado via Asaas PSP com Split Automatizado · Sem custódia informal
