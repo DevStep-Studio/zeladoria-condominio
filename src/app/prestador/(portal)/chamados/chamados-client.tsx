@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import {
