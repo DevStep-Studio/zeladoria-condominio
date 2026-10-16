@@ -15,20 +15,20 @@ export function BrandLogo({
 }) {
   const sizeStyles = {
     sm: {
-      imgHeight: 44,
-      iconHeight: 40,
+      imgHeight: 24,
+      iconHeight: 22,
     },
     md: {
-      imgHeight: 56,
-      iconHeight: 50,
+      imgHeight: 30,
+      iconHeight: 26,
     },
     lg: {
-      imgHeight: 74,
-      iconHeight: 64,
+      imgHeight: 40,
+      iconHeight: 34,
     },
     xl: {
-      imgHeight: 96,
-      iconHeight: 84,
+      imgHeight: 50,
+      iconHeight: 42,
     },
   }[size];
 

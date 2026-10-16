@@ -41,7 +41,7 @@ export default async function PrestadorLoginPage() {
         {/* Brand Header */}
         <div className="flex justify-center items-center">
           <Link href="/" className="transition-opacity hover:opacity-90">
-            <BrandLogo size="xl" variant="default" />
+            <BrandLogo size="lg" variant="default" />
           </Link>
         </div>
 

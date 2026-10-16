@@ -31,7 +31,7 @@ export default async function LoginPage() {
             className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
             aria-label="Zeladoria Condomínio"
           >
-            <BrandLogo variant="default" size="xl" />
+            <BrandLogo variant="default" size="lg" />
           </Link>
         </div>
 

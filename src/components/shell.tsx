@@ -306,7 +306,7 @@ export function Shell({
     <div className="flex h-full flex-col bg-white text-slate-800 select-none relative">
       {/* Brand Header */}
       <div
-        className={`flex items-center h-16 border-b border-slate-200/80 ${
+        className={`flex items-center h-14 border-b border-slate-200/80 ${
           collapsed ? "justify-center px-2" : "justify-between px-4"
         }`}
       >
@@ -322,18 +322,18 @@ export function Shell({
             <button
               type="button"
               onClick={toggleCollapse}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               title="Recolher menu lateral"
               aria-label="Recolher menu lateral"
             >
-              <Icon name="panel" size={15} />
+              <Icon name="panel" size={14} />
             </button>
           </>
         ) : (
           <button
             type="button"
             onClick={toggleCollapse}
-            className="hidden lg:flex h-11 w-11 items-center justify-center rounded-[8px] hover:bg-blue-50/60 transition-all cursor-pointer group p-1"
+            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] hover:bg-blue-50/60 transition-all cursor-pointer group p-1"
             title="Expandir menu lateral"
             aria-label="Expandir menu lateral"
           >
