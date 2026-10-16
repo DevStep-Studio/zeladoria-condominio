@@ -306,7 +306,7 @@ export function Shell({
     <div className="flex h-full flex-col bg-white text-slate-800 select-none relative">
       {/* Brand Header */}
       <div
-        className={`flex items-center h-14 border-b border-slate-200/80 ${
+        className={`flex items-center h-16 border-b border-slate-200/80 ${
           collapsed ? "justify-center px-2" : "justify-between px-4"
         }`}
       >
@@ -317,31 +317,27 @@ export function Shell({
               className="flex items-center gap-2 group min-w-0"
               title="Zeladoria Condomínio"
             >
-              <BrandLogo size="sm" variant="default" showText={true} />
+              <BrandLogo size="md" variant="default" showText={true} />
             </Link>
             <button
               type="button"
               onClick={toggleCollapse}
-              className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               title="Recolher menu lateral"
               aria-label="Recolher menu lateral"
             >
-              <Icon name="panel" size={14} />
+              <Icon name="panel" size={15} />
             </button>
           </>
         ) : (
           <button
             type="button"
             onClick={toggleCollapse}
-            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-500 hover:text-[#1355FF] hover:bg-blue-50 transition-all cursor-pointer group"
+            className="hidden lg:flex h-11 w-11 items-center justify-center rounded-[8px] hover:bg-blue-50/60 transition-all cursor-pointer group p-1"
             title="Expandir menu lateral"
             aria-label="Expandir menu lateral"
           >
-            <Icon
-              name="panel"
-              size={16}
-              className="rotate-180 text-slate-500 group-hover:text-[#1355FF] transition-transform group-hover:scale-110"
-            />
+            <BrandLogo size="sm" showText={false} />
           </button>
         )}
       </div>
@@ -669,7 +665,7 @@ export function Shell({
 
             {/* Mobile logo only */}
             <div className="lg:hidden">
-              <BrandLogo size="sm" showText={false} />
+              <BrandLogo size="md" showText={false} />
             </div>
 
             {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio: morador, síndico, portaria, conselho) */}

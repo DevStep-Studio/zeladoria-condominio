@@ -90,7 +90,7 @@ export function ProviderShell({
                 className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
                 title="Zeladoria Condomínio · Área do Prestador"
               >
-                <BrandLogo size="sm" variant="default" />
+                <BrandLogo size="md" variant="default" />
               </Link>
 
               <span className="hidden sm:block h-4 w-[1px] bg-slate-200" />

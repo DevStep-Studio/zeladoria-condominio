@@ -21,7 +21,7 @@ export default async function PrestadorCadastroPage() {
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <Link href="/" className="transition-opacity hover:opacity-90">
-            <BrandLogo size="md" variant="default" />
+            <BrandLogo size="lg" variant="default" />
           </Link>
 
           <Link

@@ -9,11 +9,13 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png?v=5", type: "image/png" },
+      { url: "/favicon-32x32.png?v=5", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png?v=5", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico?v=5", sizes: "any" },
     ],
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    shortcut: "/favicon.png?v=5",
+    apple: "/apple-touch-icon.png?v=5",
   },
   applicationName: "Zeladoria Condomínio",
   appleWebApp: { capable: true, title: "Zeladoria Condomínio", statusBarStyle: "default" },
