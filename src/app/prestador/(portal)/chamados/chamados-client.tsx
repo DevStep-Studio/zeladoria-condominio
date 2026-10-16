@@ -68,7 +68,7 @@ export function ProviderChamadosClient({
         )
       ) {
         tab = "contratados";
-      } else if (myQuote && myQuote.status === "pendente") {
+      } else if (myQuote && (myQuote.status === "pendente" || myQuote.status === "expirado")) {
         tab = "orcamentos_enviados";
       } else {
         tab = "novos";
@@ -324,40 +324,67 @@ export function ProviderChamadosClient({
                 )}
 
                 {/* Meu Orçamento Enviado (se houver) */}
-                {req.myQuote && (
-                  <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-[#0055D4] block">
-                        Seu Orçamento Enviado:
-                      </span>
-                      <strong className="text-slate-900 text-sm">
-                        R$ {(req.myQuote.totalCents / 100).toFixed(2)}
-                      </strong>{" "}
-                      <span className="text-slate-500">
-                        (Líquido a receber: R$ {((req.myQuote.totalCents * 0.9) / 100).toFixed(2)})
-                      </span>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
-                        &quot;{req.myQuote.description}&quot; · Disponibilidade: {req.myQuote.availableAt || "A combinar"}
-                      </p>
-                    </div>
+                {req.myQuote && (() => {
+                  const isExpired = req.myQuote.status === "expirado" || (req.myQuote.expiresAt ? new Date(req.myQuote.expiresAt).getTime() < Date.now() : false);
+                  const hoursLeft = req.myQuote.expiresAt
+                    ? Math.max(0, Math.ceil((new Date(req.myQuote.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)))
+                    : null;
 
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-lg shrink-0 ${
-                        req.myQuote.status === "aceito"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : req.myQuote.status === "recusado"
-                          ? "bg-rose-100 text-rose-800"
-                          : "bg-blue-100 text-blue-800"
+                  return (
+                    <div
+                      className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
+                        isExpired
+                          ? "bg-rose-50/70 border-rose-200 text-rose-950"
+                          : "bg-blue-50/70 border-blue-200/80 text-slate-800"
                       }`}
                     >
-                      {req.myQuote.status === "aceito"
-                        ? "Orçamento Aceito!"
-                        : req.myQuote.status === "recusado"
-                        ? "Não Selecionado"
-                        : "Aguardando Resposta"}
-                    </span>
-                  </div>
-                )}
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[#0055D4] block">
+                          Seu Orçamento Enviado:
+                        </span>
+                        <strong className="text-slate-900 text-sm">
+                          R$ {(req.myQuote.totalCents / 100).toFixed(2)}
+                        </strong>{" "}
+                        <span className="text-slate-500">
+                          (Líquido a receber: R$ {((req.myQuote.totalCents * 0.9) / 100).toFixed(2)})
+                        </span>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          &quot;{req.myQuote.description}&quot; · Disponibilidade: {req.myQuote.availableAt || "A combinar"}
+                        </p>
+                        {req.myQuote.status === "pendente" && !isExpired && hoursLeft !== null && (
+                          <span className="text-[10px] font-bold text-amber-800 bg-amber-100/70 px-1.5 py-0.2 rounded inline-block mt-1">
+                            Expira em: {hoursLeft}h
+                          </span>
+                        )}
+                        {req.myQuote.status === "pendente" && !isExpired && (
+                          <span className="text-[11px] text-slate-500 block mt-0.5">
+                            Cliente ainda não respondeu
+                          </span>
+                        )}
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-lg shrink-0 ${
+                          req.myQuote.status === "aceito"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : isExpired
+                            ? "bg-rose-100 text-rose-800"
+                            : req.myQuote.status === "recusado"
+                            ? "bg-slate-200 text-slate-700"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {req.myQuote.status === "aceito"
+                          ? "Orçamento Aceito!"
+                          : isExpired
+                          ? "Expirado"
+                          : req.myQuote.status === "recusado"
+                          ? "Não Selecionado"
+                          : "Aguardando Resposta"}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 {/* Ações / CTA Dominante por Estado */}
                 <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5">
@@ -377,17 +404,35 @@ export function ProviderChamadosClient({
                   {/* Aba Orçamentos Enviados */}
                   {req.tabCategory === "orcamentos_enviados" && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-medium">
-                        Aguardando escolha do morador
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setProposalModalReq(req)}
-                        disabled={isPending}
-                        className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Editar / Reenviar Orçamento
-                      </button>
+                      {req.myQuote && (req.myQuote.status === "expirado" || (req.myQuote.expiresAt && new Date(req.myQuote.expiresAt).getTime() < Date.now())) ? (
+                        <>
+                          <span className="text-xs text-rose-600 font-bold">
+                            Orçamento expirado
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setProposalModalReq(req)}
+                            disabled={isPending}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          >
+                            Enviar novo orçamento
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs text-slate-500 font-medium">
+                            Aguardando escolha do morador
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setProposalModalReq(req)}
+                            disabled={isPending}
+                            className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Editar / Reenviar Orçamento
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
 

@@ -536,6 +536,7 @@ export function ProviderDigitalProposalModal({
     materialsCents: number;
     estimatedDays: number;
     availableAt?: string;
+    validityHours: number;
     warrantyDays: number;
     description: string;
   }) => void;
@@ -545,6 +546,7 @@ export function ProviderDigitalProposalModal({
   const [desc, setDesc] = useState("Troca do sifão e reparo da conexão da pia.");
   const [estimatedDays, setEstimatedDays] = useState(1);
   const [availableAt, setAvailableAt] = useState("Hoje após 15h");
+  const [validityHours, setValidityHours] = useState(48);
   const [warrantyDays, setWarrantyDays] = useState(30);
 
   if (!isOpen || !request) return null;
@@ -560,6 +562,7 @@ export function ProviderDigitalProposalModal({
       materialsCents: 0,
       estimatedDays,
       availableAt,
+      validityHours,
       warrantyDays,
       description: desc,
     });
@@ -682,6 +685,35 @@ export function ProviderDigitalProposalModal({
               <option value={180}>180 dias (6 meses)</option>
               <option value={365}>1 ano de garantia</option>
             </select>
+          </div>
+
+          {/* 5. Validade do Orçamento */}
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Validade do Orçamento</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { hours: 24, label: "24 horas" },
+                { hours: 48, label: "48h (Padrão)" },
+                { hours: 72, label: "72 horas" },
+                { hours: 168, label: "7 dias" },
+              ].map((opt) => (
+                <button
+                  key={opt.hours}
+                  type="button"
+                  onClick={() => setValidityHours(opt.hours)}
+                  className={`py-2 px-1 text-center rounded-xl border text-[11px] font-bold cursor-pointer transition-all ${
+                    validityHours === opt.hours
+                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">
+              O orçamento expirará automaticamente se o morador não aceitar dentro do prazo.
+            </p>
           </div>
 
           {/* Selo Zeladoria Protege */}
@@ -1622,6 +1654,348 @@ export function CustomerWarrantyRequestModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// 9. MODAL: LIGHTBOX DE EVIDÊNCIAS TÉCNICAS (FOTOS ANTES E DEPOIS - CLÁUSULAS 9 A 18)
+export function EvidenceLightboxModal({
+  isOpen,
+  onClose,
+  images,
+  initialIndex = 0,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  images: { url: string; caption?: string; stage?: string }[];
+  initialIndex?: number;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex, isOpen]);
+
+  if (!isOpen || images.length === 0) return null;
+
+  const current = images[currentIndex] || images[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 animate-in fade-in duration-200">
+      <div className="relative max-w-4xl w-full flex flex-col items-center">
+        {/* Fechar */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white hover:text-slate-300 p-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
+        >
+          <Icon name="x" size={18} />
+          <span>Fechar</span>
+        </button>
+
+        {/* Imagem Principal */}
+        <div className="relative w-full max-h-[70vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black border border-slate-800 shadow-2xl">
+          <img
+            src={current.url}
+            alt={current.caption || "Evidência do serviço"}
+            className="max-h-[70vh] max-w-full object-contain"
+          />
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
+                className="absolute left-3 p-2.5 rounded-full bg-black/60 text-white hover:bg-black/90 transition-all cursor-pointer"
+                aria-label="Anterior"
+              >
+                <Icon name="chevron-left" size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
+                className="absolute right-3 p-2.5 rounded-full bg-black/60 text-white hover:bg-black/90 transition-all cursor-pointer"
+                aria-label="Próxima"
+              >
+                <Icon name="chevron-right" size={20} />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Rodapé com Legenda e Estágio */}
+        <div className="mt-4 text-center text-white space-y-1">
+          {current.stage && (
+            <span
+              className={`inline-block px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                current.stage === "ANTES"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+              }`}
+            >
+              FOTO {current.stage} DO SERVIÇO
+            </span>
+          )}
+          {current.caption && <p className="text-sm font-semibold text-slate-200">{current.caption}</p>}
+          <p className="text-xs text-slate-400 font-medium">
+            Evidência {currentIndex + 1} de {images.length}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 10. MODAL: CONTRATAR NOVAMENTE (REBOOKING - CLÁUSULAS 30 A 42)
+export function RebookServiceModal({
+  isOpen,
+  onClose,
+  vendor,
+  onSubmit,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  vendor: any;
+  onSubmit: (data: {
+    vendorId: number;
+    serviceType: "same_service" | "catalog_service";
+    category: string;
+    title: string;
+    description: string;
+    urgency: "agora" | "hoje" | "agendar";
+    attachments?: string[];
+  }) => void;
+  isPending: boolean;
+}) {
+  const [serviceType, setServiceType] = useState<"same_service" | "catalog_service">("same_service");
+  const [selectedService, setSelectedService] = useState("");
+  const [desc, setDesc] = useState("");
+  const [urgency, setUrgency] = useState<"agora" | "hoje" | "agendar">("hoje");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photosList, setPhotosList] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (vendor?.services && vendor.services.length > 0) {
+      setSelectedService(vendor.services[0].name || "");
+    }
+  }, [vendor]);
+
+  if (!isOpen || !vendor) return null;
+
+  // Validação de elegibilidade (Cláusula 41-42)
+  const isAvailable = vendor.active && vendor.onboardingStatus !== "suspenso";
+
+  const handleAddPhoto = () => {
+    if (!photoUrl.trim()) return;
+    setPhotosList([...photosList, photoUrl.trim()]);
+    setPhotoUrl("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!desc.trim()) return;
+
+    const title =
+      serviceType === "same_service"
+        ? `Novo chamado - ${vendor.category || "Serviço"}`
+        : `${selectedService || "Serviço"} com ${vendor.name}`;
+
+    onSubmit({
+      vendorId: vendor.id,
+      serviceType,
+      category: vendor.category || "servicos",
+      title,
+      description: desc.trim(),
+      urgency,
+      attachments: photosList,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-black">
+              <Icon name="refresh" size={16} />
+            </span>
+            <div>
+              <h2 className="text-base font-black text-slate-900">Contratar Novamente</h2>
+              <p className="text-[11px] text-slate-500">
+                {vendor.name} • {vendor.category || "Profissional"}
+              </p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+
+        {!isAvailable ? (
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-3">
+            <div className="flex items-center gap-2 font-bold text-sm">
+              <Icon name="alert" size={16} className="text-amber-700" />
+              <span>{vendor.name} não está recebendo novos serviços no momento.</span>
+            </div>
+            <p className="text-xs text-amber-800">
+              O profissional está temporariamente indisponível ou sem agenda no condomínio. Você pode buscar outros prestadores parceiros na mesma categoria.
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer"
+              >
+                Ver profissionais semelhantes
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {/* Escolha do tipo de serviço */}
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Qual serviço você precisa agora?</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setServiceType("same_service")}
+                  className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                    serviceType === "same_service"
+                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <div>O mesmo serviço</div>
+                  <div className="text-[10px] font-normal text-slate-500 mt-0.5">{vendor.category || "Geral"}</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setServiceType("catalog_service")}
+                  className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                    serviceType === "catalog_service"
+                      ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <div>Outro serviço deste profissional</div>
+                  <div className="text-[10px] font-normal text-slate-500 mt-0.5">Ver catálogo</div>
+                </button>
+              </div>
+            </div>
+
+            {serviceType === "catalog_service" && vendor.services && vendor.services.length > 0 && (
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Selecione o serviço do profissional</label>
+                <select
+                  value={selectedService}
+                  onChange={(e) => setSelectedService(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white font-medium text-slate-900 outline-none focus:border-[#0055D4]"
+                >
+                  {vendor.services.map((s: any, idx: number) => (
+                    <option key={idx} value={s.name}>
+                      {s.name} {s.priceFromCents ? `(a partir de R$ ${(s.priceFromCents / 100).toFixed(2)})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Descrição do novo problema (novo texto, nunca reutiliza antigo) */}
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                O que está acontecendo agora? <span className="text-rose-600">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                required
+                placeholder="Descreva a nova situação que precisa de reparo ou instalação..."
+                className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium outline-none focus:border-[#0055D4]"
+              />
+            </div>
+
+            {/* Urgência */}
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Quando você precisa?</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["agora", "hoje", "agendar"] as const).map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setUrgency(u)}
+                    className={`py-2 px-1 text-center rounded-xl border text-[11px] font-bold capitalize cursor-pointer transition-all ${
+                      urgency === u
+                        ? "border-[#0055D4] bg-blue-50 text-[#0055D4] shadow-xs"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Fotos novas */}
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Fotos do novo problema (Opcional)</label>
+              <div className="flex gap-2 mb-1.5">
+                <input
+                  type="text"
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  placeholder="Cole o link de uma foto..."
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddPhoto}
+                  className="px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold shrink-0 cursor-pointer"
+                >
+                  + Foto
+                </button>
+              </div>
+              {photosList.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {photosList.map((p, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-[10px] text-slate-700">
+                      Foto {i + 1}
+                      <button type="button" onClick={() => setPhotosList(photosList.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-rose-600">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Informação sobre novo orçamento */}
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-center gap-2">
+              <Icon name="shield" size={14} className="text-[#0055D4] shrink-0" />
+              <span>
+                Um novo chamado será enviado diretamente para <strong>{vendor.name}</strong>, que responderá com um novo orçamento para sua aprovação.
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isPending || !desc.trim()}
+                className="px-5 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <Icon name="send" size={14} />
+                <span>{isPending ? "Solicitando..." : "Solicitar Novo Orçamento"}</span>
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

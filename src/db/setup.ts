@@ -1190,7 +1190,21 @@ ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "in
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "payouts_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "zeladoria_protege_enabled" boolean DEFAULT true NOT NULL;
 ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "max_installments" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "default_quote_validity_hours" integer DEFAULT 48 NOT NULL;
+ALTER TABLE "condominio_app"."marketplace_settings" ADD COLUMN IF NOT EXISTS "require_before_photo" boolean DEFAULT false NOT NULL;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "completed_jobs" integer DEFAULT 0;
+
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "expires_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "sent_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."service_quotes" ADD COLUMN IF NOT EXISTS "accepted_at" timestamp with time zone;
+
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "contract_id" integer;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "vendor_id" integer;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "reason" text;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "photos" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "estimated_extra_hours" integer DEFAULT 0;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "accepted_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "rejected_at" timestamp with time zone;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");

@@ -602,6 +602,9 @@ export const serviceQuotes = appSchema.table("service_quotes", {
   termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   userIp: varchar("user_ip", { length: 60 }),
   validUntil: timestamp("valid_until", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }), // Validade configurável do orçamento (ex: 24h, 48h, 72h)
+  sentAt: timestamp("sent_at", { withTimezone: true }), // Data de envio pelo prestador
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }), // Data do aceite pelo morador
   status: varchar("status", { length: 24 }).notNull().default("pendente"), // pendente, aceito, recusado, expirado
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -741,6 +744,8 @@ export const marketplaceSettings = appSchema.table("marketplace_settings", {
   payoutsEnabled: boolean("payouts_enabled").notNull().default(true),
   zeladoriaProtegeEnabled: boolean("zeladoria_protege_enabled").notNull().default(true),
   maxInstallments: integer("max_installments").notNull().default(1),
+  defaultQuoteValidityHours: integer("default_quote_validity_hours").notNull().default(48), // Validade padrão de orçamento (48h)
+  requireBeforePhoto: boolean("require_before_photo").notNull().default(false), // Exigência opcional de foto inicial
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -827,11 +832,18 @@ export const contractAddendums = appSchema.table("contract_addendums", {
   id: serial("id").primaryKey(),
   requestId: integer("request_id").notNull(),
   quoteId: integer("quote_id").notNull(),
+  contractId: integer("contract_id"),
+  vendorId: integer("vendor_id"),
   title: varchar("title", { length: 180 }).notNull(),
+  reason: text("reason"), // Motivo técnico para o adicional
   description: text("description").notNull(),
   additionalAmountCents: integer("additional_amount_cents").notNull(),
-  status: varchar("status", { length: 24 }).notNull().default("proposto"), // proposto, aceito, recusado
+  status: varchar("status", { length: 24 }).notNull().default("proposto"), // proposto, aceito, recusado, pago, cancelado
   paymentOrderId: integer("payment_order_id"),
+  photos: jsonb("photos").$type<string[]>().default([]),
+  estimatedExtraHours: integer("estimated_extra_hours").default(0),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  rejectedAt: timestamp("rejected_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -30,6 +30,8 @@ import {
   customerSelectInspectionSlotAction,
   customerAcceptProposalAction,
   customerAcceptContractAddendumAction,
+  customerRejectContractAddendumAction,
+  rebookServiceRequestAction,
   customerConfirmCompletionAction,
   customerOpenDisputeAction,
   simulateWebhookPaymentAction,
@@ -42,6 +44,8 @@ import {
   CustomerDisputeModal,
   CustomerContractReceiptModal,
   CustomerWarrantyRequestModal,
+  EvidenceLightboxModal,
+  RebookServiceModal,
 } from "@/components/marketplace/zeladoria-pay-modals";
 
 export function ServicosClient({
@@ -53,6 +57,8 @@ export function ServicosClient({
   inspections = [],
   paymentOrders = [],
   addendums = [],
+  evidences = [],
+  hiredProviders = [],
   initialFavorites = [],
   vendors = [],
   providers = [],
@@ -70,6 +76,8 @@ export function ServicosClient({
   inspections?: any[];
   paymentOrders?: any[];
   addendums?: any[];
+  evidences?: any[];
+  hiredProviders?: any[];
   initialFavorites?: number[];
   vendors?: any[];
   providers?: MarketplaceProvider[];
@@ -140,6 +148,27 @@ export function ServicosClient({
   const [budgetVendor, setBudgetVendor] = useState<MarketplaceProvider | null>(null);
   const [budgetInitialService, setBudgetInitialService] = useState<ServiceOffering | undefined>(undefined);
   const [isGeneralBudgetOpen, setIsGeneralBudgetOpen] = useState(false);
+
+  // Lightbox e Recontratação Direta
+  const [lightboxData, setLightboxData] = useState<{
+    isOpen: boolean;
+    images: { url: string; caption?: string; stage?: string }[];
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+  });
+  const [isRebookModalOpen, setIsRebookModalOpen] = useState(false);
+  const [rebookVendor, setRebookVendor] = useState<any>(null);
+
+  const openLightbox = (images: { url: string; caption?: string; stage?: string }[], index: number = 0) => {
+    setLightboxData({
+      isOpen: true,
+      images,
+      initialIndex: index,
+    });
+  };
 
   // Auto-open budget if ?solicitar=true in URL
   useEffect(() => {
@@ -506,12 +535,83 @@ export function ServicosClient({
     });
   };
 
-  const handleRehire = (req: any) => {
-    const target = providers.find((p) => p.id === req.vendorId) || providers[0];
-    if (target) {
-      setBudgetVendor(target);
-      setActiveView("marketplace");
+  const handleRejectAddendum = (addendumId: number) => {
+    if (!confirm("Deseja realmente recusar este adicional? O serviço continuará somente no escopo original acordado.")) return;
+    startActionTransition(async () => {
+      try {
+        const res = await customerRejectContractAddendumAction({ addendumId });
+        if (res.success) {
+          router.refresh();
+        } else {
+          alert((res as any).error || "Erro ao recusar adicional.");
+        }
+      } catch (e: any) {
+        alert(e.message || "Erro inesperado.");
+      }
+    });
+  };
+
+  const handleRebookSubmit = (data: any) => {
+    startActionTransition(async () => {
+      try {
+        const res = await rebookServiceRequestAction(data);
+        if (res.success) {
+          setIsRebookModalOpen(false);
+          setRebookVendor(null);
+          setActiveView("contratacoes");
+          router.refresh();
+        } else {
+          alert(res.error || "Erro ao solicitar novo chamado.");
+        }
+      } catch (e: any) {
+        alert(e.message || "Erro inesperado.");
+      }
+    });
+  };
+
+  const handleRehire = (reqOrVendor: any) => {
+    const vId = reqOrVendor.vendorId || reqOrVendor.id;
+    const target =
+      providers.find((p) => p.id === vId) ||
+      vendors.find((v) => v.id === vId) || {
+        id: vId,
+        name: reqOrVendor.vendorCompany || reqOrVendor.vendorName || reqOrVendor.name || "Profissional",
+        category: reqOrVendor.category || "Serviços Residenciais",
+        active: true,
+        services: reqOrVendor.services || [],
+      };
+    setRebookVendor(target);
+    setIsRebookModalOpen(true);
+  };
+
+  const getQuoteValidityInfo = (quote: any) => {
+    if (!quote.expiresAt) {
+      return {
+        isExpired: false,
+        isNearExpiry: false,
+        hoursLeft: null,
+        formattedExpiry: null,
+      };
     }
+    const expiryDate = new Date(quote.expiresAt);
+    const now = new Date();
+    const diffMs = expiryDate.getTime() - now.getTime();
+    const isExpired = diffMs <= 0;
+    const hoursLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60)));
+    const isNearExpiry = !isExpired && hoursLeft <= 3;
+
+    const day = String(expiryDate.getDate()).padStart(2, "0");
+    const month = String(expiryDate.getMonth() + 1).padStart(2, "0");
+    const hours = String(expiryDate.getHours()).padStart(2, "0");
+    const minutes = String(expiryDate.getMinutes()).padStart(2, "0");
+    const formattedExpiry = `${day}/${month} às ${hours}:${minutes}`;
+
+    return {
+      isExpired,
+      isNearExpiry,
+      hoursLeft,
+      formattedExpiry,
+    };
   };
 
   const totalContractedCount = marketplaceRequests.length + services.length;
@@ -808,40 +908,74 @@ export function ServicosClient({
                                     </div>
 
                                     {/* Preço e Botão */}
-                                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                                      <div className="text-left sm:text-right">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase block">
-                                          Valor do Serviço
-                                        </span>
-                                        <span className="text-xl font-black text-[#0055D4]">
-                                          R$ {(q.totalCents / 100).toFixed(2)}
-                                        </span>
-                                        <span className="text-[10px] text-slate-500 block">
-                                          {q.availableAt ? `Disponível: ${q.availableAt}` : "Disponível Hoje"}
-                                        </span>
-                                      </div>
+                                    {(() => {
+                                      const validity = getQuoteValidityInfo(q);
+                                      const isExpired = validity.isExpired && q.status !== "aceito";
 
-                                      {isThisAccepted ? (
-                                        <span className="text-emerald-700 font-black bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                                          <Icon name="check-circle" size={14} />
-                                          <span>Orçamento Contratado</span>
-                                        </span>
-                                      ) : hasAnyAccepted ? (
-                                        <span className="text-slate-400 font-medium bg-slate-100 px-3 py-1.5 rounded-xl text-[11px]">
-                                          Não selecionado
-                                        </span>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          disabled={isActionPending}
-                                          onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
-                                          className="px-4 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
-                                        >
-                                          <span>Aceitar orçamento</span>
-                                          <Icon name="arrow-right" size={13} />
-                                        </button>
-                                      )}
-                                    </div>
+                                      return (
+                                        <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                                          <div className="text-left sm:text-right">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                              Valor do Serviço
+                                            </span>
+                                            <span className="text-xl font-black text-[#0055D4]">
+                                              R$ {(q.totalCents / 100).toFixed(2)}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500 block">
+                                              {q.availableAt ? `Disponível: ${q.availableAt}` : "Disponível Hoje"}
+                                            </span>
+                                            {validity.formattedExpiry && (
+                                              <span className="text-[10px] text-slate-500 block mt-0.5">
+                                                Válido até: <strong>{validity.formattedExpiry}</strong>
+                                              </span>
+                                            )}
+                                            {validity.isNearExpiry && (
+                                              <span className="inline-block mt-0.5 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                                                Expira em {validity.hoursLeft}h
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          {isThisAccepted ? (
+                                            <span className="text-emerald-700 font-black bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                                              <Icon name="check-circle" size={14} />
+                                              <span>Orçamento Contratado</span>
+                                            </span>
+                                          ) : isExpired ? (
+                                            <div className="flex flex-col sm:items-end gap-1">
+                                              <span className="text-rose-700 font-bold bg-rose-50 px-3 py-1 rounded-xl border border-rose-200 text-[11px]">
+                                                Orçamento expirado
+                                              </span>
+                                              <button
+                                                type="button"
+                                                disabled={isActionPending}
+                                                onClick={() => {
+                                                  const target = providers.find((p) => p.id === q.vendorId) || { id: q.vendorId, name: q.vendorName };
+                                                  setBudgetVendor(target as any);
+                                                }}
+                                                className="px-3 py-1 rounded-lg border border-blue-200 text-[#0055D4] hover:bg-blue-50 text-[11px] font-bold transition-colors cursor-pointer"
+                                              >
+                                                Solicitar novo orçamento
+                                              </button>
+                                            </div>
+                                          ) : hasAnyAccepted ? (
+                                            <span className="text-slate-400 font-medium bg-slate-100 px-3 py-1.5 rounded-xl text-[11px]">
+                                              Não selecionado
+                                            </span>
+                                          ) : (
+                                            <button
+                                              type="button"
+                                              disabled={isActionPending}
+                                              onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
+                                              className="px-4 py-2.5 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+                                            >
+                                              <span>Aceitar orçamento</span>
+                                              <Icon name="arrow-right" size={13} />
+                                            </button>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                               );
@@ -851,50 +985,195 @@ export function ServicosClient({
                       </div>
                     )}
 
-                    {/* Solicitações de Custo Adicional (Aditivos) */}
+                    {/* Solicitações de Custo Adicional (Aditivos - Cláusulas 19 a 29) */}
                     {(addendums || [])
                       .filter((a: any) => a.requestId === req.id && a.status === "proposto")
-                      .map((ad: any) => (
-                        <div
-                          key={ad.id}
-                          className="p-4 rounded-2xl border border-amber-300 bg-amber-50/80 text-xs space-y-2.5 text-amber-950"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="h-7 w-7 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center font-bold">
-                                <Icon name="alert" size={15} />
-                              </span>
-                              <div>
-                                <strong className="text-sm font-black text-slate-900 block">
-                                  Solicitação de Custo Adicional: {ad.title}
-                                </strong>
-                                <span className="text-[11px] text-amber-800">
-                                  O profissional identificou uma complexidade adicional no local.
+                      .map((ad: any) => {
+                        const originalQuote = reqQuotes.find((q) => q.status === "aceito") || {
+                          totalCents: req.finalAmountCents || 35000,
+                        };
+                        const originalCents = originalQuote.totalCents;
+                        const additionalCents = ad.additionalAmountCents || ad.amountCents || 0;
+                        const newTotalCents = originalCents + additionalCents;
+
+                        return (
+                          <div
+                            key={ad.id}
+                            className="p-4 rounded-2xl border border-amber-300 bg-amber-50/90 text-xs space-y-3 text-amber-950"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/80 pb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="h-7 w-7 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center font-bold shrink-0">
+                                  <Icon name="alert" size={15} />
                                 </span>
+                                <div>
+                                  <strong className="text-sm font-black text-slate-900 block">
+                                    Solicitação de Adicional: {ad.title}
+                                  </strong>
+                                  <span className="text-[11px] text-amber-800">
+                                    O prestador identificou um serviço complementar necessário no local.
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-lg font-black text-amber-900">
+                                + R$ {(additionalCents / 100).toFixed(2)}
+                              </span>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1 text-slate-800">
+                              {ad.reason && (
+                                <p className="text-[11px] text-slate-500 font-bold">
+                                  Motivo técnico: <span className="text-slate-800 font-semibold">{ad.reason}</span>
+                                </p>
+                              )}
+                              <p className="leading-relaxed">{ad.description}</p>
+                            </div>
+
+                            {/* Resumo Financeiro Transparente (Original + Adicional = Novo Total) */}
+                            <div className="bg-amber-100/70 p-3 rounded-xl border border-amber-200 text-[11px] space-y-1">
+                              <div className="flex justify-between items-center text-slate-600">
+                                <span>SERVIÇO ORIGINAL:</span>
+                                <span className="font-bold">R$ {(originalCents / 100).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-amber-900 font-bold">
+                                <span>ADICIONAL SOLICITADO ({ad.title}):</span>
+                                <span>+ R$ {(additionalCents / 100).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-slate-900 font-black border-t border-amber-300 pt-1 text-xs">
+                                <span>NOVO TOTAL:</span>
+                                <span className="text-[#0055D4]">R$ {(newTotalCents / 100).toFixed(2)}</span>
                               </div>
                             </div>
-                            <span className="text-lg font-black text-amber-900">
-                              + R$ {(ad.additionalAmountCents / 100).toFixed(2)}
+
+                            <div className="flex items-center justify-end gap-2 pt-1">
+                              <button
+                                type="button"
+                                disabled={isActionPending}
+                                onClick={() => handleRejectAddendum(ad.id)}
+                                className="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold cursor-pointer transition-colors"
+                              >
+                                Recusar Adicional
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isActionPending}
+                                onClick={() => handleAcceptAddendum(ad.id)}
+                                className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5 transition-colors"
+                              >
+                                <Icon name="check-circle" size={13} />
+                                <span>Aceitar e Pagar Adicional</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {/* Evidências Fotográficas do Serviço (Antes e Depois - Cláusulas 9 a 18) */}
+                    {(() => {
+                      const reqEvidences = (evidences || []).filter(
+                        (e: any) => e.requestId === req.id || (req.contractId && e.contractId === req.contractId)
+                      );
+                      if (reqEvidences.length === 0) return null;
+
+                      const beforeEvidences = reqEvidences.filter((e: any) => e.stage === "ANTES" || e.stage === "before");
+                      const afterEvidences = reqEvidences.filter((e: any) => e.stage === "DEPOIS" || e.stage === "after");
+
+                      return (
+                        <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                              <Icon name="camera" size={14} className="text-[#0055D4]" />
+                              <span>Evidências Técnicas do Serviço</span>
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">
+                              Zeladoria Protege · Registro Visual
                             </span>
                           </div>
 
-                          <p className="text-slate-800 bg-white p-3 rounded-xl border border-amber-200/70 leading-relaxed">
-                            {ad.description}
-                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Bloco Antes */}
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <strong className="text-amber-800 font-bold flex items-center gap-1.5">
+                                  <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                                  <span>ANTES DO SERVIÇO</span>
+                                </strong>
+                                <span className="text-[10px] text-slate-400">{beforeEvidences.length} foto(s)</span>
+                              </div>
+                              {beforeEvidences.length === 0 ? (
+                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma foto antes registrada.</p>
+                              ) : (
+                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                  {beforeEvidences.map((ev: any, idx: number) => (
+                                    <button
+                                      key={ev.id || idx}
+                                      type="button"
+                                      onClick={() => {
+                                        const allImgs = reqEvidences.map((x: any) => ({
+                                          url: x.fileUrl,
+                                          caption: x.caption,
+                                          stage: x.stage,
+                                        }));
+                                        const curIdx = allImgs.findIndex((x: any) => x.url === ev.fileUrl);
+                                        openLightbox(allImgs, Math.max(0, curIdx));
+                                      }}
+                                      className="h-16 w-16 rounded-lg border border-slate-200 overflow-hidden shrink-0 group relative hover:opacity-90 cursor-pointer"
+                                      title={ev.caption || "Foto antes do serviço"}
+                                    >
+                                      <img
+                                        src={ev.fileUrl}
+                                        alt={ev.caption || "Foto antes"}
+                                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
 
-                          <div className="flex items-center justify-end gap-2 pt-1">
-                            <button
-                              type="button"
-                              disabled={isActionPending}
-                              onClick={() => handleAcceptAddendum(ad.id)}
-                              className="px-4 py-2 rounded-xl bg-[#0055D4] hover:bg-[#0047BA] text-white font-bold cursor-pointer shadow-xs flex items-center gap-1.5"
-                            >
-                              <Icon name="check-circle" size={13} />
-                              <span>Aceitar e Pagar Adicional</span>
-                            </button>
+                            {/* Bloco Depois */}
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <strong className="text-emerald-800 font-bold flex items-center gap-1.5">
+                                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                  <span>DEPOIS DO SERVIÇO</span>
+                                </strong>
+                                <span className="text-[10px] text-slate-400">{afterEvidences.length} foto(s)</span>
+                              </div>
+                              {afterEvidences.length === 0 ? (
+                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma foto depois registrada.</p>
+                              ) : (
+                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                  {afterEvidences.map((ev: any, idx: number) => (
+                                    <button
+                                      key={ev.id || idx}
+                                      type="button"
+                                      onClick={() => {
+                                        const allImgs = reqEvidences.map((x: any) => ({
+                                          url: x.fileUrl,
+                                          caption: x.caption,
+                                          stage: x.stage,
+                                        }));
+                                        const curIdx = allImgs.findIndex((x: any) => x.url === ev.fileUrl);
+                                        openLightbox(allImgs, Math.max(0, curIdx));
+                                      }}
+                                      className="h-16 w-16 rounded-lg border border-slate-200 overflow-hidden shrink-0 group relative hover:opacity-90 cursor-pointer"
+                                      title={ev.caption || "Foto depois do serviço"}
+                                    >
+                                      <img
+                                        src={ev.fileUrl}
+                                        alt={ev.caption || "Foto depois"}
+                                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      );
+                    })()}
 
                     {/* Vistoria Técnica: Oferta do Prestador e Seleção de Horários */}
                     {(() => {
@@ -1614,6 +1893,90 @@ export function ServicosClient({
                   </div>
                 ) : (
                   <div className="space-y-6">
+                    {/* SEUS PROFISSIONAIS (Cláusulas 37 e 38) */}
+                    {hiredProviders && hiredProviders.length > 0 && selectedCategory === "Todas" && !search && (
+                      <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0055D4] text-white">
+                              <Icon name="user-check" size={14} />
+                            </span>
+                            <div>
+                              <h2 className="text-sm font-black text-[#0F172A]">Seus Profissionais</h2>
+                              <p className="text-[11px] text-slate-500">Profissionais que você já contratou no condomínio</p>
+                            </div>
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-bold hidden sm:inline">
+                            Mais recentes primeiro
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {hiredProviders.map((hp: any) => {
+                            const isEligible = hp.active && hp.onboardingStatus !== "suspenso";
+                            return (
+                              <div
+                                key={`hired-${hp.id}`}
+                                className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {hp.photoUrl ? (
+                                    <img
+                                      src={hp.photoUrl}
+                                      alt={hp.name}
+                                      className="h-11 w-11 rounded-full object-cover border border-slate-100 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-11 w-11 rounded-full bg-blue-100 text-[#0055D4] flex items-center justify-center font-black text-sm shrink-0">
+                                      {hp.name[0]}
+                                    </div>
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <strong className="text-xs font-bold text-slate-900 truncate">{hp.name}</strong>
+                                      <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5 shrink-0">
+                                        ★ {(hp.rating || 4.9).toFixed(1)}
+                                      </span>
+                                    </div>
+                                    <span className="text-[11px] text-slate-500 block truncate">{hp.category}</span>
+                                    <span className="text-[10px] font-bold text-[#0055D4] bg-blue-50 px-1.5 py-0.2 rounded inline-block mt-0.5">
+                                      Você contratou {hp.hireCount} {hp.hireCount === 1 ? "vez" : "vezes"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                  {isEligible ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRehire(hp)}
+                                      className="w-full py-2 rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                                    >
+                                      <Icon name="refresh" size={12} />
+                                      <span>Contratar novamente</span>
+                                    </button>
+                                  ) : (
+                                    <div className="w-full flex items-center justify-between gap-1 text-[11px]">
+                                      <span className="text-slate-400 italic">Carlos não está recebendo novos serviços</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleCategoryChange(hp.category);
+                                        }}
+                                        className="text-[#0055D4] hover:underline font-bold"
+                                      >
+                                        Ver semelhantes
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* BLOCO 1: PATROCINADOS / ANÚNCIO (Separado, máx 1-2, sem medalha #1) */}
                     {sponsoredList.length > 0 && (
                       <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-3">
@@ -1780,6 +2143,8 @@ export function ServicosClient({
         <ProviderProfileModal
           provider={selectedProfileVendor}
           hasHiredBefore={hiredProviderIds.has(selectedProfileVendor.id)}
+          userHiredCount={hiredProviders.find((hp: any) => hp.id === selectedProfileVendor.id)?.hireCount}
+          onRehire={(p) => handleRehire(p)}
           onClose={() => setSelectedProfileVendor(null)}
           onRequestBudget={(p, svc) => {
             setSelectedProfileVendor(null);
@@ -2144,6 +2509,26 @@ export function ServicosClient({
           </div>
         </div>
       )}
+
+      {/* Lightbox Modal para Evidências Técnicas (Antes / Depois) */}
+      <EvidenceLightboxModal
+        isOpen={lightboxData.isOpen}
+        onClose={() => setLightboxData((prev) => ({ ...prev, isOpen: false }))}
+        images={lightboxData.images}
+        initialIndex={lightboxData.initialIndex}
+      />
+
+      {/* Modal de Contratar Novamente (Rebooking Direto) */}
+      <RebookServiceModal
+        isOpen={isRebookModalOpen}
+        onClose={() => {
+          setIsRebookModalOpen(false);
+          setRebookVendor(null);
+        }}
+        vendor={rebookVendor}
+        onSubmit={handleRebookSubmit}
+        isPending={isActionPending}
+      />
     </div>
   );
 }

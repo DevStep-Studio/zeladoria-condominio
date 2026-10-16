@@ -1,10 +1,12 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { db } from "@/db";
 import {
+  auditLogs,
   contractAddendums,
   financialLedgerEntries,
   marketplaceSettings,
+  notifications,
   paymentOrders,
   paymentRecipients,
   paymentWebhookEvents,
@@ -71,6 +73,8 @@ export async function getMarketplaceSettings(condoId?: number | null) {
     payoutsEnabled: settings?.payoutsEnabled ?? true,
     zeladoriaProtegeEnabled: settings?.zeladoriaProtegeEnabled ?? true,
     maxInstallments: settings?.maxInstallments ?? 1,
+    defaultQuoteValidityHours: settings?.defaultQuoteValidityHours ?? 48,
+    requireBeforePhoto: settings?.requireBeforePhoto ?? false,
   };
 }
 
@@ -520,6 +524,8 @@ export async function sendDigitalProposal(params: {
   discountCents?: number;
   estimatedDays: number;
   availableAt?: string;
+  validityHours?: number; // 24, 48, 72, 168 (7 dias)
+  expiresAt?: string | Date;
   warrantyDays?: number;
   conditions?: string;
   description: string;
@@ -595,8 +601,15 @@ export async function sendDigitalProposal(params: {
   const totalCents = Math.max(0, grossSubtotal - inspectionDiscountCents);
   const warrantyDays = params.warrantyDays ?? 90; // CDC mínimo legal
 
+  // Validade do orçamento
+  const settings = await getMarketplaceSettings(req.condoId);
+  const validityHours = params.validityHours || settings.defaultQuoteValidityHours || 48;
+  const computedExpiresAt = params.expiresAt
+    ? new Date(params.expiresAt)
+    : new Date(Date.now() + validityHours * 3600 * 1000);
+
   // Gera contrato digital / hash de integridade imutável (Art. 26 CDC + Termos Zeladoria Protege)
-  const contractString = `REQ_${params.requestId}_VEND_${params.vendorId}_V${newVersion}_VAL_${totalCents}_DISC_${inspectionDiscountCents}_WARR_${warrantyDays}_${Date.now()}`;
+  const contractString = `REQ_${params.requestId}_VEND_${params.vendorId}_V${newVersion}_VAL_${totalCents}_DISC_${inspectionDiscountCents}_WARR_${warrantyDays}_EXP_${computedExpiresAt.getTime()}_${Date.now()}`;
   const contractHash = createHash("sha256").update(contractString).digest("hex");
 
   const [quote] = await db
@@ -620,6 +633,9 @@ export async function sendDigitalProposal(params: {
       contractHash,
       conditions: params.conditions || null,
       availableAt: params.availableAt || null,
+      expiresAt: computedExpiresAt,
+      validUntil: computedExpiresAt,
+      sentAt: new Date(),
       description: params.description,
       status: "pendente",
     })
@@ -635,11 +651,23 @@ export async function sendDigitalProposal(params: {
     .where(eq(serviceRequests.id, params.requestId));
 
   const discountMsg = inspectionDiscountCents > 0 ? ` (com crédito de -R$ ${(inspectionDiscountCents / 100).toFixed(2)} da vistoria)` : "";
+  const validUntilFormatted = computedExpiresAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " às " + computedExpiresAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
   await db.insert(serviceMessages).values({
     requestId: params.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
-    body: `Proposta digital v${newVersion} enviada: Total R$ ${(totalCents / 100).toFixed(2)}${discountMsg}. Mão de obra: R$ ${(laborCents / 100).toFixed(2)}, Materiais: R$ ${(materialsCents / 100).toFixed(2)}. Garantia informada: ${warrantyDays} dias com Zeladoria Protege.`,
+    body: `Orçamento enviado: R$ ${(totalCents / 100).toFixed(2)}${discountMsg}. Válido até ${validUntilFormatted}. Garantia informada: ${warrantyDays} dias com Zeladoria Protege.`,
+  });
+
+  // Notifica o morador sobre o novo orçamento
+  await db.insert(notifications).values({
+    condoId: req.condoId,
+    userId: req.customerId,
+    title: `Novo orçamento no chamado #${req.code}`,
+    body: `Orçamento de R$ ${(totalCents / 100).toFixed(2)} recebido. Válido até ${validUntilFormatted}.`,
+    link: `/painel/servicos`,
+    channel: "app",
   });
 
   return quote;
@@ -675,6 +703,24 @@ export async function customerAcceptProposalAndPay(params: {
 
   const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
   const [vendor] = await db.select().from(vendors).where(eq(vendors.id, quote.vendorId)).limit(1);
+
+  // Validação estrita de expiração temporal do orçamento (Cláusulas 2-4)
+  const now = new Date();
+  const expirationDate = quote.expiresAt || quote.validUntil;
+  if (expirationDate && new Date(expirationDate) < now) {
+    await db.update(serviceQuotes).set({ status: "expirado" }).where(eq(serviceQuotes.id, quote.id));
+    await db.insert(auditLogs).values({
+      condoId: req.condoId,
+      userId: params.customerId,
+      userName: customerUser?.name || "morador",
+      action: "QUOTE_EXPIRED",
+      entity: "service_quote",
+      entityId: String(quote.id),
+      summary: `Tentativa de aceite de orçamento expirado (quote #${quote.id}) no chamado #${req.code}`,
+      critical: false,
+    });
+    throw new Error(`Este orçamento expirou em ${new Date(expirationDate).toLocaleDateString("pt-BR")} às ${new Date(expirationDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} e não pode mais ser aceito. Solicite um novo orçamento.`);
+  }
 
   // 0. Idempotência anti-duplo clique: se já existe contrato gerado para esta proposta, reaproveita a cobrança
   const [existingContract] = await db
@@ -726,6 +772,7 @@ export async function customerAcceptProposalAndPay(params: {
     .update(serviceQuotes)
     .set({
       status: "aceito",
+      acceptedAt: new Date(),
       termsAcceptedAt: new Date(),
       userIp: params.userIp || null,
     })
@@ -1263,44 +1310,80 @@ export async function customerOpenDispute(params: {
 }
 
 /**
- * Prestador cria aditivo de escopo (Cláusulas 41-42: nunca alterar preço silenciosamente)
+ * Prestador cria aditivo de escopo (Cláusulas 18-20: nunca alterar preço original silenciosamente)
  */
 export async function providerCreateContractAddendum(params: {
   requestId: number;
   quoteId: number;
+  contractId?: number;
   vendorId: number;
   title: string;
+  reason?: string;
   description: string;
   additionalAmountCents: number;
+  photos?: string[];
+  estimatedExtraHours?: number;
 }) {
   const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.vendorId !== params.vendorId) throw new Error("Não autorizado.");
+
+  if (params.additionalAmountCents <= 0) {
+    throw new Error("O valor adicional deve ser superior a zero.");
+  }
 
   const [addendum] = await db
     .insert(contractAddendums)
     .values({
       requestId: params.requestId,
       quoteId: params.quoteId,
+      contractId: params.contractId || null,
+      vendorId: params.vendorId,
       title: params.title,
+      reason: params.reason || null,
       description: params.description,
       additionalAmountCents: params.additionalAmountCents,
+      photos: params.photos || [],
+      estimatedExtraHours: params.estimatedExtraHours || 0,
       status: "proposto",
     })
     .returning();
+
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, params.vendorId)).limit(1);
 
   await db.insert(serviceMessages).values({
     requestId: params.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
-    body: `Aditivo contratual de escopo proposto: "${params.title}" (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}). Motivo: ${params.description}. O cliente precisa aprovar antes de prosseguir.`,
+    body: `Aditivo contratual de escopo proposto: "${params.title}" (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}). Motivo: ${params.reason || params.description}. O cliente precisa aprovar antes de prosseguir.`,
+  });
+
+  // Notifica o morador sobre a solicitação de adicional
+  await db.insert(notifications).values({
+    condoId: req.condoId,
+    userId: req.customerId,
+    title: `Adicional de serviço solicitado`,
+    body: `${vendor?.name || "O prestador"} solicitou um adicional de R$ ${(params.additionalAmountCents / 100).toFixed(2)} para "${params.title}".`,
+    link: `/painel/servicos`,
+    channel: "app",
+  });
+
+  await db.insert(auditLogs).values({
+    condoId: req.condoId,
+    userId: vendor?.userId || null,
+    userName: vendor?.name || "prestador",
+    action: "ADDENDUM_CREATED",
+    entity: "contract_addendum",
+    entityId: String(addendum.id),
+    summary: `Adicional de escopo proposto (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}) no chamado #${req.code}`,
+    critical: false,
   });
 
   return addendum;
 }
 
 /**
- * Morador aceita aditivo de escopo e gera nova cobrança complementar
+ * Morador aceita aditivo de escopo e gera nova cobrança complementar separada
  */
 export async function customerAcceptContractAddendum(params: {
   addendumId: number;
@@ -1396,6 +1479,7 @@ export async function customerAcceptContractAddendum(params: {
     .update(contractAddendums)
     .set({
       status: "aceito",
+      acceptedAt: new Date(),
       paymentOrderId: order.id,
       updatedAt: new Date(),
     })
@@ -1413,7 +1497,98 @@ export async function customerAcceptContractAddendum(params: {
     description: `Cobrança de aditivo contratual emitida (${addendum.title})`,
   });
 
+  // Notifica o prestador sobre o aceite
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, req.vendorId || 0)).limit(1);
+  if (vendor?.userId) {
+    await db.insert(notifications).values({
+      condoId: req.condoId,
+      userId: vendor.userId,
+      title: `Aditivo aceito pelo cliente`,
+      body: `O morador aceitou o aditivo "${addendum.title}". Aguardando confirmação do pagamento.`,
+      link: `/prestador/chamados`,
+      channel: "app",
+    });
+  }
+
+  await db.insert(auditLogs).values({
+    condoId: req.condoId,
+    userId: params.customerId,
+    userName: customerUser?.name || "morador",
+    action: "ADDENDUM_ACCEPTED",
+    entity: "contract_addendum",
+    entityId: String(addendum.id),
+    summary: `Morador aceitou aditivo (+R$ ${(addendum.additionalAmountCents / 100).toFixed(2)}) e gerou cobrança ${orderCode}`,
+    critical: false,
+  });
+
   return { addendum, order, chargeRes };
+}
+
+/**
+ * Morador recusa aditivo de escopo (Cláusula 22: escopo original permanece intacto)
+ */
+export async function customerRejectContractAddendum(params: {
+  addendumId: number;
+  customerId: number;
+  condoId?: number;
+  reason?: string;
+}) {
+  const [addendum] = await db.select().from(contractAddendums).where(eq(contractAddendums.id, params.addendumId)).limit(1);
+  if (!addendum) throw new Error("Aditivo não encontrado.");
+
+  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, addendum.requestId)).limit(1);
+  if (!req || req.customerId !== params.customerId) throw new Error("Não autorizado.");
+
+  if (params.condoId && req.condoId !== params.condoId) {
+    throw new Error("Acesso negado: aditivo pertence a outro condomínio.");
+  }
+
+  if (addendum.status !== "proposto") {
+    throw new Error(`Este aditivo não pode ser recusado pois já está no status "${addendum.status}".`);
+  }
+
+  await db
+    .update(contractAddendums)
+    .set({
+      status: "recusado",
+      rejectedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(contractAddendums.id, addendum.id));
+
+  await db.insert(serviceMessages).values({
+    requestId: req.id,
+    senderId: params.customerId,
+    senderRole: "morador",
+    body: `Aditivo contratual recusado pelo morador: "${addendum.title}". O serviço deve prosseguir dentro do escopo originalmente aprovado.${params.reason ? ` Motivo: ${params.reason}` : ""}`,
+  });
+
+  const [customerUser] = await db.select().from(users).where(eq(users.id, params.customerId)).limit(1);
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, req.vendorId || 0)).limit(1);
+
+  if (vendor?.userId) {
+    await db.insert(notifications).values({
+      condoId: req.condoId,
+      userId: vendor.userId,
+      title: `Aditivo recusado no chamado #${req.code}`,
+      body: `O morador recusou o aditivo "${addendum.title}". O escopo original permanece vigente.`,
+      link: `/prestador/chamados`,
+      channel: "app",
+    });
+  }
+
+  await db.insert(auditLogs).values({
+    condoId: req.condoId,
+    userId: params.customerId,
+    userName: customerUser?.name || "morador",
+    action: "ADDENDUM_REJECTED",
+    entity: "contract_addendum",
+    entityId: String(addendum.id),
+    summary: `Morador recusou aditivo de escopo (+R$ ${(addendum.additionalAmountCents / 100).toFixed(2)}) no chamado #${req.code}`,
+    critical: false,
+  });
+
+  return { success: true, addendumId: addendum.id, status: "recusado" };
 }
 
 /**
@@ -1915,4 +2090,160 @@ export async function adminResolveDispute(params: {
     .where(eq(serviceDisputes.id, params.disputeId));
 
   return { success: true, disputeId: params.disputeId };
+}
+
+/**
+ * 20. Morador contrata novamente um prestador anterior (Rebook / Contratar Novamente)
+ * Cláusulas 30 a 42:
+ * - Gera um NOVO chamado (serviceRequests) totalmente independente.
+ * - NUNCA copia preço antigo, data antiga ou escopo antigo.
+ * - Pré-seleciona prestador, categoria e condomínio.
+ * - Valida se o prestador ainda está ativo e elegível.
+ */
+export async function rebookServiceRequest(params: {
+  customerId: number;
+  condoId: number;
+  vendorId: number;
+  serviceType?: "same_service" | "catalog_service";
+  category?: string;
+  title?: string;
+  description: string;
+  urgency?: "agora" | "hoje" | "agendar";
+  scheduledDate?: string;
+  location?: string;
+  attachments?: string[];
+}) {
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(and(eq(vendors.id, params.vendorId), eq(vendors.condoId, params.condoId)))
+    .limit(1);
+
+  if (!vendor) {
+    throw new Error("Profissional não encontrado no condomínio.");
+  }
+
+  // Validação de disponibilidade e elegibilidade (Cláusula 41-42)
+  if (!vendor.active || vendor.onboardingStatus === "suspenso") {
+    throw new Error(`${vendor.name} não está recebendo novos serviços no momento.`);
+  }
+
+  if (!params.description?.trim()) {
+    throw new Error("Informe o que está acontecendo para o novo chamado.");
+  }
+
+  // Gera código sequencial único
+  const [countRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(serviceRequests)
+    .where(eq(serviceRequests.condoId, params.condoId));
+
+  const year = new Date().getFullYear();
+  const seqNum = String((countRow?.n ?? 0) + 1).padStart(4, "0");
+  const code = `SRV-${year}-${seqNum}`;
+
+  const category = (params.category || vendor.category || "servicos").toLowerCase();
+  const title = params.title?.trim() || `Novo chamado com ${vendor.name}`;
+
+  const [newRequest] = await db
+    .insert(serviceRequests)
+    .values({
+      condoId: params.condoId,
+      code,
+      customerId: params.customerId,
+      vendorId: vendor.id, // Direcionado ao prestador escolhido
+      mode: "quote",
+      category,
+      title,
+      description: params.description.trim(),
+      urgency: params.urgency || "hoje",
+      scheduledDate: params.scheduledDate,
+      location: params.location || "Minha Unidade",
+      attachments: params.attachments || [],
+      status: "solicitado", // Inicia aguardando NOVO orçamento do prestador (preço antigo NUNCA reaproveitado)
+    })
+    .returning();
+
+  // Registra mensagem no chat do novo chamado
+  await db.insert(serviceMessages).values({
+    requestId: newRequest.id,
+    senderId: params.customerId,
+    senderRole: "sistema",
+    body: `Recontratação direta iniciada com ${vendor.name} para a categoria ${category}. Aguardando envio de novo orçamento pelo profissional.`,
+  });
+
+  // Notifica o prestador sobre o chamado direto
+  if (vendor.userId) {
+    await db.insert(notifications).values({
+      condoId: params.condoId,
+      userId: vendor.userId,
+      title: `Novo chamado direto #${code}`,
+      body: `Um cliente anterior solicitou um novo serviço para você. Envie um orçamento para começar.`,
+      link: `/prestador/chamados`,
+      channel: "app",
+    });
+  }
+
+  // Registra auditoria
+  await db.insert(auditLogs).values({
+    condoId: params.condoId,
+    userId: params.customerId,
+    action: "REBOOK_CREATED",
+    entity: "service_request",
+    entityId: String(newRequest.id),
+    summary: `Morador recontratou prestador ${vendor.name} (novo chamado #${code})`,
+    critical: false,
+  });
+
+  return newRequest;
+}
+
+/**
+ * 21. Retorna lista de prestadores que o morador já contratou ("Seus Profissionais")
+ */
+export async function getCustomerHiredProviders(customerId: number, condoId: number) {
+  const completedRequests = await db
+    .select({
+      vendorId: serviceRequests.vendorId,
+      category: serviceRequests.category,
+      completedAt: serviceRequests.completedAt,
+      createdAt: serviceRequests.createdAt,
+    })
+    .from(serviceRequests)
+    .where(
+      and(
+        eq(serviceRequests.customerId, customerId),
+        eq(serviceRequests.condoId, condoId),
+        sql`${serviceRequests.vendorId} IS NOT NULL`
+      )
+    );
+
+  const vendorCounts: Record<number, { count: number; lastDate: Date; category: string }> = {};
+  for (const r of completedRequests) {
+    if (!r.vendorId) continue;
+    const date = r.completedAt || r.createdAt;
+    if (!vendorCounts[r.vendorId]) {
+      vendorCounts[r.vendorId] = { count: 0, lastDate: date, category: r.category };
+    }
+    vendorCounts[r.vendorId].count++;
+    if (date > vendorCounts[r.vendorId].lastDate) {
+      vendorCounts[r.vendorId].lastDate = date;
+    }
+  }
+
+  const vendorIds = Object.keys(vendorCounts).map(Number);
+  if (vendorIds.length === 0) return [];
+
+  const vendorList = await db
+    .select()
+    .from(vendors)
+    .where(inArray(vendors.id, vendorIds));
+
+  return vendorList
+    .map((v) => ({
+      ...v,
+      hireCount: vendorCounts[v.id]?.count || 1,
+      lastHiredAt: vendorCounts[v.id]?.lastDate || v.createdAt,
+    }))
+    .sort((a, b) => new Date(b.lastHiredAt).getTime() - new Date(a.lastHiredAt).getTime());
 }

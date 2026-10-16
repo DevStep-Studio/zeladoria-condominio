@@ -6,6 +6,7 @@ import {
   contractAddendums,
   customerFavorites,
   paymentOrders,
+  serviceEvidences,
   serviceInspections,
   serviceMessages,
   serviceQuotes,
@@ -19,6 +20,7 @@ import {
 } from "@/db/schema";
 import { requireCondo } from "@/lib/auth";
 import { getMarketplaceProviders } from "@/lib/services/providers-query";
+import { getCustomerHiredProviders } from "@/lib/services/payments/payment-service";
 import { ServicosClient } from "./servicos-client";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +83,9 @@ export default async function ServicosPage() {
           estimatedDays: serviceQuotes.estimatedDays,
           availableAt: serviceQuotes.availableAt,
           warrantyDays: serviceQuotes.warrantyDays,
+          expiresAt: serviceQuotes.expiresAt,
+          sentAt: serviceQuotes.sentAt,
+          acceptedAt: serviceQuotes.acceptedAt,
           status: serviceQuotes.status,
           vendorName: vendors.name,
           vendorPhoto: vendors.photoUrl,
@@ -105,6 +110,20 @@ export default async function ServicosPage() {
         .where(inArray(serviceReviews.requestId, requestIds));
     } catch (err) {
       console.warn("Could not query service_reviews:", err);
+    }
+  }
+
+  // 3.1 Evidências Técnicas (Fotos ANTES e DEPOIS)
+  let evidencesList: any[] = [];
+  if (requestIds.length > 0) {
+    try {
+      evidencesList = await db
+        .select()
+        .from(serviceEvidences)
+        .where(inArray(serviceEvidences.requestId, requestIds))
+        .orderBy(desc(serviceEvidences.createdAt));
+    } catch (err) {
+      console.warn("Could not query service_evidences:", err);
     }
   }
 
@@ -259,6 +278,13 @@ export default async function ServicosPage() {
     console.warn("Could not query customerFavorites:", err);
   }
 
+  let hiredProvidersList: any[] = [];
+  try {
+    hiredProvidersList = await getCustomerHiredProviders(session.user.id, condoId);
+  } catch (err) {
+    console.warn("Could not query hired providers:", err);
+  }
+
   return (
     <ServicosClient
       services={serviceRows}
@@ -269,6 +295,8 @@ export default async function ServicosPage() {
       inspections={inspectionsList}
       paymentOrders={paymentOrdersList}
       addendums={addendumsList}
+      evidences={evidencesList}
+      hiredProviders={hiredProvidersList}
       initialFavorites={userFavoriteIds}
       vendors={vendorList}
       providers={providers}

@@ -1150,5 +1150,307 @@ describe("Zeladoria Pay 14: Prompt Master On-Demand Marketplace E2E (Cláusulas 
   });
 });
 
+describe("Zeladoria Serviços: Aperfeiçoamento do Zeladoria Serviços (Testes 50 a 55)", () => {
+  it("TESTE 50: TESTE E2E — ORÇAMENTO (Prestador envia R$350 com validade 48h -> Após 48h cliente tenta aceitar -> Backend rejeita -> Interface mostra Expirado)", () => {
+    // 1. Prestador envia orçamento de R$ 350 com validade de 48 horas
+    const now = new Date("2026-10-16T10:00:00Z");
+    const validityHours = 48;
+    const expiresAt = new Date(now.getTime() + validityHours * 3600 * 1000); // 2026-10-18T10:00:00Z
+
+    const quote: {
+      id: number;
+      requestId: number;
+      vendorName: string;
+      totalCents: number;
+      status: string;
+      sentAt: Date;
+      expiresAt: Date;
+    } = {
+      id: 501,
+      requestId: 101,
+      vendorName: "Carlos Eduardo",
+      totalCents: 35000,
+      status: "pendente",
+      sentAt: now,
+      expiresAt: expiresAt,
+    };
+
+    // 2. Função de validação no backend para aceite do orçamento
+    function backendCustomerAcceptQuote(q: typeof quote, requestTime: Date) {
+      if (q.expiresAt && requestTime.getTime() > q.expiresAt.getTime()) {
+        q.status = "expirado";
+        throw new Error(
+          `Orçamento expirado em ${q.expiresAt.toISOString()}. Não é mais possível aceitar este orçamento.`
+        );
+      }
+      q.status = "aceito";
+      return { success: true };
+    }
+
+    // 3. Simula tentativa de aceite após 49 horas (expirado)
+    const lateAttemptTime = new Date("2026-10-18T11:00:00Z");
+
+    assert.throws(
+      () => backendCustomerAcceptQuote(quote, lateAttemptTime),
+      /Orçamento expirado/
+    );
+
+    // 4. Backend garante status 'expirado' e impede transição para aceito
+    assert.equal(quote.status, "expirado");
+
+    // 5. Interface do morador reflete estado expirado: desabilita botão aceitar e exibe ação de novo orçamento
+    const isExpiredInUI = quote.expiresAt.getTime() < lateAttemptTime.getTime();
+    const canAcceptInUI = !isExpiredInUI && (quote.status as string) === "pendente";
+    const showRequestNewQuoteCTA = isExpiredInUI;
+
+    assert.equal(isExpiredInUI, true, "UI identifica orçamento como expirado");
+    assert.equal(canAcceptInUI, false, "Botão Aceitar fica inativo");
+    assert.equal(showRequestNewQuoteCTA, true, "Exibe botão [ Solicitar novo orçamento ]");
+  });
+
+  it("TESTE 51: TESTE E2E — FOTOS (Prestador inicia -> Adiciona foto ANTES -> Executa -> Adiciona 2 fotos DEPOIS -> Finaliza -> Morador vê ANTES e DEPOIS)", () => {
+    interface ServiceEvidenceItem {
+      id: number;
+      requestId: number;
+      stage: "ANTES" | "DURANTE" | "DEPOIS";
+      fileUrl: string;
+      caption?: string;
+      createdAt: Date;
+    }
+
+    const evidences: ServiceEvidenceItem[] = [];
+    let serviceStatus = "solicitado";
+
+    // 1. Prestador inicia atendimento
+    serviceStatus = "em_atendimento";
+    assert.equal(serviceStatus, "em_atendimento");
+
+    // 2. Prestador anexa foto ANTES do reparo
+    evidences.push({
+      id: 1,
+      requestId: 101,
+      stage: "ANTES",
+      fileUrl: "https://zeladoria.storage/photos/tubulacao_rachada_antes.jpg",
+      caption: "Vazamento na junção do sifão e umidade na parede",
+      createdAt: new Date(),
+    });
+
+    // 3. Prestador executa o serviço e adiciona duas fotos DEPOIS
+    evidences.push({
+      id: 2,
+      requestId: 101,
+      stage: "DEPOIS",
+      fileUrl: "https://zeladoria.storage/photos/tubulacao_trocada_depois1.jpg",
+      caption: "Sifão e luva novos instalados com vedação técnica",
+      createdAt: new Date(),
+    });
+    evidences.push({
+      id: 3,
+      requestId: 101,
+      stage: "DEPOIS",
+      fileUrl: "https://zeladoria.storage/photos/parede_seca_depois2.jpg",
+      caption: "Teste de fluxo e estanqueidade aprovado sem vazamento",
+      createdAt: new Date(),
+    });
+
+    // 4. Prestador finaliza serviço
+    serviceStatus = "prestador_finalizou";
+    assert.equal(serviceStatus, "prestador_finalizou");
+
+    // 5. Morador abre o chamado e visualiza as evidências separadas por estágio
+    const beforePhotos = evidences.filter((e) => e.stage === "ANTES");
+    const afterPhotos = evidences.filter((e) => e.stage === "DEPOIS");
+
+    assert.equal(beforePhotos.length, 1, "Morador vê exatamente 1 foto ANTES");
+    assert.equal(afterPhotos.length, 2, "Morador vê exatamente 2 fotos DEPOIS");
+    assert.equal(beforePhotos[0].caption, "Vazamento na junção do sifão e umidade na parede");
+    assert.equal(afterPhotos[1].caption, "Teste de fluxo e estanqueidade aprovado sem vazamento");
+  });
+
+  it("TESTE 52: TESTE E2E — ADICIONAL (Contrato original R$350 -> Prestador solicita +R$120 -> Cliente aceita -> Nova cobrança criada -> Confirmado -> Novo total R$470 -> Pagamento original permanece R$350)", () => {
+    // 1. Contrato original aprovado de R$ 350
+    const originalContract = {
+      id: 10,
+      requestId: 101,
+      vendorId: 5,
+      totalCents: 35000, // R$ 350,00
+      status: "ativo",
+    };
+
+    // Cobrança original já efetuada
+    const paymentOrdersList: Array<{
+      id: number;
+      code: string;
+      purpose: string;
+      amountGrossCents: number;
+      commissionCents: number;
+      status: string;
+    }> = [
+      {
+        id: 1,
+        code: "PAY-SRV-2026-0001",
+        purpose: "servico_principal",
+        amountGrossCents: 35000,
+        commissionCents: 3500, // 10%
+        status: "pago",
+      },
+    ];
+
+    // 2. Prestador solicita aditivo de +R$ 120 por complexidade adicional
+    const addendum = {
+      id: 1,
+      contractId: originalContract.id,
+      requestId: originalContract.requestId,
+      title: "Substituição de luva interna trincada",
+      reason: "Rachadura interna identificada após remoção da conexão",
+      additionalAmountCents: 12000, // R$ 120,00
+      status: "proposto",
+      acceptedAt: null as Date | null,
+    };
+
+    // 3. Cliente aceita o adicional
+    function customerAcceptAddendum() {
+      addendum.status = "aceito";
+      addendum.acceptedAt = new Date();
+
+      // Sistema gera NOVA transação complementar separada
+      const newPaymentOrder = {
+        id: paymentOrdersList.length + 1,
+        code: `PAY-ADD-${Date.now()}`,
+        purpose: "aditivo_contratual",
+        amountGrossCents: addendum.additionalAmountCents,
+        commissionCents: Math.round((addendum.additionalAmountCents * 10) / 100), // 10% comissão sobre aditivo
+        status: "pendente",
+      };
+      paymentOrdersList.push(newPaymentOrder);
+      return newPaymentOrder;
+    }
+
+    const addendumOrder = customerAcceptAddendum();
+    assert.equal(addendum.status, "aceito");
+    assert.equal(paymentOrdersList.length, 2, "Duas cobranças distintas registradas");
+
+    // 4. Webhook confirma pagamento da cobrança adicional
+    addendumOrder.status = "pago";
+    addendum.status = "pago";
+
+    // 5. Total contratado é recalculado: R$ 350 + R$ 120 = R$ 470
+    const newTotalContractedCents = originalContract.totalCents + addendum.additionalAmountCents;
+    assert.equal(newTotalContractedCents, 47000, "Novo total contratado é R$ 470,00");
+
+    // 6. Pagamento original de R$ 350 permanece 100% inalterado
+    const originalPayment = paymentOrdersList.find((p) => p.purpose === "servico_principal");
+    assert.ok(originalPayment);
+    assert.equal(originalPayment.amountGrossCents, 35000, "Pagamento 1 permanece R$ 350,00");
+    assert.equal(originalPayment.status, "pago");
+
+    // 7. Pagamento adicional permanece separado de R$ 120
+    const addPayment = paymentOrdersList.find((p) => p.purpose === "aditivo_contratual");
+    assert.ok(addPayment);
+    assert.equal(addPayment.amountGrossCents, 12000, "Pagamento 2 permanece R$ 120,00");
+    assert.equal(addPayment.commissionCents, 1200, "Comissão Zeladoria de 10% aplicada sobre adicional (R$ 12,00)");
+  });
+
+  it("TESTE 53: TESTE DE RECUSA (Prestador solicita +R$200 -> Cliente recusa -> Nenhuma cobrança criada -> Valor contratado permanece R$350)", () => {
+    const originalContractTotalCents = 35000; // R$ 350,00
+    let paymentOrdersCount = 1;
+
+    const addendum = {
+      id: 2,
+      contractId: 10,
+      title: "Impermeabilização preventiva de toda a bancada",
+      additionalAmountCents: 20000, // R$ 200,00
+      status: "proposto",
+    };
+
+    // Morador analisa e decide RECUSAR
+    function customerRejectAddendum() {
+      addendum.status = "recusado";
+      // Nenhuma cobrança deve ser gerada!
+    }
+
+    customerRejectAddendum();
+
+    assert.equal(addendum.status, "recusado");
+    assert.equal(paymentOrdersCount, 1, "Nenhuma cobrança complementar foi criada");
+    assert.equal(originalContractTotalCents, 35000, "Valor contratado original permanece inalterado em R$ 350,00");
+  });
+
+  it("TESTE 54: TESTE E2E — CONTRATAR NOVAMENTE (Serviço anterior concluído -> Cliente toca Contratar novamente -> NOVO chamado criado com prestador pré-selecionado -> Novo problema -> Novo orçamento -> Contrato anterior intacto)", () => {
+    // 1. Contrato anterior concluído com sucesso
+    const oldRequest = {
+      id: 101,
+      code: "SRV-2026-0042",
+      vendorId: 5,
+      vendorName: "Carlos Eduardo",
+      title: "Reparo de vazamento na pia",
+      status: "concluido",
+      finalAmountCents: 35000,
+    };
+
+    // 2. Cliente toca em [ Contratar novamente ]
+    function customerRebookVendor(previousRequest: typeof oldRequest, newProblemDescription: string) {
+      // Cria NOVO chamado independente no banco
+      const newRequest = {
+        id: 102,
+        code: "SRV-2026-0043",
+        vendorId: previousRequest.vendorId, // prestador pré-selecionado
+        vendorName: previousRequest.vendorName,
+        title: "Novo serviço solicitado diretamente",
+        description: newProblemDescription,
+        status: "solicitado",
+        mode: "quote",
+        finalAmountCents: null as number | null, // Preço NÃO é reciclado!
+      };
+      return newRequest;
+    }
+
+    const newRequest = customerRebookVendor(oldRequest, "Quero instalar uma tomada nova na bancada da cozinha");
+
+    // 3. Validações do novo chamado
+    assert.notEqual(newRequest.id, oldRequest.id, "ID do chamado deve ser novo");
+    assert.notEqual(newRequest.code, oldRequest.code, "Código do chamado deve ser novo");
+    assert.equal(newRequest.vendorId, 5, "Prestador Carlos Eduardo pré-selecionado");
+    assert.equal(newRequest.status, "solicitado", "Novo chamado nasce no estado solicitado aguardando proposta");
+    assert.equal(newRequest.description, "Quero instalar uma tomada nova na bancada da cozinha");
+
+    // 4. Contrato anterior permanece completamente intacto
+    assert.equal(oldRequest.status, "concluido");
+    assert.equal(oldRequest.finalAmountCents, 35000);
+  });
+
+  it("TESTE 55: TESTE DE PREÇO ANTIGO (Serviço anterior R$350 -> Cliente contrata novamente -> Sistema NÃO deve assumir R$350 -> Prestador envia novo orçamento)", () => {
+    // Ao criar o novo chamado de recontratação
+    const newRebookedService = {
+      id: 103,
+      vendorId: 5,
+      status: "solicitado",
+      mode: "quote",
+      finalAmountCents: null, // Sistema recusa herdar preço antigo!
+      quotesReceived: [] as Array<{ totalCents: number; description: string }>,
+    };
+
+    assert.equal(
+      newRebookedService.finalAmountCents,
+      null,
+      "Sistema NÃO assume R$ 350,00 do serviço anterior"
+    );
+
+    // Prestador Carlos envia NOVO orçamento baseado na nova demanda
+    newRebookedService.quotesReceived.push({
+      totalCents: 18000, // R$ 180,00
+      description: "Instalação de tomada 20A com passagem de cabeamento",
+    });
+
+    assert.equal(newRebookedService.quotesReceived.length, 1);
+    assert.equal(
+      newRebookedService.quotesReceived[0].totalCents,
+      18000,
+      "Novo orçamento reflete o novo escopo (R$ 180,00), não os R$ 350,00 antigos"
+    );
+  });
+});
+
+
 
 

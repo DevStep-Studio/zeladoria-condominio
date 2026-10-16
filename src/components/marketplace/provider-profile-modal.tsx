@@ -8,6 +8,8 @@ import { categoryImage, type MarketplaceProvider, type ServiceOffering, type Por
 export function ProviderProfileModal({
   provider,
   hasHiredBefore = false,
+  userHiredCount,
+  onRehire,
   isFavorite = false,
   onToggleFavorite,
   onClose,
@@ -15,6 +17,8 @@ export function ProviderProfileModal({
 }: {
   provider: MarketplaceProvider | null;
   hasHiredBefore?: boolean;
+  userHiredCount?: number;
+  onRehire?: (provider: MarketplaceProvider) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (id: number) => void;
   onClose: () => void;
@@ -212,6 +216,29 @@ export function ProviderProfileModal({
                 </span>
               </div>
             </div>
+
+            {userHiredCount != null && userHiredCount > 0 && (
+              <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-between text-xs text-blue-900">
+                <div className="flex items-center gap-2">
+                  <Icon name="check-circle" size={15} className="text-[#0055D4] shrink-0" />
+                  <span>
+                    Você já contratou <strong>{provider.name}</strong> {userHiredCount} {userHiredCount === 1 ? "vez" : "vezes"}.
+                  </span>
+                </div>
+                {onRehire && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onRehire(provider);
+                    }}
+                    className="px-3 py-1 rounded-lg bg-[#0055D4] hover:bg-[#0047BA] text-white text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                  >
+                    Contratar novamente
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* TABS DE NAVEGAÇÃO SEGMENTADAS (Pills Modernas sem Bordas Pesadas) */}

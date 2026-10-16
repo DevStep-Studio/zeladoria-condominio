@@ -18,10 +18,12 @@ import {
   customerAcceptProposalAndPay,
   customerConfirmServiceCompletion,
   customerOpenDispute,
+  customerRejectContractAddendum,
   customerRequestWarranty,
   customerSelectInspectionSlot,
   getAdminFinancialDashboard,
   getContractReceipt,
+  getCustomerHiredProviders,
   getMarketplaceSettings,
   getProviderFinancialSummary,
   processPaymentWebhook,
@@ -30,6 +32,7 @@ import {
   providerFinalizeService,
   providerRecordEvidence,
   providerRespondInspection,
+  rebookServiceRequest,
   sendDigitalProposal,
 } from "@/lib/services/payments/payment-service";
 
@@ -166,6 +169,8 @@ export async function sendDigitalProposalAction(payload: {
   discountCents?: number;
   estimatedDays: number;
   availableAt?: string;
+  validityHours?: number;
+  expiresAt?: string | Date;
   warrantyDays?: number;
   conditions?: string;
   description: string;
@@ -382,9 +387,13 @@ export async function getMarketplaceSettingsAction() {
 export async function providerCreateContractAddendumAction(payload: {
   requestId: number;
   quoteId: number;
+  contractId?: number;
   title: string;
+  reason?: string;
   description: string;
   additionalAmountCents: number;
+  photos?: string[];
+  estimatedExtraHours?: number;
 }) {
   try {
     const { vendor } = await requireProvider();
@@ -433,6 +442,84 @@ export async function customerAcceptContractAddendumAction(payload: {
   } catch (err: any) {
     console.error("Erro em customerAcceptContractAddendumAction:", err);
     return { success: false, error: err?.message || "Erro ao aprovar aditivo contratual." };
+  }
+}
+
+/**
+ * 12.1 Morador recusa aditivo de escopo (Cláusula 22: escopo original é mantido)
+ */
+export async function customerRejectContractAddendumAction(payload: {
+  addendumId: number;
+  reason?: string;
+}) {
+  try {
+    const { session, condoId } = await requireCondo();
+    const result = await customerRejectContractAddendum({
+      addendumId: payload.addendumId,
+      customerId: session.user.id,
+      condoId,
+      reason: payload.reason,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return result;
+  } catch (err: any) {
+    console.error("Erro em customerRejectContractAddendumAction:", err);
+    return { success: false, error: err?.message || "Erro ao recusar aditivo contratual." };
+  }
+}
+
+/**
+ * 12.2 Morador contrata novamente um profissional anterior (Cláusulas 30 a 42)
+ */
+export async function rebookServiceRequestAction(payload: {
+  vendorId: number;
+  serviceType?: "same_service" | "catalog_service";
+  category?: string;
+  title?: string;
+  description: string;
+  urgency?: "agora" | "hoje" | "agendar";
+  scheduledDate?: string;
+  location?: string;
+  attachments?: string[];
+}) {
+  try {
+    const { session, condoId } = await requireCondo();
+    const request = await rebookServiceRequest({
+      customerId: session.user.id,
+      condoId,
+      vendorId: payload.vendorId,
+      serviceType: payload.serviceType,
+      category: payload.category,
+      title: payload.title,
+      description: payload.description,
+      urgency: payload.urgency,
+      scheduledDate: payload.scheduledDate,
+      location: payload.location,
+      attachments: payload.attachments,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, requestId: request.id, code: request.code };
+  } catch (err: any) {
+    console.error("Erro em rebookServiceRequestAction:", err);
+    return { success: false, error: err?.message || "Erro ao recontratar profissional." };
+  }
+}
+
+/**
+ * 12.3 Obter lista de prestadores que o morador já contratou ("Seus Profissionais")
+ */
+export async function getCustomerHiredProvidersAction() {
+  try {
+    const { session, condoId } = await requireCondo();
+    const providers = await getCustomerHiredProviders(session.user.id, condoId);
+    return { success: true, providers };
+  } catch (err: any) {
+    console.error("Erro em getCustomerHiredProvidersAction:", err);
+    return { success: false, error: err?.message || "Erro ao listar profissionais anteriores." };
   }
 }
 
