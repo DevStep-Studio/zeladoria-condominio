@@ -9,6 +9,7 @@ import { condominiums, memberships, units, users, vendors } from "@/db/schema";
 const SECRET = process.env.SESSION_SECRET ?? "gestao-condominio-dev-secret";
 const SESSION_COOKIE = "gc_session";
 const CONDO_COOKIE = "gc_condo";
+const ROLE_COOKIE = "gc_role";
 const MAX_AGE = 60 * 60 * 24 * 30;
 
 export type Role = "superadmin" | "sindico" | "conselho" | "zelador" | "porteiro" | "morador" | "prestador";
@@ -48,11 +49,17 @@ export async function destroySession() {
   const jar = await cookies();
   jar.delete(SESSION_COOKIE);
   jar.delete(CONDO_COOKIE);
+  jar.delete(ROLE_COOKIE);
 }
 
 export async function setActiveCondo(condoId: number) {
   const jar = await cookies();
   jar.set(CONDO_COOKIE, String(condoId), { path: "/", maxAge: MAX_AGE, sameSite: "lax" });
+}
+
+export async function setActiveRole(role: Role) {
+  const jar = await cookies();
+  jar.set(ROLE_COOKIE, role, { path: "/", maxAge: MAX_AGE, sameSite: "lax" });
 }
 
 function readUserId(raw: string | undefined) {
@@ -81,6 +88,7 @@ export type Session = {
   memberships: Membership[];
   condo: typeof condominiums.$inferSelect | null;
   role: Role;
+  availableRoles: Role[];
   unitId: number | null;
   vendorId?: number | null;
 };
@@ -156,6 +164,20 @@ export async function getSession(): Promise<Session | null> {
     ];
   }
 
+  const rawRoles = new Set<Role>();
+  if (user.isSuperAdmin) {
+    rawRoles.add("superadmin");
+    rawRoles.add("sindico");
+    rawRoles.add("morador");
+  }
+  if (vendorProfile || user.isSuperAdmin) {
+    rawRoles.add("prestador");
+  }
+  for (const m of list) {
+    if (m.role) rawRoles.add(m.role);
+  }
+  const availableRoles = Array.from(rawRoles);
+
   const cookieCondo = Number(jar.get(CONDO_COOKIE)?.value ?? 0);
   const active = list.find((m) => m.condoId === cookieCondo) ?? list[0] ?? null;
   let condo: typeof condominiums.$inferSelect | null = null;
@@ -167,17 +189,23 @@ export async function getSession(): Promise<Session | null> {
     condo = c ?? null;
   }
 
-  const role: Role = user.isSuperAdmin
+  const cookieRole = jar.get(ROLE_COOKIE)?.value as Role | undefined;
+  const isCookieRoleValid = cookieRole && availableRoles.includes(cookieRole);
+
+  const defaultRole: Role = user.isSuperAdmin
     ? "superadmin"
     : vendorProfile && list.length === 0
     ? "prestador"
     : ((active?.role ?? (vendorProfile ? "prestador" : "morador")) as Role);
+
+  const role: Role = isCookieRoleValid ? cookieRole : defaultRole;
 
   return {
     user,
     memberships: list,
     condo,
     role,
+    availableRoles,
     unitId: active?.unitId ?? null,
     vendorId: vendorProfile?.id ?? null,
   };
@@ -203,8 +231,12 @@ export async function requireProvider() {
     vendor = null;
   }
 
+  // Se o usuário não tem perfil de prestador nem é superadmin, ou não está atuando como prestador
   if (!vendor && session.role !== "superadmin") {
-    redirect("/prestador/cadastro");
+    redirect("/painel/403");
+  }
+  if (session.role !== "prestador" && session.role !== "superadmin") {
+    redirect("/painel/403");
   }
 
   return { session, vendor };

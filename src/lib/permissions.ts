@@ -115,7 +115,15 @@ export type Permission =
 
   // Configurações do Condomínio
   | "settings.manage"
-  | "condominium.settings.manage";
+  | "condominium.settings.manage"
+
+  // Plataforma Admin (Superadmin)
+  | "platform.admin"
+  | "platform.condos.manage"
+  | "platform.users.manage"
+  | "platform.marketplace.manage"
+  | "platform.finance.manage"
+  | "platform.audit.view";
 
 /**
  * Matriz de permissões por papel.
@@ -307,6 +315,12 @@ const PRESTADOR_PERMISSIONS: Permission[] = [
 export const ROLE_PERMISSIONS_MAP: Record<Role, Set<Permission>> = {
   superadmin: new Set([
     ...SINDICO_PERMISSIONS,
+    "platform.admin",
+    "platform.condos.manage",
+    "platform.users.manage",
+    "platform.marketplace.manage",
+    "platform.finance.manage",
+    "platform.audit.view",
   ]),
   sindico: new Set(SINDICO_PERMISSIONS),
   conselho: new Set(CONSELHO_PERMISSIONS),

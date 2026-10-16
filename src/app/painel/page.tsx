@@ -23,6 +23,7 @@ import {
   visitors,
   visits,
 } from "@/db/schema";
+import { redirect } from "next/navigation";
 import { requireCondo } from "@/lib/auth";
 import { getMarketplaceProviders } from "@/lib/services/providers-query";
 import { dateBR, dateTimeBR, timeAgoBR } from "@/lib/utils";
@@ -48,6 +49,10 @@ export const dynamic = "force-dynamic";
 
 export default async function PainelHome() {
   const { session, condoId } = await requireCondo();
+
+  if (session.role === "prestador") {
+    redirect("/prestador");
+  }
   const isResident = session.role === "morador";
   const isPorteiro = session.role === "porteiro" || session.role === "zelador";
   const isSindico = session.role === "sindico" || session.role === "superadmin" || session.role === "conselho";

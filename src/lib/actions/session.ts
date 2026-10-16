@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { authenticate, destroySession, getSession, setActiveCondo } from "@/lib/auth";
+import { authenticate, destroySession, getSession, setActiveCondo, setActiveRole, type Role } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { str } from "@/lib/utils";
 
@@ -94,6 +94,45 @@ export async function switchCondoAction(formData: FormData) {
   }
   revalidatePath("/painel", "layout");
   redirect("/painel");
+}
+
+export async function switchRoleAction(formData: FormData) {
+  const targetRole = formData.get("role") as Role | null;
+  if (!targetRole) return;
+
+  const session = await getSession();
+  if (!session || !session.availableRoles.includes(targetRole)) return;
+
+  await setActiveRole(targetRole);
+
+  // Se estiver alternando para morador ou síndico e o condomínio atual não tiver esse papel,
+  // selecionar o primeiro condomínio onde o usuário possui esse papel
+  if (targetRole === "morador" || targetRole === "sindico") {
+    const matchingMembership = session.memberships.find((m) => m.role === targetRole);
+    if (matchingMembership && (!session.condo || session.role !== targetRole)) {
+      await setActiveCondo(matchingMembership.condoId);
+    }
+  }
+
+  await logAudit({
+    session,
+    condoId: session.condo?.id ?? null,
+    action: "trocar_perfil",
+    entity: "auth",
+    entityId: session.user.id,
+    summary: `${session.user.name} alternou perfil para ${targetRole}`,
+  });
+
+  revalidatePath("/painel", "layout");
+  revalidatePath("/prestador", "layout");
+
+  if (targetRole === "prestador") {
+    redirect("/prestador");
+  } else if (targetRole === "superadmin") {
+    redirect("/painel/admin");
+  } else {
+    redirect("/painel");
+  }
 }
 
 export async function setThemeAction(theme: string) {

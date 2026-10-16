@@ -3,13 +3,13 @@ import type { Role } from "@/lib/auth";
 export type { Role };
 
 export const ROLE_LABEL: Record<Role, string> = {
-  superadmin: "Super administrador",
+  superadmin: "Admin da Plataforma",
   sindico: "Síndico(a)",
   conselho: "Conselho",
   zelador: "Zelador(a)",
   porteiro: "Portaria",
   morador: "Morador(a)",
-  prestador: "Prestador(a) Parceiro",
+  prestador: "Prestador de Serviços",
 };
 
 export const ALL_STAFF: Role[] = ["superadmin", "sindico", "conselho", "zelador"];

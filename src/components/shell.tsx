@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
+import type { Role } from "@/lib/auth";
 
 export type ShellCondo = { id: number; name: string };
 
@@ -86,10 +87,12 @@ export function Shell({
   userName,
   roleLabel,
   role,
+  availableRoles = [],
   unitLabel,
   condoName,
   unread: initialUnread,
   switchAction,
+  switchRoleAction,
   logout,
   children,
 }: {
@@ -101,11 +104,13 @@ export function Shell({
   userName: string;
   roleLabel: string;
   role?: string;
+  availableRoles?: Role[];
   unitLabel: string | null;
   unreadCount?: number;
   condoName: string;
   unread: number;
   switchAction: (formData: FormData) => Promise<void>;
+  switchRoleAction?: (formData: FormData) => Promise<void>;
   logout: () => Promise<void>;
   children: ReactNode;
 }) {
@@ -164,6 +169,42 @@ export function Shell({
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isSwitchingCondo, startSwitchTransition] = useTransition();
   const [switchingCondoId, setSwitchingCondoId] = useState<number | null>(null);
+
+  const [isSwitchingRole, startSwitchRoleTransition] = useTransition();
+  const [switchingRoleName, setSwitchingRoleName] = useState<string | null>(null);
+
+  const handleRoleSwitch = (targetRole: Role) => {
+    if (targetRole === role || !switchRoleAction) {
+      setProfileMenuOpen(false);
+      return;
+    }
+    setSwitchingRoleName(targetRole);
+    startSwitchRoleTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("role", targetRole);
+        await switchRoleAction(formData);
+      } catch (err) {
+        console.error("Erro ao alternar perfil:", err);
+      } finally {
+        setProfileMenuOpen(false);
+        setSwitchingRoleName(null);
+      }
+    });
+  };
+
+  const topItemHref = role === "prestador" ? "/prestador" : role === "superadmin" ? "/painel/admin" : "/painel";
+  const topItemLabel = role === "superadmin" ? "Dashboard" : role === "sindico" ? "Visão Geral" : "Início";
+  const isTopActive = pathname === topItemHref;
+
+  const searchPlaceholder =
+    role === "prestador"
+      ? "Buscar oportunidades e chamados..."
+      : role === "superadmin"
+      ? "Buscar condomínios, usuários ou transações..."
+      : role === "sindico"
+      ? "Buscar ocorrência, morador ou ordem de serviço..."
+      : "Buscar ocorrência, reserva ou prestador...";
 
   const condoRef = useRef<HTMLDivElement>(null);
   const profileContainerRef = useRef<HTMLDivElement>(null);
@@ -310,29 +351,29 @@ export function Shell({
         {/* Dashboard / Início (Primary Top Item) */}
         <div>
           <Link
-            href="/painel"
+            href={topItemHref}
             onClick={() => setMobileOpen(false)}
             className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
-              pathname === "/painel"
+              isTopActive
                 ? "bg-[#0055D4] text-white font-semibold shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
             } ${collapsed ? "justify-center px-2" : ""}`}
-            title={collapsed ? "Início" : undefined}
+            title={collapsed ? topItemLabel : undefined}
           >
             <Icon
               name="grid"
               size={16}
-              strokeWidth={pathname === "/painel" ? 2.2 : 1.8}
-              className={pathname === "/painel" ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
+              strokeWidth={isTopActive ? 2.2 : 1.8}
+              className={isTopActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
             />
-            {!collapsed && <span className="truncate flex-1">Início</span>}
-            {!collapsed && pathname === "/painel" && (
+            {!collapsed && <span className="truncate flex-1">{topItemLabel}</span>}
+            {!collapsed && isTopActive && (
               <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
             )}
 
             {collapsed && (
               <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
-                Início
+                {topItemLabel}
               </span>
             )}
           </Link>
@@ -470,6 +511,55 @@ export function Shell({
                   <span>Meu Perfil</span>
                 </Link>
 
+                {availableRoles.length > 1 && switchRoleAction && (
+                  <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Usar Zeladoria como
+                    </span>
+                    <div className="mt-1 space-y-0.5">
+                      {availableRoles.map((r) => {
+                        const isActiveRole = r === role;
+                        const isSwitchingThis = isSwitchingRole && switchingRoleName === r;
+                        const roleTitle =
+                          r === "morador"
+                            ? "Morador"
+                            : r === "sindico"
+                            ? "Síndico"
+                            : r === "prestador"
+                            ? "Prestador de Serviços"
+                            : r === "superadmin"
+                            ? "Admin da Plataforma"
+                            : r === "porteiro"
+                            ? "Porteiro"
+                            : r === "zelador"
+                            ? "Zelador"
+                            : "Conselho";
+
+                        return (
+                          <button
+                            key={r}
+                            type="button"
+                            disabled={isSwitchingRole}
+                            onClick={() => handleRoleSwitch(r)}
+                            className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
+                              isActiveRole
+                                ? "bg-blue-50 font-bold text-[#0055D4]"
+                                : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                            }`}
+                          >
+                            <span className="truncate flex-1 text-[11px] leading-snug">{roleTitle}</span>
+                            {isSwitchingThis ? (
+                              <Icon name="refresh" size={12} className="animate-spin text-[#0055D4] shrink-0" />
+                            ) : isActiveRole ? (
+                              <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {condos.length > 1 && (
                   <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -582,72 +672,90 @@ export function Shell({
               <BrandLogo size="sm" showText={false} />
             </div>
 
-            {/* Condo Selector Dropdown */}
-            <div ref={condoRef} className="relative">
-              <button
-                type="button"
-                onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
-                disabled={isSwitchingCondo}
-                className={`group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
-                  condos.length > 1 ? "cursor-pointer" : "cursor-default"
-                }`}
-                title={condos.length > 1 ? "Trocar condomínio" : condoName}
-              >
-                <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#0055D4]">
-                  {isSwitchingCondo ? (
-                    <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
-                  ) : (
-                    <Icon name="building" size={12} strokeWidth={2} />
+            {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio: morador, síndico, portaria, conselho) */}
+            {role !== "prestador" && role !== "superadmin" && (
+              <div ref={condoRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
+                  disabled={isSwitchingCondo}
+                  className={`group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
+                    condos.length > 1 ? "cursor-pointer" : "cursor-default"
+                  }`}
+                  title={condos.length > 1 ? "Trocar condomínio" : condoName}
+                >
+                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#0055D4]">
+                    {isSwitchingCondo ? (
+                      <Icon name="refresh" size={12} className="animate-spin text-[#0055D4]" />
+                    ) : (
+                      <Icon name="building" size={12} strokeWidth={2} />
+                    )}
+                  </span>
+                  <span className="truncate max-w-[170px] sm:max-w-[240px]">
+                    {condoName || "Residencial Parque das Águas"}
+                  </span>
+                  {condos.length > 1 && (
+                    <Icon
+                      name="chevron-down"
+                      size={11}
+                      className={`text-slate-400 group-hover:text-slate-600 transition-transform ${
+                        condoDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   )}
-                </span>
-                <span className="truncate max-w-[170px] sm:max-w-[240px]">
-                  {condoName || "Residencial Parque das Águas"}
-                </span>
-                {condos.length > 1 && (
-                  <Icon
-                    name="chevron-down"
-                    size={11}
-                    className={`text-slate-400 group-hover:text-slate-600 transition-transform ${
-                      condoDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
+                </button>
 
-              {condoDropdownOpen && (
-                <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5 animate-in fade-in-50 duration-100">
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Selecione o Condomínio
+                {condoDropdownOpen && (
+                  <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5 animate-in fade-in-50 duration-100">
+                    <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Selecione o Condomínio
+                    </div>
+                    <div className="space-y-0.5 mt-1">
+                      {condos.map((c) => {
+                        const isActive = c.id === activeCondoId;
+                        const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            disabled={isSwitchingCondo}
+                            onClick={() => handleCondoSwitch(c.id)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors cursor-pointer ${
+                              isActive
+                                ? "font-bold text-[#0055D4] bg-blue-50"
+                                : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            }`}
+                          >
+                            <span className="truncate">{c.name}</span>
+                            {isSwitchingThis ? (
+                              <Icon name="refresh" size={13} className="animate-spin text-[#0055D4]" />
+                            ) : isActive ? (
+                              <Icon name="check" size={13} className="text-[#0055D4]" />
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="space-y-0.5 mt-1">
-                    {condos.map((c) => {
-                      const isActive = c.id === activeCondoId;
-                      const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          disabled={isSwitchingCondo}
-                          onClick={() => handleCondoSwitch(c.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors cursor-pointer ${
-                            isActive
-                              ? "font-bold text-[#0055D4] bg-blue-50"
-                              : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                          }`}
-                        >
-                          <span className="truncate">{c.name}</span>
-                          {isSwitchingThis ? (
-                            <Icon name="refresh" size={13} className="animate-spin text-[#0055D4]" />
-                          ) : isActive ? (
-                            <Icon name="check" size={13} className="text-[#0055D4]" />
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
+
+            {/* Context Badge for Prestador */}
+            {role === "prestador" && (
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-[8px] bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-semibold select-none">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="hidden xs:inline">Online para chamados</span>
+              </div>
+            )}
+
+            {/* Context Badge for Admin */}
+            {role === "superadmin" && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold select-none">
+                <Icon name="shield" size={13} className="text-[#0055D4]" />
+                <span className="hidden xs:inline">Admin da Plataforma</span>
+              </div>
+            )}
           </div>
 
           {/* Center: Functional Global Search with command-bar style */}
@@ -655,7 +763,7 @@ export function Shell({
             <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar ocorrência, reserva ou prestador..."
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onFocus={() => setSearchFocused(true)}
               onChange={(e) => setSearchQuery(e.target.value)}

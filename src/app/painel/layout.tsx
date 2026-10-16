@@ -6,7 +6,7 @@ import { requireSession } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/rbac";
 import { getNavigationGroups, getMobileNavItems } from "@/lib/navigation";
 import { Shell } from "@/components/shell";
-import { logoutAction, switchCondoAction } from "@/lib/actions/session";
+import { logoutAction, switchCondoAction, switchRoleAction } from "@/lib/actions/session";
 import { ensureSeed } from "@/db/seed";
 
 export const dynamic = "force-dynamic";
@@ -45,10 +45,12 @@ export default async function PainelLayout({ children }: { children: ReactNode }
       userName={session.user.name}
       roleLabel={ROLE_LABEL[session.role]}
       role={session.role}
+      availableRoles={session.availableRoles}
       unitLabel={activeMembership?.unitLabel ?? null}
       condoName={session.condo?.name ?? "Condomínio"}
       unread={Number(count ?? 0)}
       switchAction={switchCondoAction}
+      switchRoleAction={switchRoleAction}
       logout={logoutAction}
     >
       {children}

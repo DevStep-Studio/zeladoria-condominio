@@ -7,7 +7,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/marketplace.test.ts tests/zeladoria-pay.test.ts",
+    "test": "tsx --test tests/marketplace.test.ts tests/zeladoria-pay.test.ts tests/navigation-rbac.test.ts",
     "test:pay": "tsx --test tests/zeladoria-pay.test.ts",
     "test:integration": "tsx --test tests/functional.test.ts",
     "test:marketplace": "tsx --test tests/marketplace.test.ts",

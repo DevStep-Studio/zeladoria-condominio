@@ -12,7 +12,11 @@ export default async function PrestadorPortalLayout({
   const { session, vendor } = await requireProvider();
 
   if (!vendor && session.role !== "superadmin") {
-    redirect("/prestador/cadastro");
+    redirect("/painel/403");
+  }
+
+  if (session.role !== "prestador" && session.role !== "superadmin") {
+    redirect("/painel/403");
   }
 
   return (

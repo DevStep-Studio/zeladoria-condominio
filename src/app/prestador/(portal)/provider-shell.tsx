@@ -6,7 +6,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon, type IconName } from "@/components/icon";
 import { toggleProviderOnlineAction } from "@/lib/actions/prestador";
-import { logoutAction } from "@/lib/actions/session";
+import { logoutAction, switchRoleAction } from "@/lib/actions/session";
 
 export function ProviderShell({
   session,
@@ -275,6 +275,51 @@ export function ProviderShell({
                         <span>Painel do Condomínio</span>
                       </Link>
                     </div>
+
+                    {session?.availableRoles && session.availableRoles.length > 1 && (
+                      <div className="px-2 py-1.5 border-t border-slate-100 my-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Usar Zeladoria como
+                        </span>
+                        <div className="mt-1 space-y-0.5">
+                          {session.availableRoles.map((r: string) => {
+                            const isActive = r === "prestador";
+                            const roleTitle =
+                              r === "morador"
+                                ? "Morador"
+                                : r === "sindico"
+                                ? "Síndico"
+                                : r === "prestador"
+                                ? "Prestador de Serviços"
+                                : r === "superadmin"
+                                ? "Admin da Plataforma"
+                                : r === "porteiro"
+                                ? "Porteiro"
+                                : r === "zelador"
+                                ? "Zelador"
+                                : "Conselho";
+
+                            return (
+                              <form key={r} action={switchRoleAction}>
+                                <input type="hidden" name="role" value={r} />
+                                <button
+                                  type="submit"
+                                  onClick={() => setProfileOpen(false)}
+                                  className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between gap-1 cursor-pointer ${
+                                    isActive
+                                      ? "bg-blue-50 font-bold text-[#0055D4]"
+                                      : "text-slate-600 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <span className="truncate flex-1 text-[11px]">{roleTitle}</span>
+                                  {isActive && <Icon name="check" size={12} className="text-[#0055D4] shrink-0" />}
+                                </button>
+                              </form>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="pt-1 border-t border-slate-100">
                       <form action={logoutAction}>
