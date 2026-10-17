@@ -37,6 +37,7 @@ export default async function RelatoriosPage() {
     .where(and(eq(contracts.condoId, condoId), lte(contracts.endAt, expiringUntil)));
 
   const hubs: { href: string; title: string; desc: string; icon: IconName; export?: string }[] = [
+    { href: "/painel/relatorios/eficiencia", title: "Eficiência Operacional", desc: "TMA, satisfação (CSAT), taxa de resolução e SLA de prestadores.", icon: "star" },
     { href: "/painel/financeiro", title: "Prestação de contas", desc: "Receitas, despesas, orçado x realizado e inadimplência.", icon: "wallet", export: "financeiro" },
     { href: "/painel/manutencao", title: "Manutenção", desc: "Equipamentos, planos preventivos, custos e falhas.", icon: "wrench" },
     { href: "/painel/fornecedores", title: "Contratos", desc: "Vigências, reajustes e vencimentos.", icon: "briefcase", export: "contratos" },

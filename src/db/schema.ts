@@ -145,6 +145,16 @@ export const notifications = appSchema.table("notifications", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const pushSubscriptions = appSchema.table("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  condoId: integer("condo_id"),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ------------------------------------------------------------ AGENDA ---- */
 
 export const agendaEvents = appSchema.table("agenda_events", {

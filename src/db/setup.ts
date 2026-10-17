@@ -1227,6 +1227,16 @@ ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "correc
 
 CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");
+
+CREATE TABLE IF NOT EXISTS "condominio_app"."push_subscriptions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"condo_id" integer,
+	"endpoint" text NOT NULL,
+	"p256dh" text NOT NULL,
+	"auth" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
 `;
 
 let setup: Promise<void> | null = null;
