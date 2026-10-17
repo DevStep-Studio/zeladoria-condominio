@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { PageHeader } from "@/components/page-header";
 import { dateTimeBR, timeAgoBR } from "@/lib/utils";
 import {
@@ -55,6 +55,37 @@ export type StaffMember = {
 
 type FilterTab = "todas" | "recebidas" | "em_atendimento" | "concluidas";
 
+// Mapa e formatação amigável das categorias com ícones semânticos
+const CATEGORY_MAP: Record<string, { label: string; icon: IconName }> = {
+  iluminacao: { label: "Iluminação", icon: "sun" },
+  eletrica: { label: "Elétrica", icon: "sparkles" },
+  hidraulica: { label: "Hidráulica", icon: "wrench" },
+  ruido: { label: "Barulho", icon: "bell" },
+  barulho: { label: "Barulho", icon: "bell" },
+  seguranca: { label: "Segurança", icon: "shield" },
+  convivencia: { label: "Convivência", icon: "users" },
+  elevador: { label: "Elevador", icon: "arrow-up-right" },
+  portao: { label: "Portão & Acesso", icon: "key" },
+  limpeza: { label: "Limpeza", icon: "sparkles" },
+  garagem: { label: "Garagem", icon: "truck" },
+  estrutura: { label: "Estrutura", icon: "building" },
+  vazamento: { label: "Vazamento", icon: "alert" },
+  infiltracao: { label: "Infiltração", icon: "alert" },
+  piscina: { label: "Piscina", icon: "sun" },
+  jardinagem: { label: "Jardinagem", icon: "sun" },
+  outros: { label: "Outros", icon: "file-text" },
+};
+
+function formatCategory(catKey: string): { label: string; icon: IconName } {
+  const normalized = (catKey || "").toLowerCase().trim();
+  return (
+    CATEGORY_MAP[normalized] || {
+      label: catKey ? catKey.charAt(0).toUpperCase() + catKey.slice(1) : "Geral",
+      icon: "file-text",
+    }
+  );
+}
+
 // Cores sólidas padrão do Design System: Azul (#1355FF), Amarelo (#FFD000), Verde, Vermelho, Neutros
 const STATUS_CONFIG: Record<
   string,
@@ -62,44 +93,44 @@ const STATUS_CONFIG: Record<
 > = {
   recebida: {
     label: "Recebida",
-    badgeBg: "bg-slate-100",
+    badgeBg: "bg-slate-100 border border-slate-200/80",
     badgeText: "text-slate-700",
     dotColor: "bg-slate-400",
   },
   em_analise: {
     label: "Em análise",
-    badgeBg: "bg-amber-100",
+    badgeBg: "bg-amber-50 border border-amber-200/80",
     badgeText: "text-amber-800",
-    dotColor: "bg-[#FFD000]",
+    dotColor: "bg-amber-500",
   },
   em_execucao: {
     label: "Em atendimento",
-    badgeBg: "bg-blue-100",
+    badgeBg: "bg-blue-50 border border-blue-200/80",
     badgeText: "text-[#1355FF]",
     dotColor: "bg-[#1355FF]",
   },
   em_andamento: {
     label: "Em atendimento",
-    badgeBg: "bg-blue-100",
+    badgeBg: "bg-blue-50 border border-blue-200/80",
     badgeText: "text-[#1355FF]",
     dotColor: "bg-[#1355FF]",
   },
   aguardando_morador: {
     label: "Aguardando morador",
-    badgeBg: "bg-purple-100",
-    badgeText: "text-purple-800",
+    badgeBg: "bg-purple-50 border border-purple-200/80",
+    badgeText: "text-purple-700",
     dotColor: "bg-purple-500",
   },
   resolvida: {
     label: "Resolvida",
-    badgeBg: "bg-emerald-100",
+    badgeBg: "bg-emerald-50 border border-emerald-200/80",
     badgeText: "text-emerald-800",
     dotColor: "bg-emerald-600",
   },
   cancelada: {
     label: "Cancelada",
-    badgeBg: "bg-rose-100",
-    badgeText: "text-rose-800",
+    badgeBg: "bg-rose-50 border border-rose-200/80",
+    badgeText: "text-rose-700",
     dotColor: "bg-rose-500",
   },
 };
@@ -695,76 +726,126 @@ export function OcorrenciasClient({
         /* ========================================================================= */
         /* VISÃO DO MORADOR: LINHAS / CARDS COMPACTOS (Conforme Seções 6, 7, 8, 9)   */
         /* ========================================================================= */
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {filteredOccurrences.map((occ) => {
             const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
             const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
-            const hasComments = comments.some((c) => c.occurrenceId === occ.id);
+            const cat = formatCategory(occ.category);
+            const occComments = comments.filter((c) => c.occurrenceId === occ.id);
+            const hasAttachments = occ.attachments && occ.attachments.length > 0;
+            const firstPhoto = hasAttachments ? occ.attachments![0] : null;
 
             return (
               <div
                 key={occ.id}
                 onClick={() => openOccurrence(occ)}
-                className="group relative flex items-center justify-between gap-4 rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-slate-300 transition-colors cursor-pointer"
+                className="group relative flex items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer"
               >
-                <div className="space-y-1.5 min-w-0 flex-1">
-                  {/* Linha 1: Código + Status + Tag Categoria */}
+                {/* Lado Esquerdo: Badges + Título + Descrição + Metadados */}
+                <div className="space-y-2 min-w-0 flex-1">
+                  {/* Linha 1: Badges Superiores */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-[#1355FF]">
+                    <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
                       {occ.code}
                     </span>
 
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
                       {st.label}
                     </span>
 
-                    <span className="px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-semibold text-slate-500 capitalize border border-slate-200/60">
-                      {occ.category}
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-semibold text-slate-600 border border-slate-200/60">
+                      <Icon name={cat.icon} size={11} className="text-slate-500 shrink-0" />
+                      <span>{cat.label}</span>
                     </span>
 
                     {sv.isUrgent && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-red-700 text-[10px] font-bold">
-                        <Icon name="alert-triangle" size={10} className="text-red-600" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-red-700 text-[10px] font-bold border border-red-200/60">
+                        <Icon name="alert-triangle" size={10} className="text-red-600 shrink-0" />
                         Urgente
                       </span>
                     )}
 
-                    {hasComments && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#1355FF]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
-                        Atualização
+                    {occComments.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#1355FF] text-[10px] font-bold border border-blue-200/50">
+                        <Icon name="mail" size={10} className="text-[#1355FF] shrink-0" />
+                        <span>
+                          {occComments.length} {occComments.length === 1 ? "mensagem" : "mensagens"}
+                        </span>
                       </span>
                     )}
                   </div>
 
-                  {/* Linha 2: Título Principal */}
-                  <h3 className="text-sm sm:text-base font-bold text-[#0F172A] group-hover:text-[#1355FF] transition-colors leading-snug">
-                    {occ.title}
-                  </h3>
+                  {/* Linha 2: Título Principal e Trecho da Descrição */}
+                  <div>
+                    <h3 className="text-sm sm:text-[15px] font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug">
+                      {occ.title}
+                    </h3>
+                    {occ.description && (
+                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-normal leading-relaxed">
+                        {occ.description}
+                      </p>
+                    )}
+                  </div>
 
-                  {/* Linha 3: Localização com Pin + Data do Ocorrido */}
-                  <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                    <span className="flex items-center gap-1 font-semibold text-slate-700">
-                      <Icon name="map-pin" size={12} className="text-slate-400" />
-                      <span>{occ.exactLocation || "Área comum"}</span>
+                  {/* Linha 3: Metadados Estruturados */}
+                  <div className="flex items-center gap-x-3 gap-y-1 text-xs text-slate-500 flex-wrap pt-0.5">
+                    <span className="flex items-center gap-1 font-medium text-slate-700">
+                      <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
+                      <span className="truncate max-w-[200px]">{occ.exactLocation || "Área comum"}</span>
                     </span>
-                    <span>•</span>
-                    <span className="text-[11px] text-slate-400 font-medium">
-                      {occ.createdAt ? dateTimeBR(occ.createdAt) : "Hoje"}
+
+                    {occ.unitNumber && (
+                      <>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-[11px] text-slate-600 font-medium">
+                          {occ.blockName ? `${occ.blockName} · ` : ""}Unidade {occ.unitNumber}
+                        </span>
+                      </>
+                    )}
+
+                    <span className="text-slate-300">•</span>
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400 font-normal">
+                      <Icon name="clock" size={11} className="text-slate-300 shrink-0" />
+                      <span>{occ.createdAt ? dateTimeBR(occ.createdAt) : "Hoje"}</span>
+                      <span className="hidden sm:inline">({timeAgoBR(occ.createdAt)})</span>
                     </span>
-                    <span>•</span>
-                    <span className="text-[11px] text-slate-400 font-medium">
-                      Última atualização: {timeAgoBR(occ.createdAt)}
-                    </span>
+
+                    {occ.assignedToName && (
+                      <>
+                        <span className="text-slate-300">•</span>
+                        <span className="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                          <Icon name="user-check" size={11} className="text-slate-400 shrink-0" />
+                          <span>Responsável: {occ.assignedToName}</span>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Seta Chevron Indicativa */}
-                <div className="shrink-0 flex items-center justify-center h-8 w-8 rounded-full text-slate-300 group-hover:text-[#1355FF] group-hover:translate-x-0.5 transition-all">
-                  <Icon name="chevron-right" size={18} strokeWidth={2.2} />
+                {/* Lado Direito: Foto (se houver) + Chevron */}
+                <div className="flex items-center gap-3 shrink-0 self-center">
+                  {hasAttachments && firstPhoto && (
+                    <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 group-hover:border-slate-300 transition-colors">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={firstPhoto}
+                        alt="Anexo da ocorrência"
+                        className="h-full w-full object-cover"
+                      />
+                      {occ.attachments!.length > 1 && (
+                        <span className="absolute bottom-0 right-0 bg-slate-900/80 text-white text-[9px] font-bold px-1 rounded-tl-md">
+                          +{occ.attachments!.length - 1}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full text-slate-300 group-hover:text-[#1355FF] group-hover:translate-x-0.5 group-hover:bg-blue-50/60 transition-all">
+                    <Icon name="chevron-right" size={18} strokeWidth={2.2} />
+                  </div>
                 </div>
               </div>
             );
