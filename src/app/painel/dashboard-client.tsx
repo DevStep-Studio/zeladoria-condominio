@@ -459,29 +459,29 @@ export function DashboardClient({
           </div>
         </section>
 
-        {/* 2. AÇÕES RÁPIDAS (4 botões compactos e consistentes, sem blocos coloridos gigantes) */}
+        {/* 2. AÇÕES RÁPIDAS (1º botão azul primário destacado, demais com ícone azul primário consistente) */}
         <section className="space-y-1.5">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* 1. Registrar ocorrência */}
+            {/* 1. Registrar ocorrência (Destaque Primário) */}
             <Link
               href="/painel/ocorrencias/nova"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg border border-[#1355FF] bg-[#1355FF] hover:bg-[#0D47E6] text-white p-3 transition-colors shadow-2xs group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
                 <Icon name="clipboard" size={16} />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                <h3 className="text-xs font-bold text-white truncate">
                   Registrar ocorrência
                 </h3>
-                <p className="text-[11px] text-slate-400 truncate">Relatar problema</p>
+                <p className="text-[11px] text-blue-100 truncate">Relatar problema</p>
               </div>
             </Link>
 
             {/* 2. Reservar espaço */}
             <Link
               href="/painel/reservas"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                 <Icon name="calendar" size={16} />
@@ -497,9 +497,9 @@ export function DashboardClient({
             {/* 3. Autorizar visitante */}
             <Link
               href="/painel/visitantes"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-700">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                 <Icon name="users" size={16} />
               </span>
               <div className="min-w-0 flex-1">
@@ -513,9 +513,9 @@ export function DashboardClient({
             {/* 4. Contratar serviço */}
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                 <Icon name="briefcase" size={16} />
               </span>
               <div className="min-w-0 flex-1">
