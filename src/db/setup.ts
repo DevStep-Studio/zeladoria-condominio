@@ -1217,6 +1217,14 @@ ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "pix_info" jsonb
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "identity_verification" jsonb DEFAULT '{"status":"nao_iniciado"}'::jsonb;
 ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "specialties" jsonb DEFAULT '[]'::jsonb;
 
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "checklist" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "materials_used" jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "execution_notes" text;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "completion_requested_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "validated_at" timestamp with time zone;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "validated_by_id" integer;
+ALTER TABLE "condominio_app"."service_requests" ADD COLUMN IF NOT EXISTS "correction_notes" text;
+
 CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");
 `;

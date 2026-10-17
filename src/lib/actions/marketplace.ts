@@ -17,7 +17,7 @@ import {
 import { requireCondo, requireSession } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { num, sequence, str } from "@/lib/utils";
-import { customerAcceptProposalAndPay } from "@/lib/services/payments/payment-service";
+import { customerAcceptProposalAndPay, customerConfirmServiceCompletion } from "@/lib/services/payments/payment-service";
 
 /**
  * Criação de Chamado / Solicitação no Marketplace (Modo Sob Demanda ou Orçamento)
@@ -394,3 +394,171 @@ export async function openDisputeAction(requestId: number, reason: string, descr
   revalidatePath("/painel/servicos");
   return { success: true, disputeId: dispute.id };
 }
+
+/**
+ * Validação de conclusão do serviço pelo cliente ou síndico (Fase 4)
+ * Aprova com avaliação (1 a 5 estrelas) ou solicita correção
+ */
+export async function validateServiceCompletionAction(payload: {
+  requestId: number;
+  approved: boolean;
+  rating?: number;
+  reviewComment?: string;
+  correctionNotes?: string;
+}) {
+  const session = await requireSession();
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, payload.requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+
+  // O morador solicitante ou síndico/admin do condomínio podem validar
+  const isOwner = req.customerId === session.user.id;
+  const isAdmin = session.role === "sindico" || session.role === "superadmin";
+  if (!isOwner && !isAdmin) {
+    return { success: false, error: "Não autorizado a validar este serviço." };
+  }
+
+  if (payload.approved) {
+    // 1. Tenta confirmação financeira oficial se houver paymentOrder
+    try {
+      await customerConfirmServiceCompletion(req.id, req.customerId);
+    } catch {
+      // Atualização direta de conclusão caso seja serviço sem ordem de pagamento ou já avançado
+      await db
+        .update(serviceRequests)
+        .set({
+          status: "concluido",
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(serviceRequests.id, req.id));
+    }
+
+    // 2. Registra dados da validação
+    const now = new Date();
+    await db
+      .update(serviceRequests)
+      .set({
+        status: "concluido",
+        validatedAt: now,
+        validatedById: session.user.id,
+        updatedAt: now,
+      })
+      .where(eq(serviceRequests.id, req.id));
+
+    // 3. Se forneceu avaliação (1 a 5 estrelas)
+    if (payload.rating && req.vendorId) {
+      const rating = Math.max(1, Math.min(5, Math.round(payload.rating)));
+      await db
+        .insert(serviceReviews)
+        .values({
+          requestId: req.id,
+          vendorId: req.vendorId,
+          customerId: req.customerId,
+          rating,
+          punctualityRating: rating,
+          qualityRating: rating,
+          communicationRating: rating,
+          costBenefitRating: rating,
+          comment: payload.reviewComment?.trim() || null,
+          isVerified: true,
+        })
+        .onConflictDoNothing();
+
+      // Recalcula média de avaliação do prestador
+      const reviews = await db
+        .select({ rating: serviceReviews.rating })
+        .from(serviceReviews)
+        .where(eq(serviceReviews.vendorId, req.vendorId));
+
+      const avg = reviews.length > 0
+        ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+        : rating;
+
+      await db
+        .update(vendors)
+        .set({ rating: Math.round(avg) })
+        .where(eq(vendors.id, req.vendorId));
+    }
+
+    // 4. Mensagem e notificação para o prestador
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: session.user.id,
+      senderRole: "morador",
+      body: `Serviço validado e concluído com sucesso pelo cliente! ${payload.rating ? `Avaliação: ${payload.rating} estrelas.` : ""}`,
+    });
+
+    if (req.vendorId) {
+      const [vendor] = await db
+        .select({ userId: vendors.userId })
+        .from(vendors)
+        .where(eq(vendors.id, req.vendorId))
+        .limit(1);
+
+      if (vendor?.userId) {
+        await notify(
+          req.condoId,
+          [vendor.userId],
+          `Serviço aprovado: ${req.title}`,
+          `O morador aprovou a conclusão do serviço.${payload.rating ? ` Nota: ${payload.rating}/5.` : ""}`,
+          `/prestador/chamados`
+        );
+      }
+    }
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, status: "concluido" };
+  } else {
+    // Solicitação de correção / ajuste
+    if (!payload.correctionNotes?.trim()) {
+      return { success: false, error: "É obrigatório fornecer o motivo ou instruções de correção para o prestador." };
+    }
+
+    const now = new Date();
+    await db
+      .update(serviceRequests)
+      .set({
+        status: "correcao_solicitada",
+        correctionNotes: payload.correctionNotes.trim(),
+        updatedAt: now,
+      })
+      .where(eq(serviceRequests.id, req.id));
+
+    await db.insert(serviceMessages).values({
+      requestId: req.id,
+      senderId: session.user.id,
+      senderRole: "morador",
+      body: `Solicitação de correção no serviço: "${payload.correctionNotes.trim()}". Por favor, faça os ajustes necessários.`,
+    });
+
+    if (req.vendorId) {
+      const [vendor] = await db
+        .select({ userId: vendors.userId })
+        .from(vendors)
+        .where(eq(vendors.id, req.vendorId))
+        .limit(1);
+
+      if (vendor?.userId) {
+        await notify(
+          req.condoId,
+          [vendor.userId],
+          `Ajuste solicitado no serviço: ${req.title}`,
+          `O morador solicitou uma correção: ${payload.correctionNotes.trim()}`,
+          `/prestador/chamados`
+        );
+      }
+    }
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return { success: true, status: "correcao_solicitada" };
+  }
+}
+

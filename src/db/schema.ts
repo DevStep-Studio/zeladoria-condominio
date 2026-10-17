@@ -606,6 +606,13 @@ export const serviceRequests = appSchema.table("service_requests", {
   isPaid: boolean("is_paid").notNull().default(false),
   inspectionId: integer("inspection_id"), // Vínculo com a vistoria técnica
   paymentOrderId: integer("payment_order_id"), // Vínculo com a ordem de pagamento principal
+  checklist: jsonb("checklist").$type<{ item: string; checked: boolean }[]>().default([]),
+  materialsUsed: jsonb("materials_used").$type<{ name: string; quantity: number; notes?: string }[]>().default([]),
+  executionNotes: text("execution_notes"),
+  completionRequestedAt: timestamp("completion_requested_at", { withTimezone: true }),
+  validatedAt: timestamp("validated_at", { withTimezone: true }),
+  validatedById: integer("validated_by_id"),
+  correctionNotes: text("correction_notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

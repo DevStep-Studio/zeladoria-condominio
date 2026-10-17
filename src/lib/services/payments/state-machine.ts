@@ -104,6 +104,7 @@ export const ALLOWED_TRANSITIONS: Record<ServiceLifecycleStatus, readonly Servic
     "CUSTOMER_CONFIRMED",
     "DISPUTED",
     "COMPLETED",
+    "IN_PROGRESS", // Solicitação de correção ou retrabalho pelo cliente
   ],
   CUSTOMER_CONFIRMED: [
     "COMPLETED",
@@ -152,6 +153,8 @@ export function normalizeServiceStatus(status: string): ServiceLifecycleStatus {
     chegou: "IN_PROGRESS",
     em_atendimento: "IN_PROGRESS",
     em_execucao: "IN_PROGRESS",
+    correcao_solicitada: "IN_PROGRESS",
+    conclusao_solicitada: "PROVIDER_COMPLETED",
     prestador_concluiu: "PROVIDER_COMPLETED",
     prestador_finalizou: "PROVIDER_COMPLETED",
     servico_finalizado_prestador: "PROVIDER_COMPLETED",

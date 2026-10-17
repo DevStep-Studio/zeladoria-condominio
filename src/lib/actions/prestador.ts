@@ -8,6 +8,7 @@ import {
   memberships,
   promotionPlans,
   providerPromotions,
+  serviceEvidences,
   serviceMessages,
   serviceQuotes,
   serviceRequests,
@@ -26,7 +27,11 @@ import {
 } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { num, sequence, str } from "@/lib/utils";
-import { sendDigitalProposal } from "@/lib/services/payments/payment-service";
+import {
+  providerFinalizeService,
+  providerRecordEvidence,
+  sendDigitalProposal,
+} from "@/lib/services/payments/payment-service";
 
 /**
  * Onboarding / Cadastro de Prestador Oficial (Fase 2)
@@ -453,7 +458,7 @@ export async function sendQuoteAction(payload: {
  */
 export async function updateServiceProgressAction(
   requestId: number,
-  nextStatus: "a_caminho" | "chegou" | "em_atendimento" | "concluido" | "cancelado",
+  nextStatus: "a_caminho" | "chegou" | "em_atendimento" | "prestador_concluiu" | "conclusao_solicitada" | "concluido" | "cancelado",
   reason?: string
 ) {
   const { vendor, session } = await requireProvider();
@@ -473,7 +478,10 @@ export async function updateServiceProgressAction(
     orcamento_aprovado: ["a_caminho", "cancelado"],
     a_caminho: ["chegou", "cancelado"],
     chegou: ["em_atendimento", "cancelado"],
-    em_atendimento: ["concluido", "cancelado"],
+    em_atendimento: ["concluido", "prestador_concluiu", "conclusao_solicitada", "cancelado"],
+    correcao_solicitada: ["em_atendimento", "prestador_concluiu", "conclusao_solicitada", "cancelado"],
+    prestador_concluiu: ["concluido", "correcao_solicitada", "cancelado"],
+    conclusao_solicitada: ["concluido", "correcao_solicitada", "cancelado"],
   };
 
   const allowed = VALID_TRANSITIONS[req.status] || [];
@@ -488,6 +496,7 @@ export async function updateServiceProgressAction(
 
   if (nextStatus === "chegou") updates.arrivedAt = new Date();
   if (nextStatus === "em_atendimento") updates.startedAt = new Date();
+  if (nextStatus === "prestador_concluiu" || nextStatus === "conclusao_solicitada") updates.completionRequestedAt = new Date();
   if (nextStatus === "concluido") updates.completedAt = new Date();
   if (nextStatus === "cancelado") {
     updates.cancelledAt = new Date();
@@ -502,6 +511,9 @@ export async function updateServiceProgressAction(
     a_caminho: "O profissional informou que está a caminho do condomínio.",
     chegou: "O profissional chegou ao condomínio / portaria.",
     em_atendimento: "O atendimento foi iniciado.",
+    prestador_concluiu: "O profissional finalizou a execução e solicitou validação.",
+    conclusao_solicitada: "O profissional finalizou a execução e solicitou validação.",
+    correcao_solicitada: "Solicitada correção no serviço.",
     concluido: "O prestador finalizou a execução do serviço.",
     cancelado: `Serviço cancelado. Motivo: ${reason || "Não informado"}`,
   };
@@ -797,4 +809,203 @@ export async function adminTogglePromotionPlanAction(planId: number) {
   revalidatePath("/painel/admin/marketplace/destaques");
   revalidatePath("/prestador/destaque");
   return { success: true, active: !plan.active };
+}
+
+/**
+ * Check-in operacional do prestador no condomínio (Fase 4)
+ */
+export async function checkInOperationalAction(payload: {
+  requestId: number;
+  currentLat?: number;
+  currentLng?: number;
+}) {
+  const session = await requireSession();
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, session.user.id))
+    .limit(1);
+
+  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem fazer check-in." };
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, payload.requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+  if (req.vendorId !== vendor.id) {
+    return { success: false, error: "Você não é o prestador atribuído a este chamado." };
+  }
+
+  const now = new Date();
+  await db
+    .update(serviceRequests)
+    .set({
+      status: "chegou",
+      arrivedAt: now,
+      updatedAt: now,
+    })
+    .where(eq(serviceRequests.id, req.id));
+
+  // Notificar e registrar histórico
+  await db.insert(serviceMessages).values({
+    requestId: req.id,
+    senderId: session.user.id,
+    senderRole: "prestador",
+    body: "Profissional realizou o check-in no condomínio e está pronto para o atendimento.",
+  });
+
+  await notify(
+    req.condoId,
+    [req.customerId],
+    `Profissional no local: ${req.title}`,
+    `${vendor.name} chegou ao condomínio.`,
+    `/painel/servicos`
+  );
+
+  revalidatePath("/prestador/chamados");
+  revalidatePath("/painel/servicos");
+  return { success: true, arrivedAt: now };
+}
+
+/**
+ * Registro de checklist, materiais utilizados e notas técnicas (Fase 4)
+ */
+export async function updateServiceExecutionAction(payload: {
+  requestId: number;
+  checklist?: { item: string; checked: boolean }[];
+  materialsUsed?: { name: string; quantity: number; notes?: string }[];
+  executionNotes?: string;
+}) {
+  const session = await requireSession();
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, session.user.id))
+    .limit(1);
+
+  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem registrar execução." };
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, payload.requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
+
+  const updates: Record<string, any> = { updatedAt: new Date() };
+  if (payload.checklist !== undefined) updates.checklist = payload.checklist;
+  if (payload.materialsUsed !== undefined) updates.materialsUsed = payload.materialsUsed;
+  if (payload.executionNotes !== undefined) updates.executionNotes = payload.executionNotes;
+
+  await db.update(serviceRequests).set(updates).where(eq(serviceRequests.id, req.id));
+
+  revalidatePath("/prestador/chamados");
+  return { success: true };
+}
+
+/**
+ * Adição de fotos de evidência: ANTES, DURANTE ou DEPOIS (Fase 4)
+ */
+export async function addServiceEvidenceAction(payload: {
+  requestId: number;
+  stage: "ANTES" | "DURANTE" | "DEPOIS";
+  fileUrl: string;
+  caption?: string;
+}) {
+  const session = await requireSession();
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, session.user.id))
+    .limit(1);
+
+  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem adicionar evidências." };
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, payload.requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
+
+  const evidence = await providerRecordEvidence({
+    condoId: req.condoId,
+    requestId: req.id,
+    vendorId: vendor.id,
+    stage: payload.stage,
+    fileUrl: payload.fileUrl,
+    caption: payload.caption,
+  });
+
+  revalidatePath("/prestador/chamados");
+  return { success: true, evidenceId: evidence.id };
+}
+
+/**
+ * Solicitação de conclusão de serviço pelo prestador (Fase 4)
+ */
+export async function requestServiceCompletionAction(payload: {
+  requestId: number;
+  finalNotes?: string;
+  checklist?: { item: string; checked: boolean }[];
+  materialsUsed?: { name: string; quantity: number; notes?: string }[];
+  finalPhotos?: string[];
+}) {
+  const session = await requireSession();
+  const [vendor] = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.userId, session.user.id))
+    .limit(1);
+
+  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem solicitar conclusão." };
+
+  const [req] = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.id, payload.requestId))
+    .limit(1);
+
+  if (!req) return { success: false, error: "Chamado não encontrado." };
+  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
+
+  const now = new Date();
+  await db
+    .update(serviceRequests)
+    .set({
+      checklist: payload.checklist ?? req.checklist,
+      materialsUsed: payload.materialsUsed ?? req.materialsUsed,
+      executionNotes: payload.finalNotes ?? req.executionNotes,
+      completionRequestedAt: now,
+      status: "prestador_concluiu",
+      updatedAt: now,
+    })
+    .where(eq(serviceRequests.id, req.id));
+
+  await providerFinalizeService({
+    requestId: req.id,
+    vendorId: vendor.id,
+    finalNotes: payload.finalNotes || "Serviço finalizado com sucesso.",
+    finalPhotos: payload.finalPhotos || [],
+  });
+
+  // Notificar cliente para validação
+  await notify(
+    req.condoId,
+    [req.customerId],
+    `Serviço pronto para sua aprovação: ${req.title}`,
+    `O profissional concluiu o serviço e aguarda sua validação (Tudo Certo!).`,
+    `/painel/servicos`
+  );
+
+  revalidatePath("/prestador/chamados");
+  revalidatePath("/painel/servicos");
+  return { success: true };
 }
