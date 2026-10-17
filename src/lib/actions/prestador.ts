@@ -21,6 +21,7 @@ import {
   getSession,
   hashPassword,
   requireProvider,
+  requireRole,
   requireSession,
 } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
@@ -28,7 +29,7 @@ import { num, sequence, str } from "@/lib/utils";
 import { sendDigitalProposal } from "@/lib/services/payments/payment-service";
 
 /**
- * Onboarding / Cadastro de Prestador em 8 etapas
+ * Onboarding / Cadastro de Prestador Oficial (Fase 2)
  */
 export async function registerProviderAction(payload: {
   // Etapa 1 - Conta
@@ -36,27 +37,63 @@ export async function registerProviderAction(payload: {
   lastName: string;
   email: string;
   phone: string;
+  cpf?: string;
   password?: string;
-  // Etapa 2 - Perfil
+  photoUrl?: string;
+  // Etapa 2 - Tipo de profissional
   providerType: "autonomo" | "empresa";
   companyName?: string;
   cnpj?: string;
-  photoUrl?: string;
-  // Etapa 3 - Serviços
+  // Etapa 3 - Especialidades e Serviços
   category: string;
-  services: { id: string; name: string; description: string; priceFromCents: number | null; priceType?: "fixo" | "a_partir" | "por_hora" | "sob_consulta" }[];
+  specialties?: string[];
+  services: {
+    id: string;
+    name: string;
+    description: string;
+    priceFromCents: number | null;
+    priceType?: "fixo" | "a_partir" | "por_hora" | "sob_consulta";
+    estimatedDurationMinutes?: number;
+    warrantyDays?: number;
+  }[];
   priceFromCents?: number;
-  // Etapa 4 - Região
+  // Etapa 4 - Região e Cobertura
+  cep?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressNeighborhood?: string;
+  addressCity?: string;
+  addressState?: string;
   serviceArea: string;
   serviceRadiusKm: number;
-  // Etapa 5 - Experiência
-  experienceYears: number;
-  description: string;
-  // Etapa 6 - Portfólio
-  portfolio: { url: string; caption: string; category?: string; date?: string }[];
-  // Etapa 7 - Documentos
-  documentUrl?: string;
-  documentName?: string;
+  lat?: number;
+  lng?: number;
+  // Etapa 5 - Dados Financeiros para Recebimento
+  pixInfo?: {
+    keyType: "cpf" | "cnpj" | "email" | "phone" | "random";
+    key: string;
+  };
+  bankInfo?: {
+    bankCode?: string;
+    bankName?: string;
+    agency?: string;
+    account?: string;
+    accountType?: "corrente" | "poupanca";
+    holderName?: string;
+    holderDocument?: string;
+  };
+  // Etapa 6 - Verificação de Identidade
+  identityVerification?: {
+    documentType: "cnh" | "rg";
+    frontUrl?: string;
+    backUrl?: string;
+    digitalPdfUrl?: string;
+    selfieUrl?: string;
+  };
+  // Experiência e Portfólio
+  experienceYears?: number;
+  description?: string;
+  portfolio?: { url: string; caption: string; category?: string; date?: string }[];
   condoId?: number;
 }) {
   const email = payload.email.trim().toLowerCase();
@@ -68,8 +105,13 @@ export async function registerProviderAction(payload: {
   let userId: number;
   const [existingUser] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
+  const cleanCpf = payload.cpf?.replace(/\D/g, "") || null;
+
   if (existingUser) {
     userId = existingUser.id;
+    if (cleanCpf && !existingUser.document) {
+      await db.update(users).set({ document: cleanCpf }).where(eq(users.id, userId));
+    }
   } else {
     const rawPass = payload.password?.trim() || "prestador2026";
     const passwordHash = hashPassword(rawPass);
@@ -81,6 +123,7 @@ export async function registerProviderAction(payload: {
         name: fullName,
         email,
         phone: payload.phone.trim(),
+        document: cleanCpf,
         passwordHash,
         status: "ativo",
         isSuperAdmin: false,
@@ -106,18 +149,26 @@ export async function registerProviderAction(payload: {
     .replace(/^-+|-+$/g, "");
   const slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-  const documents = payload.documentUrl
-    ? [
-        {
-          name: payload.documentName || "Documento de identificação",
-          url: payload.documentUrl,
-          verified: false,
-          submittedAt: new Date().toISOString(),
-        },
-      ]
-    : [];
-
   const fullName = `${payload.name.trim()} ${payload.lastName.trim()}`.trim();
+
+  // Format identity verification payload
+  const hasIdentityDocs = !!(
+    payload.identityVerification?.frontUrl ||
+    payload.identityVerification?.digitalPdfUrl ||
+    payload.identityVerification?.selfieUrl
+  );
+
+  const identityData = {
+    status: hasIdentityDocs ? ("em_analise" as const) : ("pendente" as const),
+    documentType: payload.identityVerification?.documentType || "cnh",
+    frontUrl: payload.identityVerification?.frontUrl,
+    backUrl: payload.identityVerification?.backUrl,
+    digitalPdfUrl: payload.identityVerification?.digitalPdfUrl,
+    selfieUrl: payload.identityVerification?.selfieUrl,
+    submittedAt: hasIdentityDocs ? new Date().toISOString() : undefined,
+  };
+
+  const cleanCnpj = payload.cnpj?.replace(/\D/g, "") || cleanCpf || null;
 
   // 4. Create or update vendor profile
   const [existingVendor] = await db.select().from(vendors).where(eq(vendors.userId, userId)).limit(1);
@@ -131,18 +182,29 @@ export async function registerProviderAction(payload: {
         name: fullName,
         companyName: payload.companyName || fullName,
         providerType: payload.providerType,
-        cnpj: payload.cnpj || null,
+        cnpj: cleanCnpj,
         category: payload.category.toLowerCase(),
+        specialties: payload.specialties || [],
         phone: payload.phone,
         whatsapp: payload.phone,
-        description: payload.description,
+        description: payload.description || existingVendor.description,
+        cep: payload.cep || existingVendor.cep,
+        addressStreet: payload.addressStreet || existingVendor.addressStreet,
+        addressNumber: payload.addressNumber || existingVendor.addressNumber,
+        addressNeighborhood: payload.addressNeighborhood || existingVendor.addressNeighborhood,
+        addressCity: payload.addressCity || existingVendor.addressCity,
+        addressState: payload.addressState || existingVendor.addressState,
         serviceArea: payload.serviceArea,
         serviceRadiusKm: payload.serviceRadiusKm || 15,
+        lat: payload.lat ?? existingVendor.lat,
+        lng: payload.lng ?? existingVendor.lng,
         experienceYears: payload.experienceYears || 3,
         photoUrl: payload.photoUrl || existingVendor.photoUrl,
         services: payload.services,
-        portfolio: payload.portfolio,
-        documents,
+        portfolio: payload.portfolio || existingVendor.portfolio,
+        bankInfo: payload.bankInfo || existingVendor.bankInfo,
+        pixInfo: payload.pixInfo || existingVendor.pixInfo,
+        identityVerification: identityData,
         priceFromCents: payload.priceFromCents || null,
         onboardingStatus: "em_analise",
         active: true,
@@ -158,20 +220,31 @@ export async function registerProviderAction(payload: {
         name: fullName,
         companyName: payload.companyName || fullName,
         providerType: payload.providerType,
-        cnpj: payload.cnpj || null,
+        cnpj: cleanCnpj,
         category: payload.category.toLowerCase(),
+        specialties: payload.specialties || [],
         contactName: fullName,
         phone: payload.phone,
         email,
         whatsapp: payload.phone,
-        description: payload.description,
+        description: payload.description || "Profissional qualificado parceiro do Zeladoria Condomínio.",
+        cep: payload.cep,
+        addressStreet: payload.addressStreet,
+        addressNumber: payload.addressNumber,
+        addressNeighborhood: payload.addressNeighborhood,
+        addressCity: payload.addressCity,
+        addressState: payload.addressState,
         serviceArea: payload.serviceArea,
         serviceRadiusKm: payload.serviceRadiusKm || 15,
+        lat: payload.lat ?? -23.5505,
+        lng: payload.lng ?? -46.6333,
         experienceYears: payload.experienceYears || 3,
         photoUrl: payload.photoUrl || null,
         services: payload.services,
-        portfolio: payload.portfolio,
-        documents,
+        portfolio: payload.portfolio || [],
+        bankInfo: payload.bankInfo,
+        pixInfo: payload.pixInfo,
+        identityVerification: identityData,
         priceFromCents: payload.priceFromCents || null,
         onboardingStatus: "em_analise",
         isOnline: true,
@@ -190,7 +263,56 @@ export async function registerProviderAction(payload: {
 
   revalidatePath("/prestador");
   revalidatePath("/painel/servicos");
+  revalidatePath("/painel/admin/prestadores");
   return { success: true, vendorId };
+}
+
+/**
+ * Moderação de Verificação de Identidade do Prestador (Admin / Síndico)
+ */
+export async function reviewProviderVerificationAction(
+  vendorId: number,
+  decision: "aprovado" | "rejeitado" | "reenvio_solicitado",
+  notes?: string
+) {
+  const { session } = await requireRole(["superadmin", "sindico"]);
+
+  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vendorId)).limit(1);
+  if (!vendor) return { success: false, error: "Prestador não encontrado." };
+
+  const currentVerification = vendor.identityVerification || { status: "nao_iniciado" };
+  const updatedVerification = {
+    ...currentVerification,
+    status: decision,
+    reviewedAt: new Date().toISOString(),
+    reviewedById: session.user.id,
+    rejectionReason: decision !== "aprovado" ? notes : undefined,
+  };
+
+  await db
+    .update(vendors)
+    .set({
+      identityVerification: updatedVerification,
+      verified: decision === "aprovado",
+      verifiedAt: decision === "aprovado" ? new Date() : null,
+      verifiedById: decision === "aprovado" ? session.user.id : null,
+      onboardingStatus: decision === "aprovado" ? "aprovado" : decision === "rejeitado" ? "rejeitado" : "pendente_doc",
+    })
+    .where(eq(vendors.id, vendorId));
+
+  await logAudit({
+    session,
+    condoId: vendor.condoId,
+    action: "atualizar",
+    entity: "fornecedor",
+    entityId: vendor.id,
+    summary: `Revisou verificação de identidade do prestador ${vendor.name}: ${decision.toUpperCase()}`,
+    critical: true,
+  });
+
+  revalidatePath("/painel/admin/prestadores");
+  revalidatePath("/prestador");
+  return { success: true };
 }
 
 /**

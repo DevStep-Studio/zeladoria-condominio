@@ -524,6 +524,38 @@ export const vendors = appSchema.table("vendors", {
   responseTimeMinutes: integer("response_time_minutes").default(15),
   workingHours: varchar("working_hours", { length: 120 }).default("Seg a Sex 08:00 - 18:00"),
   priceFromCents: integer("price_from_cents"),
+  cep: varchar("cep", { length: 16 }),
+  addressStreet: varchar("address_street", { length: 200 }),
+  addressNumber: varchar("address_number", { length: 30 }),
+  addressNeighborhood: varchar("address_neighborhood", { length: 120 }),
+  addressCity: varchar("address_city", { length: 100 }),
+  addressState: varchar("address_state", { length: 8 }),
+  bankInfo: jsonb("bank_info").$type<{
+    bankCode?: string;
+    bankName?: string;
+    agency?: string;
+    account?: string;
+    accountType?: "corrente" | "poupanca";
+    holderName?: string;
+    holderDocument?: string;
+  }>(),
+  pixInfo: jsonb("pix_info").$type<{
+    keyType?: "cpf" | "cnpj" | "email" | "phone" | "random";
+    key?: string;
+  }>(),
+  identityVerification: jsonb("identity_verification").$type<{
+    status: "nao_iniciado" | "pendente" | "em_analise" | "aprovado" | "rejeitado" | "reenvio_solicitado";
+    documentType?: "cnh" | "rg";
+    frontUrl?: string;
+    backUrl?: string;
+    digitalPdfUrl?: string;
+    selfieUrl?: string;
+    submittedAt?: string;
+    reviewedAt?: string;
+    reviewedById?: number;
+    rejectionReason?: string;
+  }>().default({ status: "nao_iniciado" }),
+  specialties: jsonb("specialties").$type<string[]>().default([]),
   services: jsonb("services").$type<{ id: string; name: string; description: string; priceFromCents: number | null; priceType?: "fixo" | "a_partir" | "por_hora" | "sob_consulta" }[]>().default([]),
   portfolio: jsonb("portfolio").$type<{ url: string; caption: string; category?: string; date?: string }[]>().default([]),
   documents: jsonb("documents").$type<{ name: string; url: string; verified: boolean; submittedAt?: string }[]>().default([]),

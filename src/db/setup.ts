@@ -1206,6 +1206,17 @@ ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "esti
 ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "accepted_at" timestamp with time zone;
 ALTER TABLE "condominio_app"."contract_addendums" ADD COLUMN IF NOT EXISTS "rejected_at" timestamp with time zone;
 
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "cep" varchar(16);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "address_street" varchar(200);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "address_number" varchar(30);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "address_neighborhood" varchar(120);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "address_city" varchar(100);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "address_state" varchar(8);
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "bank_info" jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "pix_info" jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "identity_verification" jsonb DEFAULT '{"status":"nao_iniciado"}'::jsonb;
+ALTER TABLE "condominio_app"."vendors" ADD COLUMN IF NOT EXISTS "specialties" jsonb DEFAULT '[]'::jsonb;
+
 CREATE UNIQUE INDEX IF NOT EXISTS "payouts_payment_order_id_unique" ON "condominio_app"."payouts" ("payment_order_id") WHERE "payment_order_id" IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS "service_contracts_quote_id_unique" ON "condominio_app"."service_contracts" ("quote_id");
 `;
