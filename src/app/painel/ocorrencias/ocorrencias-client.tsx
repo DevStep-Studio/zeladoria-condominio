@@ -395,24 +395,23 @@ export function OcorrenciasClient({
 
   return (
     <div className="space-y-5">
-      {/* 1. CABEÇALHO DA PÁGINA (Conforme Seção 4 do Spec) */}
+      {/* 1. CABEÇALHO DA PÁGINA */}
       <PageHeader
         icon="clipboard"
         title="Ocorrências"
-        description="Acompanhe os problemas e solicitações do seu condomínio."
+        description="Acompanhamento e registro de demandas prediais e convivência."
         badge={
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF] border border-blue-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
+          <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/60">
             {occurrences.length} {occurrences.length === 1 ? "registro" : "registros"}
           </span>
         }
         actions={
           <Link
             href="/painel/ocorrencias/nova"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFD000] hover:bg-[#FFE04D] active:bg-[#E6BB00] text-[#12162A] px-4 py-2 text-xs sm:text-sm font-black shadow-xs transition-colors cursor-pointer"
+            className="btn-primary min-h-9 px-3.5 py-1.5 text-xs font-semibold"
           >
-            <Icon name="plus" size={15} strokeWidth={2.6} />
-            <span>+ Nova ocorrência</span>
+            <Icon name="plus" size={14} />
+            <span>Nova ocorrência</span>
           </Link>
         }
       />
@@ -420,7 +419,7 @@ export function OcorrenciasClient({
       {/* Alerta de Feedback Global */}
       {feedback && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+          className={`p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${
             feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-red-50 text-red-800 border-red-200"
@@ -428,8 +427,8 @@ export function OcorrenciasClient({
         >
           <div className="flex items-center gap-2">
             <Icon
-              name={feedback.type === "success" ? "check-circle" : "alert-triangle"}
-              size={15}
+              name={feedback.type === "success" ? "check" : "alert-triangle"}
+              size={14}
               className={feedback.type === "success" ? "text-emerald-600" : "text-red-600"}
             />
             <span>{feedback.msg}</span>
@@ -437,17 +436,17 @@ export function OcorrenciasClient({
           <button
             type="button"
             onClick={() => setFeedback(null)}
-            className="text-[11px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
           >
             Dispensar
           </button>
         </div>
       )}
 
-      {/* 2. RESUMO DE STATUS (TABS COMPACTAS) & BUSCA / FILTROS (Conforme Seções 5, 14, 15) */}
+      {/* 2. STATUS SEGMENTADO & BUSCA / FILTROS */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        {/* Tabs Compactas Segmentadas com Contadores Reais */}
-        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto max-w-full">
+        {/* Segmented Tabs */}
+        <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200/80 overflow-x-auto max-w-full">
           {[
             { key: "todas" as FilterTab, label: "Todas", count: counts.todas },
             { key: "recebidas" as FilterTab, label: "Recebidas", count: counts.recebidas },
@@ -460,16 +459,16 @@ export function OcorrenciasClient({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-[#1355FF] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                    : "text-slate-600 hover:text-slate-900 font-medium"
                 }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`flex h-4 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                  className={`flex h-4 min-w-[18px] items-center justify-center rounded px-1 text-[10px] tabular-nums font-semibold ${
+                    isActive ? "bg-blue-50 text-[#1355FF]" : "bg-slate-200/80 text-slate-600"
                   }`}
                 >
                   {tab.count}
@@ -482,18 +481,18 @@ export function OcorrenciasClient({
         {/* Barra de Busca + Botão Filtros + Ordenação */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           {/* Campo de Busca Rápida */}
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full sm:w-60">
             <Icon
               name="search"
-              size={14}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={13}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <input
               type="text"
               placeholder="Buscar ocorrência..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15 transition-all"
+              className="h-8.5 w-full rounded-md border border-slate-200 bg-white pl-8.5 pr-8 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF]/20 transition-colors"
             />
             {search && (
               <button
@@ -501,7 +500,7 @@ export function OcorrenciasClient({
                 onClick={() => setSearch("")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
               >
-                <Icon name="x" size={12} />
+                <Icon name="x" size={11} />
               </button>
             )}
           </div>
@@ -510,13 +509,13 @@ export function OcorrenciasClient({
           <button
             type="button"
             onClick={() => setFilterModalOpen(true)}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer ${
+            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
               selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly
                 ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
-            <Icon name="filter" size={13} />
+            <Icon name="filter" size={12} />
             <span>Filtros</span>
             {(selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly) && (
               <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
@@ -528,15 +527,15 @@ export function OcorrenciasClient({
             <button
               type="button"
               onClick={() => setNeedsAttentionOnly((prev) => !prev)}
-              className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer ${
+              className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
                 needsAttentionOnly
-                  ? "border-red-300 bg-red-50 text-red-700"
+                  ? "border-amber-300 bg-amber-50 text-amber-800"
                   : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               }`}
-              title="Filtrar ocorrências urgentes, atrasadas ou sem responsável"
+              title="Filtrar ocorrências com atenção prioritária"
             >
-              <Icon name="alert-triangle" size={13} className={needsAttentionOnly ? "text-red-600" : "text-slate-400"} />
-              <span className="hidden sm:inline">Precisa de atenção</span>
+              <Icon name="alert-triangle" size={12} className={needsAttentionOnly ? "text-amber-700" : "text-slate-400"} />
+              <span className="hidden sm:inline">Prioritárias</span>
             </button>
           )}
 
@@ -544,11 +543,11 @@ export function OcorrenciasClient({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#1355FF] cursor-pointer"
+            className="h-8.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 outline-none focus:border-[#1355FF] cursor-pointer"
           >
             <option value="recentes">Mais recentes</option>
             <option value="antigas">Mais antigas</option>
-            <option value="prioridade">Maior prioridade</option>
+            <option value="prioridade">Prioridade</option>
           </select>
         </div>
       </div>
@@ -556,9 +555,9 @@ export function OcorrenciasClient({
       {/* 3. VISÃO DO MORADOR OU GESTOR (Conforme Seções 6, 7, 8, 9, 30) */}
       {filteredOccurrences.length === 0 ? (
         /* Empty State */
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-2xs">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 mb-3 border border-slate-100">
-            <Icon name="clipboard" size={24} />
+        <div className="rounded-lg border border-slate-200/90 bg-white p-8 text-center shadow-2xs">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-slate-50 text-slate-400 mb-3 border border-slate-200/80">
+            <Icon name="clipboard" size={20} />
           </div>
           <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma ocorrência encontrada</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
@@ -576,14 +575,14 @@ export function OcorrenciasClient({
                   setSelectedSeverity("todas");
                   setNeedsAttentionOnly(false);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Limpar filtros
               </button>
             )}
             <Link
               href="/painel/ocorrencias/nova"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1355FF] text-white hover:bg-[#0D47E6] px-3.5 py-1.5 text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#1355FF] text-white hover:bg-[#0D47E6] px-3.5 py-1.5 text-xs font-semibold transition-colors"
             >
               <Icon name="plus" size={13} strokeWidth={2.5} />
               <span>Registrar ocorrência</span>
@@ -594,19 +593,19 @@ export function OcorrenciasClient({
         /* ========================================================================= */
         /* TABELA DE GESTÃO PARA SÍNDICO / STAFF (Desktop Denso, Mobile Compacto)     */
         /* ========================================================================= */
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+              <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                 <tr>
-                  <th className="px-4 py-3">Código</th>
-                  <th className="px-4 py-3">Ocorrência</th>
-                  <th className="px-4 py-3">Localização</th>
-                  <th className="px-4 py-3">Prioridade</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Responsável</th>
-                  <th className="px-4 py-3">Atualização</th>
-                  <th className="px-4 py-3 text-right">Ação</th>
+                  <th className="px-4 py-2.5">Código</th>
+                  <th className="px-4 py-2.5">Ocorrência</th>
+                  <th className="px-4 py-2.5">Localização</th>
+                  <th className="px-4 py-2.5">Prioridade</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Responsável</th>
+                  <th className="px-4 py-2.5">Atualização</th>
+                  <th className="px-4 py-2.5 text-right">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -621,12 +620,12 @@ export function OcorrenciasClient({
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                     >
                       {/* Código */}
-                      <td className="px-4 py-3.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
+                      <td className="px-4 py-2.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
                         {occ.code}
                       </td>
 
                       {/* Título + Morador */}
-                      <td className="px-4 py-3.5 max-w-[280px]">
+                      <td className="px-4 py-2.5 max-w-[280px]">
                         <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
                           {occ.title}
                         </p>
@@ -637,7 +636,7 @@ export function OcorrenciasClient({
                       </td>
 
                       {/* Localização */}
-                      <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
                         <span className="flex items-center gap-1 font-medium text-slate-700">
                           <Icon name="map-pin" size={12} className="text-slate-400" />
                           <span className="truncate max-w-[160px]">{occ.exactLocation || "Área comum"}</span>
@@ -645,9 +644,9 @@ export function OcorrenciasClient({
                       </td>
 
                       {/* Prioridade */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-2.5 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${sv.badgeBg} ${sv.badgeText}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
                         >
                           {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
                           {sv.label}
@@ -655,9 +654,9 @@ export function OcorrenciasClient({
                       </td>
 
                       {/* Status */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-2.5 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
                           {st.label}
@@ -665,7 +664,7 @@ export function OcorrenciasClient({
                       </td>
 
                       {/* Responsável */}
-                      <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
                         {occ.assignedToName ? (
                           <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
                         ) : (
@@ -674,13 +673,13 @@ export function OcorrenciasClient({
                       </td>
 
                       {/* Atualização */}
-                      <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap text-[11px]">
+                      <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
                         {timeAgoBR(occ.createdAt)}
                       </td>
 
                       {/* Ação */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        <span className="text-xs font-bold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
+                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                        <span className="text-xs font-semibold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
                           Ver detalhe
                           <Icon name="chevron-right" size={12} />
                         </span>
@@ -696,7 +695,7 @@ export function OcorrenciasClient({
         /* ========================================================================= */
         /* VISÃO DO MORADOR: LINHAS / CARDS COMPACTOS (Conforme Seções 6, 7, 8, 9)   */
         /* ========================================================================= */
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {filteredOccurrences.map((occ) => {
             const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
             const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
@@ -706,7 +705,7 @@ export function OcorrenciasClient({
               <div
                 key={occ.id}
                 onClick={() => openOccurrence(occ)}
-                className="group relative flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer"
+                className="group relative flex items-center justify-between gap-4 rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-slate-300 transition-colors cursor-pointer"
               >
                 <div className="space-y-1.5 min-w-0 flex-1">
                   {/* Linha 1: Código + Status + Tag Categoria */}
@@ -833,7 +832,7 @@ export function OcorrenciasClient({
             {/* CORPO DO DRAWER ROLÁVEL */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
               {/* PROGRESSO VISUAL / TIMELINE DE ESTÁGIOS (Seção 12) */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3.5 space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Andamento da Ocorrência
                 </span>
@@ -960,7 +959,7 @@ export function OcorrenciasClient({
 
               {/* FERRAMENTAS DO SÍNDICO / STAFF (Seções 29 a 35) */}
               {isStaff && (
-                <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 space-y-3.5">
+                <div className="rounded-lg border border-slate-200/90 bg-slate-50/60 p-3.5 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-[#1355FF] uppercase tracking-wider">
                       Gestão da Ocorrência
@@ -1054,7 +1053,7 @@ export function OcorrenciasClient({
 
               {/* AÇÃO DO MORADOR: CONFIRMAÇÃO DE RESOLUÇÃO (Seções 27 e 28) */}
               {isResident && activeOccurrence.status === "resolvida" && (
-                <div className="rounded-2xl border border-emerald-300 bg-emerald-50/70 p-4 space-y-3">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3.5 space-y-3">
                   <div className="flex items-start gap-2.5">
                     <Icon name="check-circle" size={18} className="text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -1070,7 +1069,7 @@ export function OcorrenciasClient({
                     <button
                       type="button"
                       onClick={() => setRatingModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <span>Sim, resolvido</span>
                     </button>
@@ -1078,7 +1077,7 @@ export function OcorrenciasClient({
                     <button
                       type="button"
                       onClick={() => setReopenModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50 px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <span>Ainda existe problema</span>
                     </button>
@@ -1116,7 +1115,7 @@ export function OcorrenciasClient({
                         className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-2xs ${
+                          className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-xs shadow-2xs ${
                             isCurrentUser
                               ? "bg-[#1355FF] text-white rounded-br-xs"
                               : "bg-slate-100 text-slate-800 rounded-bl-xs"
@@ -1174,7 +1173,7 @@ export function OcorrenciasClient({
             onClick={() => setFilterModalOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl space-y-4">
+          <div className="relative w-full max-w-sm rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Filtros da Lista</h3>
               <button
@@ -1193,7 +1192,7 @@ export function OcorrenciasClient({
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 font-semibold text-slate-800"
+                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 font-semibold text-slate-800"
                 >
                   <option value="todas">Todas as categorias</option>
                   {categoriesList.map((cat) => (
@@ -1210,7 +1209,7 @@ export function OcorrenciasClient({
                 <select
                   value={selectedSeverity}
                   onChange={(e) => setSelectedSeverity(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 font-semibold text-slate-800"
+                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 font-semibold text-slate-800"
                 >
                   <option value="todas">Todas as prioridades</option>
                   <option value="baixa">Baixa</option>
@@ -1230,7 +1229,7 @@ export function OcorrenciasClient({
                     setNeedsAttentionOnly(false);
                     setFilterModalOpen(false);
                   }}
-                  className="text-xs font-bold text-slate-500 hover:text-slate-800"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800"
                 >
                   Limpar tudo
                 </button>
@@ -1238,7 +1237,7 @@ export function OcorrenciasClient({
                 <button
                   type="button"
                   onClick={() => setFilterModalOpen(false)}
-                  className="rounded-xl bg-[#1355FF] text-white px-4 py-2 text-xs font-bold shadow-xs hover:bg-[#0D47E6]"
+                  className="rounded-md bg-[#1355FF] text-white px-4 py-2 text-xs font-semibold shadow-xs hover:bg-[#0D47E6]"
                 >
                   Aplicar filtros
                 </button>
@@ -1258,7 +1257,7 @@ export function OcorrenciasClient({
             onClick={() => setReopenModalOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl space-y-4">
+          <div className="relative w-full max-w-md rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Icon name="alert-triangle" size={18} className="text-amber-600" />
@@ -1283,14 +1282,14 @@ export function OcorrenciasClient({
               value={reopenReason}
               onChange={(e) => setReopenReason(e.target.value)}
               placeholder="Descreva o que ainda não foi solucionado..."
-              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
+              className="w-full rounded-md border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/10"
             />
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReopenModalOpen(false)}
-                className="rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="rounded-md border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -1298,7 +1297,7 @@ export function OcorrenciasClient({
                 type="button"
                 disabled={isPending}
                 onClick={handleReopenOccurrence}
-                className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-1.5 text-xs font-bold shadow-xs disabled:opacity-50"
+                className="rounded-md bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-1.5 text-xs font-semibold shadow-xs disabled:opacity-50"
               >
                 Confirmar reabertura
               </button>
@@ -1317,9 +1316,9 @@ export function OcorrenciasClient({
             onClick={() => setRatingModalOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl space-y-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-              <Icon name="check-circle" size={24} />
+          <div className="relative w-full max-w-sm rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4 text-center">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
+              <Icon name="check-circle" size={20} />
             </div>
 
             <div>

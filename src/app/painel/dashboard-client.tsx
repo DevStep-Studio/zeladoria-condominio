@@ -419,332 +419,295 @@ export function DashboardClient({
   ) : null;
 
   // =========================================================================
-  // REDESIGN COMPLETO: DASHBOARD DO MORADOR (Inspirado na hierarquia do Cofri)
+  // REFORMULAÇÃO GLOBAL: DASHBOARD DO MORADOR (SaaS Minimalista e Objetivo)
   // =========================================================================
   if (isResident) {
     return (
       <div className="space-y-6">
-        {/* 1. NOVO HERO DO DASHBOARD (Grande bloco AZUL SÓLIDO #1355FF, sem gradiente) */}
-        <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#1355FF] p-5 sm:p-7 text-white shadow-sm select-none">
-          {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
-          <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-white.png"
-              alt=""
-              className="h-44 w-44 sm:h-64 sm:w-64 object-contain pointer-events-none select-none"
-            />
+        {/* 1. CABEÇALHO OBJETIVO */}
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Olá, {userName}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
+              {condoName} {unitLabel ? `· Unidade ${unitLabel}` : ""}
+            </p>
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-            <div className="space-y-1.5 max-w-xl">
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                Olá, {userName}
-              </h1>
+          {/* Ações contextuais de cabeçalho: Emergência discreta e Assistente */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setEmergencyModalOpen(true)}
+              title="Central de Emergência e Telefones Úteis 24h"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <Icon name="phone" size={13} />
+              <span>Emergência 24h</span>
+            </button>
 
-              <p className="text-xs sm:text-sm text-blue-100 font-medium">
-                {condoName} {unitLabel ? `• Unidade ${unitLabel}` : ""}
-              </p>
-              <p className="text-[11px] sm:text-xs text-blue-200/90 font-normal">
-                Tudo do seu condomínio em um só lugar, organizado e rápido.
-              </p>
-            </div>
-
-            {/* Ações do Hero: Somente Emergência */}
-            <div className="w-full sm:w-auto shrink-0 pt-2 sm:pt-0">
-              <button
-                type="button"
-                onClick={() => setEmergencyModalOpen(true)}
-                title="Telefones úteis e emergência 24h"
-                className="w-full sm:w-auto inline-flex min-h-[42px] items-center justify-center gap-2 rounded-[10px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
-              >
-                <Icon name="phone" size={15} strokeWidth={2.4} />
-                <span>Emergência</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setAssistantOpen(true)}
+              title="Assistente de Dúvidas e Regras do Condomínio"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <Icon name="sparkles" size={13} className="text-[#1355FF]" />
+              <span>Zeladoria IA</span>
+            </button>
           </div>
         </section>
 
-        {/* 2. AÇÕES RÁPIDAS (Linha de 4 ações: 1ª Amarela destaque Nível 1, demais Brancas) */}
-        <section className="space-y-2">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* 1. Registrar ocorrência (Nível 1 - Amarelo Assinatura) */}
+        {/* 2. AÇÕES RÁPIDAS (4 botões compactos e consistentes, sem blocos coloridos gigantes) */}
+        <section className="space-y-1.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* 1. Registrar ocorrência */}
             <Link
               href="/painel/ocorrencias/nova"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#FFD000] p-4 sm:p-5 text-[#12162A] shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[#12162A]/10 text-[#12162A] transition-transform group-hover:scale-110">
-                  <Icon name="clipboard" size={17} strokeWidth={2.4} />
-                </span>
-              </div>
-              <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-[#12162A]">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+                <Icon name="clipboard" size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                   Registrar ocorrência
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-[#12162A]/75 line-clamp-1">
-                  Relatar problema ou manutenção
-                </p>
-              </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#12162A] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <p className="text-[11px] text-slate-400 truncate">Relatar problema</p>
               </div>
             </Link>
 
-            {/* 2. Nova reserva (Azul) */}
+            {/* 2. Reservar espaço */}
             <Link
               href="/painel/reservas"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                  <Icon name="calendar" size={17} strokeWidth={2.2} />
-                </span>
-              </div>
-              <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
-                  Nova reserva
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
+                <Icon name="calendar" size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                  Reservar espaço
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                  Reserve áreas comuns
-                </p>
-              </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <p className="text-[11px] text-slate-400 truncate">Áreas comuns</p>
               </div>
             </Link>
 
-            {/* 3. Autorizar visitante (Azul) */}
+            {/* 3. Autorizar visitante */}
             <Link
               href="/painel/visitantes"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                  <Icon name="users" size={17} strokeWidth={2.2} />
-                </span>
-              </div>
-              <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-700">
+                <Icon name="users" size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                   Autorizar visitante
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                  Libere um acesso rápido
-                </p>
-              </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <p className="text-[11px] text-slate-400 truncate">Liberação de acesso</p>
               </div>
             </Link>
 
-            {/* 4. Contratar serviço (Azul) */}
+            {/* 4. Contratar serviço */}
             <Link
               href="/painel/servicos"
-              className="group relative flex min-h-[116px] sm:min-h-[128px] flex-col justify-between overflow-hidden rounded-[16px] bg-[#0070F3] p-4 sm:p-5 text-white shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:bg-[#0062D6]"
+              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-colors shadow-2xs group"
             >
-              <div className="flex items-center justify-start">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-white/15 text-white transition-transform group-hover:scale-110">
-                  <Icon name="briefcase" size={17} strokeWidth={2.2} />
-                </span>
-              </div>
-              <div className="pr-10 pt-2">
-                <h3 className="text-xs sm:text-sm font-black tracking-tight leading-tight text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
+                <Icon name="briefcase" size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                   Contratar serviço
                 </h3>
-                <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-white/80 line-clamp-1">
-                  Encontre profissionais
-                </p>
-              </div>
-              <div className="absolute bottom-3 right-3 flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-[8px] bg-white text-[#0070F3] shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm">
-                <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <p className="text-[11px] text-slate-400 truncate">Prestadores parceiros</p>
               </div>
             </Link>
           </div>
         </section>
 
-        {/* 3. RESUMO DO MORADOR (3 Cards Contextuais Equivalentes ao Cofri) */}
-        <section className="space-y-2.5">
+        {/* 3. RESUMO DO MORADOR (Indicadores compactos e objetivos) */}
+        <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Meu Resumo
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Visão Geral
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Card 1: Minhas ocorrências */}
-            <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Minhas ocorrências
+            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
+              <div className="flex items-center justify-between pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Ocorrências
                 </span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF]">
-                  <Icon name="clipboard" size={16} />
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
+                  <Icon name="clipboard" size={14} />
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {residentStats.myOccurrences > 0 ? (
                   <>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                      <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                         {residentStats.myOccurrences}
                       </span>
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
+                      <span className="text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded">
                         em andamento
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      Acompanhe o reparo e as atualizações do condomínio.
+                    <p className="text-xs text-slate-500">
+                      Acompanhe o andamento das solicitações da sua unidade.
                     </p>
                   </>
                 ) : (
                   <>
-                    <span className="text-base sm:text-lg font-bold text-slate-800">
-                      Tudo certo por aqui
+                    <span className="text-sm font-semibold text-slate-800">
+                      Nenhuma ocorrência em aberto
                     </span>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      Nenhum chamado aberto na sua unidade.
+                    <p className="text-xs text-slate-400">
+                      Nenhum chamado ativo na sua unidade.
                     </p>
                   </>
                 )}
               </div>
-              <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
                 <Link
                   href={residentStats.myOccurrences > 0 ? "/painel/ocorrencias" : "/painel/ocorrencias/nova"}
                   className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
-                  <span>{residentStats.myOccurrences > 0 ? "Acompanhar ocorrências" : "Relatar um problema"}</span>
-                  <Icon name="arrow-up-right" size={13} />
+                  <span>{residentStats.myOccurrences > 0 ? "Acompanhar ocorrências" : "Registrar ocorrência"}</span>
+                  <Icon name="arrow-up-right" size={12} />
                 </Link>
               </div>
             </div>
 
             {/* Card 2: Próxima reserva */}
-            <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
+              <div className="flex items-center justify-between pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Próxima reserva
                 </span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-indigo-50 text-indigo-600">
-                  <Icon name="calendar" size={16} />
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
+                  <Icon name="calendar" size={14} />
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {upcomingReservations.length > 0 ? (
                   <>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 truncate">
+                      <span className="text-sm font-semibold text-slate-900 truncate">
                         {upcomingReservations[0].amenityName}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px]">
+                      <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded">
                         Confirmada
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium">
+                    <p className="text-xs text-slate-500">
                       {upcomingReservations[0].date} · {upcomingReservations[0].time}
                     </p>
                   </>
                 ) : (
                   <>
-                    <span className="text-base sm:text-lg font-bold text-slate-800">
-                      Nenhuma reserva futura
+                    <span className="text-sm font-semibold text-slate-800">
+                      Nenhuma reserva agendada
                     </span>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      Salão de festas, churrasqueira e áreas de lazer livres.
+                    <p className="text-xs text-slate-400">
+                      Áreas de lazer livres para reserva.
                     </p>
                   </>
                 )}
               </div>
-              <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
                 <Link
                   href="/painel/reservas"
                   className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
-                  <span>{upcomingReservations.length > 0 ? "Ver todas as reservas" : "Reservar área comum"}</span>
-                  <Icon name="arrow-up-right" size={13} />
+                  <span>{upcomingReservations.length > 0 ? "Ver reservas" : "Reservar espaço"}</span>
+                  <Icon name="arrow-up-right" size={12} />
                 </Link>
               </div>
             </div>
 
             {/* Card 3: Encomendas */}
-            <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
+              <div className="flex items-center justify-between pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                   Encomendas na portaria
                 </span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-amber-50 text-amber-700">
-                  <Icon name="package" size={16} />
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+                  <Icon name="package" size={14} />
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {residentStats.myParcels > 0 ? (
                   <>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                      <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                         {residentStats.myParcels}
                       </span>
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-[6px]">
+                      <span className="text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded">
                         {residentStats.myParcels === 1 ? "pronta para retirada" : "prontas para retirada"}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      Apresente sua identificação na guarita para retirar.
+                    <p className="text-xs text-slate-500">
+                      Apresente sua identificação na portaria para retirar.
                     </p>
                   </>
                 ) : (
                   <>
-                    <span className="text-base sm:text-lg font-bold text-slate-800">
-                      Nenhuma pendente
+                    <span className="text-sm font-semibold text-slate-800">
+                      Nenhuma encomenda pendente
                     </span>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      Você será notificado assim que uma encomenda chegar.
+                    <p className="text-xs text-slate-400">
+                      Notificaremos você assim que um pacote chegar.
                     </p>
                   </>
                 )}
               </div>
-              <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
                 <Link
                   href="/painel/encomendas"
                   className="text-[#1355FF] hover:underline flex items-center gap-1"
                 >
                   <span>Ver encomendas</span>
-                  <Icon name="arrow-up-right" size={13} />
+                  <Icon name="arrow-up-right" size={12} />
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 4. SEÇÃO INFERIOR EM DUAS COLUNAS (Atenção Pessoal + Avisos do Condomínio) */}
+        {/* 4. SEÇÃO EM DUAS COLUNAS (Atenção + Avisos Recentes) */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {/* Coluna 1: O que precisa da sua atenção */}
-          <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-amber-50 text-amber-700">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-50 text-amber-700">
                   <Icon name="alert-triangle" size={13} />
                 </span>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  O que precisa da sua atenção
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Pendências
                 </h3>
               </div>
               {activeAttention.length > 0 && (
-                <span className="rounded-[6px] bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                  {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
+                <span className="rounded bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                  {totalPending} {totalPending === 1 ? "item" : "itens"}
                 </span>
               )}
             </div>
 
             <div className="divide-y divide-slate-100">
               {activeAttention.length === 0 ? (
-                <div className="py-6 flex flex-col items-center justify-center text-center space-y-1.5">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-emerald-50 text-emerald-600 mb-1">
-                    <Icon name="check-circle" size={20} />
+                <div className="py-6 flex flex-col items-center justify-center text-center">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-1">
+                    <Icon name="check" size={16} />
                   </span>
-                  <p className="text-xs font-bold text-slate-800">
-                    Tudo em dia!
-                  </p>
-                  <p className="text-[11px] text-slate-400 max-w-xs">
-                    Você não possui pendências, encomendas ou avisos urgentes no momento.
+                  <p className="text-xs font-medium text-slate-700">
+                    Nenhuma pendência no momento
                   </p>
                 </div>
               ) : (
@@ -752,22 +715,22 @@ export function DashboardClient({
                   <Link
                     key={item.id}
                     href={item.href}
-                    className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 rounded-[8px] hover:bg-slate-50 transition-colors group"
+                    className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 rounded-md hover:bg-slate-50 transition-colors group"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs ${
-                          item.urgent ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs ${
+                          item.urgent ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-slate-100 text-slate-600"
                         }`}
                       >
-                        <Icon name={item.urgent ? "package" : "clipboard"} size={14} />
+                        <Icon name={item.urgent ? "package" : "clipboard"} size={13} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                        <p className="text-xs font-medium text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                           {item.count} {item.label}
                         </p>
                         {item.detail && (
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          <p className="text-[11px] text-slate-400 truncate">
                             {item.detail}
                           </p>
                         )}
@@ -776,8 +739,8 @@ export function DashboardClient({
 
                     <Icon
                       name="chevron-right"
-                      size={14}
-                      className="text-slate-400 group-hover:text-slate-700 transition-colors shrink-0"
+                      size={13}
+                      className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0"
                     />
                   </Link>
                 ))
@@ -786,19 +749,19 @@ export function DashboardClient({
           </div>
 
           {/* Coluna 2: Avisos do condomínio */}
-          <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+          <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                   <Icon name="megaphone" size={13} />
                 </span>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  Avisos do condomínio
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Avisos Recentes
                 </h3>
               </div>
               <Link
                 href="/painel/comunicados"
-                className="text-[11px] font-bold text-[#1355FF] hover:underline"
+                className="text-[11px] font-semibold text-[#1355FF] hover:underline"
               >
                 Ver todos
               </Link>
@@ -807,12 +770,9 @@ export function DashboardClient({
             <div className="divide-y divide-slate-100">
               {notices.length === 0 ? (
                 <div className="py-6 flex flex-col items-center justify-center text-center">
-                  <Icon name="mail" size={20} className="text-slate-300 mb-1.5" />
-                  <p className="text-xs font-bold text-slate-700">
+                  <Icon name="mail" size={18} className="text-slate-300 mb-1" />
+                  <p className="text-xs font-medium text-slate-600">
                     Nenhum aviso recente
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Comunicados da administração aparecerão listados aqui.
                   </p>
                 </div>
               ) : (
@@ -823,22 +783,22 @@ export function DashboardClient({
                     <Link
                       key={n.id}
                       href={n.href}
-                      className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-[8px] hover:bg-slate-50 transition-colors group"
+                      className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-md hover:bg-slate-50 transition-colors group"
                     >
-                      <div className="flex items-start gap-3 min-w-0">
+                      <div className="flex items-start gap-2.5 min-w-0">
                         <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs mt-0.5 ${
-                            isUrgent ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs mt-0.5 ${
+                            isUrgent ? "bg-rose-50 text-rose-600 border border-rose-200/60" : "bg-slate-100 text-slate-600"
                           }`}
                         >
-                          <Icon name={meta.icon} size={14} />
+                          <Icon name={meta.icon} size={13} />
                         </span>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors">
+                            <span className="text-xs font-medium text-slate-900 group-hover:text-[#1355FF] transition-colors">
                               {n.title}
                             </span>
-                            <span className="text-[10px] font-medium text-slate-400">
+                            <span className="text-[10px] text-slate-400">
                               {n.date} · {meta.label}
                             </span>
                           </div>
@@ -849,8 +809,8 @@ export function DashboardClient({
                       </div>
                       <Icon
                         name="chevron-right"
-                        size={14}
-                        className="text-slate-400 group-hover:text-slate-700 transition-colors shrink-0 mt-1"
+                        size={13}
+                        className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0 mt-1"
                       />
                     </Link>
                   );
@@ -860,32 +820,32 @@ export function DashboardClient({
           </div>
         </section>
 
-        {/* 5. ZELADORIA SERVIÇOS (Atalho com chips de categorias) */}
-        <section className="rounded-[16px] bg-[#FFD000] border border-[#E6BC00] p-5 sm:p-6 shadow-2xs">
+        {/* 5. ZELADORIA SERVIÇOS (Acesso limpo ao marketplace, sem bloco amarelo excessivo) */}
+        <section className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-2xs">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1.5 max-w-xl">
-              <h3 className="text-base sm:text-lg font-black text-slate-950 tracking-tight">
-                Precisa de um profissional para sua casa?
+            <div className="space-y-1 max-w-xl">
+              <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
+                Contratação de Serviços
               </h3>
-              <p className="text-xs sm:text-sm text-slate-900/85 font-medium leading-relaxed">
-                Encontre eletricistas, encanadores, pintores e técnicos avaliados por moradores do seu condomínio.
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Profissionais de manutenção e reparo avaliados por moradores do seu condomínio.
               </p>
 
               {/* Categorias Rápidas */}
-              <div className="pt-2 flex items-center gap-2 flex-wrap">
+              <div className="pt-2 flex items-center gap-1.5 flex-wrap">
                 {[
                   { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
                   { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
-                  { label: "Ar-condicionado", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
+                  { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
                   { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
-                  { label: "Pequenos reparos", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
+                  { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
                 ].map((cat) => (
                   <Link
                     key={cat.label}
                     href={cat.href}
-                    className="inline-flex items-center gap-1.5 rounded-[8px] bg-white text-slate-900 hover:bg-slate-950 hover:text-white px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs"
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 hover:bg-slate-100 hover:border-slate-300 text-slate-700 px-2.5 py-1 text-xs font-medium transition-colors"
                   >
-                    <Icon name={cat.icon} size={13} className="text-slate-700" />
+                    <Icon name={cat.icon} size={12} className="text-slate-500" />
                     <span>{cat.label}</span>
                   </Link>
                 ))}
@@ -895,10 +855,10 @@ export function DashboardClient({
             <div className="shrink-0 flex items-center">
               <Link
                 href="/painel/servicos"
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-[10px] bg-[#1355FF] hover:bg-[#0D47E6] active:bg-[#0A3BC2] text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
+                className="btn-primary min-h-9 px-3.5 py-1.5 text-xs"
               >
-                <span>Encontrar prestador</span>
-                <Icon name="arrow-up-right" size={14} strokeWidth={2.4} />
+                <span>Ver todos os profissionais</span>
+                <Icon name="arrow-up-right" size={13} />
               </Link>
             </div>
           </div>

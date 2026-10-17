@@ -44,7 +44,7 @@ function resolvePageIcon(icon?: IconName, title?: ReactNode): IconName {
   return "grid";
 }
 
-/* Minimalist page title block. One optional primary action area. */
+/* Minimalist SaaS page title block. */
 export function PageHeader({
   icon,
   title,
@@ -66,19 +66,19 @@ export function PageHeader({
   const textDescription = description || subtitle;
 
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4 mb-6 ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4 mb-6 ${className}`}>
       <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1355FF] text-white shadow-xs shrink-0">
-            <Icon name={resolvedIcon} size={16} />
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-600 shrink-0">
+            <Icon name={resolvedIcon} size={15} />
           </span>
-          <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <span>{title}</span>
             {badge}
           </h1>
         </div>
         {textDescription ? (
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
             {textDescription}
           </p>
         ) : null}
@@ -104,35 +104,35 @@ export function Card({
   accent?: boolean;
 }) {
   return (
-    <section className={`card-flat ${accent ? "border-l-4 border-l-[var(--color-primary)]" : ""} ${className}`}>
+    <section className={`rounded-lg border border-slate-200/90 bg-white shadow-2xs ${accent ? "border-l-4 border-l-[#1355FF]" : ""} ${className}`}>
       {title ? (
-        <header className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
           <div className="min-w-0">
-            <h2 className="text-[17px] font-semibold tracking-tight text-[var(--color-ink)]">{title}</h2>
-            {description ? <p className="mt-1.5 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">{description}</p> : null}
+            <h2 className="text-sm font-semibold tracking-tight text-slate-900">{title}</h2>
+            {description ? <p className="mt-0.5 max-w-3xl text-xs text-slate-500">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
-      <div className={title ? "border-t border-[var(--color-line)] p-6" : "p-6"}>{children}</div>
+      <div className={title ? "p-5" : "p-5"}>{children}</div>
     </section>
   );
 }
 
 const TONES: Record<string, string> = {
-  zinc: "border-[var(--color-line)] bg-[var(--color-surface-muted)] text-[var(--color-muted)]",
-  neutral: "border-[var(--color-line)] bg-[var(--color-surface-muted)] text-[var(--color-muted)]",
-  primary: "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]",
-  blue: "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]",
-  yellow: "border-[#fde68a] bg-[#fffbeb] text-[#b45309]",
-  amber: "border-[#fde68a] bg-[#fffbeb] text-[#b45309]",
-  purple: "border-[#ddd6fe] bg-[#f5f3ff] text-[#6d28d9]",
-  green: "border-[#bbf7d0] bg-[var(--color-success-soft)] text-[var(--color-success)]",
-  red: "border-[#fecaca] bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
+  zinc: "border-slate-200 bg-slate-100 text-slate-700",
+  neutral: "border-slate-200 bg-slate-100 text-slate-700",
+  primary: "border-blue-200 bg-blue-50 text-blue-700",
+  blue: "border-blue-200 bg-blue-50 text-blue-700",
+  yellow: "border-amber-200 bg-amber-50 text-amber-800",
+  amber: "border-amber-200 bg-amber-50 text-amber-800",
+  purple: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  green: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  red: "border-rose-200 bg-rose-50 text-rose-700",
 };
 
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: keyof typeof TONES | string }) {
-  return <span className={`chip ${TONES[tone] ?? TONES.neutral}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4 ${TONES[tone] ?? TONES.neutral}`}>{children}</span>;
 }
 
 export function statusTone(status: string) {
@@ -167,24 +167,24 @@ export function StatCard({
 }) {
   const iconBox =
     tone === "yellow"
-      ? "bg-amber-50 text-amber-600"
+      ? "bg-amber-50 text-amber-700"
       : tone === "green"
-      ? "bg-emerald-50 text-emerald-600"
+      ? "bg-emerald-50 text-emerald-700"
       : tone === "purple"
-      ? "bg-indigo-50 text-indigo-600"
+      ? "bg-indigo-50 text-indigo-700"
       : "bg-blue-50 text-[#1355FF]";
 
   const body = (
-    <div className="flex h-full min-h-[92px] items-start gap-3.5 rounded-[12px] border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition-all duration-150 hover:border-slate-300 hover:shadow-xs">
+    <div className="flex h-full min-h-[84px] items-start gap-3 rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
       {icon ? (
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] ${iconBox}`}>
-          <Icon name={icon} size={17} strokeWidth={2} />
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBox}`}>
+          <Icon name={icon} size={15} strokeWidth={2} />
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className="mt-1 text-[24px] font-bold tabular-nums tracking-tight sm:text-[26px] text-slate-900">{value}</p>
-        {hint ? <p className="mt-0.5 text-[11px] font-medium text-slate-400 truncate">{hint}</p> : null}
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-slate-900">{value}</p>
+        {hint ? <p className="mt-0.5 text-[11px] font-normal text-slate-400 truncate">{hint}</p> : null}
       </div>
     </div>
   );
@@ -241,7 +241,7 @@ export function Field({
     <label className={`block ${className}`}>
       <span className="label">{label}</span>
       {children}
-      {hint ? <span className="mt-1 block text-xs text-[var(--color-muted)]">{hint}</span> : null}
+      {hint ? <span className="mt-1 block text-xs text-slate-400">{hint}</span> : null}
     </label>
   );
 }
@@ -259,13 +259,13 @@ export function EmptyState({
 }) {
   const known = typeof icon === "string" && isIconName(icon);
   return (
-    <div className="flex flex-col items-center justify-center rounded-[12px] border border-dashed border-[var(--color-line-strong)] bg-white px-6 py-14 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
-        <Icon name={known ? (icon as IconName) : "inbox"} size={20} />
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+      <span className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-500">
+        <Icon name={known ? (icon as IconName) : "inbox"} size={18} />
       </span>
-      <p className="mt-4 text-base font-semibold text-[var(--color-ink)]">{title}</p>
-      {description ? <p className="mt-1.5 max-w-sm text-sm leading-6 text-[var(--color-muted)]">{description}</p> : null}
-      {action ? <div className="mt-4">{action}</div> : null}
+      <p className="mt-3 text-sm font-semibold text-slate-900">{title}</p>
+      {description ? <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500">{description}</p> : null}
+      {action ? <div className="mt-3.5">{action}</div> : null}
     </div>
   );
 }

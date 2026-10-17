@@ -135,27 +135,14 @@ export function Shell({
     } catch {}
   };
 
-  // Accordion open/close state: only open group of active page by default
+  // Show all available options by default as requested in UI/UX reform
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     navigationGroups.forEach((group) => {
-      initial[group.id] = group.items.some((item) =>
-        item.href === "/painel" ? pathname === "/painel" : pathname.startsWith(item.href)
-      );
+      initial[group.id] = true;
     });
     return initial;
   });
-
-  useEffect(() => {
-    navigationGroups.forEach((group) => {
-      const isCurrent = group.items.some((item) =>
-        item.href === "/painel" ? pathname === "/painel" : pathname.startsWith(item.href)
-      );
-      if (isCurrent) {
-        setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
-      }
-    });
-  }, [pathname, navigationGroups]);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => ({
@@ -349,47 +336,44 @@ export function Shell({
           <Link
             href={topItemHref}
             onClick={() => setMobileOpen(false)}
-            className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
+            className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
               isTopActive
-                ? "bg-[#1355FF] text-white font-semibold shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
+                ? "bg-blue-50 text-[#1355FF] font-semibold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
             } ${collapsed ? "justify-center px-2" : ""}`}
             title={collapsed ? topItemLabel : undefined}
           >
             <Icon
               name="grid"
-              size={16}
-              strokeWidth={isTopActive ? 2.2 : 1.8}
-              className={isTopActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
+              size={15}
+              strokeWidth={isTopActive ? 2 : 1.75}
+              className={isTopActive ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
             />
             {!collapsed && <span className="truncate flex-1">{topItemLabel}</span>}
-            {!collapsed && isTopActive && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
-            )}
 
             {collapsed && (
-              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
+              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
                 {topItemLabel}
               </span>
             )}
           </Link>
         </div>
 
-        {/* Collapsible Accordion Groups (Filtered by Permissions) */}
+        {/* Navigation Groups (Filtered by Permissions) */}
         {navigationGroups.map((group) => {
-          const isExpanded = expandedGroups[group.id] ?? false;
+          const isExpanded = expandedGroups[group.id] ?? true;
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
 
           return (
-            <div key={group.id} className="pt-2">
+            <div key={group.id} className="pt-2.5">
               {!collapsed ? (
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+                  className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className={hasActiveChild ? "text-[#1355FF]" : ""}>{group.title}</span>
+                    <span className={hasActiveChild ? "text-[#1355FF] font-bold" : ""}>{group.title}</span>
                   </span>
                   <Icon
                     name="chevron-down"
@@ -411,38 +395,34 @@ export function Shell({
                         key={item.id || item.label}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`group relative flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs transition-all duration-150 ${
+                        className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
                           active
-                            ? "bg-[#1355FF] text-white font-semibold shadow-xs"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
+                            ? "bg-blue-50 text-[#1355FF] font-semibold"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
                         } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
                       >
                         <Icon
                           name={item.icon}
-                          size={16}
-                          strokeWidth={active ? 2.2 : 1.8}
-                          className={active ? "text-white" : "text-slate-400 group-hover:text-slate-700"}
+                          size={15}
+                          strokeWidth={active ? 2 : 1.75}
+                          className={active ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
                         />
                         {!collapsed && <span className="truncate flex-1">{item.label}</span>}
 
                         {/* Real dynamic notification badge */}
                         {!collapsed && item.badge && item.badge > 0 ? (
                           <span
-                            className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black ${
-                              active ? "bg-white text-[#1355FF]" : "bg-[#FFD000] text-[#12162A]"
+                            className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-semibold ${
+                              active ? "bg-blue-100 text-[#1355FF]" : "bg-slate-100 text-slate-700"
                             }`}
                           >
                             {item.badge}
                           </span>
                         ) : null}
 
-                        {!collapsed && active && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
-                        )}
-
                         {collapsed && (
-                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg group-hover:block">
+                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
                             {item.label}
                           </span>
                         )}

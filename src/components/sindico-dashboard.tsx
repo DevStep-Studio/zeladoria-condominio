@@ -142,6 +142,7 @@ export function SindicoDashboard({
       detail: "Enviar aviso geral ou convocação",
       href: "/painel/comunicados",
       icon: "mail" as IconName,
+      urgent: false,
     },
     {
       id: "action-ordens",
@@ -150,6 +151,7 @@ export function SindicoDashboard({
       detail: "Reparo, equipe ou OS interna",
       href: "/painel/ordens",
       icon: "wrench" as IconName,
+      urgent: false,
     },
     {
       id: "action-manutencao",
@@ -158,6 +160,7 @@ export function SindicoDashboard({
       detail: "Plano preventivo de ativos",
       href: "/painel/manutencao",
       icon: "shield" as IconName,
+      urgent: false,
     },
     {
       id: "action-servicos",
@@ -166,6 +169,7 @@ export function SindicoDashboard({
       detail: "Marketplace e parceiros",
       href: "/painel/servicos",
       icon: "briefcase" as IconName,
+      urgent: false,
     },
   ];
 
@@ -205,127 +209,97 @@ export function SindicoDashboard({
         </div>
       )}
 
-      {/* 1. HERO DO SÍNDICO (Azul Sólido #1355FF, sem gradiente) */}
-      <section className="relative overflow-hidden rounded-[16px] sm:rounded-[20px] bg-[#1355FF] p-5 sm:p-7 text-white shadow-sm select-none">
-        {/* Logo branca oficial da Zeladoria como marca d'água de fundo */}
-        <div className="pointer-events-none absolute -right-4 -bottom-6 sm:-right-8 sm:-bottom-10 opacity-10 sm:opacity-15 select-none overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-white.png"
-            alt=""
-            className="h-44 w-44 sm:h-64 sm:w-64 object-contain pointer-events-none select-none"
-          />
-        </div>
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-          <div className="space-y-1.5 max-w-xl">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+      {/* 1. CABEÇALHO EXECUTIVO DA GESTÃO */}
+      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               Olá, {userName}
             </h1>
-
-            <p className="text-xs sm:text-sm text-blue-100 font-medium">
-              {condoName} · Central de Decisão e Governança
-            </p>
-            <p className="text-[11px] sm:text-xs text-blue-200/90 font-normal">
-              Veja o que precisa da sua atenção, aprove solicitações e gerencie o condomínio.
-            </p>
+            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-[#1355FF] border border-blue-200/60">
+              Administração
+            </span>
           </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
+            {condoName} · Central de Decisão e Governança
+          </p>
+        </div>
 
-          {/* Ações Rápidas no Hero: Relatórios e Configurações */}
-          <div className="flex items-center gap-2.5 flex-wrap shrink-0 pt-2 sm:pt-0">
-            <Link
-              href="/painel/relatorios"
-              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white/15 hover:bg-white/25 active:bg-white/30 text-white border border-white/20 px-3.5 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <Icon name="chart" size={15} strokeWidth={2.4} />
-              <span>Relatórios</span>
-            </Link>
-            <Link
-              href="/painel/configuracoes"
-              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[10px] bg-white hover:bg-blue-50 active:bg-blue-100 text-[#1355FF] px-4 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <Icon name="settings" size={15} strokeWidth={2.4} />
-              <span>Configurações</span>
-            </Link>
-          </div>
+        {/* Ações Rápidas no Topo */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <Link
+            href="/painel/relatorios"
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-semibold transition-colors shadow-2xs"
+          >
+            <Icon name="chart" size={14} />
+            <span>Relatórios</span>
+          </Link>
+          <Link
+            href="/painel/configuracoes"
+            className="btn-primary min-h-9 px-3.5 py-1.5 text-xs font-semibold"
+          >
+            <Icon name="settings" size={14} />
+            <span>Configurações</span>
+          </Link>
         </div>
       </section>
 
-      {/* 2. PRECISA DA SUA ATENÇÃO (Linha de 4 itens: 1º Amarelo #FFD000, 3 Azuis #0070F3) */}
-      <section className="space-y-2.5">
+      {/* 2. PRECISA DA SUA ATENÇÃO (Cards compactos e consistentes, sem blocos coloridos) */}
+      <section className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-amber-50 text-amber-700">
-              <Icon name="alert-triangle" size={13} />
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+              <Icon name="alert-triangle" size={12} />
             </span>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               Precisa da sua Atenção
             </h2>
           </div>
-          <span className="text-xs text-slate-400 font-medium">
-            Priorize aprovações e decisões críticas
+          <span className="text-xs text-slate-400 font-normal">
+            Priorize aprovações e ações críticas
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {displayCards.map((card, index) => {
-            const isFirst = index === 0;
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {displayCards.map((card) => {
+            const hasUrgent = card.urgent || (card.count !== undefined && card.count > 0);
             return (
               <Link
                 key={card.id}
                 href={card.href}
-                className={`group relative flex min-h-[128px] sm:min-h-[140px] flex-col justify-between overflow-hidden rounded-[16px] p-4 sm:p-5 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
-                  isFirst
-                    ? "bg-[#FFD000] text-[#12162A]"
-                    : "bg-[#0070F3] text-white hover:bg-[#0062D6]"
-                }`}
+                className="group flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-colors"
               >
                 <div className="flex items-center justify-between">
                   {card.count !== undefined ? (
-                    <span
-                      className={`text-2xl sm:text-3xl font-black tabular-nums tracking-tight ${
-                        isFirst ? "text-[#12162A]" : "text-white"
-                      }`}
-                    >
+                    <span className="text-2xl font-bold tabular-nums tracking-tight text-slate-900">
                       {card.count}
                     </span>
                   ) : (
-                    <div />
+                    <span className="text-xs font-semibold text-slate-400">—</span>
                   )}
                   <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-[8px] ${
-                      isFirst ? "bg-[#12162A]/10 text-[#12162A]" : "bg-white/15 text-white"
+                    className={`flex h-7 w-7 items-center justify-center rounded-md ${
+                      hasUrgent ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600"
                     }`}
                   >
-                    <Icon name={card.icon} size={15} strokeWidth={2.4} />
+                    <Icon name={card.icon} size={14} />
                   </span>
                 </div>
 
-                <div className="pr-8 pt-2">
-                  <h3
-                    className={`text-xs sm:text-sm font-black tracking-tight leading-tight ${
-                      isFirst ? "text-[#12162A]" : "text-white"
-                    }`}
-                  >
+                <div className="pt-2">
+                  <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                     {card.label}
                   </h3>
                   {card.detail && (
-                    <p
-                      className={`mt-0.5 text-[11px] sm:text-xs font-medium line-clamp-1 ${
-                        isFirst ? "text-[#12162A]/75" : "text-white/80"
-                      }`}
-                    >
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {card.detail}
                     </p>
                   )}
                 </div>
 
-                <div
-                  className={`absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-[8px] bg-white shadow-xs transition-all duration-150 group-hover:scale-110 group-hover:shadow-sm ${
-                    isFirst ? "text-[#12162A]" : "text-[#0070F3]"
-                  }`}
-                >
-                  <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
+                <div className="pt-2.5 mt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-semibold text-[#1355FF]">
+                  <span>Acessar</span>
+                  <Icon name="arrow-up-right" size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </Link>
             );
@@ -333,136 +307,136 @@ export function SindicoDashboard({
         </div>
       </section>
 
-      {/* 3. RESUMO DA GESTÃO (4 Cards Brancos Minimalistas e Elegantes) */}
-      <section className="space-y-2.5">
+      {/* 3. RESUMO DA GESTÃO (Indicadores Operacionais) */}
+      <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Resumo da Gestão
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Resumo Operacional
           </h2>
-          <span className="text-xs text-slate-400 font-medium">Indicadores operacionais de hoje</span>
+          <span className="text-xs text-slate-400 font-normal">Indicadores do dia</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 1: Ocorrências Abertas */}
-          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between pb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+            <div className="flex items-center justify-between pb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Ocorrências
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF]">
-                <Icon name="clipboard" size={16} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
+                <Icon name="clipboard" size={14} />
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {todaySummary.inProgressOccurrences}
                 </span>
-                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
+                <span className="text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200/60 px-1.5 py-0.2 rounded">
                   abertas
                 </span>
               </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                Chamados e relatos de moradores no condomínio.
+              <p className="text-xs text-slate-500">
+                Chamados e relatos de moradores.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+            <div className="pt-3 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
               <Link href="/painel/ocorrencias" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Gerenciar todas</span>
-                <Icon name="arrow-up-right" size={13} />
+                <Icon name="arrow-up-right" size={12} />
               </Link>
             </div>
           </div>
 
           {/* Card 2: Ordens & Manutenções */}
-          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between pb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+            <div className="flex items-center justify-between pb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Manutenções
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-amber-50 text-amber-700">
-                <Icon name="wrench" size={16} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+                <Icon name="wrench" size={14} />
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {todaySummary.scheduledMaintenances}
                 </span>
-                <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-[6px]">
+                <span className="text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.2 rounded">
                   agendadas
                 </span>
               </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                Equipamentos em manutenção e ordens ativas.
+              <p className="text-xs text-slate-500">
+                Equipamentos e ordens ativas.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+            <div className="pt-3 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
               <Link href="/painel/manutencao" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Plano preventivo</span>
-                <Icon name="arrow-up-right" size={13} />
+                <Icon name="arrow-up-right" size={12} />
               </Link>
             </div>
           </div>
 
           {/* Card 3: Reservas de Hoje */}
-          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between pb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+            <div className="flex items-center justify-between pb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Reservas Hoje
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-indigo-50 text-indigo-600">
-                <Icon name="calendar" size={16} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
+                <Icon name="calendar" size={14} />
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {todaySummary.todayReservations}
                 </span>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[6px]">
+                <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded">
                   confirmadas
                 </span>
               </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                Áreas comuns e salões de festas em uso hoje.
+              <p className="text-xs text-slate-500">
+                Espaços comuns em uso hoje.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+            <div className="pt-3 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
               <Link href="/painel/reservas" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Ver calendário</span>
-                <Icon name="arrow-up-right" size={13} />
+                <Icon name="arrow-up-right" size={12} />
               </Link>
             </div>
           </div>
 
           {/* Card 4: Portaria & Movimento */}
-          <div className="flex flex-col justify-between rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between pb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+            <div className="flex items-center justify-between pb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Portaria & Acessos
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-emerald-50 text-emerald-700">
-                <Icon name="users" size={16} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-emerald-700">
+                <Icon name="users" size={14} />
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black tracking-tight text-slate-900 tabular-nums">
+                <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {todaySummary.expectedVisitors + todaySummary.authorizedProviders}
                 </span>
-                <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-[6px]">
+                <span className="text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200/60 px-1.5 py-0.2 rounded">
                   previstos
                 </span>
               </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                {todaySummary.expectedVisitors} visitantes e {todaySummary.authorizedProviders} prestadores hoje.
+              <p className="text-xs text-slate-500">
+                {todaySummary.expectedVisitors} visitantes e {todaySummary.authorizedProviders} prestadores.
               </p>
             </div>
-            <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-bold">
+            <div className="pt-3 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
               <Link href="/painel/visitantes" className="text-[#1355FF] hover:underline flex items-center gap-1">
                 <span>Portaria ao vivo</span>
-                <Icon name="arrow-up-right" size={13} />
+                <Icon name="arrow-up-right" size={12} />
               </Link>
             </div>
           </div>
@@ -472,17 +446,17 @@ export function SindicoDashboard({
       {/* 4. PREVENÇÃO INTELIGENTE & ATIVOS CRÍTICOS + LIVRO DIGITAL DA PORTARIA (2 Colunas) */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Coluna 1: Prevenção Inteligente & Ativos Críticos */}
-        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
                 <Icon name="shield" size={13} />
               </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Prevenção Inteligente & Ativos
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                Prevenção & Ativos
               </h3>
             </div>
-            <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-[6px]">
+            <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded">
               Diagnóstico Proativo
             </span>
           </div>
@@ -529,17 +503,17 @@ export function SindicoDashboard({
         </div>
 
         {/* Coluna 2: Livro Digital da Portaria */}
-        <div className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-indigo-50 text-indigo-600">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
                 <Icon name="book" size={13} />
               </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Livro Digital da Portaria
               </h3>
             </div>
-            <Link href="/painel/livro" className="text-xs font-bold text-[#1355FF] hover:underline">
+            <Link href="/painel/livro" className="text-xs font-semibold text-[#1355FF] hover:underline">
               Ver todos
             </Link>
           </div>
@@ -594,44 +568,49 @@ export function SindicoDashboard({
       </section>
 
       {/* 5. OCORRÊNCIAS EM ANDAMENTO */}
-      <section className="rounded-[16px] border border-slate-200/90 bg-white p-5 shadow-2xs space-y-3">
+      <section className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-blue-50 text-[#1355FF]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
               <Icon name="clipboard" size={13} />
             </span>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
               Ocorrências em Andamento
             </h3>
           </div>
-          <Link href="/painel/ocorrencias" className="text-xs font-bold text-[#1355FF] hover:underline">
+          <Link href="/painel/ocorrencias" className="text-xs font-semibold text-[#1355FF] hover:underline">
             Gerenciar todas
           </Link>
         </div>
 
         {recentActivities.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-400">
-            Nenhuma ocorrência em andamento no momento.
+          <div className="py-6 flex flex-col items-center justify-center text-center">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-1">
+              <Icon name="check" size={16} />
+            </span>
+            <p className="text-xs font-medium text-slate-600">
+              Nenhuma ocorrência em andamento no momento.
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {recentActivities.slice(0, 6).map((occ) => (
-              <div key={occ.id} className="py-3 flex items-center justify-between gap-3">
+              <div key={occ.id} className="py-2.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs font-black text-slate-700">{occ.code}</span>
-                    <span className="text-xs font-bold text-slate-900 truncate">{occ.title}</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-[#1355FF] text-[10px] font-bold rounded">
+                    <span className="font-mono text-xs font-bold text-slate-700">{occ.code}</span>
+                    <span className="text-xs font-semibold text-slate-900 truncate">{occ.title}</span>
+                    <span className="px-1.5 py-0.2 bg-blue-50 text-[#1355FF] border border-blue-200/60 text-[10px] font-medium rounded">
                       {occ.category}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 truncate">
-                    {occ.location} · Status: <strong>{occ.status}</strong> · {occ.timeAgo}
+                    {occ.location} · {occ.timeAgo}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                  className="px-3 py-1.5 bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
+                  className="btn-primary min-h-7.5 px-3 py-1 text-xs shrink-0 cursor-pointer"
                 >
                   Gerar OS
                 </button>
