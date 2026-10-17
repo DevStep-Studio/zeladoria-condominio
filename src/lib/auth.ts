@@ -231,15 +231,22 @@ export async function requireProvider() {
     vendor = null;
   }
 
-  // Se o usuário não tem perfil de prestador nem é superadmin, ou não está atuando como prestador
-  if (!vendor && session.role !== "superadmin") {
-    redirect("/painel/403");
-  }
-  if (session.role !== "prestador" && session.role !== "superadmin") {
-    redirect("/painel/403");
+  // Superadmin tem permissão global: vincula ao primeiro prestador se não tiver um próprio
+  if (session.user.isSuperAdmin) {
+    if (!vendor) {
+      const [first] = await db.select().from(vendors).limit(1);
+      vendor = first ?? null;
+    }
+    return { session: { ...session, role: "prestador" as Role }, vendor };
   }
 
-  return { session, vendor };
+  // Se o usuário possui perfil de prestador credenciado, libera o acesso como prestador
+  if (vendor) {
+    return { session: { ...session, role: "prestador" as Role }, vendor };
+  }
+
+  // Se não possui perfil de prestador, redireciona amigavelmente para o portal de acesso/cadastro
+  redirect("/prestador/login");
 }
 
 export async function requireCondo() {

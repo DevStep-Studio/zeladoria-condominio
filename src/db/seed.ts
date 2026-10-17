@@ -78,13 +78,13 @@ export async function ensureSeed() {
       }
 
       // Garantir que a conta do prestador Carlos existe
-      const [existingCarlos] = await db
+      let [carlosUser] = await db
         .select()
         .from(users)
         .where(eq(users.email, "carlos@eletrica.com.br"))
         .limit(1);
 
-      if (!existingCarlos) {
+      if (!carlosUser) {
         const pass = hashPassword("demo1234");
         const [newCarlos] = await db
           .insert(users)
@@ -97,20 +97,66 @@ export async function ensureSeed() {
             firstAccessAt: new Date(),
           })
           .returning();
+        carlosUser = newCarlos;
+      }
 
-        if (newCarlos) {
-          const [carlosVendor] = await db
-            .select()
-            .from(vendors)
-            .where(eq(vendors.slug, "carlos-eletrica"))
-            .limit(1);
+      if (carlosUser) {
+        let [carlosVendor] = await db
+          .select()
+          .from(vendors)
+          .where(eq(vendors.slug, "carlos-eletrica"))
+          .limit(1);
 
-          if (carlosVendor) {
-            await db
-              .update(vendors)
-              .set({ userId: newCarlos.id })
-              .where(eq(vendors.id, carlosVendor.id));
+        if (!carlosVendor) {
+          const [condoA] = await db.select().from(condominiums).limit(1);
+          if (condoA) {
+            const [newVendor] = await db
+              .insert(vendors)
+              .values({
+                condoId: condoA.id,
+                userId: carlosUser.id,
+                name: "Carlos Eduardo Silva",
+                companyName: "Volt & Luz Soluções Elétricas",
+                slug: "carlos-eletrica",
+                cnpj: "11.222.333/0001-99",
+                category: "eletrica",
+                contactName: "Carlos Eduardo Silva",
+                phone: "(41) 99111-2233",
+                whatsapp: "(41) 99111-2233",
+                email: "carlos@voltluz.com.br",
+                rating: 5,
+                photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+                coverUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80",
+                lat: -25.4320,
+                lng: -49.2780,
+                active: true,
+                verified: true,
+                sponsored: true,
+                isOnline: true,
+                availableNow: true,
+                serviceArea: "Curitiba e Região Metropolitana",
+                description: "Eletricista residencial com mais de 10 anos de experiência em condomínios. Especialista em instalações elétricas, chuveiros, disjuntores, luminárias e quadros de força.",
+                priceFromCents: 8000,
+                portfolio: [
+                  { url: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80", caption: "Troca e modernização de quadro elétrico no condomínio", category: "eletrica" },
+                  { url: "https://images.unsplash.com/photo-1558227691-41ea78d1f631?auto=format&fit=crop&w=600&q=80", caption: "Instalação de luminárias e pendentes em sala de estar", category: "eletrica" },
+                  { url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80", caption: "Instalação de chuveiro elétrico pressurizado", category: "eletrica" },
+                ],
+                services: [
+                  { id: "elt-1", name: "Troca de Chuveiro / Resistência", description: "Instalação e teste de fiação, disjuntor e aterramento", priceFromCents: 8000 },
+                  { id: "elt-2", name: "Substituição de Disjuntor / Quadro", description: "Troca e balanceamento de carga do quadro de força", priceFromCents: 14000 },
+                  { id: "elt-3", name: "Instalação de Tomadas e Interruptores", description: "Novos pontos ou substituição estética", priceFromCents: 5000 },
+                  { id: "elt-4", name: "Instalação de Luminárias / Fitas LED", description: "Iluminação decorativa e spots embutidos", priceFromCents: 9000 },
+                ],
+              })
+              .returning();
+            carlosVendor = newVendor;
           }
+        } else if (carlosVendor.userId !== carlosUser.id) {
+          await db
+            .update(vendors)
+            .set({ userId: carlosUser.id })
+            .where(eq(vendors.id, carlosVendor.id));
         }
       }
     } catch (error) {
