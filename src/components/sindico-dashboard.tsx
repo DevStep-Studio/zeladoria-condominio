@@ -244,11 +244,11 @@ export function SindicoDashboard({
         </div>
       </section>
 
-      {/* 2. PRECISA DA SUA ATENÇÃO (Cards compactos e consistentes, sem blocos coloridos) */}
+      {/* 2. PRECISA DA SUA ATENÇÃO (Cards compactos e consistentes no azul primário) */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-amber-50 text-amber-700">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
               <Icon name="alert-triangle" size={12} />
             </span>
             <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
@@ -267,11 +267,11 @@ export function SindicoDashboard({
               <Link
                 key={card.id}
                 href={card.href}
-                className="group flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-colors"
+                className="group flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-blue-200 hover:shadow-xs transition-colors"
               >
                 <div className="flex items-center justify-between">
                   {card.count !== undefined ? (
-                    <span className="text-2xl font-bold tabular-nums tracking-tight text-slate-900">
+                    <span className="text-2xl font-bold tabular-nums tracking-tight text-slate-900 group-hover:text-[#1355FF] transition-colors">
                       {card.count}
                     </span>
                   ) : (
@@ -279,7 +279,7 @@ export function SindicoDashboard({
                   )}
                   <span
                     className={`flex h-7 w-7 items-center justify-center rounded-md ${
-                      hasUrgent ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600"
+                      hasUrgent ? "bg-blue-50 text-[#1355FF]" : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     <Icon name={card.icon} size={14} />
