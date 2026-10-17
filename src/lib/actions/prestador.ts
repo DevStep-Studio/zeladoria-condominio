@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   condominiums,
@@ -346,11 +346,9 @@ export async function acceptServiceRequestAction(requestId: number) {
     .limit(1);
 
   if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.status !== "solicitado" && req.status !== "buscando_prestador") {
-    return { success: false, error: "Este chamado já foi assumido por outro profissional ou cancelado." };
-  }
 
-  await db
+  // Concorrência Atômica: garante que apenas um prestador consiga atualizar a vaga única
+  const updatedRows = await db
     .update(serviceRequests)
     .set({
       vendorId: vendor.id,
@@ -358,7 +356,24 @@ export async function acceptServiceRequestAction(requestId: number) {
       acceptedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(serviceRequests.id, requestId));
+    .where(
+      and(
+        eq(serviceRequests.id, requestId),
+        or(
+          eq(serviceRequests.status, "solicitado"),
+          eq(serviceRequests.status, "buscando_prestador")
+        ),
+        isNull(serviceRequests.vendorId)
+      )
+    )
+    .returning();
+
+  if (updatedRows.length === 0) {
+    return {
+      success: false,
+      error: "Oportunidade indisponível: outro profissional já confirmou o atendimento para esta vaga.",
+    };
+  }
 
   // Registrar mensagem do sistema
   await db.insert(serviceMessages).values({
