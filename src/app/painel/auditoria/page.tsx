@@ -1,6 +1,5 @@
-import { and, desc, eq, ilike, or } from "drizzle-orm";
-import { db } from "@/db";
-import { auditLogs } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requirePermission } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Stat, TableWrap } from "@/components/ui";
 import { dateTimeBR } from "@/lib/utils";
@@ -11,17 +10,7 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
   const { condoId } = await requirePermission("audit.view");
   const { q, f } = await searchParams;
 
-  const search = q
-    ? or(ilike(auditLogs.userName, `%${q}%`), ilike(auditLogs.entity, `%${q}%`), ilike(auditLogs.action, `%${q}%`), ilike(auditLogs.summary, `%${q}%`))
-    : undefined;
-  const filter = f === "criticos" ? eq(auditLogs.critical, true) : f === "suporte" ? eq(auditLogs.origin, "suporte") : undefined;
-
-  const rows = await db
-    .select()
-    .from(auditLogs)
-    .where(and(eq(auditLogs.condoId, condoId), search, filter))
-    .orderBy(desc(auditLogs.createdAt))
-    .limit(200);
+  const rows = await domainRequest<any[]>("/painel/auditoria", { query: { condoId, q, f } });
 
   const critical = rows.filter((r) => r.critical).length;
   const support = rows.filter((r) => r.origin === "suporte").length;

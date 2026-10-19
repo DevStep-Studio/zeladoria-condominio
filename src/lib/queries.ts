@@ -1,33 +1,20 @@
 import "server-only";
-import { and, asc, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, memberships, units, users } from "@/db/schema";
+import { backendRequest } from "@/lib/api/server";
+import type { ApiOperations } from "@/lib/api/contracts";
 
 export async function unitOptions(condoId: number) {
-  const rows = await db
-    .select({ id: units.id, number: units.number, block: blocks.name })
-    .from(units)
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(eq(units.condoId, condoId))
-    .orderBy(asc(blocks.name), asc(units.number));
+  const rows = await backendRequest<ApiOperations["lib.queries.001"]>(`/condominios/${condoId}/opcoes?type=units`);
   return rows.map((r) => ({ id: r.id, label: `${r.block ?? "Sem bloco"} · ${r.number}` }));
 }
 
 export async function blockOptions(condoId: number) {
-  return db.select({ id: blocks.id, name: blocks.name }).from(blocks).where(eq(blocks.condoId, condoId)).orderBy(asc(blocks.name));
+  return backendRequest<ApiOperations["lib.queries.002"]>(`/condominios/${condoId}/opcoes?type=blocks`);
 }
 
 export async function peopleOptions(condoId: number, roles?: string[]) {
-  const where = roles
-    ? and(eq(memberships.condoId, condoId), inArray(memberships.role, roles))
-    : eq(memberships.condoId, condoId);
-  const rows = await db
-    .select({ id: users.id, name: users.name, role: memberships.role, unitId: memberships.unitId })
-    .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.userId))
-    .where(where)
-    .orderBy(asc(users.name));
-  return rows;
+  const params = new URLSearchParams({ type: "people" });
+  for (const role of roles ?? []) params.append("roles[]", role);
+  return backendRequest<ApiOperations["lib.queries.003"]>(`/condominios/${condoId}/opcoes?${params.toString()}`);
 }
 
 export function unitLabelMap(list: { id: number; label: string }[]) {

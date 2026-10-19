@@ -1,8 +1,7 @@
+import { ApiError, backendRequest } from "@/lib/api/server";
+import type { ApiOperations } from "@/lib/api/contracts";
 import Link from "next/link";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { ensureSeed } from "@/db/seed";
-import { blocks, condominiums, units, users, visitors, visits } from "@/db/schema";
+
 import { dateTimeBR } from "@/lib/utils";
 import { qrDataUrl } from "@/lib/qr";
 import { Icon } from "@/components/icon";
@@ -10,35 +9,14 @@ import { Icon } from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 export default async function VisitPassPage({ params }: { params: Promise<{ token: string }> }) {
-  await ensureSeed();
+
   const { token } = await params;
-  const [row] = await db
-    .select({
-      id: visits.id,
-      status: visits.status,
-      purpose: visits.purpose,
-      validFrom: visits.validFrom,
-      validUntil: visits.validUntil,
-      qrToken: visits.qrToken,
-      plate: visits.vehiclePlate,
-      name: visitors.name,
-      document: visitors.document,
-      kind: visitors.kind,
-      company: visitors.company,
-      unit: units.number,
-      block: blocks.name,
-      host: users.name,
-      condo: condominiums.name,
-      address: condominiums.address,
-    })
-    .from(visits)
-    .innerJoin(visitors, eq(visitors.id, visits.visitorId))
-    .innerJoin(condominiums, eq(condominiums.id, visits.condoId))
-    .leftJoin(units, eq(units.id, visits.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(users, eq(users.id, visits.hostUserId))
-    .where(eq(visits.qrToken, token))
-    .limit(1);
+  let row: ApiOperations["app.v.-token-.page.001"][number] | null = null;
+  try {
+    row = await backendRequest<ApiOperations["app.v.-token-.page.001"][number]>(`/visitas/${encodeURIComponent(token)}`);
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 404)) throw err;
+  }
 
   if (!row) {
     return (

@@ -1,6 +1,5 @@
-import { desc, eq, or } from "drizzle-orm";
-import { db } from "@/db";
-import { helpArticles, supportTickets, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireCondo } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, statusTone } from "@/components/ui";
 import { dateTimeBR } from "@/lib/utils";
@@ -14,27 +13,11 @@ export default async function AjudaPage({ searchParams }: { searchParams: Promis
   const { q } = await searchParams;
   const isSupport = session.role === "superadmin";
 
-  const articles = await db.select().from(helpArticles).orderBy(helpArticles.category);
+  const { articles, tickets } = await domainRequest<{
+    articles: any[];
+    tickets: any[];
+  }>("/painel/ajuda", { query: { condoId, role: session.role } });
   const list = q ? rankByQuery(articles, ["title", "body", "tags", "category"], q) : articles;
-
-  const tickets = await db
-    .select({
-      id: supportTickets.id,
-      subject: supportTickets.subject,
-      body: supportTickets.body,
-      category: supportTickets.category,
-      priority: supportTickets.priority,
-      status: supportTickets.status,
-      answer: supportTickets.answer,
-      satisfaction: supportTickets.satisfaction,
-      createdAt: supportTickets.createdAt,
-      author: users.name,
-    })
-    .from(supportTickets)
-    .leftJoin(users, eq(users.id, supportTickets.userId))
-    .where(isSupport ? or(eq(supportTickets.condoId, condoId), eq(supportTickets.condoId, condoId)) : eq(supportTickets.condoId, condoId))
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(20);
 
   const categories = [...new Set(articles.map((a) => a.category))];
 

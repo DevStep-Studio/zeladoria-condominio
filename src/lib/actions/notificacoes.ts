@@ -1,21 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, isNull } from "drizzle-orm";
-import { db } from "@/db";
-import { notifications } from "@/db/schema";
+import { domainAction } from "@/lib/api/domain";
 import { requireSession } from "@/lib/auth";
 import { num } from "@/lib/utils";
 
 export async function markNotificationAsReadAction(formData: FormData) {
-  const session = await requireSession();
+  await requireSession();
   const id = num(formData, "id");
   if (!id) return { success: false };
 
-  await db
-    .update(notifications)
-    .set({ readAt: new Date() })
-    .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)));
+  await domainAction(`/notificacoes/${id}/lida`, "PATCH");
 
   revalidatePath("/painel/notificacoes");
   revalidatePath("/painel");
@@ -23,17 +18,9 @@ export async function markNotificationAsReadAction(formData: FormData) {
 }
 
 export async function markAllNotificationsAsReadAction() {
-  const session = await requireSession();
+  await requireSession();
 
-  await db
-    .update(notifications)
-    .set({ readAt: new Date() })
-    .where(
-      and(
-        eq(notifications.userId, session.user.id),
-        isNull(notifications.readAt),
-      ),
-    );
+  await domainAction("/notificacoes/ler-todas", "POST");
 
   revalidatePath("/painel/notificacoes");
   revalidatePath("/painel");

@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { notifications } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { apiOperation } from "@/lib/api/server";
 
 export type WhatsAppTemplateKey =
   | "NOVA_SOLICITACAO"
@@ -232,14 +230,14 @@ export async function sendWhatsAppNotification(params: {
 
   // 3. Registra no histórico de notificações do sistema
   try {
-    await db.insert(notifications).values({
+    await apiOperation("lib.services.whatsapp.whatsapp-service.001", [{
       condoId,
       userId,
       title,
       body: formattedMessage,
       channel: "whatsapp",
       link: templateParams.actionUrl || null,
-    });
+    }]);
   } catch (err) {
     console.warn("Aviso ao persistir notification de WhatsApp no banco:", err);
   }

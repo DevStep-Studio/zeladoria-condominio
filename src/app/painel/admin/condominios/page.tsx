@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { asc, count, desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { condominiums, units, memberships } from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
@@ -18,28 +17,10 @@ export const metadata = {
 export default async function AdminCondominiosPage() {
   await requireSession();
 
-  const condosList = await db
-    .select({
-      id: condominiums.id,
-      name: condominiums.name,
-      slug: condominiums.slug,
-      cnpj: condominiums.cnpj,
-      city: condominiums.city,
-      state: condominiums.state,
-      plan: condominiums.plan,
-      createdAt: condominiums.createdAt,
-    })
-    .from(condominiums)
-    .orderBy(asc(condominiums.name));
-
-  // Contagem de unidades por condomínio
-  const unitCounts = await db
-    .select({
-      condoId: units.condoId,
-      totalUnits: count(),
-    })
-    .from(units)
-    .groupBy(units.condoId);
+  const { condosList, unitCounts } = await domainRequest<{
+    condosList: any[];
+    unitCounts: { condoId: number; totalUnits: number }[];
+  }>("/painel/admin/condominios");
 
   const unitsMap = new Map(unitCounts.map((u) => [u.condoId, u.totalUnits]));
 

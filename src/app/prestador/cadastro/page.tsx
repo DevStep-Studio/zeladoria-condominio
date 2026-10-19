@@ -1,9 +1,8 @@
+import { backendRequest } from "@/lib/api/server";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { OnboardingWizard } from "./onboarding-wizard";
-import { db } from "@/db";
-import { condominiums } from "@/db/schema";
 
 export const metadata = {
   title: "Cadastro de Prestador · Zeladoria Serviços",
@@ -11,9 +10,7 @@ export const metadata = {
 };
 
 export default async function PrestadorCadastroPage() {
-  const condos = await db
-    .select({ id: condominiums.id, name: condominiums.name, city: condominiums.city })
-    .from(condominiums);
+  const condos = await backendRequest<{ id: number; name: string; city: string | null }[]>("/condominios/publicos");
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 sm:py-12 px-3 sm:px-6 lg:px-8">

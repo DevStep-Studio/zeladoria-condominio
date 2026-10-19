@@ -1,3 +1,4 @@
+import { apiOperation } from "@/lib/api/server";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { OFFICIAL_CATEGORIES, getCategoryById, getAllServices } from "../src/lib/services/categories-catalog";
@@ -190,19 +191,14 @@ describe("FASE 2 — CADASTRO DO PRESTADOR: Onboarding, Cobertura, Recebimentos 
   // --------------------------------------------------------------------------
   // 6. PERSISTÊNCIA REAL NO BANCO DE DADOS (POSTGRESQL)
   // --------------------------------------------------------------------------
-  describe("6. Persistência PostgreSQL: Prestador Completo com Endereço e PIX", () => {
+  describe("6. Persistência MySQL: Prestador Completo com Endereço e PIX", () => {
     it("deve persistir um prestador com endereço, coordenadas, PIX e verificação e limpá-lo", async () => {
-      const { db } = await import("../src/db");
-      const { vendors, condominiums } = await import("../src/db/schema");
-      const { eq } = await import("drizzle-orm");
 
-      const [firstCondo] = await db.select().from(condominiums).limit(1);
+      const [firstCondo] = await apiOperation("tests.fase2-prestador-test.001", []);
       assert.ok(firstCondo, "Deve existir ao menos um condomínio");
 
       const testSlug = `prestador-teste-fase2-${Date.now()}`;
-      const [insertedVendor] = await db
-        .insert(vendors)
-        .values({
+      const [insertedVendor] = await apiOperation("tests.fase2-prestador-test.002", [{
           condoId: firstCondo.id,
           slug: testSlug,
           name: "Roberto Eletrotécnico Teste",
@@ -238,8 +234,7 @@ describe("FASE 2 — CADASTRO DO PRESTADOR: Onboarding, Cobertura, Recebimentos 
               priceType: "a_partir",
             },
           ],
-        })
-        .returning();
+        }]);
 
       assert.ok(insertedVendor.id > 0);
       assert.equal(insertedVendor.cep, "01452-000");
@@ -248,8 +243,8 @@ describe("FASE 2 — CADASTRO DO PRESTADOR: Onboarding, Cobertura, Recebimentos 
       assert.equal(insertedVendor.identityVerification?.status, "em_analise");
 
       // Limpeza segura
-      await db.delete(vendors).where(eq(vendors.id, insertedVendor.id));
-      const [checkDeleted] = await db.select().from(vendors).where(eq(vendors.id, insertedVendor.id)).limit(1);
+      await apiOperation("tests.fase2-prestador-test.003", [insertedVendor.id]);
+      const [checkDeleted] = await apiOperation("tests.fase2-prestador-test.004", [insertedVendor.id]);
       assert.equal(checkDeleted, undefined);
     });
   });

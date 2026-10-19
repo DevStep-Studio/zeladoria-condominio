@@ -1,39 +1,24 @@
-import { and, asc, desc, eq, gte } from "drizzle-orm";
-import { db } from "@/db";
-import { ensureSeed } from "@/db/seed";
-import { amenities, announcements, condominiums, reservations } from "@/db/schema";
+import { ApiError, backendRequest } from "@/lib/api/server";
+import type { DomainModels } from "@/lib/api/models";
+
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
-import { dateBR, isoDate } from "@/lib/utils";
+import { dateBR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function MuralPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
-  await ensureSeed();
+
   const { c } = await searchParams;
   const currentDate = new Date().toLocaleDateString("pt-BR");
-  const [condo] = c
-    ? await db.select().from(condominiums).where(eq(condominiums.slug, c)).limit(1)
-    : await db.select().from(condominiums).orderBy(asc(condominiums.id)).limit(1);
-
-  if (!condo) {
-    return <main className="flex min-h-screen items-center justify-center text-[var(--color-muted)]">Condomínio não encontrado.</main>;
+  let data: { condo: DomainModels["condominiums"]; news: DomainModels["announcements"][]; agenda: { amenity: string; date: string; start: string; end: string }[] };
+  try {
+    data = await backendRequest(`/mural${c ? `?c=${encodeURIComponent(c)}` : ""}`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return <main>Condomínio não encontrado.</main>;
+    throw error;
   }
-
-  const news = await db
-    .select()
-    .from(announcements)
-    .where(and(eq(announcements.condoId, condo.id), eq(announcements.showOnTv, true)))
-    .orderBy(desc(announcements.pinned), desc(announcements.publishedAt))
-    .limit(5);
-
-  const agenda = await db
-    .select({ date: reservations.date, start: reservations.startTime, end: reservations.endTime, amenity: amenities.name, status: reservations.status })
-    .from(reservations)
-    .innerJoin(amenities, eq(amenities.id, reservations.amenityId))
-    .where(and(eq(reservations.condoId, condo.id), gte(reservations.date, isoDate()), eq(reservations.status, "aprovada")))
-    .orderBy(asc(reservations.date))
-    .limit(6);
+  const { condo, news, agenda } = data;
 
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] p-6 text-[var(--color-ink)] sm:p-8">

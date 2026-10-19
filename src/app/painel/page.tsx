@@ -1,28 +1,5 @@
-import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
-import { db } from "@/db";
-import {
-  amenities,
-  announcements,
-  assemblies,
-  assets,
-  blocks,
-  condominiums,
-  documents,
-  maintenanceOrders,
-  maintenancePlans,
-  memberships,
-  occurrences,
-  parcels,
-  reservations,
-  shifts,
-  supportTickets,
-  tickets,
-  units,
-  users,
-  visitors,
-  visits,
-} from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { redirect } from "next/navigation";
 import { requireCondo } from "@/lib/auth";
 import { getMarketplaceProviders } from "@/lib/services/providers-query";
@@ -60,14 +37,56 @@ export default async function PainelHome() {
   const residentUnitId = activeMembership?.unitId ?? session.unitId;
 
   const todayStr = new Date().toISOString().split("T")[0];
-  const now = new Date();
+  const in7DaysStr = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+
+  const dashboardData = await domainRequest<{
+    condoRow: any;
+    allUnitsRaw: any[];
+    mapOccRows: any[];
+    reservationRows: any[];
+    assemblyRows: any[];
+    announcementRows: any[];
+    porteiro?: {
+      openShiftRow: any;
+      closedShiftRow: any;
+      insideRows: any[];
+      expectedRows: any[];
+      parcelRows: any[];
+      todayReservationsCount: number;
+    };
+    sindico?: {
+      openOccCount: { count: number };
+      highPriorityOccCount: { count: number };
+      pendingReservationsCount: { count: number };
+      pendingSuggestionsCount: { count: number };
+      overdueMaintenanceCount: { count: number };
+      unassignedOrdersCount: { count: number };
+      executingOrdersCount: { count: number };
+      todayVisitsCount: { count: number };
+      todayProvidersCount: { count: number };
+      todayResCount: { count: number };
+      todayMaintCount: { count: number };
+      assetsWithIssues: any[];
+      logRows: any[];
+    };
+    morador?: {
+      myOpenOccCount: { count: number };
+      myPendingResCount: { count: number };
+      myParcelsCount: { count: number };
+      annCount: { count: number };
+    };
+  }>("/painel/dashboard", {
+    query: {
+      condoId,
+      role: session.role,
+      todayStr,
+      in7DaysStr,
+      residentUnitId: residentUnitId ?? undefined,
+    },
+  });
 
   // 1. Condomínio info
-  const [condoRow] = await db
-    .select()
-    .from(condominiums)
-    .where(eq(condominiums.id, condoId))
-    .limit(1);
+  const condoRow = dashboardData.condoRow;
 
   const condoName = condoRow?.name ?? "Residencial Parque das Águas";
   const condoAddress = condoRow
@@ -75,16 +94,7 @@ export default async function PainelHome() {
     : "Av. Brasil, 1000 - São Paulo - SP";
 
   // 2. Units list for quick lookup modal
-  const allUnitsRaw = await db
-    .select({
-      id: units.id,
-      number: units.number,
-      blockName: blocks.name,
-    })
-    .from(units)
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(eq(units.condoId, condoId))
-    .orderBy(blocks.name, units.number);
+  const allUnitsRaw = dashboardData.allUnitsRaw;
 
   const allUnits = allUnitsRaw.map((u) => ({
     id: u.id,
@@ -117,60 +127,37 @@ export default async function PainelHome() {
   let managementOccurrences: ManagementOccurrence[] = [];
   let logbookEntries: LogbookEntry[] = [];
 
-  if (isPorteiro) {
+  if (isPorteiro && dashboardData.porteiro) {
     // -------------------------------------------------------------
     // PORTARIA OPERACIONAL QUERIES
     // -------------------------------------------------------------
-    const [openShiftRow] = await db
-      .select({
-        id: shifts.id,
-        period: shifts.period,
-        status: shifts.status,
-        startedAt: shifts.startedAt,
-        userName: users.name,
-        checklist: shifts.checklist,
-      })
-      .from(shifts)
-      .innerJoin(users, eq(users.id, shifts.userId))
-      .where(and(eq(shifts.condoId, condoId), eq(shifts.status, "aberto")))
-      .orderBy(desc(shifts.startedAt))
-      .limit(1);
+    const {
+      openShiftRow,
+      closedShiftRow,
+      insideRows,
+      expectedRows,
+      parcelRows,
+      todayReservationsCount,
+    } = dashboardData.porteiro;
 
     if (openShiftRow) {
       activeShift = {
         id: openShiftRow.id,
         period: openShiftRow.period,
         status: openShiftRow.status,
-        startedAt: openShiftRow.startedAt.toISOString(),
+        startedAt: new Date(openShiftRow.startedAt).toISOString(),
         userName: openShiftRow.userName,
         checklist: (openShiftRow.checklist as Record<string, boolean>) || {},
       };
     }
-
-    const [closedShiftRow] = await db
-      .select({
-        id: shifts.id,
-        period: shifts.period,
-        status: shifts.status,
-        startedAt: shifts.startedAt,
-        endedAt: shifts.endedAt,
-        userName: users.name,
-        handoverNotes: shifts.handoverNotes,
-        pendingItems: shifts.pendingItems,
-      })
-      .from(shifts)
-      .innerJoin(users, eq(users.id, shifts.userId))
-      .where(and(eq(shifts.condoId, condoId), eq(shifts.status, "encerrado")))
-      .orderBy(desc(shifts.endedAt))
-      .limit(1);
 
     if (closedShiftRow) {
       lastShift = {
         id: closedShiftRow.id,
         period: closedShiftRow.period,
         status: closedShiftRow.status,
-        startedAt: closedShiftRow.startedAt.toISOString(),
-        endedAt: closedShiftRow.endedAt ? closedShiftRow.endedAt.toISOString() : undefined,
+        startedAt: new Date(closedShiftRow.startedAt).toISOString(),
+        endedAt: closedShiftRow.endedAt ? new Date(closedShiftRow.endedAt).toISOString() : undefined,
         userName: closedShiftRow.userName,
         handoverNotes: closedShiftRow.handoverNotes ?? undefined,
         pendingItems: closedShiftRow.pendingItems ?? undefined,
@@ -178,29 +165,6 @@ export default async function PainelHome() {
     }
 
     // Quem está dentro (status = 'dentro' e checkoutAt is null)
-    const hostUser = alias(users, "host_user");
-    const insideRows = await db
-      .select({
-        id: visits.id,
-        visitorName: visitors.name,
-        kind: visitors.kind,
-        company: visitors.company,
-        document: visitors.document,
-        plate: visits.vehiclePlate,
-        unitNumber: units.number,
-        blockName: blocks.name,
-        hostName: hostUser.name,
-        checkinAt: visits.checkinAt,
-        purpose: visits.purpose,
-      })
-      .from(visits)
-      .innerJoin(visitors, eq(visitors.id, visits.visitorId))
-      .leftJoin(units, eq(units.id, visits.unitId))
-      .leftJoin(blocks, eq(blocks.id, units.blockId))
-      .leftJoin(hostUser, eq(hostUser.id, visits.hostUserId))
-      .where(and(eq(visits.condoId, condoId), eq(visits.status, "dentro")))
-      .orderBy(desc(visits.checkinAt));
-
     const insideVisitors: InsideVisitor[] = insideRows.map((r) => ({
       id: r.id,
       name: r.visitorName,
@@ -210,42 +174,11 @@ export default async function PainelHome() {
       plate: r.plate || undefined,
       unit: r.unitNumber ? `Unid. ${r.unitNumber}${r.blockName ? ` (${r.blockName})` : ""}` : "Área Comum",
       hostName: r.hostName || undefined,
-      checkinAt: r.checkinAt ? r.checkinAt.toISOString() : new Date().toISOString(),
+      checkinAt: r.checkinAt ? new Date(r.checkinAt).toISOString() : new Date().toISOString(),
       purpose: r.purpose || undefined,
     }));
 
     // Visitantes esperados hoje (status autorizados ou aguardando)
-    const expectedRows = await db
-      .select({
-        id: visits.id,
-        visitorName: visitors.name,
-        kind: visitors.kind,
-        company: visitors.company,
-        plate: visits.vehiclePlate,
-        unitNumber: units.number,
-        blockName: blocks.name,
-        hostName: hostUser.name,
-        validFrom: visits.validFrom,
-        validUntil: visits.validUntil,
-        status: visits.status,
-        purpose: visits.purpose,
-        qrToken: visits.qrToken,
-      })
-      .from(visits)
-      .innerJoin(visitors, eq(visitors.id, visits.visitorId))
-      .leftJoin(units, eq(units.id, visits.unitId))
-      .leftJoin(blocks, eq(blocks.id, units.blockId))
-      .leftJoin(hostUser, eq(hostUser.id, visits.hostUserId))
-      .where(
-        and(
-          eq(visits.condoId, condoId),
-          inArray(visits.status, ["autorizado", "aguardando"]),
-          sql`${visits.validUntil} >= NOW()`
-        )
-      )
-      .orderBy(visits.validFrom)
-      .limit(10);
-
     const expectedVisitors: ExpectedVisitor[] = expectedRows.map((r) => ({
       id: r.id,
       name: r.visitorName,
@@ -261,25 +194,6 @@ export default async function PainelHome() {
     }));
 
     // Encomendas pendentes de retirada
-    const parcelRows = await db
-      .select({
-        id: parcels.id,
-        code: parcels.code,
-        carrier: parcels.carrier,
-        shelf: parcels.shelf,
-        pickupCode: parcels.pickupCode,
-        description: parcels.description,
-        unitNumber: units.number,
-        blockName: blocks.name,
-        receivedAt: parcels.receivedAt,
-      })
-      .from(parcels)
-      .leftJoin(units, eq(units.id, parcels.unitId))
-      .leftJoin(blocks, eq(blocks.id, units.blockId))
-      .where(and(eq(parcels.condoId, condoId), inArray(parcels.status, ["pendente", "aguardando_retirada", "recebida"])))
-      .orderBy(desc(parcels.receivedAt))
-      .limit(10);
-
     const pendingParcels: PendingParcel[] = parcelRows.map((p) => ({
       id: p.id,
       code: p.code,
@@ -294,14 +208,6 @@ export default async function PainelHome() {
     // Prestadores autorizados hoje
     const todayProvidersCount = expectedVisitors.filter((v) => v.kind === "prestador" || v.kind === "servico").length;
 
-    // Reservas de hoje
-    const todayReservationsCount = (
-      await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(reservations)
-        .where(and(eq(reservations.condoId, condoId), eq(reservations.date, todayStr)))
-    )[0]?.count ?? 0;
-
     porteiroOverview = {
       insideCount: insideVisitors.length,
       insideVisitors,
@@ -313,73 +219,25 @@ export default async function PainelHome() {
       todayReservationsCount,
       waitingConfirmationCount: expectedVisitors.filter((v) => v.status === "aguardando").length,
     };
-  } else if (isSindico) {
+  } else if (isSindico && dashboardData.sindico) {
     // -------------------------------------------------------------
     // SÍNDICO GESTÃO QUERIES
     // -------------------------------------------------------------
-    const in7DaysStr = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
-
-    const [openOccCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(occurrences)
-      .where(
-        and(
-          eq(occurrences.condoId, condoId),
-          ne(occurrences.status, "resolvida"),
-          ne(occurrences.status, "concluido"),
-          ne(occurrences.status, "cancelada")
-        )
-      );
-
-    const [highPriorityOccCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(occurrences)
-      .where(
-        and(
-          eq(occurrences.condoId, condoId),
-          inArray(occurrences.severity, ["alta", "urgente"]),
-          ne(occurrences.status, "resolvida"),
-          ne(occurrences.status, "concluido"),
-          ne(occurrences.status, "cancelada")
-        )
-      );
-
-    const [pendingReservationsCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(reservations)
-      .where(and(eq(reservations.condoId, condoId), eq(reservations.status, "pendente")));
-
-    const [pendingSuggestionsCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(supportTickets)
-      .where(and(eq(supportTickets.condoId, condoId), inArray(supportTickets.status, ["aberto", "pendente", "em_analise"])));
-
-    const [overdueMaintenanceCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(maintenanceOrders)
-      .where(
-        and(
-          eq(maintenanceOrders.condoId, condoId),
-          ne(maintenanceOrders.status, "concluida"),
-          lte(maintenanceOrders.scheduledFor, in7DaysStr)
-        )
-      );
-
-    const [unassignedOrdersCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(maintenanceOrders)
-      .where(
-        and(
-          eq(maintenanceOrders.condoId, condoId),
-          ne(maintenanceOrders.status, "concluida"),
-          sql`${maintenanceOrders.technician} IS NULL OR ${maintenanceOrders.technician} = ''`
-        )
-      );
-
-    const [executingOrdersCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(maintenanceOrders)
-      .where(and(eq(maintenanceOrders.condoId, condoId), eq(maintenanceOrders.status, "em_andamento")));
+    const {
+      openOccCount,
+      highPriorityOccCount,
+      pendingReservationsCount,
+      pendingSuggestionsCount,
+      overdueMaintenanceCount,
+      unassignedOrdersCount,
+      executingOrdersCount,
+      todayVisitsCount,
+      todayProvidersCount,
+      todayResCount,
+      todayMaintCount,
+      assetsWithIssues,
+      logRows,
+    } = dashboardData.sindico;
 
     stats = {
       openOccurrences: openOccCount?.count ?? 0,
@@ -452,28 +310,6 @@ export default async function PainelHome() {
         : []),
     ];
 
-    // Síndico summary "Hoje no Condomínio"
-    const [todayVisitsCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(visits)
-      .where(and(eq(visits.condoId, condoId), sql`${visits.validFrom}::date = CURRENT_DATE`));
-
-    const [todayProvidersCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(visits)
-      .innerJoin(visitors, eq(visitors.id, visits.visitorId))
-      .where(and(eq(visits.condoId, condoId), eq(visitors.kind, "prestador"), sql`${visits.validFrom}::date = CURRENT_DATE`));
-
-    const [todayResCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(reservations)
-      .where(and(eq(reservations.condoId, condoId), eq(reservations.date, todayStr)));
-
-    const [todayMaintCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(maintenanceOrders)
-      .where(and(eq(maintenanceOrders.condoId, condoId), eq(maintenanceOrders.scheduledFor, todayStr)));
-
     sindicoSummary = {
       expectedVisitors: todayVisitsCount?.count ?? 0,
       authorizedProviders: todayProvidersCount?.count ?? 0,
@@ -481,19 +317,6 @@ export default async function PainelHome() {
       scheduledMaintenances: todayMaintCount?.count ?? 0,
       inProgressOccurrences: openOccCount?.count ?? 0,
     };
-
-    // Prevenção Inteligente: Query equipment with 3+ occurrences
-    const assetsWithIssues = await db
-      .select({
-        id: assets.id,
-        name: assets.name,
-        category: assets.category,
-        location: assets.location,
-        status: assets.status,
-      })
-      .from(assets)
-      .where(eq(assets.condoId, condoId))
-      .limit(3);
 
     smartAlerts = assetsWithIssues.map((a, idx) => ({
       id: `asset-${a.id}`,
@@ -503,30 +326,6 @@ export default async function PainelHome() {
       patternDescription: idx === 0 ? "3 ocorrências relacionadas à trava da porta e alinhamento no último mês." : "Oscilação registrada em horário de pico de consumo.",
       recommendedAction: idx === 0 ? "Agendar inspeção técnica preventiva com a empresa de elevadores." : "Verificar quadro de acionamento elétrico e bombas.",
     }));
-
-    // Livro Digital entries for Síndico review
-    const logRows = await db
-      .select({
-        id: occurrences.id,
-        code: occurrences.code,
-        title: occurrences.title,
-        description: occurrences.description,
-        category: occurrences.category,
-        severity: occurrences.severity,
-        visibility: occurrences.visibility,
-        occurredAt: occurrences.occurredAt,
-        ackAt: occurrences.ackAt,
-        reporterName: users.name,
-        unitNumber: units.number,
-        blockName: blocks.name,
-      })
-      .from(occurrences)
-      .leftJoin(users, eq(users.id, occurrences.reportedById))
-      .leftJoin(units, eq(units.id, occurrences.unitId))
-      .leftJoin(blocks, eq(blocks.id, units.blockId))
-      .where(and(eq(occurrences.condoId, condoId), inArray(occurrences.visibility, ["publica", "administrativa", "sigilosa"])))
-      .orderBy(desc(occurrences.occurredAt))
-      .limit(4);
 
     logbookEntries = logRows.map((r) => ({
       id: r.id,
@@ -542,51 +341,11 @@ export default async function PainelHome() {
       reporterName: r.reporterName || "Portaria",
       unit: r.unitNumber ? `Unid. ${r.unitNumber}${r.blockName ? ` (${r.blockName})` : ""}` : undefined,
     }));
-  } else {
+  } else if (dashboardData.morador) {
     // -------------------------------------------------------------
     // MORADOR QUERIES
     // -------------------------------------------------------------
-    const [myOpenOccCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(occurrences)
-      .where(
-        and(
-          eq(occurrences.condoId, condoId),
-          eq(occurrences.reportedById, session.user.id),
-          ne(occurrences.status, "resolvida"),
-          ne(occurrences.status, "concluido"),
-          ne(occurrences.status, "cancelada")
-        )
-      );
-
-    const [myPendingResCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(reservations)
-      .where(
-        and(
-          eq(reservations.condoId, condoId),
-          eq(reservations.userId, session.user.id),
-          gte(reservations.date, todayStr)
-        )
-      );
-
-    const [myParcelsCount] = residentUnitId
-      ? await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(parcels)
-          .where(
-            and(
-              eq(parcels.condoId, condoId),
-              eq(parcels.unitId, residentUnitId),
-              inArray(parcels.status, ["aguardando_retirada", "recebida", "pendente"])
-            )
-          )
-      : [{ count: 0 }];
-
-    const [annCount] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(announcements)
-      .where(eq(announcements.condoId, condoId));
+    const { myOpenOccCount, myPendingResCount, myParcelsCount, annCount } = dashboardData.morador;
 
     residentStats = {
       myOccurrences: myOpenOccCount?.count ?? 0,
@@ -636,39 +395,7 @@ export default async function PainelHome() {
   }
 
   // 4. Query occurrences for feed and map
-  const occConditions = [eq(occurrences.condoId, condoId)];
-  if (isResident) {
-    occConditions.push(eq(occurrences.reportedById, session.user.id));
-  }
-
-  const reporterUser = alias(users, "reporter_user");
-  const assigneeUser = alias(users, "assignee_user");
-
-  const mapOccRows = await db
-    .select({
-      id: occurrences.id,
-      code: occurrences.code,
-      title: occurrences.title,
-      description: occurrences.description,
-      category: occurrences.category,
-      severity: occurrences.severity,
-      status: occurrences.status,
-      exactLocation: occurrences.exactLocation,
-      latitude: occurrences.latitude,
-      longitude: occurrences.longitude,
-      createdAt: occurrences.createdAt,
-      unitNumber: units.number,
-      blockName: blocks.name,
-      reportedByName: reporterUser.name,
-      assignedToName: assigneeUser.name,
-    })
-    .from(occurrences)
-    .leftJoin(units, eq(units.id, occurrences.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(reporterUser, eq(reporterUser.id, occurrences.reportedById))
-    .leftJoin(assigneeUser, eq(assigneeUser.id, occurrences.assignedToId))
-    .where(and(...occConditions))
-    .orderBy(desc(occurrences.createdAt));
+  const mapOccRows = dashboardData.mapOccRows;
 
   const mapOccurrences = mapOccRows.map((occ) => ({
     id: occ.id,
@@ -683,7 +410,7 @@ export default async function PainelHome() {
       (occ.unitNumber ? `Unidade ${occ.unitNumber}` : occ.blockName ? `${occ.blockName}` : "Área Comum"),
     latitude: occ.latitude,
     longitude: occ.longitude,
-    createdAt: occ.createdAt.toISOString(),
+    createdAt: new Date(occ.createdAt).toISOString(),
     unitNumber: occ.unitNumber,
     blockName: occ.blockName,
     reportedByName: occ.reportedByName,
@@ -709,30 +436,7 @@ export default async function PainelHome() {
   });
 
   // 5. Upcoming reservations
-  const resConditions = [
-    eq(reservations.condoId, condoId),
-    gte(reservations.date, todayStr),
-  ];
-  if (isResident) {
-    resConditions.push(eq(reservations.userId, session.user.id));
-  }
-
-  const reservationRows = await db
-    .select({
-      id: reservations.id,
-      amenityName: amenities.name,
-      date: reservations.date,
-      startTime: reservations.startTime,
-      endTime: reservations.endTime,
-      unitNumber: units.number,
-      status: reservations.status,
-    })
-    .from(reservations)
-    .innerJoin(amenities, eq(amenities.id, reservations.amenityId))
-    .leftJoin(units, eq(units.id, reservations.unitId))
-    .where(and(...resConditions))
-    .orderBy(reservations.date, reservations.startTime)
-    .limit(3);
+  const reservationRows = dashboardData.reservationRows;
 
   const formattedReservations: DashboardReservation[] = reservationRows.map((r) => ({
     id: r.id,
@@ -764,34 +468,8 @@ export default async function PainelHome() {
   }
 
   // 7. Notices (Assemblies and Announcements)
-  const assemblyRows = await db
-    .select({
-      id: assemblies.id,
-      title: assemblies.title,
-      kind: assemblies.kind,
-      location: assemblies.location,
-      onlineLink: assemblies.onlineLink,
-      firstCallAt: assemblies.firstCallAt,
-    })
-    .from(assemblies)
-    .where(and(eq(assemblies.condoId, condoId), gte(assemblies.firstCallAt, now)))
-    .orderBy(assemblies.firstCallAt)
-    .limit(2);
-
-  const announcementRows = await db
-    .select({
-      id: announcements.id,
-      title: announcements.title,
-      body: announcements.body,
-      category: announcements.category,
-      priority: announcements.priority,
-      publishedAt: announcements.publishedAt,
-      createdAt: announcements.createdAt,
-    })
-    .from(announcements)
-    .where(eq(announcements.condoId, condoId))
-    .orderBy(desc(announcements.pinned), desc(announcements.publishedAt))
-    .limit(4);
+  const assemblyRows = dashboardData.assemblyRows;
+  const announcementRows = dashboardData.announcementRows;
 
   const notices: CondoNotice[] = [
     ...assemblyRows.map((a) => ({

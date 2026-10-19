@@ -1,20 +1,8 @@
 "use server";
+import { apiOperation } from "@/lib/api/server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray, sql } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  assemblies,
-  assemblyAgenda,
-  assemblyAttendance,
-  assemblyMinutes,
-  assemblyMinuteVersions,
-  assemblyNotificationLogs,
-  assemblyVotes,
-  memberships,
-  units,
-  users,
-} from "@/db/schema";
+
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { suggestMinutesSummary, summarize } from "@/lib/ai";
@@ -24,26 +12,16 @@ const ADMIN_ROLES = ["superadmin", "sindico"] as const;
 
 async function getAudienceUserIds(condoId: number, scope: string, blockId?: number | null, unitId?: number | null) {
   if (scope === "unidade" && unitId) {
-    const rows = await db
-      .select({ userId: memberships.userId })
-      .from(memberships)
-      .where(and(eq(memberships.condoId, condoId), eq(memberships.unitId, unitId)));
+    const rows = await apiOperation("lib.actions.assemblies.001", [condoId, unitId]);
     return rows.map((r) => r.userId);
   }
 
   if (scope === "bloco" && blockId) {
-    const rows = await db
-      .select({ userId: memberships.userId })
-      .from(memberships)
-      .innerJoin(units, eq(units.id, memberships.unitId))
-      .where(and(eq(memberships.condoId, condoId), eq(units.blockId, blockId)));
+    const rows = await apiOperation("lib.actions.assemblies.002", [condoId, blockId]);
     return rows.map((r) => r.userId);
   }
 
-  const rows = await db
-    .select({ userId: memberships.userId })
-    .from(memberships)
-    .where(eq(memberships.condoId, condoId));
+  const rows = await apiOperation("lib.actions.assemblies.003", [condoId]);
   return rows.map((r) => r.userId);
 }
 
@@ -90,10 +68,10 @@ export async function saveAssemblyAction(formData: FormData) {
 
   let assemblyId = id;
   if (id) {
-    await db.update(assemblies).set(payload).where(and(eq(assemblies.id, id), eq(assemblies.condoId, condoId)));
+    await apiOperation("lib.actions.assemblies.004", [payload, id, condoId]);
     await logAudit({ session, condoId, action: "editar", entity: "assembleia", entityId: id, summary: `Editou assembleia "${title}"` });
   } else {
-    const [row] = await db.insert(assemblies).values({ ...payload, createdById: session.user.id }).returning();
+    const [row] = await apiOperation("lib.actions.assemblies.005", [{ ...payload, createdById: session.user.id }]);
     assemblyId = row.id;
     await logAudit({ session, condoId, action: "criar", entity: "assembleia", entityId: row.id, summary: `Cadastrou assembleia "${title}"` });
   }
@@ -104,16 +82,14 @@ export async function saveAssemblyAction(formData: FormData) {
     const items = agendaText.split("\n").map((s) => s.trim()).filter(Boolean);
     if (items.length > 0) {
       if (id) {
-        await db.delete(assemblyAgenda).where(eq(assemblyAgenda.assemblyId, id));
+        await apiOperation("lib.actions.assemblies.006", [id]);
       }
-      await db.insert(assemblyAgenda).values(
-        items.map((item, index) => ({
+      await apiOperation("lib.actions.assemblies.007", [items.map((item, index) => ({
           assemblyId,
           position: index + 1,
           title: item,
           votingType: str(formData, "votingType", "unidade"),
-        })),
-      );
+        }))]);
     }
   }
 
@@ -129,11 +105,7 @@ export async function notifyAssemblyAction(formData: FormData) {
   const triggerEvent = str(formData, "triggerEvent", "nova_assembleia");
   if (!assemblyId) return;
 
-  const [assembly] = await db
-    .select()
-    .from(assemblies)
-    .where(and(eq(assemblies.id, assemblyId), eq(assemblies.condoId, condoId)))
-    .limit(1);
+  const [assembly] = await apiOperation("lib.actions.assemblies.008", [assemblyId, condoId]);
   if (!assembly) return;
 
   const userIds = await getAudienceUserIds(condoId, assembly.audienceScope, assembly.targetBlockId, assembly.targetUnitId);
@@ -165,12 +137,12 @@ export async function notifyAssemblyAction(formData: FormData) {
   await notify(condoId, userIds, title, body, "/painel/assembleias");
 
   if (assembly.status === "agendada" && triggerEvent === "nova_assembleia") {
-    await db.update(assemblies).set({ status: "convocacao_enviada", noticeAt: new Date() }).where(eq(assemblies.id, assemblyId));
+    await apiOperation("lib.actions.assemblies.009", [{ status: "convocacao_enviada", noticeAt: new Date() }, assemblyId]);
   } else if (triggerEvent === "cancelamento") {
-    await db.update(assemblies).set({ status: "cancelada" }).where(eq(assemblies.id, assemblyId));
+    await apiOperation("lib.actions.assemblies.010", [{ status: "cancelada" }, assemblyId]);
   }
 
-  await db.insert(assemblyNotificationLogs).values({
+  await apiOperation("lib.actions.assemblies.011", [{
     assemblyId,
     condoId,
     triggerEvent,
@@ -180,7 +152,7 @@ export async function notifyAssemblyAction(formData: FormData) {
     readCount: 0,
     failedCount: 0,
     createdById: session.user.id,
-  });
+  }]);
 
   await logAudit({ session, condoId, action: "notificar", entity: "assembleia", entityId: assemblyId, summary: `Disparou notificação (${triggerEvent}) para ${userIds.length} moradores` });
   revalidatePath("/painel/assembleias");
@@ -200,11 +172,7 @@ export async function confirmAttendanceAction(formData: FormData) {
   const proxyName = str(formData, "proxyName") || null;
   const proxyCpf = str(formData, "proxyCpf") || null;
 
-  const [existing] = await db
-    .select()
-    .from(assemblyAttendance)
-    .where(and(eq(assemblyAttendance.assemblyId, assemblyId), eq(assemblyAttendance.userId, session.user.id)))
-    .limit(1);
+  const [existing] = await apiOperation("lib.actions.assemblies.012", [assemblyId, session.user.id]);
 
   const historyItem = {
     timestamp: new Date().toISOString(),
@@ -215,9 +183,7 @@ export async function confirmAttendanceAction(formData: FormData) {
 
   if (existing) {
     const currentHistory = (existing.history as { timestamp: string; action: string; userName?: string }[]) || [];
-    await db
-      .update(assemblyAttendance)
-      .set({
+    await apiOperation("lib.actions.assemblies.013", [{
         status,
         unitId,
         proxyForUnitId,
@@ -226,10 +192,9 @@ export async function confirmAttendanceAction(formData: FormData) {
         proxyCpf,
         history: [...currentHistory, historyItem],
         checkinAt: status === "confirmado" ? new Date() : null,
-      })
-      .where(eq(assemblyAttendance.id, existing.id));
+      }, existing.id]);
   } else {
-    await db.insert(assemblyAttendance).values({
+    await apiOperation("lib.actions.assemblies.014", [{
       assemblyId,
       unitId,
       userId: session.user.id,
@@ -240,7 +205,7 @@ export async function confirmAttendanceAction(formData: FormData) {
       proxyCpf,
       history: [historyItem],
       checkinAt: status === "confirmado" ? new Date() : null,
-    });
+    }]);
   }
 
   await logAudit({ session, condoId, action: "confirmar_presenca", entity: "assembleia", entityId: assemblyId, summary: `${status === "confirmado" ? "Confirmou presença" : "Informou ausência"}` });
@@ -261,27 +226,20 @@ export async function adminRecordAttendanceAction(formData: FormData) {
     userName: session.user.name,
   };
 
-  const [existing] = await db
-    .select()
-    .from(assemblyAttendance)
-    .where(and(eq(assemblyAttendance.assemblyId, assemblyId), eq(assemblyAttendance.unitId, targetUnitId)))
-    .limit(1);
+  const [existing] = await apiOperation("lib.actions.assemblies.015", [assemblyId, targetUnitId]);
 
   if (existing) {
     const currentHistory = (existing.history as { timestamp: string; action: string }[]) || [];
-    await db
-      .update(assemblyAttendance)
-      .set({ status, history: [...currentHistory, historyItem], checkinAt: new Date() })
-      .where(eq(assemblyAttendance.id, existing.id));
+    await apiOperation("lib.actions.assemblies.016", [{ status, history: [...currentHistory, historyItem], checkinAt: new Date() }, existing.id]);
   } else {
-    await db.insert(assemblyAttendance).values({
+    await apiOperation("lib.actions.assemblies.017", [{
       assemblyId,
       unitId: targetUnitId,
       userId: targetUserId || session.user.id,
       status,
       history: [historyItem],
       checkinAt: new Date(),
-    });
+    }]);
   }
 
   await logAudit({ session, condoId, action: "presenca_manual", entity: "assembleia", entityId: assemblyId, summary: `Registrou presença da unidade #${targetUnitId}` });
@@ -345,11 +303,7 @@ export async function voteAssemblyAction(
     const choice = normalizedChoice as VoteChoice;
 
     // Verificar se a assembleia existe e pertence ao condomínio
-    const [assembly] = await db
-      .select()
-      .from(assemblies)
-      .where(and(eq(assemblies.id, assemblyId), eq(assemblies.condoId, condoId)))
-      .limit(1);
+    const [assembly] = await apiOperation("lib.actions.assemblies.018", [assemblyId, condoId]);
 
     if (!assembly) {
       return { success: false, error: "Assembleia não encontrada." };
@@ -373,11 +327,7 @@ export async function voteAssemblyAction(
         return { success: false, error: "Esta votação é restrita a outra unidade." };
       }
       if (assembly.audienceScope === "bloco" && assembly.targetBlockId && session.unitId) {
-        const [u] = await db
-          .select({ blockId: units.blockId })
-          .from(units)
-          .where(eq(units.id, session.unitId))
-          .limit(1);
+        const [u] = await apiOperation("lib.actions.assemblies.019", [session.unitId]);
         if (u && u.blockId !== assembly.targetBlockId) {
           return { success: false, error: "Esta votação é restrita a outro bloco." };
         }
@@ -385,11 +335,7 @@ export async function voteAssemblyAction(
     }
 
     // Verificar se a pauta existe e pertence à assembleia
-    const [agenda] = await db
-      .select()
-      .from(assemblyAgenda)
-      .where(and(eq(assemblyAgenda.id, agendaId), eq(assemblyAgenda.assemblyId, assemblyId)))
-      .limit(1);
+    const [agenda] = await apiOperation("lib.actions.assemblies.020", [agendaId, assemblyId]);
 
     if (!agenda) {
       return { success: false, error: "Pauta não encontrada nesta assembleia." };
@@ -403,31 +349,24 @@ export async function voteAssemblyAction(
     const unitId = session.role === "morador" ? session.unitId : inputUnitId || session.unitId;
     let weight = "1.00";
     if (unitId) {
-      const [unit] = await db.select({ fraction: units.fraction }).from(units).where(eq(units.id, unitId)).limit(1);
+      const [unit] = await apiOperation("lib.actions.assemblies.021", [session.role === "morador", session.unitId, inputUnitId || session.unitId]);
       if (unit?.fraction) {
         weight = unit.fraction;
       }
     }
 
     // Verificar voto existente (garantindo apenas 1 voto ativo por usuário e pauta)
-    const [existing] = await db
-      .select()
-      .from(assemblyVotes)
-      .where(and(eq(assemblyVotes.agendaId, agendaId), eq(assemblyVotes.userId, session.user.id)))
-      .limit(1);
+    const [existing] = await apiOperation("lib.actions.assemblies.022", [agendaId, session.user.id]);
 
     const isChange = !!existing && existing.choice !== choice;
 
     if (existing) {
-      await db
-        .update(assemblyVotes)
-        .set({
+      await apiOperation("lib.actions.assemblies.023", [{
           choice,
           weight,
           assemblyId,
           unitId,
-        })
-        .where(eq(assemblyVotes.id, existing.id));
+        }, existing.id]);
 
       if (isChange) {
         await logAudit({
@@ -440,14 +379,14 @@ export async function voteAssemblyAction(
         });
       }
     } else {
-      await db.insert(assemblyVotes).values({
+      await apiOperation("lib.actions.assemblies.024", [{
         assemblyId,
         agendaId,
         unitId,
         userId: session.user.id,
         choice,
         weight,
-      });
+      }]);
 
       await logAudit({
         session,
@@ -460,10 +399,7 @@ export async function voteAssemblyAction(
     }
 
     // Calcular totais atualizados em tempo real no banco
-    const allVotes = await db
-      .select({ choice: assemblyVotes.choice })
-      .from(assemblyVotes)
-      .where(eq(assemblyVotes.agendaId, agendaId));
+    const allVotes = await apiOperation("lib.actions.assemblies.025", [agendaId]);
 
     const totals = {
       sim: allVotes.filter((v) => v.choice === "sim").length,
@@ -493,16 +429,13 @@ export async function saveAgendaItemResultAction(formData: FormData) {
   const agendaId = num(formData, "agendaId");
   if (!agendaId) return;
 
-  await db
-    .update(assemblyAgenda)
-    .set({
+  await apiOperation("lib.actions.assemblies.026", [{
       discussionResult: str(formData, "discussionResult") || null,
       decision: str(formData, "decision") || null,
       notes: str(formData, "notes") || null,
       votingResult: str(formData, "votingResult") || null,
       status: str(formData, "status", "concluido"),
-    })
-    .where(eq(assemblyAgenda.id, agendaId));
+    }, agendaId]);
 
   await logAudit({ session, condoId, action: "registrar_deliberacao", entity: "pauta_assembleia", entityId: agendaId, summary: "Atualizou deliberação da pauta" });
   revalidatePath("/painel/assembleias");
@@ -522,16 +455,10 @@ export async function saveMinutesAction(formData: FormData) {
   const fileSizeKb = num(formData, "fileSizeKb", 350);
   const status = str(formData, "status", "rascunho");
 
-  const [existing] = await db
-    .select()
-    .from(assemblyMinutes)
-    .where(eq(assemblyMinutes.assemblyId, assemblyId))
-    .limit(1);
+  const [existing] = await apiOperation("lib.actions.assemblies.027", [assemblyId]);
 
   if (existing) {
-    await db
-      .update(assemblyMinutes)
-      .set({
+    await apiOperation("lib.actions.assemblies.028", [{
         content: content || existing.content,
         summary: summary || existing.summary,
         fileName: fileName || existing.fileName,
@@ -539,10 +466,9 @@ export async function saveMinutesAction(formData: FormData) {
         fileSizeKb: fileSizeKb || existing.fileSizeKb,
         status,
         updatedAt: new Date(),
-      })
-      .where(eq(assemblyMinutes.id, existing.id));
+      }, existing.id]);
   } else {
-    await db.insert(assemblyMinutes).values({
+    await apiOperation("lib.actions.assemblies.029", [{
       assemblyId,
       condoId,
       content,
@@ -552,11 +478,11 @@ export async function saveMinutesAction(formData: FormData) {
       fileSizeKb,
       status,
       currentVersion: "1.0",
-    });
+    }]);
   }
 
   if (status === "em_revisao") {
-    await db.update(assemblies).set({ status: "ata_em_revisao" }).where(eq(assemblies.id, assemblyId));
+    await apiOperation("lib.actions.assemblies.030", [{ status: "ata_em_revisao" }, assemblyId]);
   }
 
   await logAudit({ session, condoId, action: "salvar_ata", entity: "ata_assembleia", entityId: assemblyId, summary: `Salvou ata (${status})` });
@@ -568,31 +494,23 @@ export async function generateAISummaryAction(formData: FormData) {
   const assemblyId = num(formData, "assemblyId");
   if (!assemblyId) return;
 
-  const [minutes] = await db
-    .select()
-    .from(assemblyMinutes)
-    .where(eq(assemblyMinutes.assemblyId, assemblyId))
-    .limit(1);
+  const [minutes] = await apiOperation("lib.actions.assemblies.031", [assemblyId]);
 
-  const [assembly] = await db
-    .select()
-    .from(assemblies)
-    .where(eq(assemblies.id, assemblyId))
-    .limit(1);
+  const [assembly] = await apiOperation("lib.actions.assemblies.032", [assemblyId]);
 
   const minutesText = minutes?.content || assembly?.minutes || assembly?.title || "";
   const aiSuggestedSummary = suggestMinutesSummary(minutesText);
 
   if (minutes) {
-    await db.update(assemblyMinutes).set({ aiSuggestedSummary }).where(eq(assemblyMinutes.id, minutes.id));
+    await apiOperation("lib.actions.assemblies.033", [{ aiSuggestedSummary }, minutes.id]);
   } else {
-    await db.insert(assemblyMinutes).values({
+    await apiOperation("lib.actions.assemblies.034", [{
       assemblyId,
       condoId,
       aiSuggestedSummary,
       status: "rascunho",
       summaryStatus: "rascunho",
-    });
+    }]);
   }
 
   await logAudit({ session, condoId, action: "gerar_resumo_ia", entity: "ata_assembleia", entityId: assemblyId, summary: "Gerou sugestão de resumo via IA" });
@@ -609,17 +527,11 @@ export async function approveAndPublishMinutesAction(formData: FormData) {
   const fileName = str(formData, "fileName") || `ata-assembleia-${condoId}-${assemblyId}.pdf`;
   const fileUrl = str(formData, "fileUrl") || `/api/assemblies/${assemblyId}/minutes/download`;
 
-  const [existing] = await db
-    .select()
-    .from(assemblyMinutes)
-    .where(eq(assemblyMinutes.assemblyId, assemblyId))
-    .limit(1);
+  const [existing] = await apiOperation("lib.actions.assemblies.035", [assemblyId]);
 
   let minutesId = existing?.id;
   if (existing) {
-    await db
-      .update(assemblyMinutes)
-      .set({
+    await apiOperation("lib.actions.assemblies.036", [{
         status: "publicada",
         summary: finalSummary || existing.summary || existing.aiSuggestedSummary,
         content: finalContent || existing.content,
@@ -631,12 +543,9 @@ export async function approveAndPublishMinutesAction(formData: FormData) {
         publishedAt: new Date(),
         publishedById: session.user.id,
         updatedAt: new Date(),
-      })
-      .where(eq(assemblyMinutes.id, existing.id));
+      }, existing.id]);
   } else {
-    const [inserted] = await db
-      .insert(assemblyMinutes)
-      .values({
+    const [inserted] = await apiOperation("lib.actions.assemblies.037", [{
         assemblyId,
         condoId,
         status: "publicada",
@@ -650,14 +559,13 @@ export async function approveAndPublishMinutesAction(formData: FormData) {
         publishedAt: new Date(),
         publishedById: session.user.id,
         currentVersion: "1.0",
-      })
-      .returning();
+      }]);
     minutesId = inserted.id;
   }
 
   // Registrar Versao 1.0 no Historico
   if (minutesId) {
-    await db.insert(assemblyMinuteVersions).values({
+    await apiOperation("lib.actions.assemblies.038", [{
       minutesId,
       assemblyId,
       version: existing?.currentVersion || "1.0",
@@ -667,14 +575,14 @@ export async function approveAndPublishMinutesAction(formData: FormData) {
       summary: finalSummary,
       changeReason: "Publicação inicial da ata aprovada",
       createdById: session.user.id,
-    });
+    }]);
   }
 
   // Atualizar Assembleia
-  await db.update(assemblies).set({ status: "ata_publicada", minutes: finalContent || finalSummary }).where(eq(assemblies.id, assemblyId));
+  await apiOperation("lib.actions.assemblies.039", [{ status: "ata_publicada", minutes: finalContent || finalSummary }, assemblyId]);
 
   // Notificar moradores
-  const [assembly] = await db.select().from(assemblies).where(eq(assemblies.id, assemblyId)).limit(1);
+  const [assembly] = await apiOperation("lib.actions.assemblies.040", [assemblyId]);
   if (assembly) {
     const userIds = await getAudienceUserIds(condoId, assembly.audienceScope, assembly.targetBlockId, assembly.targetUnitId);
     await notify(condoId, userIds, `Ata Publicada: ${assembly.title}`, "A ata oficial e o resumo da assembleia já estão disponíveis para leitura e download.", "/painel/assembleias");
@@ -690,11 +598,7 @@ export async function updateMinutesVersionAction(formData: FormData) {
   const changeReason = str(formData, "changeReason");
   if (!assemblyId || !changeReason) return;
 
-  const [minutes] = await db
-    .select()
-    .from(assemblyMinutes)
-    .where(eq(assemblyMinutes.assemblyId, assemblyId))
-    .limit(1);
+  const [minutes] = await apiOperation("lib.actions.assemblies.041", [assemblyId]);
   if (!minutes) return;
 
   const currentVer = parseFloat(minutes.currentVersion || "1.0");
@@ -704,9 +608,7 @@ export async function updateMinutesVersionAction(formData: FormData) {
   const newFileName = str(formData, "fileName") || minutes.fileName;
   const newFileUrl = str(formData, "fileUrl") || minutes.fileUrl;
 
-  await db
-    .update(assemblyMinutes)
-    .set({
+  await apiOperation("lib.actions.assemblies.042", [{
       currentVersion: nextVer,
       content: newContent,
       summary: newSummary,
@@ -714,10 +616,9 @@ export async function updateMinutesVersionAction(formData: FormData) {
       fileUrl: newFileUrl,
       status: "publicada",
       updatedAt: new Date(),
-    })
-    .where(eq(assemblyMinutes.id, minutes.id));
+    }, minutes.id]);
 
-  await db.insert(assemblyMinuteVersions).values({
+  await apiOperation("lib.actions.assemblies.043", [{
     minutesId: minutes.id,
     assemblyId,
     version: nextVer,
@@ -727,9 +628,9 @@ export async function updateMinutesVersionAction(formData: FormData) {
     summary: newSummary,
     changeReason,
     createdById: session.user.id,
-  });
+  }]);
 
-  const [assembly] = await db.select().from(assemblies).where(eq(assemblies.id, assemblyId)).limit(1);
+  const [assembly] = await apiOperation("lib.actions.assemblies.044", [assemblyId]);
   if (assembly) {
     const userIds = await getAudienceUserIds(condoId, assembly.audienceScope, assembly.targetBlockId, assembly.targetUnitId);
     await notify(condoId, userIds, `Atualização de Ata (v${nextVer}): ${assembly.title}`, `A ata foi atualizada. Motivo: ${summarize(changeReason, 100)}`, "/painel/assembleias");
@@ -744,10 +645,10 @@ export async function cancelAssemblyAction(formData: FormData) {
   const assemblyId = num(formData, "assemblyId");
   if (!assemblyId) return;
 
-  const [assembly] = await db.select().from(assemblies).where(and(eq(assemblies.id, assemblyId), eq(assemblies.condoId, condoId))).limit(1);
+  const [assembly] = await apiOperation("lib.actions.assemblies.045", [assemblyId, condoId]);
   if (!assembly) return;
 
-  await db.update(assemblies).set({ status: "cancelada", updatedAt: new Date() }).where(eq(assemblies.id, assemblyId));
+  await apiOperation("lib.actions.assemblies.046", [{ status: "cancelada", updatedAt: new Date() }, assemblyId]);
 
   const userIds = await getAudienceUserIds(condoId, assembly.audienceScope, assembly.targetBlockId, assembly.targetUnitId);
   await notify(condoId, userIds, `Assembleia Cancelada: ${assembly.title}`, `A assembleia agendada para ${dateBR(assembly.firstCallAt)} foi cancelada.`, "/painel/assembleias");

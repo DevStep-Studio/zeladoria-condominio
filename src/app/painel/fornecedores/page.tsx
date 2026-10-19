@@ -1,6 +1,5 @@
-import { asc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { contracts, vendors } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
@@ -36,25 +35,10 @@ export default async function FornecedoresPage() {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const canManageMarketplace = session.role === "superadmin" || session.role === "sindico";
 
-  const vendorRows = await db.select().from(vendors).where(eq(vendors.condoId, condoId)).orderBy(asc(vendors.name));
-  const contractRows = await db
-    .select({
-      id: contracts.id,
-      title: contracts.title,
-      object: contracts.object,
-      startAt: contracts.startAt,
-      endAt: contracts.endAt,
-      valueCents: contracts.valueCents,
-      billingCycle: contracts.billingCycle,
-      adjustmentIndex: contracts.adjustmentIndex,
-      status: contracts.status,
-      noticeDays: contracts.noticeDays,
-      vendorName: vendors.name,
-    })
-    .from(contracts)
-    .innerJoin(vendors, eq(vendors.id, contracts.vendorId))
-    .where(eq(contracts.condoId, condoId))
-    .orderBy(asc(contracts.endAt));
+  const { vendorRows, contractRows } = await domainRequest<{
+    vendorRows: any[];
+    contractRows: any[];
+  }>("/painel/fornecedores", { query: { condoId, role: session.role } });
 
   const today = isoDate();
   const expired = contractRows.filter((c) => c.endAt < today);

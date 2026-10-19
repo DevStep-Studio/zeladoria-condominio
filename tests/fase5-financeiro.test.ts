@@ -3,11 +3,6 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { getMarketplaceSettings, recordLedgerEntry } from "../src/lib/services/payments/payment-service";
 
-after(async () => {
-  const { pool } = await import("../src/db");
-  await pool.end();
-});
-
 describe("FASE 5 — COMERCIAL E FINANCEIRO", () => {
   // --------------------------------------------------------------------------
   // 1. ORÇAMENTO CONGELADO E SNAPSHOT IMUTÁVEL COM HASH

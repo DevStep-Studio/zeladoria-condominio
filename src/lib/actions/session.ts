@@ -1,10 +1,9 @@
 "use server";
+import { domainAction } from "@/lib/api/domain";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+
 import { authenticate, destroySession, getSession, setActiveCondo, setActiveRole, type Role } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { str } from "@/lib/utils";
@@ -43,7 +42,7 @@ export async function providerLoginAction(_prev: string | null, formData: FormDa
   const email = str(formData, "email");
   const password = str(formData, "password");
   if (!email || !password) return "Informe e-mail e senha.";
-  const user = await authenticate(email, password);
+  const user = await authenticate(email, password, true);
   if (!user) {
     return "Credenciais inválidas. Verifique e tente novamente.";
   }
@@ -138,8 +137,5 @@ export async function switchRoleAction(formData: FormData) {
 export async function setThemeAction(theme: string) {
   const session = await getSession();
   if (!session) return;
-  await db
-    .update(users)
-    .set({ theme: theme === "dark" ? "dark" : "light" })
-    .where(eq(users.id, session.user.id));
+  await domainAction("/auth/theme", "PATCH", { theme: theme === "dark" ? "dark" : "light" });
 }

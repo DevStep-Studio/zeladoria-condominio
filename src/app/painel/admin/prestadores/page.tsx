@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { desc } from "drizzle-orm";
-import { db } from "@/db";
-import { vendors, users } from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
@@ -16,21 +15,7 @@ export const metadata = {
 export default async function AdminPrestadoresPage() {
   await requireSession();
 
-  const vendorsList = await db
-    .select({
-      id: vendors.id,
-      name: vendors.name,
-      companyName: vendors.companyName,
-      category: vendors.category,
-      rating: vendors.rating,
-      active: vendors.active,
-      isOnline: vendors.isOnline,
-      phone: vendors.phone,
-      email: vendors.email,
-      createdAt: vendors.createdAt,
-    })
-    .from(vendors)
-    .orderBy(desc(vendors.createdAt));
+  const vendorsList = await domainRequest<any[]>("/painel/admin/prestadores");
 
   return (
     <div className="space-y-5">

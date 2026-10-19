@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
@@ -284,9 +284,23 @@ export function Shell({
     return groups;
   }, [searchResults]);
 
+  const searchParams = useSearchParams();
+
   const isRouteActive = (href: string) => {
     if (href === "/painel") return pathname === "/painel";
-    return pathname.startsWith(href);
+    const [targetPath, targetQuery] = href.split("?");
+    if (targetQuery) {
+      if (pathname !== targetPath) return false;
+      const targetParams = new URLSearchParams(targetQuery);
+      for (const [k, v] of targetParams.entries()) {
+        if (searchParams.get(k) !== v) return false;
+      }
+      return true;
+    }
+    if (targetPath === "/painel/servicos" && pathname === "/painel/servicos") {
+      return !searchParams.get("tab") && !searchParams.get("aba");
+    }
+    return pathname.startsWith(targetPath);
   };
 
   const SidebarContent = (

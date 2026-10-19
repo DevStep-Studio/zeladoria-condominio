@@ -1,7 +1,7 @@
+import { domainRequest } from "@/lib/api/domain";
+import type { ApiOperations } from "@/lib/api/contracts";
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, serviceReviews, tickets, units, users, vendors } from "@/db/schema";
+
 import { calculateProviderScore } from "./ranking";
 import type { MarketplaceProvider, PortfolioItem, ServiceOffering, VerifiedReview } from "./providers-data";
 
@@ -28,54 +28,12 @@ export async function getMarketplaceProviders(
   }
 ): Promise<MarketplaceProvider[]> {
   try {
-    const vendorRows = await db
-      .select()
-      .from(vendors)
-      .where(and(eq(vendors.condoId, condoId), eq(vendors.active, true)))
-      .orderBy(desc(vendors.sponsored), desc(vendors.verified), vendors.name);
-
-    if (vendorRows.length === 0) return [];
-
-  const vendorIds = vendorRows.map((v) => v.id);
-
-  const ticketRows = await db
-    .select({
-      id: tickets.id,
-      vendorId: tickets.vendorId,
-      title: tickets.title,
-      status: tickets.status,
-      rating: tickets.rating,
-      ratingComment: tickets.ratingComment,
-      closedAt: tickets.closedAt,
-      createdAt: tickets.createdAt,
-      openedById: tickets.openedById,
-      unitNumber: units.number,
-      blockName: blocks.name,
-      requesterName: users.name,
-    })
-    .from(tickets)
-    .leftJoin(units, eq(units.id, tickets.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(users, eq(users.id, tickets.openedById))
-    .where(and(eq(tickets.condoId, condoId), inArray(tickets.vendorId, vendorIds)));
-
-  let serviceReviewRows: any[] = [];
-  try {
-    serviceReviewRows = await db
-      .select({
-        id: serviceReviews.id,
-        vendorId: serviceReviews.vendorId,
-        rating: serviceReviews.rating,
-        comment: serviceReviews.comment,
-        createdAt: serviceReviews.createdAt,
-        authorName: users.name,
-      })
-      .from(serviceReviews)
-      .leftJoin(users, eq(users.id, serviceReviews.customerId))
-      .where(inArray(serviceReviews.vendorId, vendorIds));
-  } catch {
-    // Optional / empty
-  }
+    const { vendorRows, ticketRows, serviceReviewRows } = await domainRequest<{
+      vendorRows: ApiOperations["lib.services.providers-query.001"];
+      ticketRows: ApiOperations["lib.services.providers-query.002"];
+      serviceReviewRows: ApiOperations["lib.services.providers-query.003"];
+    }>(`/servicos/prestadores?condoId=${condoId}`);
+    if (!vendorRows.length) return [];
 
   const byVendor = new Map<number, typeof ticketRows>();
   for (const t of ticketRows) {

@@ -1,23 +1,10 @@
 "use server";
+import type { DomainModels } from "@/lib/api/models";
+
+import { apiOperation } from "@/lib/api/server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray, sql } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  announcements,
-  blocks,
-  documents,
-  importJobs,
-  memberships,
-  pollOptions,
-  pollVotes,
-  polls,
-  reservations,
-  ticketComments,
-  tickets,
-  units,
-  users,
-} from "@/db/schema";
+
 import { requireCondo, requireRole, hashPassword } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
@@ -25,7 +12,7 @@ import { bool, maybeDate, num, sequence, str } from "@/lib/utils";
 import { assistNote, suggestCategory, suggestPriority, summarize } from "@/lib/ai";
 
 async function condoResidentIds(condoId: number) {
-  const rows = await db.select({ userId: memberships.userId }).from(memberships).where(eq(memberships.condoId, condoId));
+  const rows = await apiOperation("lib.actions.gestao.001", [condoId]);
   return rows.map((r) => r.userId);
 }
 
@@ -35,9 +22,7 @@ export async function createAnnouncementAction(formData: FormData) {
   const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
   const title = str(formData, "title");
   if (!title) return;
-  const [row] = await db
-    .insert(announcements)
-    .values({
+  const [row] = await apiOperation("lib.actions.gestao.002", [{
       condoId,
       title,
       body: str(formData, "body"),
@@ -50,8 +35,7 @@ export async function createAnnouncementAction(formData: FormData) {
       authorId: session.user.id,
       publishedAt: new Date(),
       expiresAt: maybeDate(formData, "expiresAt"),
-    })
-    .returning();
+    }]);
   await notify(condoId, await condoResidentIds(condoId), `Novo comunicado: ${title}`, summarize(str(formData, "body"), 140), "/painel/comunicados");
   await logAudit({ session, condoId, action: "publicar", entity: "comunicado", entityId: row.id, summary: `Publicou "${title}"`, after: { title } });
   revalidatePath("/painel/comunicados");
@@ -60,9 +44,9 @@ export async function createAnnouncementAction(formData: FormData) {
 export async function deleteAnnouncementAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
   const id = num(formData, "id");
-  const [row] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  const [row] = await apiOperation("lib.actions.gestao.003", [id]);
   if (!row || row.condoId !== condoId) return;
-  await db.delete(announcements).where(eq(announcements.id, id));
+  await apiOperation("lib.actions.gestao.004", [id]);
   await logAudit({ session, condoId, action: "excluir", entity: "comunicado", entityId: id, summary: `Removeu "${row.title}"`, before: { title: row.title }, critical: true });
   revalidatePath("/painel/comunicados");
 }
@@ -74,12 +58,10 @@ export async function createTicketAction(formData: FormData) {
   const title = str(formData, "title");
   const description = str(formData, "description");
   if (!title || !description) return;
-  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(tickets).where(eq(tickets.condoId, condoId));
+  const [row] = await apiOperation("lib.actions.gestao.005", [condoId]);
   const priority = suggestPriority(`${title} ${description}`);
   const category = str(formData, "category") || suggestCategory(`${title} ${description}`);
-  const [ticket] = await db
-    .insert(tickets)
-    .values({
+  const [ticket] = await apiOperation("lib.actions.gestao.006", [{
       condoId,
       code: sequence("CH", Number(row?.n ?? 0) + 1),
       unitId: session.role === "morador" ? session.unitId : num(formData, "unitId") || null,
@@ -91,8 +73,7 @@ export async function createTicketAction(formData: FormData) {
       aiSummary: assistNote(priority, category),
       openedById: session.user.id,
       dueAt: new Date(Date.now() + (priority === "alta" ? 1 : priority === "media" ? 3 : 7) * 86400000),
-    })
-    .returning();
+    }]);
   await logAudit({ session, condoId, action: "criar", entity: "chamado", entityId: ticket.id, summary: `Abriu ${ticket.code}: ${title}` });
   revalidatePath("/painel/chamados");
 }
@@ -100,16 +81,16 @@ export async function createTicketAction(formData: FormData) {
 export async function updateTicketAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
-  const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id)).limit(1);
+  const [ticket] = await apiOperation("lib.actions.gestao.007", [id]);
   if (!ticket || ticket.condoId !== condoId) return;
   const status = str(formData, "status", ticket.status);
-  const values: Partial<typeof tickets.$inferInsert> = {
+  const values: Partial<Partial<DomainModels["tickets"]>> = {
     status,
     priority: str(formData, "priority", ticket.priority),
     assignedToId: num(formData, "assignedToId") || ticket.assignedToId,
     closedAt: status === "concluido" ? new Date() : null,
   };
-  await db.update(tickets).set(values).where(eq(tickets.id, id));
+  await apiOperation("lib.actions.gestao.008", [values, id]);
   if (ticket.openedById) {
     await notify(condoId, [ticket.openedById], `Chamado ${ticket.code} atualizado`, `Status: ${status}`, "/painel/chamados");
   }
@@ -125,7 +106,7 @@ export async function commentTicketAction(formData: FormData) {
   const ticketId = num(formData, "ticketId");
   const body = str(formData, "body");
   if (!ticketId || !body) return;
-  await db.insert(ticketComments).values({ ticketId, userId: session.user.id, body, internal: bool(formData, "internal") });
+  await apiOperation("lib.actions.gestao.009", [{ ticketId, userId: session.user.id, body, internal: bool(formData, "internal") }]);
   await logAudit({ session, condoId, action: "comentar", entity: "chamado", entityId: ticketId, summary: summarize(body, 120) });
   revalidatePath("/painel/chamados");
 }
@@ -133,10 +114,7 @@ export async function commentTicketAction(formData: FormData) {
 export async function rateTicketAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
-  await db
-    .update(tickets)
-    .set({ rating: num(formData, "rating", 5), ratingComment: str(formData, "ratingComment") || null })
-    .where(and(eq(tickets.id, id), eq(tickets.condoId, condoId)));
+  await apiOperation("lib.actions.gestao.010", [{ rating: num(formData, "rating", 5), ratingComment: str(formData, "ratingComment") || null }, id, condoId]);
   await logAudit({ session, condoId, action: "avaliar", entity: "chamado", entityId: id, summary: `Pesquisa de satisfação: ${num(formData, "rating", 5)}/5` });
   revalidatePath("/painel/chamados");
 }
@@ -151,24 +129,10 @@ export async function createReservationAction(formData: FormData) {
   const start = str(formData, "startTime", "10:00");
   const end = str(formData, "endTime", "12:00");
 
-  const clash = await db
-    .select({ id: reservations.id })
-    .from(reservations)
-    .where(
-      and(
-        eq(reservations.condoId, condoId),
-        eq(reservations.amenityId, amenityId),
-        eq(reservations.date, date),
-        inArray(reservations.status, ["pendente", "aprovada"]),
-        sql`${reservations.startTime} < ${end} and ${reservations.endTime} > ${start}`,
-      ),
-    )
-    .limit(1);
+  const clash = await apiOperation("lib.actions.gestao.011", [condoId, amenityId, date, ["pendente", "aprovada"], end, start]);
   if (clash.length > 0) return;
 
-  const [row] = await db
-    .insert(reservations)
-    .values({
+  const [row] = await apiOperation("lib.actions.gestao.012", [{
       condoId,
       amenityId,
       unitId: session.role === "morador" ? session.unitId : num(formData, "unitId") || session.unitId,
@@ -180,8 +144,7 @@ export async function createReservationAction(formData: FormData) {
       notes: str(formData, "notes") || null,
       status: ["sindico", "superadmin"].includes(session.role) ? "aprovada" : "pendente",
       qrToken: Math.random().toString(36).slice(2, 10).toUpperCase(),
-    })
-    .returning();
+    }]);
   await logAudit({ session, condoId, action: "criar", entity: "reserva", entityId: row.id, summary: `Reserva em ${date} ${start}-${end}` });
   revalidatePath("/painel/reservas");
 }
@@ -190,9 +153,9 @@ export async function decideReservationAction(formData: FormData) {
   const { session, condoId } = await requireRole([...ALL_STAFF]);
   const id = num(formData, "id");
   const status = str(formData, "status", "aprovada");
-  const [row] = await db.select().from(reservations).where(eq(reservations.id, id)).limit(1);
+  const [row] = await apiOperation("lib.actions.gestao.013", [id]);
   if (!row || row.condoId !== condoId) return;
-  await db.update(reservations).set({ status }).where(eq(reservations.id, id));
+  await apiOperation("lib.actions.gestao.014", [{ status }, id]);
   if (row.userId) await notify(condoId, [row.userId], `Reserva ${status}`, `Sua reserva de ${row.date} foi ${status}.`, "/painel/reservas");
   await logAudit({ session, condoId, action: "decidir", entity: "reserva", entityId: id, summary: `Reserva ${status}`, before: { status: row.status }, after: { status } });
   revalidatePath("/painel/reservas");
@@ -204,9 +167,7 @@ export async function createDocumentAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const title = str(formData, "title");
   if (!title) return;
-  const [row] = await db
-    .insert(documents)
-    .values({
+  const [row] = await apiOperation("lib.actions.gestao.015", [{
       condoId,
       title,
       category: str(formData, "category", "geral"),
@@ -217,8 +178,7 @@ export async function createDocumentAction(formData: FormData) {
       visibility: str(formData, "visibility", "moradores"),
       version: str(formData, "version", "1.0"),
       uploadedById: session.user.id,
-    })
-    .returning();
+    }]);
   await logAudit({ session, condoId, action: "criar", entity: "documento", entityId: row.id, summary: `Publicou documento ${title}` });
   revalidatePath("/painel/documentos");
 }
@@ -229,22 +189,19 @@ export async function createPollAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const question = str(formData, "question");
   if (!question) return;
-  const [poll] = await db
-    .insert(polls)
-    .values({
+  const [poll] = await apiOperation("lib.actions.gestao.016", [{
       condoId,
       question,
       description: str(formData, "description") || null,
       endsAt: maybeDate(formData, "endsAt"),
       createdById: session.user.id,
-    })
-    .returning();
+    }]);
   const options = str(formData, "options")
     .split("\n")
     .map((o) => o.trim())
     .filter(Boolean);
   if (options.length > 0) {
-    await db.insert(pollOptions).values(options.map((label) => ({ pollId: poll.id, label })));
+    await apiOperation("lib.actions.gestao.017", [options.map((label) => ({ pollId: poll.id, label }))]);
   }
   await notify(condoId, await condoResidentIds(condoId), "Nova enquete disponível", question, "/painel/enquetes");
   await logAudit({ session, condoId, action: "criar", entity: "enquete", entityId: poll.id, summary: question });
@@ -256,13 +213,9 @@ export async function votePollAction(formData: FormData) {
   const pollId = num(formData, "pollId");
   const optionId = num(formData, "optionId");
   if (!pollId || !optionId) return;
-  const existing = await db
-    .select({ id: pollVotes.id })
-    .from(pollVotes)
-    .where(and(eq(pollVotes.pollId, pollId), eq(pollVotes.userId, session.user.id)))
-    .limit(1);
+  const existing = await apiOperation("lib.actions.gestao.018", [pollId, session.user.id]);
   if (existing.length > 0) return;
-  await db.insert(pollVotes).values({ pollId, optionId, userId: session.user.id, unitId: session.unitId });
+  await apiOperation("lib.actions.gestao.019", [{ pollId, optionId, userId: session.user.id, unitId: session.unitId }]);
   await logAudit({ session, condoId, action: "votar", entity: "enquete", entityId: pollId, summary: "Registrou voto" });
   revalidatePath("/painel/enquetes");
 }
@@ -270,7 +223,7 @@ export async function votePollAction(formData: FormData) {
 export async function closePollAction(formData: FormData) {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const id = num(formData, "id");
-  await db.update(polls).set({ status: "encerrada" }).where(and(eq(polls.id, id), eq(polls.condoId, condoId)));
+  await apiOperation("lib.actions.gestao.020", [{ status: "encerrada" }, id, condoId]);
   await logAudit({ session, condoId, action: "encerrar", entity: "enquete", entityId: id, summary: "Encerrou enquete" });
   revalidatePath("/painel/enquetes");
 }
@@ -281,7 +234,7 @@ export async function saveBlockAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
   const name = str(formData, "name");
   if (!name) return;
-  await db.insert(blocks).values({ condoId, name, floors: num(formData, "floors", 1) });
+  await apiOperation("lib.actions.gestao.021", [{ condoId, name, floors: num(formData, "floors", 1) }]);
   await logAudit({ session, condoId, action: "criar", entity: "bloco", summary: `Criou bloco ${name}` });
   revalidatePath("/painel/moradores");
 }
@@ -290,7 +243,7 @@ export async function saveUnitAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
   const number = str(formData, "number");
   if (!number) return;
-  await db.insert(units).values({
+  await apiOperation("lib.actions.gestao.022", [{
     condoId,
     blockId: num(formData, "blockId") || null,
     number,
@@ -298,7 +251,7 @@ export async function saveUnitAction(formData: FormData) {
     fraction: str(formData, "fraction", "1.00"),
     kind: str(formData, "kind", "apartamento"),
     parkingSpots: num(formData, "parkingSpots", 1),
-  });
+  }]);
   await logAudit({ session, condoId, action: "criar", entity: "unidade", summary: `Criou unidade ${number}` });
   revalidatePath("/painel/moradores");
 }
@@ -308,20 +261,13 @@ export async function inviteResidentAction(formData: FormData) {
   const email = str(formData, "email").toLowerCase();
   const name = str(formData, "name");
   if (!email || !name) return;
-  let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  let [user] = await apiOperation("lib.actions.gestao.023", [email]);
   if (!user) {
-    [user] = await db
-      .insert(users)
-      .values({ name, email, passwordHash: hashPassword("demo1234"), phone: str(formData, "phone") || null, status: "convidado" })
-      .returning();
+    [user] = await apiOperation("lib.actions.gestao.024", [{ name, email, passwordHash: hashPassword("demo1234"), phone: str(formData, "phone") || null, status: "convidado" }]);
   }
-  const existing = await db
-    .select({ id: memberships.id })
-    .from(memberships)
-    .where(and(eq(memberships.userId, user.id), eq(memberships.condoId, condoId)))
-    .limit(1);
+  const existing = await apiOperation("lib.actions.gestao.025", [user.id, condoId]);
   if (existing.length === 0) {
-    await db.insert(memberships).values({
+    await apiOperation("lib.actions.gestao.026", [{
       userId: user.id,
       condoId,
       role: str(formData, "role", "morador"),
@@ -329,7 +275,7 @@ export async function inviteResidentAction(formData: FormData) {
       relation: str(formData, "relation", "proprietario"),
       status: "convidado",
       invitedAt: new Date(),
-    });
+    }]);
   }
   await logAudit({ session, condoId, action: "convidar", entity: "morador", entityId: user.id, summary: `Convidou ${name} (${email})` });
   revalidatePath("/painel/moradores");
@@ -342,12 +288,12 @@ export async function bulkMembershipAction(formData: FormData) {
   if (ids.length === 0) return;
 
   if (operation === "reenviar") {
-    await db.update(memberships).set({ invitedAt: new Date() }).where(and(eq(memberships.condoId, condoId), inArray(memberships.userId, ids)));
+    await apiOperation("lib.actions.gestao.027", [{ invitedAt: new Date() }, condoId, ids]);
     await notify(condoId, ids, "Convite reenviado", "Acesse o sistema e defina sua senha para concluir o cadastro.", "/login");
   } else if (operation === "ativar" || operation === "desativar") {
     const status = operation === "ativar" ? "ativo" : "inativo";
-    await db.update(memberships).set({ status }).where(and(eq(memberships.condoId, condoId), inArray(memberships.userId, ids)));
-    await db.update(users).set({ status: operation === "ativar" ? "ativo" : "bloqueado" }).where(inArray(users.id, ids));
+    await apiOperation("lib.actions.gestao.028", [{ status }, condoId, ids]);
+    await apiOperation("lib.actions.gestao.029", [{ status: operation === "ativar" ? "ativo" : "bloqueado" }, ids]);
   }
   await logAudit({
     session, condoId, action: `massa_${operation}`, entity: "morador",
@@ -364,8 +310,8 @@ export async function importResidentsAction(formData: FormData) {
   const errors: string[] = [];
   let ok = 0;
 
-  const blockList = await db.select().from(blocks).where(eq(blocks.condoId, condoId));
-  const unitList = await db.select().from(units).where(eq(units.condoId, condoId));
+  const blockList = await apiOperation("lib.actions.gestao.030", [condoId]);
+  const unitList = await apiOperation("lib.actions.gestao.031", [condoId]);
 
   for (const [index, line] of lines.entries()) {
     if (index === 0 && /bloco/i.test(line)) continue;
@@ -384,25 +330,18 @@ export async function importResidentsAction(formData: FormData) {
       errors.push(`Linha ${index + 1}: unidade ${blockName} ${unitNumber} não encontrada`);
       continue;
     }
-    let [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
+    let [user] = await apiOperation("lib.actions.gestao.032", [email.toLowerCase()]);
     if (!user) {
-      [user] = await db
-        .insert(users)
-        .values({ name, email: email.toLowerCase(), passwordHash: hashPassword("demo1234"), phone: phone || null, status: "convidado" })
-        .returning();
+      [user] = await apiOperation("lib.actions.gestao.033", [{ name, email: email.toLowerCase(), passwordHash: hashPassword("demo1234"), phone: phone || null, status: "convidado" }]);
     }
-    const exists = await db
-      .select({ id: memberships.id })
-      .from(memberships)
-      .where(and(eq(memberships.userId, user.id), eq(memberships.condoId, condoId)))
-      .limit(1);
+    const exists = await apiOperation("lib.actions.gestao.034", [user.id, condoId]);
     if (exists.length === 0) {
-      await db.insert(memberships).values({ userId: user.id, condoId, role: "morador", unitId: unit?.id ?? null, status: "convidado", invitedAt: new Date() });
+      await apiOperation("lib.actions.gestao.035", [{ userId: user.id, condoId, role: "morador", unitId: unit?.id ?? null, status: "convidado", invitedAt: new Date() }]);
     }
     ok += 1;
   }
 
-  await db.insert(importJobs).values({
+  await apiOperation("lib.actions.gestao.036", [{
     condoId,
     kind: "moradores",
     fileName: str(formData, "fileName", "importacao-manual.csv"),
@@ -411,7 +350,7 @@ export async function importResidentsAction(formData: FormData) {
     failed: errors.length,
     errors,
     createdById: session.user.id,
-  });
+  }]);
   await logAudit({
     session, condoId, action: "importar", entity: "morador",
     summary: `Importou ${ok} morador(es), ${errors.length} erro(s)`, critical: true, after: { ok, errors: errors.length },

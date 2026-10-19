@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": [
+                "/run/media/weelldecode/Novo volume/Projetos/zeladoria-condominio/backend/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}

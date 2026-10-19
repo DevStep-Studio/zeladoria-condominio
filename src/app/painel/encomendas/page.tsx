@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { and, desc, eq, lt } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, parcels, units, users } from "@/db/schema";
+
 import { requireCondo } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, TableWrap } from "@/components/ui";
@@ -19,34 +18,11 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
   const currentStatus = status ?? "todas";
   const isGate = GATE.includes(session.role);
   const isResident = session.role === "morador";
-  const scope = isResident && session.unitId ? eq(parcels.unitId, session.unitId) : undefined;
 
-  const rows = await db
-    .select({
-      id: parcels.id,
-      code: parcels.code,
-      kind: parcels.kind,
-      carrier: parcels.carrier,
-      tracking: parcels.trackingCode,
-      description: parcels.description,
-      shelf: parcels.shelf,
-      status: parcels.status,
-      pickupCode: parcels.pickupCode,
-      receivedAt: parcels.receivedAt,
-      pickedUpAt: parcels.pickedUpAt,
-      pickedUpBy: parcels.pickedUpBy,
-      signature: parcels.signature,
-      unit: units.number,
-      block: blocks.name,
-      receiver: users.name,
-    })
-    .from(parcels)
-    .leftJoin(units, eq(units.id, parcels.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(users, eq(users.id, parcels.receivedById))
-    .where(and(eq(parcels.condoId, condoId), scope))
-    .orderBy(desc(parcels.receivedAt))
-    .limit(80);
+  const { rows, stale } = await domainRequest<{
+    rows: any[];
+    stale: { id: number };
+  }>("/painel/encomendas", { query: { condoId, role: session.role } });
 
   const pending = rows.filter((r) => r.status === "pendente");
   const staleBefore = new Date();
@@ -55,11 +31,7 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
   const late = pendingWithStatus.filter((r) => r.isLate);
   const delivered = rows.filter((r) => r.status === "entregue");
 
-  const [{ id: staleId } = { id: 0 }] = await db
-    .select({ id: parcels.id })
-    .from(parcels)
-    .where(and(eq(parcels.condoId, condoId), eq(parcels.status, "pendente"), lt(parcels.receivedAt, staleBefore)))
-    .limit(1);
+  const staleId = stale?.id ?? 0;
 
   // Filtragem dos itens exibidos
   let displayItems = pendingWithStatus;

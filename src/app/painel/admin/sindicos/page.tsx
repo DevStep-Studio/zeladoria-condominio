@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users, memberships, condominiums } from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
@@ -16,22 +15,7 @@ export const metadata = {
 export default async function AdminSindicosPage() {
   await requireSession();
 
-  const sindicosList = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      phone: users.phone,
-      condoName: condominiums.name,
-      condoSlug: condominiums.slug,
-      status: memberships.status,
-      assignedAt: memberships.createdAt,
-    })
-    .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.userId))
-    .innerJoin(condominiums, eq(condominiums.id, memberships.condoId))
-    .where(eq(memberships.role, "sindico"))
-    .orderBy(desc(memberships.createdAt));
+  const sindicosList = await domainRequest<any[]>("/painel/admin/sindicos");
 
   return (
     <div className="space-y-5">

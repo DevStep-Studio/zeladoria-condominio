@@ -1,6 +1,5 @@
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { shifts, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader } from "@/components/ui";
@@ -21,30 +20,10 @@ const CHECKLIST = [
 export default async function TurnosPage() {
   const { session, condoId } = await requireRole(GATE);
 
-  const rows = await db
-    .select({
-      id: shifts.id,
-      period: shifts.period,
-      status: shifts.status,
-      startedAt: shifts.startedAt,
-      endedAt: shifts.endedAt,
-      handoverNotes: shifts.handoverNotes,
-      pendingItems: shifts.pendingItems,
-      checklist: shifts.checklist,
-      userName: users.name,
-    })
-    .from(shifts)
-    .innerJoin(users, eq(users.id, shifts.userId))
-    .where(eq(shifts.condoId, condoId))
-    .orderBy(desc(shifts.startedAt))
-    .limit(20);
-
-  const [openShift] = await db
-    .select()
-    .from(shifts)
-    .where(and(eq(shifts.condoId, condoId), eq(shifts.status, "aberto")))
-    .orderBy(desc(shifts.startedAt))
-    .limit(1);
+  const { rows, openShift } = await domainRequest<{
+    rows: any[];
+    openShift: any;
+  }>("/painel/turnos", { query: { condoId, role: session.role } });
 
   const staff = await peopleOptions(condoId, ["porteiro", "zelador", "sindico"]);
 

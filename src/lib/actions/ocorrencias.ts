@@ -1,16 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { occurrences, occurrenceComments, memberships } from "@/db/schema";
-import { requireCondo, requireRole } from "@/lib/auth";
-import { logAudit, notify } from "@/lib/audit";
-import { ALL_STAFF } from "@/lib/rbac";
-import { num, sequence, str } from "@/lib/utils";
+import { domainAction } from "@/lib/api/domain";
+import { num, str } from "@/lib/utils";
 
 export async function createOccurrenceAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
   const title = str(formData, "title");
   const description = str(formData, "description");
   if (!title || !description) {
@@ -21,9 +15,8 @@ export async function createOccurrenceAction(formData: FormData) {
   const severity = str(formData, "severity", "media");
   const visibility = str(formData, "visibility", "publica");
   const exactLocation = str(formData, "exactLocation");
-  const unitId = session.role === "morador" ? session.unitId : num(formData, "unitId") || session.unitId || null;
+  const unitId = num(formData, "unitId") || null;
 
-  // Fotos anexadas (data URLs ou links), enviadas pelo formulário como JSON.
   let attachments: string[] = [];
   const rawAttachments = str(formData, "attachments");
   if (rawAttachments) {
@@ -40,13 +33,6 @@ export async function createOccurrenceAction(formData: FormData) {
     }
   }
 
-  const [countRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(occurrences)
-    .where(eq(occurrences.condoId, condoId));
-
-  const code = sequence("OC", Number(countRow?.n ?? 0) + 101);
-
   const rawLat = str(formData, "latitude");
   const rawLng = str(formData, "longitude");
   const parsedLat = rawLat ? parseFloat(rawLat) : null;
@@ -54,310 +40,104 @@ export async function createOccurrenceAction(formData: FormData) {
   const latitude = parsedLat !== null && !isNaN(parsedLat) ? parsedLat : null;
   const longitude = parsedLng !== null && !isNaN(parsedLng) ? parsedLng : null;
 
-  const [occ] = await db
-    .insert(occurrences)
-    .values({
-      condoId,
-      code,
-      title,
-      description,
-      category,
-      severity,
-      visibility,
-      exactLocation,
-      latitude,
-      longitude,
-      unitId,
-      attachments,
-      status: "recebida",
-      reportedById: session.user.id,
-      occurredAt: new Date(),
-    })
-    .returning();
-
-  // Notify sindicos
-  const sindicos = await db
-    .select({ userId: memberships.userId })
-    .from(memberships)
-    .where(and(eq(memberships.condoId, condoId), eq(memberships.role, "sindico")));
-
-  await notify(
-    condoId,
-    sindicos.map((s) => s.userId),
-    `Nova ocorrência registrada: ${occ.code}`,
-    `${title} [${severity.toUpperCase()}] - Registrada por ${session.user.name}`,
-    `/painel/ocorrencias`,
-  );
-
-  await logAudit({
-    session,
-    condoId,
-    action: "criar",
-    entity: "ocorrencia",
-    entityId: occ.id,
-    summary: `Registrou ocorrência ${occ.code}: ${title} (${visibility})`,
+  const result = await domainAction<{ success: boolean; error?: string; code?: string; id?: number }>("/ocorrencias", "POST", {
+    title,
+    description,
+    category,
+    severity,
+    visibility,
+    exactLocation,
+    unitId,
+    latitude,
+    longitude,
+    attachments,
   });
 
-  revalidatePath("/painel/ocorrencias");
-  revalidatePath("/painel");
-  return { success: true, code: occ.code, id: occ.id };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
+    revalidatePath("/painel");
+  }
+  return result;
 }
 
 export async function updateOccurrenceStatusAction(formData: FormData) {
-  const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
   const id = num(formData, "id");
   if (!id) return { success: false, error: "ID inválido." };
 
-  const [existing] = await db
-    .select()
-    .from(occurrences)
-    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
-    .limit(1);
-
-  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
-
-  const status = str(formData, "status", existing.status);
-  const actionsTaken = str(formData, "actionsTaken") || existing.actionsTaken;
-  const assignedToId = num(formData, "assignedToId") || existing.assignedToId;
-  const comment = str(formData, "comment");
-
-  const isResolved = status === "resolvida";
-
-  await db
-    .update(occurrences)
-    .set({
-      status,
-      actionsTaken,
-      assignedToId: assignedToId || null,
-      resolvedAt: isResolved ? new Date() : existing.resolvedAt,
-      ackById: session.user.id,
-      ackAt: new Date(),
-    })
-    .where(eq(occurrences.id, id));
-
-  if (comment) {
-    await db.insert(occurrenceComments).values({
-      occurrenceId: id,
-      userId: session.user.id,
-      body: comment,
-      internal: false,
-    });
-  }
-
-  if (existing.reportedById) {
-    await notify(
-      condoId,
-      [existing.reportedById],
-      `Atualização na ocorrência ${existing.code}`,
-      `O status foi alterado para: ${status.replace("_", " ").toUpperCase()}`,
-      "/painel/ocorrencias",
-    );
-  }
-
-  await logAudit({
-    session,
-    condoId,
-    action: "atualizar",
-    entity: "ocorrencia",
-    entityId: id,
-    summary: `Atualizou status da ocorrência ${existing.code} para ${status}`,
+  const result = await domainAction<{ success: boolean; error?: string }>(`/ocorrencias/${id}/status`, "PATCH", {
+    status: str(formData, "status") || undefined,
+    actionsTaken: str(formData, "actionsTaken") || undefined,
+    assignedToId: num(formData, "assignedToId") || undefined,
+    comment: str(formData, "comment") || undefined,
   });
 
-  revalidatePath("/painel/ocorrencias");
-  revalidatePath("/painel");
-  return { success: true };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
+    revalidatePath("/painel");
+  }
+  return result;
 }
 
 export async function addOccurrenceCommentAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
   const occurrenceId = num(formData, "occurrenceId");
   const body = str(formData, "body");
 
   if (!occurrenceId || !body) return { success: false, error: "Comentário inválido." };
 
-  const [existing] = await db
-    .select()
-    .from(occurrences)
-    .where(and(eq(occurrences.id, occurrenceId), eq(occurrences.condoId, condoId)))
-    .limit(1);
+  const result = await domainAction<{ success: boolean; error?: string }>(`/ocorrencias/${occurrenceId}/comentarios`, "POST", { body });
 
-  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
-
-  await db.insert(occurrenceComments).values({
-    occurrenceId,
-    userId: session.user.id,
-    body,
-    internal: false,
-  });
-
-  revalidatePath("/painel/ocorrencias");
-  return { success: true };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
+  }
+  return result;
 }
 
 export async function rateOccurrenceAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
   const rating = num(formData, "rating");
   const comment = str(formData, "residentComment");
 
   if (!id || !rating) return { success: false, error: "Avaliação inválida." };
 
-  const [existing] = await db
-    .select()
-    .from(occurrences)
-    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
-    .limit(1);
-
-  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
-
-  await db
-    .update(occurrences)
-    .set({
-      residentRating: rating,
-      residentComment: comment,
-    })
-    .where(eq(occurrences.id, id));
-
-  await logAudit({
-    session,
-    condoId,
-    action: "avaliar",
-    entity: "ocorrencia",
-    entityId: id,
-    summary: `Avaliou resolução da ocorrência ${existing.code} com nota ${rating}/5`,
+  const result = await domainAction<{ success: boolean; error?: string }>(`/ocorrencias/${id}/avaliacao`, "POST", {
+    rating,
+    residentComment: comment,
   });
 
-  revalidatePath("/painel/ocorrencias");
-  return { success: true };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
+  }
+  return result;
 }
 
 export async function reopenOccurrenceAction(formData: FormData) {
-  const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
   const reason = str(formData, "reason") || "Morador indicou que o problema ainda persiste.";
 
   if (!id) return { success: false, error: "ID inválido." };
 
-  const [existing] = await db
-    .select()
-    .from(occurrences)
-    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
-    .limit(1);
+  const result = await domainAction<{ success: boolean; error?: string }>(`/ocorrencias/${id}/reabrir`, "POST", { reason });
 
-  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
-
-  const isReporter = existing.reportedById === session.user.id;
-  const isStaff = ALL_STAFF.includes(session.role as any);
-  if (!isReporter && !isStaff) {
-    return { success: false, error: "Não autorizado a reabrir esta ocorrência." };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
   }
-
-  await db
-    .update(occurrences)
-    .set({
-      status: "em_analise",
-      resolvedAt: null,
-    })
-    .where(eq(occurrences.id, id));
-
-  await db.insert(occurrenceComments).values({
-    occurrenceId: id,
-    userId: session.user.id,
-    body: `⚠️ [Ocorrência Reaberta]: ${reason}`,
-    internal: false,
-  });
-
-  const sindicos = await db
-    .select({ userId: memberships.userId })
-    .from(memberships)
-    .where(and(eq(memberships.condoId, condoId), eq(memberships.role, "sindico")));
-
-  if (sindicos.length > 0) {
-    await notify(
-      condoId,
-      sindicos.map((s) => s.userId),
-      `Ocorrência reaberta: ${existing.code}`,
-      `${session.user.name} reabriu a ocorrência: "${reason}"`,
-      `/painel/ocorrencias?highlight=${existing.code}`,
-    );
-  }
-
-  await logAudit({
-    session,
-    condoId,
-    action: "atualizar",
-    entity: "ocorrencia",
-    entityId: id,
-    summary: `Reabriu ocorrência ${existing.code}: ${reason}`,
-  });
-
-  revalidatePath("/painel/ocorrencias");
-  return { success: true };
+  return result;
 }
 
 export async function updateOccurrenceDetailsAction(formData: FormData) {
-  const { session, condoId } = await requireRole([...ALL_STAFF, "porteiro"]);
   const id = num(formData, "id");
   if (!id) return { success: false, error: "ID inválido." };
 
-  const [existing] = await db
-    .select()
-    .from(occurrences)
-    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)))
-    .limit(1);
-
-  if (!existing) return { success: false, error: "Ocorrência não encontrada." };
-
-  const status = str(formData, "status", existing.status);
-  const severity = str(formData, "severity", existing.severity);
-  const rawAssigned = str(formData, "assignedToId");
-  const assignedToId = rawAssigned === "none" ? null : (num(formData, "assignedToId") || existing.assignedToId);
-  const actionsTaken = str(formData, "actionsTaken") || existing.actionsTaken;
-  const comment = str(formData, "comment");
-
-  const isResolved = status === "resolvida";
-
-  await db
-    .update(occurrences)
-    .set({
-      status,
-      severity,
-      assignedToId: assignedToId || null,
-      actionsTaken,
-      resolvedAt: isResolved ? (existing.resolvedAt || new Date()) : null,
-      ackById: session.user.id,
-      ackAt: existing.ackAt || new Date(),
-    })
-    .where(eq(occurrences.id, id));
-
-  if (comment) {
-    await db.insert(occurrenceComments).values({
-      occurrenceId: id,
-      userId: session.user.id,
-      body: comment,
-      internal: false,
-    });
-  }
-
-  if (existing.reportedById && status !== existing.status) {
-    await notify(
-      condoId,
-      [existing.reportedById],
-      `Atualização na ocorrência ${existing.code}`,
-      `O status foi alterado para: ${status.replace("_", " ").toUpperCase()}`,
-      `/painel/ocorrencias?highlight=${existing.code}`,
-    );
-  }
-
-  await logAudit({
-    session,
-    condoId,
-    action: "atualizar",
-    entity: "ocorrencia",
-    entityId: id,
-    summary: `Atualizou ocorrência ${existing.code} (Status: ${status}, Severidade: ${severity})`,
+  const result = await domainAction<{ success: boolean; error?: string }>(`/ocorrencias/${id}`, "PATCH", {
+    status: str(formData, "status") || undefined,
+    severity: str(formData, "severity") || undefined,
+    assignedToId: str(formData, "assignedToId") || undefined,
+    actionsTaken: str(formData, "actionsTaken") || undefined,
+    comment: str(formData, "comment") || undefined,
   });
 
-  revalidatePath("/painel/ocorrencias");
-  return { success: true };
+  if (result.success) {
+    revalidatePath("/painel/ocorrencias");
+  }
+  return result;
 }

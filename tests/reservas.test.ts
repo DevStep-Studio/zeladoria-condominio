@@ -1,9 +1,8 @@
-import { describe, it } from "node:test";
+import { testSessionCookie } from "./session-helper";
+import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { db } from "../src/db";
-import { amenities, reservations, amenityBlocks } from "../src/db/schema";
-import { and, eq } from "drizzle-orm";
+
 import {
   createReservationAction,
   approveReservationAction,
@@ -30,13 +29,13 @@ function generateSessionCookie(userId: number, maxAgeSeconds = 60 * 60 * 24 * 30
 }
 
 describe("Módulo de Reservas — Testes Funcionais & E2E", () => {
-  const sessionCookieMoradorA = generateSessionCookie(7); // Ana Ribeiro (Moradora)
-  const sessionCookieMoradorB = generateSessionCookie(8); // Bruno Tavares (Morador)
-  const sessionCookieSindico = generateSessionCookie(2); // Marina Duarte (Síndica)
   const condoId = 1;
-
-  const authHeaderMoradorA = `${SESSION_COOKIE}=${sessionCookieMoradorA}; ${CONDO_COOKIE}=${condoId}`;
-  const authHeaderSindico = `${SESSION_COOKIE}=${sessionCookieSindico}; ${CONDO_COOKIE}=${condoId}`;
+  let authHeaderMoradorA: string;
+  let authHeaderSindico: string;
+  before(async () => {
+    authHeaderMoradorA = `${SESSION_COOKIE}=${await testSessionCookie(7)}; ${CONDO_COOKIE}=${condoId}`;
+    authHeaderSindico = `${SESSION_COOKIE}=${await testSessionCookie(2)}; ${CONDO_COOKIE}=${condoId}`;
+  });
 
   it("1. Morador: GET /painel/reservas deve renderizar com status 200 OK", async () => {
     const res = await fetch(`${BASE_URL}/painel/reservas`, {

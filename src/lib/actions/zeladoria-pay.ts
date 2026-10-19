@@ -1,15 +1,9 @@
 "use server";
+import { domainAction, domainRequest } from "@/lib/api/domain";
+import type { DomainModels } from "@/lib/api/models";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  marketplaceSettings,
-  paymentOrders,
-  paymentRecipients,
-  serviceInspections,
-  serviceRequests,
-} from "@/db/schema";
+
 import { requireCondo, requireProvider, requireRole, requireSession } from "@/lib/auth";
 import {
   adminResolveDispute,
@@ -277,7 +271,7 @@ export async function simulateWebhookPaymentAction(orderCode: string) {
       };
     }
 
-    const [order] = await db.select().from(paymentOrders).where(eq(paymentOrders.code, orderCode)).limit(1);
+    const order = await domainRequest<DomainModels["paymentOrders"]>(`/zeladoria-pay/ordens/${encodeURIComponent(orderCode)}`);
     if (!order) return { success: false, error: "Ordem de pagamento não encontrada." };
 
     const fakePayload = {
@@ -315,36 +309,8 @@ export async function adminUpdateMarketplaceSettingsAction(payload: {
   autoReleaseHours?: number;
 }) {
   try {
-    const { session, condoId } = await requireRole(["sindico", "superadmin"]);
-
-    const [existing] = await db
-      .select()
-      .from(marketplaceSettings)
-      .where(eq(marketplaceSettings.condoId, condoId))
-      .limit(1);
-
-    if (existing) {
-      await db
-        .update(marketplaceSettings)
-        .set({
-          commissionPercent: payload.commissionPercent,
-          ...(payload.slotHoldMinutes !== undefined && { slotHoldMinutes: payload.slotHoldMinutes }),
-          ...(payload.inspectionFeeMaxCents !== undefined && { inspectionFeeMaxCents: payload.inspectionFeeMaxCents }),
-          ...(payload.disputeWindowHours !== undefined && { disputeWindowHours: payload.disputeWindowHours }),
-          ...(payload.autoReleaseHours !== undefined && { autoReleaseHours: payload.autoReleaseHours }),
-          updatedAt: new Date(),
-        })
-        .where(eq(marketplaceSettings.id, existing.id));
-    } else {
-      await db.insert(marketplaceSettings).values({
-        condoId,
-        commissionPercent: payload.commissionPercent,
-        slotHoldMinutes: payload.slotHoldMinutes || 10,
-        inspectionFeeMaxCents: payload.inspectionFeeMaxCents || 15000,
-        disputeWindowHours: payload.disputeWindowHours || 48,
-        autoReleaseHours: payload.autoReleaseHours || 72,
-      });
-    }
+    const result = await domainAction<{ success: boolean; error?: string }>("/zeladoria-pay/configuracoes", "PUT", payload);
+    if (!result.success) return result;
 
     revalidatePath("/painel/admin");
     revalidatePath("/painel/servicos");

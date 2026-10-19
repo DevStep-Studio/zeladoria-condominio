@@ -1,6 +1,6 @@
+import { backendRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { sql } from "drizzle-orm";
-import { db } from "@/db";
+
 import { Icon } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 async function checkDatabase() {
   const started = Date.now();
   try {
-    await db.execute(sql`select 1`);
+    await backendRequest("/status");
     return { ok: true, ms: Date.now() - started };
   } catch {
     return { ok: false, ms: Date.now() - started };
@@ -19,13 +19,8 @@ async function checkDatabase() {
 export default async function StatusPage() {
   const database = await checkDatabase();
   const services = [
-    { name: "Aplicação web & Painel", ok: true, detail: "Next.js 16 · Turbopack" },
-    { name: "Banco de dados PostgreSQL", ok: database.ok, detail: `PostgreSQL · ${database.ms} ms` },
-    { name: "Portaria digital (visitantes e encomendas)", ok: database.ok, detail: "Operacional" },
-    { name: "Mural da recepção e TV", ok: true, detail: "Operacional" },
-    { name: "Zelador Virtual IA", ok: true, detail: "Operacional 24h" },
-    { name: "Exportações e relatórios", ok: true, detail: "Operacional" },
-    { name: "Backups automáticos", ok: true, detail: "Último backup: hoje · retenção 30 dias" },
+    { name: "API Laravel", ok: database.ok, detail: database.ok ? "API respondeu à verificação" : "API indisponível" },
+    { name: "Banco de dados MySQL", ok: database.ok, detail: `MySQL · ${database.ms} ms` },
   ];
   const allOk = services.every((s) => s.ok);
 
@@ -75,16 +70,7 @@ export default async function StatusPage() {
         ))}
       </ul>
 
-      <section className="mt-8 rounded-[16px] border border-[var(--color-line)] bg-white p-5 text-sm text-[var(--color-muted)] shadow-xs">
-        <h2 className="font-bold text-base text-[var(--color-ink)]">Continuidade e confiabilidade</h2>
-        <ul className="mt-2.5 space-y-1.5 text-xs">
-          <li>• Backups automáticos diários com teste de restauração mensal.</li>
-          <li>• Plano de recuperação de desastre com RPO de 24h e RTO de 4h.</li>
-          <li>• Ambientes separados de desenvolvimento, homologação e produção.</li>
-          <li>• Registros críticos de auditoria retidos por 5 anos.</li>
-          <li>• Monitoramento de erros com alerta imediato ao time de plantão.</li>
-        </ul>
-      </section>
+
     </main>
   );
 }

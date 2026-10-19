@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { and, count, eq, lte, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { charges, contracts, maintenancePlans, transactions } from "@/db/schema";
+
 import { requirePermission } from "@/lib/auth";
 import { Card, EmptyState, PageHeader, Stat, StatCard } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";
@@ -14,27 +13,14 @@ export default async function RelatoriosPage() {
   const today = isoDate();
   const expiringUntil = isoDate(addDays(45));
 
-  const tx = await db
-    .select({ kind: transactions.kind, amount: transactions.amountCents })
-    .from(transactions)
-    .where(eq(transactions.condoId, condoId));
+  const { tx, overdue, lateMaint, expiring } = await domainRequest<{
+    tx: any[];
+    overdue: { n: number; total: number };
+    lateMaint: { n: number };
+    expiring: { n: number };
+  }>("/painel/relatorios", { query: { condoId, today, expiringUntil } });
   const income = tx.filter((t) => t.kind === "receita").reduce((a, t) => a + t.amount, 0);
   const expense = tx.filter((t) => t.kind === "despesa").reduce((a, t) => a + t.amount, 0);
-
-  const [overdue] = await db
-    .select({ n: count(), total: sql<number>`coalesce(sum(${charges.amountCents}),0)::int` })
-    .from(charges)
-    .where(and(eq(charges.condoId, condoId), eq(charges.status, "vencida")));
-
-  const [lateMaint] = await db
-    .select({ n: count() })
-    .from(maintenancePlans)
-    .where(and(eq(maintenancePlans.condoId, condoId), lte(maintenancePlans.nextDueAt, today)));
-
-  const [expiring] = await db
-    .select({ n: count() })
-    .from(contracts)
-    .where(and(eq(contracts.condoId, condoId), lte(contracts.endAt, expiringUntil)));
 
   const hubs: { href: string; title: string; desc: string; icon: IconName; export?: string }[] = [
     { href: "/painel/relatorios/eficiencia", title: "Eficiência Operacional", desc: "TMA, satisfação (CSAT), taxa de resolução e SLA de prestadores.", icon: "star" },

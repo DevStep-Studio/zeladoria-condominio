@@ -1,6 +1,5 @@
-import { desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { auditLogs, condominiums, importJobs, memberships, supportTickets, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Progress, Stat, TableWrap } from "@/components/ui";
 import { dateTimeBR, percent } from "@/lib/utils";
@@ -12,29 +11,14 @@ export const dynamic = "force-dynamic";
 export default async function AdocaoPage() {
   await requireRole(["superadmin"]);
 
-  const condos = await db.select().from(condominiums).orderBy(condominiums.name);
-
-  const memberRows = await db
-    .select({
-      condoId: memberships.condoId,
-      status: memberships.status,
-      firstAccessAt: users.firstAccessAt,
-      lastLoginAt: users.lastLoginAt,
-    })
-    .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.userId));
-
-  const unitRows = await db.select({ condoId: units.condoId, n: sql<number>`count(*)::int` }).from(units).groupBy(units.condoId);
-
-  const moduleUsage = await db
-    .select({ entity: auditLogs.entity, n: sql<number>`count(*)::int` })
-    .from(auditLogs)
-    .groupBy(auditLogs.entity)
-    .orderBy(desc(sql`count(*)`))
-    .limit(8);
-
-  const imports = await db.select().from(importJobs).orderBy(desc(importJobs.createdAt)).limit(6);
-  const support = await db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt)).limit(6);
+  const { condos, memberRows, unitRows, moduleUsage, imports, support } = await domainRequest<{
+    condos: any[];
+    memberRows: any[];
+    unitRows: any[];
+    moduleUsage: any[];
+    imports: any[];
+    support: any[];
+  }>("/painel/adocao");
   const activeSince = new Date();
   activeSince.setDate(activeSince.getDate() - 7);
 

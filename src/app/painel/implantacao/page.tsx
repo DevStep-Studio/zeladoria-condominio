@@ -1,6 +1,5 @@
-import { count, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { amenities, blocks, importJobs, memberships, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Progress, Stat } from "@/components/ui";
 import { dateTimeBR, percent } from "@/lib/utils";
@@ -25,19 +24,22 @@ const STEPS = [
 export default async function ImplantacaoPage() {
   const { condo, condoId } = await requireRole(["superadmin", "sindico"]);
 
-  const [blockCount] = await db.select({ n: count() }).from(blocks).where(eq(blocks.condoId, condoId));
-  const [unitCount] = await db.select({ n: count() }).from(units).where(eq(units.condoId, condoId));
-  const [peopleCount] = await db.select({ n: count() }).from(memberships).where(eq(memberships.condoId, condoId));
-  const [amenityCount] = await db.select({ n: count() }).from(amenities).where(eq(amenities.condoId, condoId));
-
-  const people = await db
-    .select({ status: memberships.status, firstAccessAt: users.firstAccessAt })
-    .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.userId))
-    .where(eq(memberships.condoId, condoId));
+  const {
+    blockCount,
+    unitCount,
+    peopleCount,
+    amenityCount,
+    people,
+    jobs,
+  } = await domainRequest<{
+    blockCount: { n: number };
+    unitCount: { n: number };
+    peopleCount: { n: number };
+    amenityCount: { n: number };
+    people: any[];
+    jobs: any[];
+  }>("/painel/implantacao", { query: { condoId } });
   const accessed = people.filter((p) => p.firstAccessAt).length;
-
-  const jobs = await db.select().from(importJobs).where(eq(importJobs.condoId, condoId)).orderBy(desc(importJobs.createdAt)).limit(5);
   const progress = percent(condo.onboardingStep, STEPS.length);
 
   return (
@@ -116,7 +118,7 @@ export default async function ImplantacaoPage() {
                     </div>
                     {job.errors && job.errors.length > 0 ? (
                       <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-[var(--color-danger)] ">
-                        {job.errors.map((error, index) => (
+                        {job.errors.map((error: string, index: number) => (
                           <li key={index}>{error}</li>
                         ))}
                       </ul>

@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { notifications, pushSubscriptions } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { apiOperation } from "@/lib/api/server";
 
 export interface PushPayload {
   title: string;
@@ -31,36 +29,26 @@ export async function savePushSubscription(
   }
 
   // Verifica se o endpoint já está registrado
-  const [existing] = await db
-    .select()
-    .from(pushSubscriptions)
-    .where(eq(pushSubscriptions.endpoint, subscription.endpoint))
-    .limit(1);
+  const [existing] = await apiOperation("lib.services.push.push-service.001", [subscription.endpoint]);
 
   if (existing) {
-    await db
-      .update(pushSubscriptions)
-      .set({
+    await apiOperation("lib.services.push.push-service.002", [{
         userId,
         condoId: condoId ?? existing.condoId,
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
-      })
-      .where(eq(pushSubscriptions.id, existing.id));
+      }, existing.id]);
 
     return { success: true, subscriptionId: existing.id, updated: true };
   }
 
-  const [created] = await db
-    .insert(pushSubscriptions)
-    .values({
+  const [created] = await apiOperation("lib.services.push.push-service.003", [{
       userId,
       condoId: condoId || null,
       endpoint: subscription.endpoint,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,
-    })
-    .returning();
+    }]);
 
   return { success: true, subscriptionId: created.id, updated: false };
 }
@@ -73,10 +61,7 @@ export async function sendPushNotificationToUser(
   payload: PushPayload,
   condoId?: number | null
 ): Promise<{ success: boolean; dispatchedCount: number; errors?: string[] }> {
-  const subs = await db
-    .select()
-    .from(pushSubscriptions)
-    .where(eq(pushSubscriptions.userId, userId));
+  const subs = await apiOperation("lib.services.push.push-service.004", [userId]);
 
   if (subs.length === 0) {
     return { success: true, dispatchedCount: 0 };
@@ -85,14 +70,14 @@ export async function sendPushNotificationToUser(
   // Persiste no log de notificações do usuário
   if (condoId) {
     try {
-      await db.insert(notifications).values({
+      await apiOperation("lib.services.push.push-service.005", [{
         condoId,
         userId,
         title: payload.title,
         body: payload.body,
         channel: "app",
         link: payload.url || null,
-      });
+      }]);
     } catch (err) {
       console.warn("Aviso ao registrar log de notificação:", err);
     }
@@ -124,9 +109,7 @@ export async function sendPushNotificationToUser(
  * Remove inscrição de Push expirada ou cancelada
  */
 export async function removePushSubscription(endpoint: string) {
-  await db
-    .delete(pushSubscriptions)
-    .where(eq(pushSubscriptions.endpoint, endpoint));
+  await apiOperation("lib.services.push.push-service.006", [endpoint]);
 
   return { success: true };
 }

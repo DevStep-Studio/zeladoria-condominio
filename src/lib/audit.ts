@@ -1,6 +1,5 @@
 import "server-only";
-import { db } from "@/db";
-import { auditLogs, notifications } from "@/db/schema";
+import { backendRequest } from "@/lib/api/server";
 import { clientInfo, type Session } from "@/lib/auth";
 
 type AuditInput = {
@@ -18,20 +17,23 @@ type AuditInput = {
 
 export async function logAudit(input: AuditInput) {
   const info = await clientInfo();
-  await db.insert(auditLogs).values({
-    condoId: input.condoId,
-    userId: input.session?.user.id ?? null,
-    userName: input.session?.user.name ?? "sistema",
-    action: input.action,
-    entity: input.entity,
-    entityId: input.entityId != null ? String(input.entityId) : null,
-    summary: input.summary?.slice(0, 235),
-    before: input.before ?? null,
-    after: input.after ?? null,
-    ip: info.ip,
-    userAgent: info.userAgent,
-    origin: input.origin ?? (input.session?.user.isSuperAdmin ? "suporte" : "painel"),
-    critical: input.critical ?? false,
+  await backendRequest("/auditoria", {
+    method: "POST",
+    body: {
+      condoId: input.condoId,
+      userId: input.session?.user.id ?? null,
+      userName: input.session?.user.name ?? "sistema",
+      action: input.action,
+      entity: input.entity,
+      entityId: input.entityId != null ? String(input.entityId) : null,
+      summary: input.summary?.slice(0, 235),
+      before: input.before ?? null,
+      after: input.after ?? null,
+      ip: info.ip,
+      userAgent: info.userAgent,
+      origin: input.origin ?? (input.session?.user.isSuperAdmin ? "suporte" : "painel"),
+      critical: input.critical ?? false,
+    },
   });
 }
 
@@ -45,7 +47,10 @@ export async function notify(
 ) {
   const unique = [...new Set(userIds.filter((id) => Number.isFinite(id) && id > 0))];
   if (unique.length === 0) return;
-  await db.insert(notifications).values(
-    unique.map((userId) => ({ condoId, userId, title, body, link, channel })),
-  );
+  await backendRequest("/notificacoes/disparar", {
+    method: "POST",
+    body: {
+      items: unique.map((userId) => ({ condoId, userId, title, body, link: link ?? null, channel })),
+    },
+  });
 }

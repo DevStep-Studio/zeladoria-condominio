@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { asc, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users, memberships, condominiums } from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
@@ -16,20 +15,7 @@ export const metadata = {
 export default async function AdminUsuariosPage() {
   await requireSession();
 
-  const userList = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      phone: users.phone,
-      isSuperAdmin: users.isSuperAdmin,
-      status: users.status,
-      lastLoginAt: users.lastLoginAt,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .orderBy(desc(users.createdAt))
-    .limit(100);
+  const userList = await domainRequest<any[]>("/painel/admin/usuarios");
 
   return (
     <div className="space-y-5">

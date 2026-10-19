@@ -1,6 +1,5 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { marketplaceSettings, paymentOrders, vendors } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { getMarketplaceSettings } from "@/lib/services/payments/payment-service";
 import { AdminTaxasClient } from "./taxas-client";
@@ -19,27 +18,9 @@ export default async function AdminMarketplaceTaxasPage() {
 
   let recentOrders: any[] = [];
   try {
-    recentOrders = await db
-      .select({
-        id: paymentOrders.id,
-        code: paymentOrders.code,
-        purpose: paymentOrders.purpose,
-        amountGrossCents: paymentOrders.amountGrossCents,
-        platformFeeCents: paymentOrders.platformFeeCents,
-        netVendorCents: paymentOrders.netVendorCents,
-        commissionPercent: paymentOrders.commissionPercent,
-        billingType: paymentOrders.billingType,
-        status: paymentOrders.status,
-        paidAt: paymentOrders.paidAt,
-        releasedAt: paymentOrders.releasedAt,
-        createdAt: paymentOrders.createdAt,
-        vendorName: vendors.name,
-      })
-      .from(paymentOrders)
-      .leftJoin(vendors, eq(vendors.id, paymentOrders.vendorId))
-      .where(eq(paymentOrders.condoId, condoId))
-      .orderBy(desc(paymentOrders.createdAt))
-      .limit(30);
+    recentOrders = await domainRequest<any[]>("/painel/admin/marketplace/taxas", {
+      query: { condoId, role: session.role },
+    });
   } catch (err) {
     console.warn("Could not query recentOrders for admin taxas:", err);
   }

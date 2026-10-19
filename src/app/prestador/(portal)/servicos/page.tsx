@@ -1,5 +1,6 @@
-import { db } from "@/db";
-import { vendors } from "@/db/schema";
+import { domainRequest, type ProviderDashboard } from "@/lib/api/domain";
+import type { DomainModels } from "@/lib/api/models";
+
 import { requireProvider } from "@/lib/auth";
 import { ProviderServicosEditorClient } from "./servicos-editor-client";
 
@@ -11,17 +12,7 @@ export const metadata = {
 };
 
 export default async function PrestadorServicosPage() {
-  const { session, vendor } = await requireProvider();
-
-  let targetVendor = vendor;
-  if (!targetVendor && session.role === "superadmin") {
-    const [first] = await db.select().from(vendors).limit(1);
-    targetVendor = first;
-  }
-
-  if (!targetVendor) {
-    return <div>Prestador não encontrado.</div>;
-  }
-
-  return <ProviderServicosEditorClient vendor={targetVendor} />;
+  const { session } = await requireProvider();
+  const vendor = await domainRequest<DomainModels["vendors"]>("/prestador/perfil");
+  return <ProviderServicosEditorClient vendor={vendor} />;
 }

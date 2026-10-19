@@ -1,0 +1,17 @@
+{
+  "name": "Zeladoria Condominio",
+  "project_type": "laravel_nextjs",
+  "branch": "main",
+  "production_path": "/home/devstep-condominio/htdocs/condominio.devstep.com.br",
+  "backend": {
+    "dir": "backend",
+    "type": "laravel",
+    "pm2_process": "condominio-backend"
+  },
+  "frontend": {
+    "dir": "frontend",
+    "type": "nextjs",
+    "pm2_process": "condominio-frontend"
+  },
+  "deploy_script": null
+}

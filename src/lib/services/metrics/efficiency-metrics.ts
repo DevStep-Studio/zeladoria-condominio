@@ -1,6 +1,4 @@
-import { db } from "@/db";
-import { serviceRequests, serviceReviews, vendors } from "@/db/schema";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { apiOperation } from "@/lib/api/server";
 
 export interface CategoryMetric {
   category: string;
@@ -39,18 +37,7 @@ export async function getOperationalEfficiencyMetrics(
   condoId: number
 ): Promise<EfficiencyMetricsResult> {
   // 1. Busca todas as solicitações do condomínio
-  const requests = await db
-    .select({
-      id: serviceRequests.id,
-      category: serviceRequests.category,
-      status: serviceRequests.status,
-      vendorId: serviceRequests.vendorId,
-      correctionNotes: serviceRequests.correctionNotes,
-      createdAt: serviceRequests.createdAt,
-      completedAt: serviceRequests.completedAt,
-    })
-    .from(serviceRequests)
-    .where(eq(serviceRequests.condoId, condoId));
+  const requests = await apiOperation("lib.services.metrics.efficiency-metrics.001", [condoId]);
 
   const totalRequests = requests.length;
   const completed = requests.filter((r) => r.status === "concluido" || r.completedAt !== null);
@@ -91,16 +78,7 @@ export async function getOperationalEfficiencyMetrics(
     : 100;
 
   // 3. Avaliações (CSAT) dos chamados do condomínio
-  const reviews = await db
-    .select({
-      id: serviceReviews.id,
-      requestId: serviceReviews.requestId,
-      vendorId: serviceReviews.vendorId,
-      rating: serviceReviews.rating,
-    })
-    .from(serviceReviews)
-    .innerJoin(serviceRequests, eq(serviceReviews.requestId, serviceRequests.id))
-    .where(eq(serviceRequests.condoId, condoId));
+  const reviews = await apiOperation("lib.services.metrics.efficiency-metrics.002", [condoId]);
 
   const totalReviews = reviews.length;
   const averageCsat = totalReviews > 0
@@ -162,7 +140,7 @@ export async function getOperationalEfficiencyMetrics(
 
   const topProviders: ProviderEfficiency[] = [];
   for (const [vendorId, stat] of vendorMap.entries()) {
-    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vendorId)).limit(1);
+    const [vendor] = await apiOperation("lib.services.metrics.efficiency-metrics.003", [vendorId]);
     if (vendor) {
       topProviders.push({
         vendorId,

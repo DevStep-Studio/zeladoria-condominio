@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { ensureSeed } from "@/db/seed";
+
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { ProviderLoginForm, type ProviderDemo } from "./login-form";
@@ -29,7 +29,7 @@ const DEMOS: ProviderDemo[] = [
 ];
 
 export default async function PrestadorLoginPage() {
-  await ensureSeed();
+
   const session = await getSession();
   if (session && (session.vendorId || session.user.isSuperAdmin)) {
     redirect("/prestador");

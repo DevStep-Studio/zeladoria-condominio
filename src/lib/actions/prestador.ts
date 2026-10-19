@@ -1,41 +1,24 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  condominiums,
-  memberships,
-  promotionPlans,
-  providerPromotions,
-  serviceEvidences,
-  serviceMessages,
-  serviceQuotes,
-  serviceRequests,
-  serviceReviews,
-  users,
-  vendors,
-} from "@/db/schema";
-import {
-  authenticate,
-  createSession,
-  getSession,
-  hashPassword,
-  requireProvider,
-  requireRole,
-  requireSession,
-} from "@/lib/auth";
-import { logAudit, notify } from "@/lib/audit";
-import { num, sequence, str } from "@/lib/utils";
-import {
-  providerFinalizeService,
-  providerRecordEvidence,
-  sendDigitalProposal,
-} from "@/lib/services/payments/payment-service";
+import { domainAction } from "@/lib/api/domain";
+import { storeSessionToken } from "@/lib/auth";
 
-/**
- * Onboarding / Cadastro de Prestador Oficial (Fase 2)
- */
+type ProviderActionResult = { status?: string; success: boolean; error?: string; vendorId?: number; quoteId?: number; promotionId?: number; planId?: number; evidenceId?: number; active?: boolean; isOnline?: boolean; availableNow?: boolean; arrivedAt?: Date };
+
+function refreshProvider() {
+  revalidatePath("/prestador", "layout");
+  revalidatePath("/painel/servicos");
+  revalidatePath("/painel/admin/prestadores");
+  revalidatePath("/painel/admin/marketplace/destaques");
+}
+
+async function finish(path: string, method: string, body?: unknown): Promise<ProviderActionResult> {
+  const result = await domainAction<ProviderActionResult>(path, method, body);
+  if (result.success) refreshProvider();
+  return result;
+}
+
 export async function registerProviderAction(payload: {
   // Etapa 1 - Conta
   name: string;
@@ -100,312 +83,26 @@ export async function registerProviderAction(payload: {
   description?: string;
   portfolio?: { url: string; caption: string; category?: string; date?: string }[];
   condoId?: number;
-}) {
-  const email = payload.email.trim().toLowerCase();
-  if (!email || !payload.name) {
-    return { success: false, error: "Nome e e-mail são obrigatórios." };
-  }
-
-  // 1. Resolve or create user account
-  let userId: number;
-  const [existingUser] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-
-  const cleanCpf = payload.cpf?.replace(/\D/g, "") || null;
-
-  if (existingUser) {
-    userId = existingUser.id;
-    if (cleanCpf && !existingUser.document) {
-      await db.update(users).set({ document: cleanCpf }).where(eq(users.id, userId));
-    }
-  } else {
-    const rawPass = payload.password?.trim() || "prestador2026";
-    const passwordHash = hashPassword(rawPass);
-    const fullName = `${payload.name.trim()} ${payload.lastName.trim()}`.trim();
-
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        name: fullName,
-        email,
-        phone: payload.phone.trim(),
-        document: cleanCpf,
-        passwordHash,
-        status: "ativo",
-        isSuperAdmin: false,
-      })
-      .returning();
-
-    userId = newUser.id;
-  }
-
-  // 2. Select target condominium (active condo or first available)
-  let targetCondoId = payload.condoId;
-  if (!targetCondoId) {
-    const [firstCondo] = await db.select({ id: condominiums.id }).from(condominiums).limit(1);
-    targetCondoId = firstCondo?.id ?? 1;
-  }
-
-  // 3. Create public slug from name/company
-  const baseSlug = (payload.companyName || payload.name)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const fullName = `${payload.name.trim()} ${payload.lastName.trim()}`.trim();
-
-  // Format identity verification payload
-  const hasIdentityDocs = !!(
-    payload.identityVerification?.frontUrl ||
-    payload.identityVerification?.digitalPdfUrl ||
-    payload.identityVerification?.selfieUrl
-  );
-
-  const identityData = {
-    status: hasIdentityDocs ? ("em_analise" as const) : ("pendente" as const),
-    documentType: payload.identityVerification?.documentType || "cnh",
-    frontUrl: payload.identityVerification?.frontUrl,
-    backUrl: payload.identityVerification?.backUrl,
-    digitalPdfUrl: payload.identityVerification?.digitalPdfUrl,
-    selfieUrl: payload.identityVerification?.selfieUrl,
-    submittedAt: hasIdentityDocs ? new Date().toISOString() : undefined,
-  };
-
-  const cleanCnpj = payload.cnpj?.replace(/\D/g, "") || cleanCpf || null;
-
-  // 4. Create or update vendor profile
-  const [existingVendor] = await db.select().from(vendors).where(eq(vendors.userId, userId)).limit(1);
-
-  let vendorId: number;
-  if (existingVendor) {
-    vendorId = existingVendor.id;
-    await db
-      .update(vendors)
-      .set({
-        name: fullName,
-        companyName: payload.companyName || fullName,
-        providerType: payload.providerType,
-        cnpj: cleanCnpj,
-        category: payload.category.toLowerCase(),
-        specialties: payload.specialties || [],
-        phone: payload.phone,
-        whatsapp: payload.phone,
-        description: payload.description || existingVendor.description,
-        cep: payload.cep || existingVendor.cep,
-        addressStreet: payload.addressStreet || existingVendor.addressStreet,
-        addressNumber: payload.addressNumber || existingVendor.addressNumber,
-        addressNeighborhood: payload.addressNeighborhood || existingVendor.addressNeighborhood,
-        addressCity: payload.addressCity || existingVendor.addressCity,
-        addressState: payload.addressState || existingVendor.addressState,
-        serviceArea: payload.serviceArea,
-        serviceRadiusKm: payload.serviceRadiusKm || 15,
-        lat: payload.lat ?? existingVendor.lat,
-        lng: payload.lng ?? existingVendor.lng,
-        experienceYears: payload.experienceYears || 3,
-        photoUrl: payload.photoUrl || existingVendor.photoUrl,
-        services: payload.services,
-        portfolio: payload.portfolio || existingVendor.portfolio,
-        bankInfo: payload.bankInfo || existingVendor.bankInfo,
-        pixInfo: payload.pixInfo || existingVendor.pixInfo,
-        identityVerification: identityData,
-        priceFromCents: payload.priceFromCents || null,
-        onboardingStatus: "em_analise",
-        active: true,
-      })
-      .where(eq(vendors.id, existingVendor.id));
-  } else {
-    const [newVendor] = await db
-      .insert(vendors)
-      .values({
-        condoId: targetCondoId,
-        userId,
-        slug,
-        name: fullName,
-        companyName: payload.companyName || fullName,
-        providerType: payload.providerType,
-        cnpj: cleanCnpj,
-        category: payload.category.toLowerCase(),
-        specialties: payload.specialties || [],
-        contactName: fullName,
-        phone: payload.phone,
-        email,
-        whatsapp: payload.phone,
-        description: payload.description || "Profissional qualificado parceiro do Zeladoria Condomínio.",
-        cep: payload.cep,
-        addressStreet: payload.addressStreet,
-        addressNumber: payload.addressNumber,
-        addressNeighborhood: payload.addressNeighborhood,
-        addressCity: payload.addressCity,
-        addressState: payload.addressState,
-        serviceArea: payload.serviceArea,
-        serviceRadiusKm: payload.serviceRadiusKm || 15,
-        lat: payload.lat ?? -23.5505,
-        lng: payload.lng ?? -46.6333,
-        experienceYears: payload.experienceYears || 3,
-        photoUrl: payload.photoUrl || null,
-        services: payload.services,
-        portfolio: payload.portfolio || [],
-        bankInfo: payload.bankInfo,
-        pixInfo: payload.pixInfo,
-        identityVerification: identityData,
-        priceFromCents: payload.priceFromCents || null,
-        onboardingStatus: "em_analise",
-        isOnline: true,
-        availableNow: true,
-        active: true,
-        verified: false,
-        sponsored: false,
-      })
-      .returning();
-
-    vendorId = newVendor.id;
-  }
-
-  // 5. Create automatic session for seamless onboarding
-  await createSession(userId);
-
-  revalidatePath("/prestador");
-  revalidatePath("/painel/servicos");
-  revalidatePath("/painel/admin/prestadores");
-  return { success: true, vendorId };
+}) : Promise<ProviderActionResult> {
+  const result = await domainAction<ProviderActionResult & { token?: string }>("/prestadores/cadastro", "POST", payload); if (result.success && "token" in result && result.token) await storeSessionToken(result.token); refreshProvider(); return result;
 }
 
-/**
- * Moderação de Verificação de Identidade do Prestador (Admin / Síndico)
- */
 export async function reviewProviderVerificationAction(
   vendorId: number,
   decision: "aprovado" | "rejeitado" | "reenvio_solicitado",
   notes?: string
-) {
-  const { session } = await requireRole(["superadmin", "sindico"]);
-
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vendorId)).limit(1);
-  if (!vendor) return { success: false, error: "Prestador não encontrado." };
-
-  const currentVerification = vendor.identityVerification || { status: "nao_iniciado" };
-  const updatedVerification = {
-    ...currentVerification,
-    status: decision,
-    reviewedAt: new Date().toISOString(),
-    reviewedById: session.user.id,
-    rejectionReason: decision !== "aprovado" ? notes : undefined,
-  };
-
-  await db
-    .update(vendors)
-    .set({
-      identityVerification: updatedVerification,
-      verified: decision === "aprovado",
-      verifiedAt: decision === "aprovado" ? new Date() : null,
-      verifiedById: decision === "aprovado" ? session.user.id : null,
-      onboardingStatus: decision === "aprovado" ? "aprovado" : decision === "rejeitado" ? "rejeitado" : "pendente_doc",
-    })
-    .where(eq(vendors.id, vendorId));
-
-  await logAudit({
-    session,
-    condoId: vendor.condoId,
-    action: "atualizar",
-    entity: "fornecedor",
-    entityId: vendor.id,
-    summary: `Revisou verificação de identidade do prestador ${vendor.name}: ${decision.toUpperCase()}`,
-    critical: true,
-  });
-
-  revalidatePath("/painel/admin/prestadores");
-  revalidatePath("/prestador");
-  return { success: true };
+) : Promise<ProviderActionResult> {
+  return finish("/admin/prestadores/" + vendorId + "/verificacao", "PATCH", { decision, notes });
 }
 
-/**
- * Alternar status Online / Offline do Prestador
- */
-export async function toggleProviderOnlineAction() {
-  const { vendor } = await requireProvider();
-  if (!vendor) return { success: false, error: "Perfil de prestador não encontrado." };
-
-  const nextStatus = !vendor.isOnline;
-  await db
-    .update(vendors)
-    .set({ isOnline: nextStatus })
-    .where(eq(vendors.id, vendor.id));
-
-  revalidatePath("/prestador");
-  return { success: true, isOnline: nextStatus };
+export async function toggleProviderOnlineAction() : Promise<ProviderActionResult> {
+  return finish("/prestador/disponibilidade", "PATCH", { toggle: "online" });
 }
 
-/**
- * Prestador aceita um chamado Sob Demanda
- */
-export async function acceptServiceRequestAction(requestId: number) {
-  const { vendor, session } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-
-  // Concorrência Atômica: garante que apenas um prestador consiga atualizar a vaga única
-  const updatedRows = await db
-    .update(serviceRequests)
-    .set({
-      vendorId: vendor.id,
-      status: "aceito",
-      acceptedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(serviceRequests.id, requestId),
-        or(
-          eq(serviceRequests.status, "solicitado"),
-          eq(serviceRequests.status, "buscando_prestador")
-        ),
-        isNull(serviceRequests.vendorId)
-      )
-    )
-    .returning();
-
-  if (updatedRows.length === 0) {
-    return {
-      success: false,
-      error: "Oportunidade indisponível: outro profissional já confirmou o atendimento para esta vaga.",
-    };
-  }
-
-  // Registrar mensagem do sistema
-  await db.insert(serviceMessages).values({
-    requestId,
-    senderId: session.user.id,
-    senderRole: "sistema",
-    body: `${vendor.name} aceitou o seu chamado e está preparando o atendimento.`,
-  });
-
-  // Notificar morador solicitante
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Profissional aceitou seu chamado!`,
-    `${vendor.name} confirmou o atendimento para "${req.title}".`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/chamados");
-  revalidatePath(`/painel/servicos`);
-  return { success: true };
+export async function acceptServiceRequestAction(requestId: number) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + requestId + "/aceite", "POST");
 }
 
-/**
- * Prestador envia um orçamento formal com mão de obra + materiais
- */
 export async function sendQuoteAction(payload: {
   requestId: number;
   laborCents: number;
@@ -413,136 +110,18 @@ export async function sendQuoteAction(payload: {
   totalCents?: number;
   description: string;
   estimatedDays?: number;
-}) {
-  const { vendor, session } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  try {
-    const quote = await sendDigitalProposal({
-      requestId: payload.requestId,
-      vendorId: vendor.id,
-      laborCents: payload.laborCents || 0,
-      materialsCents: payload.materialsCents || 0,
-      description: payload.description,
-      estimatedDays: payload.estimatedDays || 1,
-    });
-
-    const [req] = await db
-      .select()
-      .from(serviceRequests)
-      .where(eq(serviceRequests.id, payload.requestId))
-      .limit(1);
-
-    if (req) {
-      await notify(
-        req.condoId,
-        [req.customerId],
-        `Novo orçamento recebido!`,
-        `${vendor.name} enviou uma proposta de R$ ${(quote.totalCents / 100).toFixed(2)} para seu serviço.`,
-        `/painel/servicos`
-      );
-    }
-
-    revalidatePath("/prestador");
-    revalidatePath("/prestador/chamados");
-    revalidatePath("/painel/servicos");
-    return { success: true, quoteId: quote.id };
-  } catch (err: any) {
-    console.error("Erro em sendQuoteAction:", err);
-    return { success: false, error: err?.message || "Erro ao enviar proposta." };
-  }
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + payload.requestId + "/orcamentos", "POST", payload);
 }
 
-/**
- * Atualizar avanço do serviço (State Machine Centralizada)
- */
 export async function updateServiceProgressAction(
   requestId: number,
   nextStatus: "a_caminho" | "chegou" | "em_atendimento" | "prestador_concluiu" | "conclusao_solicitada" | "concluido" | "cancelado",
   reason?: string
-) {
-  const { vendor, session } = await requireProvider();
-  if (!vendor) return { success: false, error: "Não autorizado." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-
-  // Validação de transições válidas
-  const VALID_TRANSITIONS: Record<string, string[]> = {
-    aceito: ["a_caminho", "cancelado"],
-    orcamento_aprovado: ["a_caminho", "cancelado"],
-    a_caminho: ["chegou", "cancelado"],
-    chegou: ["em_atendimento", "cancelado"],
-    em_atendimento: ["concluido", "prestador_concluiu", "conclusao_solicitada", "cancelado"],
-    correcao_solicitada: ["em_atendimento", "prestador_concluiu", "conclusao_solicitada", "cancelado"],
-    prestador_concluiu: ["concluido", "correcao_solicitada", "cancelado"],
-    conclusao_solicitada: ["concluido", "correcao_solicitada", "cancelado"],
-  };
-
-  const allowed = VALID_TRANSITIONS[req.status] || [];
-  if (!allowed.includes(nextStatus)) {
-    return { success: false, error: `Transição inválida de ${req.status} para ${nextStatus}.` };
-  }
-
-  const updates: Record<string, any> = {
-    status: nextStatus,
-    updatedAt: new Date(),
-  };
-
-  if (nextStatus === "chegou") updates.arrivedAt = new Date();
-  if (nextStatus === "em_atendimento") updates.startedAt = new Date();
-  if (nextStatus === "prestador_concluiu" || nextStatus === "conclusao_solicitada") updates.completionRequestedAt = new Date();
-  if (nextStatus === "concluido") updates.completedAt = new Date();
-  if (nextStatus === "cancelado") {
-    updates.cancelledAt = new Date();
-    updates.cancelledBy = session.user.id;
-    updates.cancelReason = reason || "Cancelado pelo prestador";
-  }
-
-  await db.update(serviceRequests).set(updates).where(eq(serviceRequests.id, requestId));
-
-  // Chat message
-  const statusLabels: Record<string, string> = {
-    a_caminho: "O profissional informou que está a caminho do condomínio.",
-    chegou: "O profissional chegou ao condomínio / portaria.",
-    em_atendimento: "O atendimento foi iniciado.",
-    prestador_concluiu: "O profissional finalizou a execução e solicitou validação.",
-    conclusao_solicitada: "O profissional finalizou a execução e solicitou validação.",
-    correcao_solicitada: "Solicitada correção no serviço.",
-    concluido: "O prestador finalizou a execução do serviço.",
-    cancelado: `Serviço cancelado. Motivo: ${reason || "Não informado"}`,
-  };
-
-  await db.insert(serviceMessages).values({
-    requestId,
-    senderId: session.user.id,
-    senderRole: "sistema",
-    body: statusLabels[nextStatus] || `Status atualizado para ${nextStatus}.`,
-  });
-
-  // Notificar morador
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Atualização no seu serviço: ${req.title}`,
-    statusLabels[nextStatus] || `Status: ${nextStatus}`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/chamados");
-  revalidatePath("/painel/servicos");
-  return { success: true };
+) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + requestId + "/status", "PATCH", { status: nextStatus, reason });
 }
 
-/**
- * Atualizar Perfil e Loja do Prestador
- */
 export async function updateProviderStorefrontAction(payload: {
   description?: string;
   whatsapp?: string;
@@ -554,458 +133,78 @@ export async function updateProviderStorefrontAction(payload: {
   coverUrl?: string;
   services?: any[];
   portfolio?: any[];
-}) {
-  const { vendor } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  await db
-    .update(vendors)
-    .set({
-      ...(payload.description !== undefined && { description: payload.description }),
-      ...(payload.whatsapp !== undefined && { whatsapp: payload.whatsapp }),
-      ...(payload.phone !== undefined && { phone: payload.phone }),
-      ...(payload.serviceArea !== undefined && { serviceArea: payload.serviceArea }),
-      ...(payload.serviceRadiusKm !== undefined && { serviceRadiusKm: payload.serviceRadiusKm }),
-      ...(payload.workingHours !== undefined && { workingHours: payload.workingHours }),
-      ...(payload.photoUrl !== undefined && { photoUrl: payload.photoUrl }),
-      ...(payload.coverUrl !== undefined && { coverUrl: payload.coverUrl }),
-      ...(payload.services !== undefined && { services: payload.services }),
-      ...(payload.portfolio !== undefined && { portfolio: payload.portfolio }),
-    })
-    .where(eq(vendors.id, vendor.id));
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/perfil");
-  revalidatePath("/prestador/servicos");
-  revalidatePath("/painel/servicos");
-  return { success: true };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/perfil", "PATCH", payload);
 }
 
-/**
- * Prestador recusa uma solicitação de serviço
- */
-export async function rejectServiceRequestAction(requestId: number, reason?: string) {
-  const { vendor, session } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-
-  // Se o chamado foi direcionado exclusivamente a este prestador, marca como cancelado/recusado
-  await db
-    .update(serviceRequests)
-    .set({
-      status: "cancelado",
-      cancelledBy: session.user.id,
-      cancelReason: reason || "Prestador indisponível para este atendimento no momento.",
-      cancelledAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, requestId));
-
-  // Registrar mensagem no chat
-  await db.insert(serviceMessages).values({
-    requestId,
-    senderId: session.user.id,
-    senderRole: "prestador",
-    body: `Solicitação recusada pelo prestador. Motivo: ${reason || "Indisponibilidade no horário solicitado."}`,
-  });
-
-  // Notificar morador
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Atualização no chamado ${req.code}`,
-    `O prestador não pôde assumir este serviço no momento. Você pode selecionar outro profissional no Zeladoria Serviços.`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/chamados");
-  revalidatePath("/painel/servicos");
-  return { success: true };
+export async function rejectServiceRequestAction(requestId: number, reason?: string) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + requestId + "/recusa", "POST", { reason });
 }
 
-/**
- * Alternar botão "Estou disponível agora" (ON / OFF)
- */
-export async function toggleProviderAvailableNowAction() {
-  const { vendor } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  const nextVal = !vendor.availableNow;
-  await db
-    .update(vendors)
-    .set({ availableNow: nextVal, isOnline: nextVal })
-    .where(eq(vendors.id, vendor.id));
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/disponibilidade");
-  revalidatePath("/painel/servicos");
-  return { success: true, availableNow: nextVal };
+export async function toggleProviderAvailableNowAction() : Promise<ProviderActionResult> {
+  return finish("/prestador/disponibilidade", "PATCH", { toggle: "available" });
 }
 
-/**
- * Prestador adquire ou ativa plano de promoção/destaque interno
- */
 export async function createPromotionCampaignAction(payload: {
   planId: number;
   type?: string;
   categoryId?: string;
   region?: string;
-}) {
-  const { vendor } = await requireProvider();
-  if (!vendor) return { success: false, error: "Prestador não autorizado." };
-
-  if (vendor.onboardingStatus === "suspenso" || vendor.onboardingStatus === "rejeitado") {
-    return { success: false, error: "Prestadores suspensos ou reprovados não podem contratar campanhas de destaque." };
-  }
-
-  // Buscar plano
-  let planDurationDays = 7;
-  let planPriceCents = 2990;
-  let planType = payload.type || "categoria";
-
-  try {
-    const [plan] = await db
-      .select()
-      .from(promotionPlans)
-      .where(eq(promotionPlans.id, payload.planId))
-      .limit(1);
-
-    if (plan) {
-      planDurationDays = plan.durationDays;
-      planPriceCents = plan.priceCents;
-      planType = plan.type;
-    }
-  } catch {
-    // Usar defaults se tabela não estiver populada
-  }
-
-  const startsAt = new Date();
-  const endsAt = new Date(Date.now() + planDurationDays * 24 * 60 * 60 * 1000);
-
-  const [promo] = await db
-    .insert(providerPromotions)
-    .values({
-      condoId: vendor.condoId,
-      vendorId: vendor.id,
-      planId: payload.planId,
-      type: planType,
-      categoryId: payload.categoryId || vendor.category,
-      region: payload.region || vendor.serviceArea || "Geral",
-      startsAt,
-      endsAt,
-      status: "ACTIVE", // Ativo de imediato na simulação de contratação
-      amountCents: planPriceCents,
-      paymentStatus: "paid",
-      impressions: 0,
-      clicks: 0,
-    })
-    .returning();
-
-  // Marca vendor com flag sponsored para consultas rápidas
-  await db
-    .update(vendors)
-    .set({ sponsored: true })
-    .where(eq(vendors.id, vendor.id));
-
-  revalidatePath("/prestador");
-  revalidatePath("/prestador/destaque");
-  revalidatePath("/painel/servicos");
-  return { success: true, promotionId: promo?.id };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/campanhas", "POST", payload);
 }
 
-/**
- * Cancelar campanha de destaque
- */
-export async function cancelPromotionCampaignAction(promotionId: number) {
-  const { vendor, session } = await requireProvider();
-  const isStaff = session.role === "sindico" || session.role === "superadmin";
-
-  const [promo] = await db
-    .select()
-    .from(providerPromotions)
-    .where(eq(providerPromotions.id, promotionId))
-    .limit(1);
-
-  if (!promo) return { success: false, error: "Campanha não encontrada." };
-  if (!isStaff && promo.vendorId !== vendor?.id) {
-    return { success: false, error: "Sem permissão para cancelar esta campanha." };
-  }
-
-  await db
-    .update(providerPromotions)
-    .set({ status: "CANCELLED" })
-    .where(eq(providerPromotions.id, promotionId));
-
-  revalidatePath("/prestador/destaque");
-  revalidatePath("/painel/admin/marketplace/destaques");
-  revalidatePath("/painel/servicos");
-  return { success: true };
+export async function cancelPromotionCampaignAction(promotionId: number) : Promise<ProviderActionResult> {
+  return finish("/prestador/campanhas/" + promotionId, "DELETE");
 }
 
-/**
- * Admin cria um novo plano de publicidade interna
- */
 export async function adminCreatePromotionPlanAction(payload: {
   name: string;
   type: string;
   durationDays: number;
   priceCents: number;
   description?: string;
-}) {
-  const session = await requireSession();
-  const condoId = session.condo?.id ?? null;
-  if (session.role !== "sindico" && session.role !== "superadmin") {
-    return { success: false, error: "Apenas administradores podem criar planos de destaque." };
-  }
-
-  const [plan] = await db
-    .insert(promotionPlans)
-    .values({
-      condoId,
-      name: payload.name,
-      type: payload.type,
-      durationDays: payload.durationDays,
-      priceCents: payload.priceCents,
-      description: payload.description,
-      active: true,
-    })
-    .returning();
-
-  revalidatePath("/painel/admin/marketplace/destaques");
-  revalidatePath("/prestador/destaque");
-  return { success: true, planId: plan?.id };
+}) : Promise<ProviderActionResult> {
+  return finish("/admin/planos-destaque", "POST", payload);
 }
 
-/**
- * Admin ativa ou desativa um plano de destaque
- */
-export async function adminTogglePromotionPlanAction(planId: number) {
-  const session = await requireSession();
-  if (session.role !== "sindico" && session.role !== "superadmin") {
-    return { success: false, error: "Apenas administradores podem alterar planos." };
-  }
-
-  const [plan] = await db
-    .select()
-    .from(promotionPlans)
-    .where(eq(promotionPlans.id, planId))
-    .limit(1);
-
-  if (!plan) return { success: false, error: "Plano não encontrado." };
-
-  await db
-    .update(promotionPlans)
-    .set({ active: !plan.active })
-    .where(eq(promotionPlans.id, planId));
-
-  revalidatePath("/painel/admin/marketplace/destaques");
-  revalidatePath("/prestador/destaque");
-  return { success: true, active: !plan.active };
+export async function adminTogglePromotionPlanAction(planId: number) : Promise<ProviderActionResult> {
+  return finish("/admin/planos-destaque/" + planId, "PATCH");
 }
 
-/**
- * Check-in operacional do prestador no condomínio (Fase 4)
- */
 export async function checkInOperationalAction(payload: {
   requestId: number;
   currentLat?: number;
   currentLng?: number;
-}) {
-  const session = await requireSession();
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, session.user.id))
-    .limit(1);
-
-  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem fazer check-in." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, payload.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.vendorId !== vendor.id) {
-    return { success: false, error: "Você não é o prestador atribuído a este chamado." };
-  }
-
-  const now = new Date();
-  await db
-    .update(serviceRequests)
-    .set({
-      status: "chegou",
-      arrivedAt: now,
-      updatedAt: now,
-    })
-    .where(eq(serviceRequests.id, req.id));
-
-  // Notificar e registrar histórico
-  await db.insert(serviceMessages).values({
-    requestId: req.id,
-    senderId: session.user.id,
-    senderRole: "prestador",
-    body: "Profissional realizou o check-in no condomínio e está pronto para o atendimento.",
-  });
-
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Profissional no local: ${req.title}`,
-    `${vendor.name} chegou ao condomínio.`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador/chamados");
-  revalidatePath("/painel/servicos");
-  return { success: true, arrivedAt: now };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + payload.requestId + "/check-in", "POST", payload);
 }
 
-/**
- * Registro de checklist, materiais utilizados e notas técnicas (Fase 4)
- */
 export async function updateServiceExecutionAction(payload: {
   requestId: number;
   checklist?: { item: string; checked: boolean }[];
   materialsUsed?: { name: string; quantity: number; notes?: string }[];
   executionNotes?: string;
-}) {
-  const session = await requireSession();
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, session.user.id))
-    .limit(1);
-
-  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem registrar execução." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, payload.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
-
-  const updates: Record<string, any> = { updatedAt: new Date() };
-  if (payload.checklist !== undefined) updates.checklist = payload.checklist;
-  if (payload.materialsUsed !== undefined) updates.materialsUsed = payload.materialsUsed;
-  if (payload.executionNotes !== undefined) updates.executionNotes = payload.executionNotes;
-
-  await db.update(serviceRequests).set(updates).where(eq(serviceRequests.id, req.id));
-
-  revalidatePath("/prestador/chamados");
-  return { success: true };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + payload.requestId + "/execucao", "PATCH", payload);
 }
 
-/**
- * Adição de fotos de evidência: ANTES, DURANTE ou DEPOIS (Fase 4)
- */
 export async function addServiceEvidenceAction(payload: {
   requestId: number;
   stage: "ANTES" | "DURANTE" | "DEPOIS";
   fileUrl: string;
   caption?: string;
-}) {
-  const session = await requireSession();
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, session.user.id))
-    .limit(1);
-
-  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem adicionar evidências." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, payload.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
-
-  const evidence = await providerRecordEvidence({
-    condoId: req.condoId,
-    requestId: req.id,
-    vendorId: vendor.id,
-    stage: payload.stage,
-    fileUrl: payload.fileUrl,
-    caption: payload.caption,
-  });
-
-  revalidatePath("/prestador/chamados");
-  return { success: true, evidenceId: evidence.id };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + payload.requestId + "/evidencias", "POST", payload);
 }
 
-/**
- * Solicitação de conclusão de serviço pelo prestador (Fase 4)
- */
 export async function requestServiceCompletionAction(payload: {
   requestId: number;
   finalNotes?: string;
   checklist?: { item: string; checked: boolean }[];
   materialsUsed?: { name: string; quantity: number; notes?: string }[];
   finalPhotos?: string[];
-}) {
-  const session = await requireSession();
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(eq(vendors.userId, session.user.id))
-    .limit(1);
-
-  if (!vendor) return { success: false, error: "Apenas prestadores credenciados podem solicitar conclusão." };
-
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, payload.requestId))
-    .limit(1);
-
-  if (!req) return { success: false, error: "Chamado não encontrado." };
-  if (req.vendorId !== vendor.id) return { success: false, error: "Não autorizado." };
-
-  const now = new Date();
-  await db
-    .update(serviceRequests)
-    .set({
-      checklist: payload.checklist ?? req.checklist,
-      materialsUsed: payload.materialsUsed ?? req.materialsUsed,
-      executionNotes: payload.finalNotes ?? req.executionNotes,
-      completionRequestedAt: now,
-      status: "prestador_concluiu",
-      updatedAt: now,
-    })
-    .where(eq(serviceRequests.id, req.id));
-
-  await providerFinalizeService({
-    requestId: req.id,
-    vendorId: vendor.id,
-    finalNotes: payload.finalNotes || "Serviço finalizado com sucesso.",
-    finalPhotos: payload.finalPhotos || [],
-  });
-
-  // Notificar cliente para validação
-  await notify(
-    req.condoId,
-    [req.customerId],
-    `Serviço pronto para sua aprovação: ${req.title}`,
-    `O profissional concluiu o serviço e aguarda sua validação (Tudo Certo!).`,
-    `/painel/servicos`
-  );
-
-  revalidatePath("/prestador/chamados");
-  revalidatePath("/painel/servicos");
-  return { success: true };
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/chamados/" + payload.requestId + "/conclusao", "POST", payload);
 }
+

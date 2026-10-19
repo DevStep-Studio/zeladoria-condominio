@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { announcements, blocks, users } from "@/db/schema";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, EmptyState, PageHeader, StatCard } from "@/components/ui";
@@ -43,25 +42,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
   const currentStatus = status ?? "todos";
   const canPublish = [...ALL_STAFF, "porteiro"].includes(session.role);
 
-  const rows = await db
-    .select({
-      id: announcements.id,
-      title: announcements.title,
-      body: announcements.body,
-      category: announcements.category,
-      priority: announcements.priority,
-      audience: announcements.audience,
-      pinned: announcements.pinned,
-      publishedAt: announcements.publishedAt,
-      expiresAt: announcements.expiresAt,
-      author: users.name,
-      block: blocks.name,
-    })
-    .from(announcements)
-    .leftJoin(users, eq(users.id, announcements.authorId))
-    .leftJoin(blocks, eq(blocks.id, announcements.blockId))
-    .where(eq(announcements.condoId, condoId))
-    .orderBy(desc(announcements.pinned), desc(announcements.publishedAt));
+  const rows = await domainRequest<any[]>("/painel/comunicados", { query: { condoId } });
 
   const blockList = await blockOptions(condoId);
   const pinnedCount = rows.filter((item) => item.pinned).length;

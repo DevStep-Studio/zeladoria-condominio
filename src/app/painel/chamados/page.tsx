@@ -1,6 +1,5 @@
-import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, ticketComments, tickets, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, StatCard, TableWrap, statusLabel, statusTone } from "@/components/ui";
@@ -67,57 +66,12 @@ export default async function ChamadosPage({
   const activeView = view === "table" ? "table" : "cards";
   const search = q.trim();
 
-  const scope = session.role === "morador" ? eq(tickets.openedById, session.user.id) : undefined;
-  const statusFilter = activeStatus !== "todos" ? eq(tickets.status, activeStatus) : undefined;
-  const priorityFilter = PRIORITIES.includes(p) ? eq(tickets.priority, p) : undefined;
-  const categoryFilter = CATEGORIES.includes(c) ? eq(tickets.category, c) : undefined;
-  const searchFilter = search
-    ? or(ilike(tickets.title, `%${search}%`), ilike(tickets.description, `%${search}%`), ilike(tickets.code, `%${search}%`))
-    : undefined;
-
-  const rows = await db
-    .select({
-      id: tickets.id,
-      code: tickets.code,
-      title: tickets.title,
-      description: tickets.description,
-      category: tickets.category,
-      priority: tickets.priority,
-      status: tickets.status,
-      aiPriority: tickets.aiPriority,
-      aiSummary: tickets.aiSummary,
-      dueAt: tickets.dueAt,
-      createdAt: tickets.createdAt,
-      rating: tickets.rating,
-      assignedToId: tickets.assignedToId,
-      openedBy: users.name,
-      unit: units.number,
-      block: blocks.name,
-    })
-    .from(tickets)
-    .leftJoin(users, eq(users.id, tickets.openedById))
-    .leftJoin(units, eq(units.id, tickets.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(and(eq(tickets.condoId, condoId), scope, statusFilter, priorityFilter, categoryFilter, searchFilter))
-    .orderBy(desc(tickets.createdAt))
-    .limit(80);
-
-  const ids = rows.map((r) => r.id);
-  const comments = ids.length
-    ? await db
-        .select({
-          id: ticketComments.id,
-          ticketId: ticketComments.ticketId,
-          body: ticketComments.body,
-          internal: ticketComments.internal,
-          createdAt: ticketComments.createdAt,
-          author: users.name,
-        })
-        .from(ticketComments)
-        .leftJoin(users, eq(users.id, ticketComments.userId))
-        .where(inArray(ticketComments.ticketId, ids))
-        .orderBy(asc(ticketComments.createdAt))
-    : [];
+  const { rows, comments } = await domainRequest<{
+    rows: any[];
+    comments: any[];
+  }>("/painel/chamados", {
+    query: { condoId, role: session.role, s, q: search, p, c },
+  });
 
   const staff = await peopleOptions(condoId, ["sindico", "zelador", "porteiro", "conselho"]);
   const unitList = await unitOptions(condoId);
@@ -530,7 +484,7 @@ export default async function ChamadosPage({
                             <p className="mt-2 text-sm text-[var(--color-muted)]">Sem respostas até o momento.</p>
                           ) : (
                             <ul className="mt-3 space-y-3">
-                              {ticket.visibleComments.slice(-4).map((comment) => (
+                              {ticket.visibleComments.slice(-4).map((comment: any) => (
                                 <li key={comment.id} className="rounded-[8px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-4 text-sm">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <span className="font-semibold text-[var(--color-ink)]">{comment.author ?? "Usuário"}</span>

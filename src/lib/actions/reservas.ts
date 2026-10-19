@@ -1,9 +1,8 @@
 "use server";
+import { apiOperation } from "@/lib/api/server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, gte, lte, not, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { amenities, reservations, amenityBlocks, memberships } from "@/db/schema";
+
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
@@ -54,11 +53,7 @@ export async function createReservationAction(formData: FormData) {
   }
 
   // Load Amenity
-  const [amenity] = await db
-    .select()
-    .from(amenities)
-    .where(and(eq(amenities.id, amenityId), eq(amenities.condoId, condoId)))
-    .limit(1);
+  const [amenity] = await apiOperation("lib.actions.reservas.001", [amenityId, condoId]);
 
   if (!amenity || !amenity.active) {
     return { success: false, error: "Este espaço comum não foi encontrado ou está inativo no condomínio." };
@@ -110,16 +105,7 @@ export async function createReservationAction(formData: FormData) {
   }
 
   // 4. Check Blocked Periods (Maintenance / Cleanings)
-  const activeBlocks = await db
-    .select()
-    .from(amenityBlocks)
-    .where(
-      and(
-        eq(amenityBlocks.condoId, condoId),
-        lte(amenityBlocks.startDate, date),
-        gte(amenityBlocks.endDate, date),
-      ),
-    );
+  const activeBlocks = await apiOperation("lib.actions.reservas.002", [condoId, date, date]);
 
   const isBlocked = activeBlocks.some((b) => {
     if (b.amenityId !== null && b.amenityId !== amenityId) return false;
@@ -142,19 +128,7 @@ export async function createReservationAction(formData: FormData) {
   if (unitId && limitPerUnit > 0 && session.role === "morador") {
     const isWeek = amenity.limitInterval === "semana";
     // Count active reservations for this unit in the current month or week
-    const existingUnitRes = await db
-      .select({ id: reservations.id, date: reservations.date })
-      .from(reservations)
-      .where(
-        and(
-          eq(reservations.condoId, condoId),
-          eq(reservations.amenityId, amenityId),
-          eq(reservations.unitId, unitId),
-          not(eq(reservations.status, "cancelada")),
-          not(eq(reservations.status, "rejeitada")),
-          gte(reservations.date, todayStr),
-        ),
-      );
+    const existingUnitRes = await apiOperation("lib.actions.reservas.003", [condoId, amenityId, session.role === "morador", session.unitId, num(formData, "unitId") || session.unitId || null, todayStr]);
 
     if (existingUnitRes.length >= limitPerUnit) {
       return {
@@ -166,18 +140,7 @@ export async function createReservationAction(formData: FormData) {
 
   // 6. Check Time Overlap / Double Booking (With Cleaning Buffer Interval)
   const bufferMinutes = amenity.intervalMinutes ?? 0;
-  const existingReservations = await db
-    .select()
-    .from(reservations)
-    .where(
-      and(
-        eq(reservations.condoId, condoId),
-        eq(reservations.amenityId, amenityId),
-        eq(reservations.date, date),
-        not(eq(reservations.status, "cancelada")),
-        not(eq(reservations.status, "rejeitada")),
-      ),
-    );
+  const existingReservations = await apiOperation("lib.actions.reservas.004", [condoId, amenityId, date]);
 
   const hasConflict = existingReservations.some((r) => {
     const rStart = timeToMinutes(r.startTime);
@@ -207,9 +170,7 @@ export async function createReservationAction(formData: FormData) {
   const qrToken = token(12);
 
   // Insert Reservation
-  const [reservation] = await db
-    .insert(reservations)
-    .values({
+  const [reservation] = await apiOperation("lib.actions.reservas.005", [{
       condoId,
       amenityId,
       unitId,
@@ -226,15 +187,11 @@ export async function createReservationAction(formData: FormData) {
       rulesAccepted,
       qrToken,
       notes,
-    })
-    .returning();
+    }]);
 
   // Notifications
   if (!autoApprove) {
-    const sindicos = await db
-      .select({ userId: memberships.userId })
-      .from(memberships)
-      .where(and(eq(memberships.condoId, condoId), eq(memberships.role, "sindico")));
+    const sindicos = await apiOperation("lib.actions.reservas.006", [condoId]);
 
     await notify(
       condoId,
@@ -276,32 +233,17 @@ export async function approveReservationAction(formData: FormData) {
   const id = num(formData, "id");
   if (!id) return { success: false, error: "ID de reserva inválido." };
 
-  const [res] = await db
-    .select()
-    .from(reservations)
-    .where(and(eq(reservations.id, id), eq(reservations.condoId, condoId)))
-    .limit(1);
+  const [res] = await apiOperation("lib.actions.reservas.007", [id, condoId]);
 
   if (!res) return { success: false, error: "Reserva não encontrada." };
 
   // Re-check conflict to prevent race conditions during approval
-  const [amenity] = await db.select().from(amenities).where(eq(amenities.id, res.amenityId)).limit(1);
+  const [amenity] = await apiOperation("lib.actions.reservas.008", [res.amenityId]);
   const bufferMinutes = amenity?.intervalMinutes ?? 0;
   const startMins = timeToMinutes(res.startTime);
   const endMins = timeToMinutes(res.endTime);
 
-  const conflicting = await db
-    .select()
-    .from(reservations)
-    .where(
-      and(
-        eq(reservations.condoId, condoId),
-        eq(reservations.amenityId, res.amenityId),
-        eq(reservations.date, res.date),
-        eq(reservations.status, "aprovada"),
-        not(eq(reservations.id, id)),
-      ),
-    );
+  const conflicting = await apiOperation("lib.actions.reservas.009", [condoId, res.amenityId, res.date, id]);
 
   const hasConflict = conflicting.some((c) => {
     const cStart = timeToMinutes(c.startTime);
@@ -316,15 +258,12 @@ export async function approveReservationAction(formData: FormData) {
     };
   }
 
-  await db
-    .update(reservations)
-    .set({
+  await apiOperation("lib.actions.reservas.010", [{
       status: "aprovada",
       rejectionReason: null,
       approvedAt: new Date(),
       approvedById: session.user.id,
-    })
-    .where(eq(reservations.id, id));
+    }, id]);
 
   if (res.userId) {
     await notify(
@@ -360,18 +299,11 @@ export async function rejectReservationAction(formData: FormData) {
   const reason = str(formData, "reason", "Horário indisponível ou regras do condomínio.");
   if (!id) return { success: false, error: "ID de reserva inválido." };
 
-  const [res] = await db
-    .select()
-    .from(reservations)
-    .where(and(eq(reservations.id, id), eq(reservations.condoId, condoId)))
-    .limit(1);
+  const [res] = await apiOperation("lib.actions.reservas.011", [id, condoId]);
 
   if (!res) return { success: false, error: "Reserva não encontrada." };
 
-  await db
-    .update(reservations)
-    .set({ status: "rejeitada", rejectionReason: reason })
-    .where(eq(reservations.id, id));
+  await apiOperation("lib.actions.reservas.012", [{ status: "rejeitada", rejectionReason: reason }, id]);
 
   if (res.userId) {
     await notify(
@@ -407,11 +339,7 @@ export async function cancelReservationAction(formData: FormData) {
   const reason = str(formData, "reason", "Cancelamento solicitado pelo condômino.");
   if (!id) return { success: false, error: "ID de reserva inválido." };
 
-  const [res] = await db
-    .select()
-    .from(reservations)
-    .where(and(eq(reservations.id, id), eq(reservations.condoId, condoId)))
-    .limit(1);
+  const [res] = await apiOperation("lib.actions.reservas.013", [id, condoId]);
 
   if (!res) return { success: false, error: "Reserva não encontrada." };
 
@@ -421,7 +349,7 @@ export async function cancelReservationAction(formData: FormData) {
       return { success: false, error: "Permissão negada: você só pode cancelar suas próprias reservas." };
     }
 
-    const [amenity] = await db.select().from(amenities).where(eq(amenities.id, res.amenityId)).limit(1);
+    const [amenity] = await apiOperation("lib.actions.reservas.014", [res.amenityId]);
     const deadlineHours = amenity?.cancellationDeadlineHours ?? 24;
 
     const resDateTime = new Date(`${res.date}T${res.startTime}:00`);
@@ -435,14 +363,11 @@ export async function cancelReservationAction(formData: FormData) {
     }
   }
 
-  await db
-    .update(reservations)
-    .set({
+  await apiOperation("lib.actions.reservas.015", [{
       status: "cancelada",
       cancellationReason: reason,
       cancelledAt: new Date(),
-    })
-    .where(eq(reservations.id, id));
+    }, id]);
 
   await logAudit({
     session,
@@ -527,10 +452,7 @@ export async function saveAmenityAction(formData: FormData) {
   };
 
   if (id) {
-    await db
-      .update(amenities)
-      .set(values)
-      .where(and(eq(amenities.id, id), eq(amenities.condoId, condoId)));
+    await apiOperation("lib.actions.reservas.016", [values, id, condoId]);
 
     await logAudit({
       session,
@@ -541,7 +463,7 @@ export async function saveAmenityAction(formData: FormData) {
       summary: `Atualizou configurações do espaço "${name}"`,
     });
   } else {
-    const [row] = await db.insert(amenities).values(values).returning();
+    const [row] = await apiOperation("lib.actions.reservas.017", [values]);
     await logAudit({
       session,
       condoId,
@@ -566,19 +488,12 @@ export async function toggleAmenityActiveAction(formData: FormData) {
   const id = num(formData, "id");
   if (!id) return { success: false, error: "ID inválido." };
 
-  const [row] = await db
-    .select()
-    .from(amenities)
-    .where(and(eq(amenities.id, id), eq(amenities.condoId, condoId)))
-    .limit(1);
+  const [row] = await apiOperation("lib.actions.reservas.018", [id, condoId]);
 
   if (!row) return { success: false, error: "Espaço não encontrado." };
 
   const newActive = !row.active;
-  await db
-    .update(amenities)
-    .set({ active: newActive })
-    .where(eq(amenities.id, id));
+  await apiOperation("lib.actions.reservas.019", [{ active: newActive }, id]);
 
   await logAudit({
     session,
@@ -599,28 +514,18 @@ export async function deleteAmenityAction(formData: FormData) {
   if (!id) return { success: false, error: "ID inválido." };
 
   // Check if there are active reservations
-  const activeRes = await db
-    .select({ id: reservations.id })
-    .from(reservations)
-    .where(
-      and(
-        eq(reservations.amenityId, id),
-        eq(reservations.condoId, condoId),
-        not(eq(reservations.status, "cancelada")),
-        gte(reservations.date, isoDate()),
-      ),
-    );
+  const activeRes = await apiOperation("lib.actions.reservas.020", [id, condoId, isoDate()]);
 
   if (activeRes.length > 0) {
     // Soft delete to preserve historical integrity
-    await db.update(amenities).set({ active: false }).where(eq(amenities.id, id));
+    await apiOperation("lib.actions.reservas.021", [{ active: false }, id]);
     return {
       success: true,
       message: `O espaço possui ${activeRes.length} reservas futuras e foi desativado em vez de excluído para manter o histórico.`,
     };
   }
 
-  await db.delete(amenities).where(and(eq(amenities.id, id), eq(amenities.condoId, condoId)));
+  await apiOperation("lib.actions.reservas.022", [id, condoId]);
   await logAudit({
     session,
     condoId,
@@ -651,9 +556,7 @@ export async function createBlockAction(formData: FormData) {
     return { success: false, error: "A data de início do bloqueio é obrigatória." };
   }
 
-  const [block] = await db
-    .insert(amenityBlocks)
-    .values({
+  const [block] = await apiOperation("lib.actions.reservas.023", [{
       condoId,
       amenityId,
       startDate,
@@ -663,8 +566,7 @@ export async function createBlockAction(formData: FormData) {
       recurrentDay,
       reason,
       createdById: session.user.id,
-    })
-    .returning();
+    }]);
 
   await logAudit({
     session,
@@ -684,9 +586,7 @@ export async function deleteBlockAction(formData: FormData) {
   const id = num(formData, "id");
   if (!id) return { success: false, error: "ID inválido." };
 
-  await db
-    .delete(amenityBlocks)
-    .where(and(eq(amenityBlocks.id, id), eq(amenityBlocks.condoId, condoId)));
+  await apiOperation("lib.actions.reservas.024", [id, condoId]);
 
   await logAudit({
     session,

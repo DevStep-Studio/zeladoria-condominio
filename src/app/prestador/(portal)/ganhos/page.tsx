@@ -1,6 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { paymentOrders, serviceRequests, vendors } from "@/db/schema";
+import { domainRequest, type ProviderEarnings } from "@/lib/api/domain";
 import { requireProvider } from "@/lib/auth";
 import { ProviderGanhosClient } from "./ganhos-client";
 
@@ -12,54 +10,7 @@ export const metadata = {
 };
 
 export default async function PrestadorGanhosPage() {
-  const { session, vendor } = await requireProvider();
-
-  let targetVendor = vendor;
-  if (!targetVendor && session.role === "superadmin") {
-    const [first] = await db.select().from(vendors).limit(1);
-    targetVendor = first;
-  }
-
-  if (!targetVendor) {
-    return <div>Prestador não encontrado.</div>;
-  }
-
-  const completedServices = await db
-    .select({
-      id: serviceRequests.id,
-      code: serviceRequests.code,
-      title: serviceRequests.title,
-      finalAmountCents: serviceRequests.finalAmountCents,
-      platformFeeCents: serviceRequests.platformFeeCents,
-      completedAt: serviceRequests.completedAt,
-      createdAt: serviceRequests.createdAt,
-    })
-    .from(serviceRequests)
-    .where(
-      and(
-        eq(serviceRequests.vendorId, targetVendor.id),
-        eq(serviceRequests.status, "concluido")
-      )
-    )
-    .orderBy(desc(serviceRequests.completedAt));
-
-  let ordersList: any[] = [];
-  try {
-    ordersList = await db
-      .select()
-      .from(paymentOrders)
-      .where(eq(paymentOrders.vendorId, targetVendor.id))
-      .orderBy(desc(paymentOrders.createdAt));
-  } catch (err) {
-    console.warn("Could not query paymentOrders for vendor:", err);
-  }
-
-  return (
-    <ProviderGanhosClient
-      vendor={targetVendor}
-      services={completedServices}
-      orders={ordersList}
-    />
-  );
+  await requireProvider();
+  const data = await domainRequest<ProviderEarnings>("/prestador/ganhos");
+  return <ProviderGanhosClient vendor={data.vendor} services={data.services} orders={data.orders} />;
 }
-

@@ -1,6 +1,5 @@
-import { desc, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { pollOptions, pollVotes, polls } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Progress } from "@/components/ui";
@@ -13,10 +12,11 @@ export default async function EnquetesPage() {
   const { session, condoId } = await requireCondo();
   const canManage = ALL_STAFF.includes(session.role);
 
-  const rows = await db.select().from(polls).where(eq(polls.condoId, condoId)).orderBy(desc(polls.createdAt));
-  const ids = rows.map((r) => r.id);
-  const options = ids.length ? await db.select().from(pollOptions).where(inArray(pollOptions.pollId, ids)) : [];
-  const votes = ids.length ? await db.select().from(pollVotes).where(inArray(pollVotes.pollId, ids)) : [];
+  const { rows, options, votes } = await domainRequest<{
+    rows: any[];
+    options: any[];
+    votes: any[];
+  }>("/painel/enquetes", { query: { condoId, role: session.role } });
 
   return (
     <>

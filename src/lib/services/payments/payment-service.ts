@@ -1,27 +1,9 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { domainRequest } from "@/lib/api/domain";
+import type { DomainModels } from "@/lib/api/models";
+import { apiOperation } from "@/lib/api/server";
+
 import { createHash } from "node:crypto";
-import { db } from "@/db";
-import {
-  auditLogs,
-  contractAddendums,
-  financialLedgerEntries,
-  marketplaceSettings,
-  notifications,
-  paymentOrders,
-  paymentRecipients,
-  paymentWebhookEvents,
-  payouts,
-  serviceContracts,
-  serviceDisputes,
-  serviceEvidences,
-  serviceInspections,
-  serviceMessages,
-  serviceQuotes,
-  serviceRequests,
-  serviceWarrantyTickets,
-  users,
-  vendors,
-} from "@/db/schema";
+
 import { getPaymentGateway } from "./gateway-factory";
 import { CreateChargeInput, SplitRule } from "./types";
 import {
@@ -36,23 +18,15 @@ import {
  * Garante que a comissão NUNCA é hardcoded em 10%
  */
 export async function getMarketplaceSettings(condoId?: number | null) {
-  let settings: typeof marketplaceSettings.$inferSelect | undefined;
+  let settings: DomainModels["marketplaceSettings"] | undefined;
 
   if (condoId) {
-    const [condoRow] = await db
-      .select()
-      .from(marketplaceSettings)
-      .where(eq(marketplaceSettings.condoId, condoId))
-      .limit(1);
+    const [condoRow] = await apiOperation("lib.services.payments.payment-service.001", [condoId]);
     settings = condoRow;
   }
 
   if (!settings) {
-    const [globalRow] = await db
-      .select()
-      .from(marketplaceSettings)
-      .where(sql`${marketplaceSettings.condoId} IS NULL`)
-      .limit(1);
+    const [globalRow] = await apiOperation("lib.services.payments.payment-service.002", []);
     settings = globalRow;
   }
 
@@ -93,9 +67,7 @@ export async function recordLedgerEntry(params: {
   description?: string;
   metadata?: Record<string, any>;
 }) {
-  const [entry] = await db
-    .insert(financialLedgerEntries)
-    .values({
+  const [entry] = await apiOperation("lib.services.payments.payment-service.003", [{
       condoId: params.condoId,
       requestId: params.requestId || null,
       paymentOrderId: params.paymentOrderId || null,
@@ -106,8 +78,7 @@ export async function recordLedgerEntry(params: {
       referenceCode: params.referenceCode || null,
       description: params.description || null,
       metadata: params.metadata || {},
-    })
-    .returning();
+    }]);
   return entry;
 }
 
@@ -115,15 +86,11 @@ export async function recordLedgerEntry(params: {
  * Garante que o prestador possua subconta / carteira de recebedor no PSP
  */
 export async function ensurePaymentRecipient(vendorId: number) {
-  const [existing] = await db
-    .select()
-    .from(paymentRecipients)
-    .where(eq(paymentRecipients.vendorId, vendorId))
-    .limit(1);
+  const [existing] = await apiOperation("lib.services.payments.payment-service.004", [vendorId]);
 
   if (existing) return existing;
 
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vendorId)).limit(1);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.005", [vendorId]);
   if (!vendor) throw new Error("Prestador não encontrado para vinculação de recebedor.");
 
   const gateway = getPaymentGateway("asaas");
@@ -137,17 +104,14 @@ export async function ensurePaymentRecipient(vendorId: number) {
     pixKey: vendor.whatsapp || vendor.phone || undefined,
   });
 
-  const [created] = await db
-    .insert(paymentRecipients)
-    .values({
+  const [created] = await apiOperation("lib.services.payments.payment-service.006", [{
       vendorId,
       pspProvider: "asaas",
       pspAccountId: recipientRes.pspAccountId,
       pspApiKey: recipientRes.pspApiKey,
       status: recipientRes.status,
       accountType: vendor.providerType === "empresa" ? "company" : "individual",
-    })
-    .returning();
+    }]);
 
   return created;
 }
@@ -165,11 +129,7 @@ export async function providerRespondInspection(params: {
   notes?: string;
   availableSlots: { date: string; time: string; label?: string }[];
 }) {
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, params.requestId))
-    .limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.007", [params.requestId]);
 
   if (!req) throw new Error("Chamado não encontrado.");
 
@@ -184,9 +144,7 @@ export async function providerRespondInspection(params: {
   const finalPriceCents = params.type === "gratuita" ? 0 : Math.min(params.priceCents, settings.inspectionFeeMaxCents);
 
   // Insere ou atualiza vistoria técnica
-  const [inspection] = await db
-    .insert(serviceInspections)
-    .values({
+  const [inspection] = await apiOperation("lib.services.payments.payment-service.008", [{
       requestId: params.requestId,
       vendorId: params.vendorId,
       type: params.type,
@@ -196,19 +154,15 @@ export async function providerRespondInspection(params: {
       notes: params.notes || null,
       availableSlots: params.availableSlots,
       status: "pendente_escolha_morador",
-    })
-    .returning();
+    }]);
 
   // Atualiza chamado
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.009", [{
       vendorId: params.vendorId,
       inspectionId: inspection.id,
       status: "vistoria_proposta",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, params.requestId));
+    }, params.requestId]);
 
   // Notificação no chat
   let typeText = params.type === "gratuita" ? "Vistoria Gratuita" : `Vistoria Técnica (R$ ${(finalPriceCents / 100).toFixed(2)})`;
@@ -216,12 +170,12 @@ export async function providerRespondInspection(params: {
     typeText += " [Descontada integralmente do serviço se aprovado]";
   }
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.010", [{
     requestId: params.requestId,
     senderId: req.customerId,
     senderRole: "sistema",
     body: `O prestador propôs ${typeText}. ${params.availableSlots.length} horários disponíveis informados. Escolha o melhor horário para prosseguir.`,
-  });
+  }]);
 
   return inspection;
 }
@@ -233,30 +187,23 @@ export async function providerCheckInInspection(params: {
   inspectionId: number;
   vendorId: number;
 }) {
-  const [insp] = await db
-    .select()
-    .from(serviceInspections)
-    .where(eq(serviceInspections.id, params.inspectionId))
-    .limit(1);
+  const [insp] = await apiOperation("lib.services.payments.payment-service.011", [params.inspectionId]);
 
   if (!insp) throw new Error("Vistoria não encontrada.");
   if (insp.vendorId !== params.vendorId) throw new Error("Não autorizado.");
 
-  await db
-    .update(serviceInspections)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.012", [{
       providerArrivedAt: new Date(),
       status: "em_deslocamento",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceInspections.id, insp.id));
+    }, insp.id]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.013", [{
     requestId: insp.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
     body: `Check-in realizado! O prestador confirmou presença no condomínio para a realização da vistoria técnica.`,
-  });
+  }]);
 
   return { success: true };
 }
@@ -273,19 +220,11 @@ export async function customerSelectInspectionSlot(params: {
   selectedSlot: { date: string; time: string };
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
-  const [insp] = await db
-    .select()
-    .from(serviceInspections)
-    .where(eq(serviceInspections.id, params.inspectionId))
-    .limit(1);
+  const [insp] = await apiOperation("lib.services.payments.payment-service.014", [params.inspectionId]);
 
   if (!insp) throw new Error("Vistoria não encontrada.");
 
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, insp.requestId))
-    .limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.015", [insp.requestId]);
 
   if (!req) throw new Error("Chamado vinculado não encontrado.");
 
@@ -301,31 +240,25 @@ export async function customerSelectInspectionSlot(params: {
   if (insp.type === "gratuita" || insp.priceCents === 0) {
     assertTransition(req.status, "VISIT_SCHEDULED");
 
-    await db
-      .update(serviceInspections)
-      .set({
+    await apiOperation("lib.services.payments.payment-service.016", [{
         selectedSlot: params.selectedSlot,
         status: "confirmada",
         updatedAt: new Date(),
-      })
-      .where(eq(serviceInspections.id, insp.id));
+      }, insp.id]);
 
-    await db
-      .update(serviceRequests)
-      .set({
+    await apiOperation("lib.services.payments.payment-service.017", [{
         status: "VISTORIA_AGENDADA",
         scheduledDate: params.selectedSlot.date,
         scheduledTimeSlot: params.selectedSlot.time,
         updatedAt: new Date(),
-      })
-      .where(eq(serviceRequests.id, req.id));
+      }, req.id]);
 
-    await db.insert(serviceMessages).values({
+    await apiOperation("lib.services.payments.payment-service.018", [{
       requestId: req.id,
       senderId: req.customerId,
       senderRole: "morador",
       body: `Vistoria gratuita agendada para ${params.selectedSlot.date} às ${params.selectedSlot.time}.`,
-    });
+    }]);
 
     return {
       checkoutRequired: false,
@@ -342,16 +275,12 @@ export async function customerSelectInspectionSlot(params: {
   const holdExpiresAt = new Date(Date.now() + holdMinutes * 60 * 1000);
 
   // Busca dados do prestador e morador
-  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, insp.vendorId)).limit(1);
+  const [customerUser] = await apiOperation("lib.services.payments.payment-service.019", [req.customerId]);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.020", [insp.vendorId]);
 
   // Idempotência anti-duplo clique: se já existe ordem pendente para esta vistoria, reusa
   if (insp.paymentOrderId) {
-    const [existingOrder] = await db
-      .select()
-      .from(paymentOrders)
-      .where(eq(paymentOrders.id, insp.paymentOrderId))
-      .limit(1);
+    const [existingOrder] = await apiOperation("lib.services.payments.payment-service.021", [insp.paymentOrderId]);
 
     if (existingOrder && (existingOrder.status === "pending" || existingOrder.status === "paid")) {
       return {
@@ -401,9 +330,7 @@ export async function customerSelectInspectionSlot(params: {
   });
 
   // Salva payment_orders
-  const [order] = await db
-    .insert(paymentOrders)
-    .values({
+  const [order] = await apiOperation("lib.services.payments.payment-service.022", [{
       code: orderCode,
       condoId: req.condoId,
       requestId: req.id,
@@ -422,28 +349,21 @@ export async function customerSelectInspectionSlot(params: {
       pixQrCode: chargeRes.pixQrCode,
       pixCopiaECola: chargeRes.pixCopiaECola,
       status: "pending",
-    })
-    .returning();
+    }]);
 
   // Atualiza vistoria com o hold temporário de 10 min
-  await db
-    .update(serviceInspections)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.023", [{
       selectedSlot: params.selectedSlot,
       holdExpiresAt,
       paymentOrderId: order.id,
       status: "aguardando_pagamento",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceInspections.id, insp.id));
+    }, insp.id]);
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.024", [{
       status: "aguardando_pagamento_vistoria",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, req.id));
+    }, req.id]);
 
   return {
     checkoutRequired: true,
@@ -468,42 +388,32 @@ export async function completeInspectionDiagnosis(params: {
   diagnosticReport: string;
   evidencePhotos?: string[];
 }) {
-  const [insp] = await db
-    .select()
-    .from(serviceInspections)
-    .where(eq(serviceInspections.id, params.inspectionId))
-    .limit(1);
+  const [insp] = await apiOperation("lib.services.payments.payment-service.025", [params.inspectionId]);
 
   if (!insp) throw new Error("Vistoria não encontrada.");
   if (params.vendorId && insp.vendorId !== params.vendorId) {
     throw new Error("Não autorizado: vistoria pertence a outro prestador de serviço.");
   }
 
-  await db
-    .update(serviceInspections)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.026", [{
       diagnosticReport: params.diagnosticReport,
       evidencePhotos: params.evidencePhotos || [],
       status: "realizada",
       completedAt: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(serviceInspections.id, insp.id));
+    }, insp.id]);
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.027", [{
       status: "diagnostico_registrado",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, insp.requestId));
+    }, insp.requestId]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.028", [{
     requestId: insp.requestId,
     senderId: insp.vendorId,
     senderRole: "prestador",
     body: `Diagnóstico da vistoria registrado: "${params.diagnosticReport}". O profissional está preparando a proposta digital do serviço.`,
-  });
+  }]);
 
   return { success: true };
 }
@@ -530,11 +440,7 @@ export async function sendDigitalProposal(params: {
   conditions?: string;
   description: string;
 }) {
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, params.requestId))
-    .limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.029", [params.requestId]);
 
   if (!req) {
     throw new Error("Solicitação de serviço não encontrada.");
@@ -547,22 +453,14 @@ export async function sendDigitalProposal(params: {
   // Valida integridade do ciclo de vida
   assertTransition(req.status, "QUOTE_SENT");
 
-  const [existingContract] = await db
-    .select()
-    .from(serviceContracts)
-    .where(eq(serviceContracts.requestId, req.id))
-    .limit(1);
+  const [existingContract] = await apiOperation("lib.services.payments.payment-service.030", [req.id]);
 
   if (existingContract) {
     throw new Error("Este serviço já possui um contrato formalizado. Para alterações de valor ou escopo, utilize um Aditivo Contratual.");
   }
 
   // 1. Controle estrito de versionamento de propostas
-  const existingQuotes = await db
-    .select()
-    .from(serviceQuotes)
-    .where(and(eq(serviceQuotes.requestId, params.requestId), eq(serviceQuotes.vendorId, params.vendorId)))
-    .orderBy(desc(serviceQuotes.version));
+  const existingQuotes = await apiOperation("lib.services.payments.payment-service.031", [params.requestId, params.vendorId]);
 
   const activeAccepted = existingQuotes.find((q) => q.status === "aceito" || q.status === "pago_protegido");
   if (activeAccepted) {
@@ -573,20 +471,13 @@ export async function sendDigitalProposal(params: {
   const newVersion = latestVersion + 1;
 
   if (existingQuotes.length > 0) {
-    await db
-      .update(serviceQuotes)
-      .set({ status: "substituida" })
-      .where(and(eq(serviceQuotes.requestId, params.requestId), eq(serviceQuotes.status, "pendente")));
+    await apiOperation("lib.services.payments.payment-service.032", [{ status: "substituida" }, params.requestId]);
   }
 
   // 2. Desconto da vistoria técnica paga se aplicável
   let inspectionDiscountCents = 0;
   if (params.inspectionId) {
-    const [insp] = await db
-      .select()
-      .from(serviceInspections)
-      .where(eq(serviceInspections.id, params.inspectionId))
-      .limit(1);
+    const [insp] = await apiOperation("lib.services.payments.payment-service.033", [params.inspectionId]);
 
     if (insp && insp.discountOnService && insp.priceCents > 0) {
       inspectionDiscountCents = insp.priceCents;
@@ -612,9 +503,7 @@ export async function sendDigitalProposal(params: {
   const contractString = `REQ_${params.requestId}_VEND_${params.vendorId}_V${newVersion}_VAL_${totalCents}_DISC_${inspectionDiscountCents}_WARR_${warrantyDays}_EXP_${computedExpiresAt.getTime()}_${Date.now()}`;
   const contractHash = createHash("sha256").update(contractString).digest("hex");
 
-  const [quote] = await db
-    .insert(serviceQuotes)
-    .values({
+  const [quote] = await apiOperation("lib.services.payments.payment-service.034", [{
       requestId: params.requestId,
       vendorId: params.vendorId,
       inspectionId: params.inspectionId || null,
@@ -638,37 +527,33 @@ export async function sendDigitalProposal(params: {
       sentAt: new Date(),
       description: params.description,
       status: "pendente",
-    })
-    .returning();
+    }]);
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.035", [{
       status: "proposta_enviada",
       estimatedAmountCents: totalCents,
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, params.requestId));
+    }, params.requestId]);
 
   const discountMsg = inspectionDiscountCents > 0 ? ` (com crédito de -R$ ${(inspectionDiscountCents / 100).toFixed(2)} da vistoria)` : "";
   const validUntilFormatted = computedExpiresAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " às " + computedExpiresAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.036", [{
     requestId: params.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
     body: `Orçamento enviado: R$ ${(totalCents / 100).toFixed(2)}${discountMsg}. Válido até ${validUntilFormatted}. Garantia informada: ${warrantyDays} dias com Zeladoria Protege.`,
-  });
+  }]);
 
   // Notifica o morador sobre o novo orçamento
-  await db.insert(notifications).values({
+  await apiOperation("lib.services.payments.payment-service.037", [{
     condoId: req.condoId,
     userId: req.customerId,
     title: `Novo orçamento no chamado #${req.code}`,
     body: `Orçamento de R$ ${(totalCents / 100).toFixed(2)} recebido. Válido até ${validUntilFormatted}.`,
     link: `/painel/servicos`,
     channel: "app",
-  });
+  }]);
 
   return quote;
 }
@@ -683,14 +568,14 @@ export async function customerAcceptProposalAndPay(params: {
   billingType?: "PIX" | "CREDIT_CARD";
   userIp?: string;
 }) {
-  const [quote] = await db.select().from(serviceQuotes).where(eq(serviceQuotes.id, params.quoteId)).limit(1);
+  const [quote] = await apiOperation("lib.services.payments.payment-service.038", [params.quoteId]);
   if (!quote) throw new Error("Proposta não encontrada.");
 
   if (quote.status === "substituida" || quote.status === "recusado" || quote.status === "expirado") {
     throw new Error(`Esta proposta não está mais disponível para aceite (status atual: ${quote.status}). Por favor, consulte a versão mais recente enviada pelo prestador.`);
   }
 
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, quote.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.039", [quote.requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
 
   // Proteção contra IDOR e vazamento entre condomínios
@@ -701,15 +586,15 @@ export async function customerAcceptProposalAndPay(params: {
     throw new Error("Acesso negado: chamado pertence a outro condomínio.");
   }
 
-  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, quote.vendorId)).limit(1);
+  const [customerUser] = await apiOperation("lib.services.payments.payment-service.040", [req.customerId]);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.041", [quote.vendorId]);
 
   // Validação estrita de expiração temporal do orçamento (Cláusulas 2-4)
   const now = new Date();
   const expirationDate = quote.expiresAt || quote.validUntil;
   if (expirationDate && new Date(expirationDate) < now) {
-    await db.update(serviceQuotes).set({ status: "expirado" }).where(eq(serviceQuotes.id, quote.id));
-    await db.insert(auditLogs).values({
+    await apiOperation("lib.services.payments.payment-service.042", [{ status: "expirado" }, quote.id]);
+    await apiOperation("lib.services.payments.payment-service.043", [{
       condoId: req.condoId,
       userId: params.customerId,
       userName: customerUser?.name || "morador",
@@ -718,23 +603,15 @@ export async function customerAcceptProposalAndPay(params: {
       entityId: String(quote.id),
       summary: `Tentativa de aceite de orçamento expirado (quote #${quote.id}) no chamado #${req.code}`,
       critical: false,
-    });
+    }]);
     throw new Error(`Este orçamento expirou em ${new Date(expirationDate).toLocaleDateString("pt-BR")} às ${new Date(expirationDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} e não pode mais ser aceito. Solicite um novo orçamento.`);
   }
 
   // 0. Idempotência anti-duplo clique: se já existe contrato gerado para esta proposta, reaproveita a cobrança
-  const [existingContract] = await db
-    .select()
-    .from(serviceContracts)
-    .where(eq(serviceContracts.quoteId, quote.id))
-    .limit(1);
+  const [existingContract] = await apiOperation("lib.services.payments.payment-service.044", [quote.id]);
 
   if (existingContract && existingContract.paymentOrderId) {
-    const [existingOrder] = await db
-      .select()
-      .from(paymentOrders)
-      .where(eq(paymentOrders.id, existingContract.paymentOrderId))
-      .limit(1);
+    const [existingOrder] = await apiOperation("lib.services.payments.payment-service.045", [existingContract.paymentOrderId]);
 
     if (
       existingOrder &&
@@ -768,21 +645,15 @@ export async function customerAcceptProposalAndPay(params: {
   }
 
   // Marca proposta como aceita com snapshot do IP e timestamp dos termos
-  await db
-    .update(serviceQuotes)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.046", [{
       status: "aceito",
       acceptedAt: new Date(),
       termsAcceptedAt: new Date(),
       userIp: params.userIp || null,
-    })
-    .where(eq(serviceQuotes.id, quote.id));
+    }, quote.id]);
 
   // Recusa propostas concorrentes do mesmo chamado
-  await db
-    .update(serviceQuotes)
-    .set({ status: "recusado" })
-    .where(and(eq(serviceQuotes.requestId, req.id), sql`${serviceQuotes.id} != ${quote.id}`));
+  await apiOperation("lib.services.payments.payment-service.047", [{ status: "recusado" }, req.id, quote.id]);
 
   // Busca configurações de comissão
   const settings = await getMarketplaceSettings(req.condoId);
@@ -791,9 +662,7 @@ export async function customerAcceptProposalAndPay(params: {
   const netVendorCents = quote.totalCents - platformFeeCents;
 
   // 1. CONGELAMENTO IMUTÁVEL: Criação do Contrato Digital (ServiceContract - Cláusula 17)
-  const [contract] = await db
-    .insert(serviceContracts)
-    .values({
+  const [contract] = await apiOperation("lib.services.payments.payment-service.048", [{
       condoId: req.condoId,
       requestId: req.id,
       quoteId: quote.id,
@@ -819,8 +688,7 @@ export async function customerAcceptProposalAndPay(params: {
       userIp: params.userIp || null,
       conditions: quote.conditions || null,
       status: "AWAITING_PAYMENT",
-    })
-    .returning();
+    }]);
 
   // Gera código único da ordem do serviço principal: PAY-SRV-YYYY-XXXX
   const seqNum = Math.floor(1000 + Math.random() * 9000);
@@ -844,9 +712,7 @@ export async function customerAcceptProposalAndPay(params: {
     },
   });
 
-  const [order] = await db
-    .insert(paymentOrders)
-    .values({
+  const [order] = await apiOperation("lib.services.payments.payment-service.049", [{
       code: orderCode,
       condoId: req.condoId,
       requestId: req.id,
@@ -866,18 +732,12 @@ export async function customerAcceptProposalAndPay(params: {
       pixQrCode: chargeRes.pixQrCode,
       pixCopiaECola: chargeRes.pixCopiaECola,
       status: "pending",
-    })
-    .returning();
+    }]);
 
   // Vincula paymentOrderId ao contrato digital
-  await db
-    .update(serviceContracts)
-    .set({ paymentOrderId: order.id, updatedAt: new Date() })
-    .where(eq(serviceContracts.id, contract.id));
+  await apiOperation("lib.services.payments.payment-service.050", [{ paymentOrderId: order.id, updatedAt: new Date() }, contract.id]);
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.051", [{
       vendorId: quote.vendorId,
       status: "aguardando_pagamento_servico",
       finalAmountCents: quote.totalCents,
@@ -885,8 +745,7 @@ export async function customerAcceptProposalAndPay(params: {
       commissionRatePercent: commissionPercent,
       paymentOrderId: order.id,
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, req.id));
+    }, req.id]);
 
   // Registra no Ledger contábil
   await recordLedgerEntry({
@@ -936,31 +795,23 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
   const event = gateway.parseWebhookEvent(rawBody);
 
   // 1. Verificação estrita de idempotência no banco
-  const [existingEvent] = await db
-    .select()
-    .from(paymentWebhookEvents)
-    .where(eq(paymentWebhookEvents.eventId, event.eventId))
-    .limit(1);
+  const [existingEvent] = await apiOperation("lib.services.payments.payment-service.052", [event.eventId]);
 
   if (existingEvent) {
     return { success: true, duplicate: true, eventId: event.eventId };
   }
 
   // Registra evento no log
-  await db.insert(paymentWebhookEvents).values({
+  await apiOperation("lib.services.payments.payment-service.053", [{
     provider: "asaas",
     eventId: event.eventId,
     eventType: event.eventType,
     payload: event.rawPayload,
     status: "processed",
-  });
+  }]);
 
   // 2. Localiza a ordem de pagamento correspondente
-  const [order] = await db
-    .select()
-    .from(paymentOrders)
-    .where(eq(paymentOrders.pspPaymentId, event.pspPaymentId))
-    .limit(1);
+  const [order] = await apiOperation("lib.services.payments.payment-service.054", [event.pspPaymentId]);
 
   if (!order) {
     console.warn(`Ordem não encontrada para pspPaymentId ${event.pspPaymentId}`);
@@ -978,20 +829,11 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
 
     if (order.purpose === "vistoria") {
       // PAGAMENTO A: Vistoria confirmada
-      await db
-        .update(paymentOrders)
-        .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
-        .where(eq(paymentOrders.id, order.id));
+      await apiOperation("lib.services.payments.payment-service.055", [{ status: "paid", paidAt: new Date(), updatedAt: new Date() }, order.id]);
 
-      await db
-        .update(serviceInspections)
-        .set({ status: "confirmada", holdExpiresAt: null, updatedAt: new Date() })
-        .where(eq(serviceInspections.paymentOrderId, order.id));
+      await apiOperation("lib.services.payments.payment-service.056", [{ status: "confirmada", holdExpiresAt: null, updatedAt: new Date() }, order.id]);
 
-      await db
-        .update(serviceRequests)
-        .set({ status: "VISTORIA_CONFIRMADA", isPaid: true, updatedAt: new Date() })
-        .where(eq(serviceRequests.id, order.requestId));
+      await apiOperation("lib.services.payments.payment-service.057", [{ status: "VISTORIA_CONFIRMADA", isPaid: true, updatedAt: new Date() }, order.requestId]);
 
       await recordLedgerEntry({
         condoId: order.condoId,
@@ -1005,49 +847,36 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
         description: `Pagamento da vistoria técnica aprovado via ${order.billingType}`,
       });
 
-      await db.insert(serviceMessages).values({
+      await apiOperation("lib.services.payments.payment-service.058", [{
         requestId: order.requestId,
         senderId: order.customerId,
         senderRole: "sistema",
         body: `Pagamento da vistoria técnica confirmado com sucesso! Horário de visitação confirmado para o prestador.`,
-      });
+      }]);
     } else if (order.purpose === "servico") {
       // PAGAMENTO B: Serviço protegido por Zeladoria Protege
-      await db
-        .update(paymentOrders)
-        .set({
+      await apiOperation("lib.services.payments.payment-service.059", [{
           status: "retained", // Valor em custódia/retenção do PSP
           paidAt: new Date(),
           updatedAt: new Date(),
-        })
-        .where(eq(paymentOrders.id, order.id));
+        }, order.id]);
 
-      await db
-        .update(serviceRequests)
-        .set({
+      await apiOperation("lib.services.payments.payment-service.060", [{
           status: "SERVICO_PAGO_LIBERADO",
           isPaid: true,
           updatedAt: new Date(),
-        })
-        .where(eq(serviceRequests.id, order.requestId));
+        }, order.requestId]);
 
       // Atualiza contrato digital se vinculado
       if (order.contractId) {
-        await db
-          .update(serviceContracts)
-          .set({ status: "PAID", updatedAt: new Date() })
-          .where(eq(serviceContracts.id, order.contractId));
+        await apiOperation("lib.services.payments.payment-service.061", [{ status: "PAID", updatedAt: new Date() }, order.contractId]);
       }
 
       // Cria registro de elegibilidade de repasse (Payout - Cláusula 46) com checagem anti-duplicação
-      const [existingPayout] = await db
-        .select()
-        .from(payouts)
-        .where(eq(payouts.paymentOrderId, order.id))
-        .limit(1);
+      const [existingPayout] = await apiOperation("lib.services.payments.payment-service.062", [order.id]);
 
       if (!existingPayout) {
-        await db.insert(payouts).values({
+        await apiOperation("lib.services.payments.payment-service.063", [{
           condoId: order.condoId,
           vendorId: order.vendorId,
           contractId: order.contractId || null,
@@ -1059,7 +888,7 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
           netAmountCents: order.netVendorCents,
           status: "ELIGIBLE",
           eligibleAt: new Date(Date.now() + 72 * 3600 * 1000),
-        });
+        }]);
       }
 
       // Registros contábeis no Ledger
@@ -1101,29 +930,20 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
         description: `Recebível líquido do prestador sob proteção Zeladoria Protege`,
       });
 
-      await db.insert(serviceMessages).values({
+      await apiOperation("lib.services.payments.payment-service.064", [{
         requestId: order.requestId,
         senderId: order.customerId,
         senderRole: "sistema",
         body: `Pagamento do serviço aprovado e garantido pelo Zeladoria Protege! O prestador já pode executar o trabalho. O repasse será liberado após sua confirmação.`,
-      });
+      }]);
     }
   } else if (event.eventType === "PAYMENT_REFUNDED") {
-    await db
-      .update(paymentOrders)
-      .set({ status: "refunded", refundedAt: new Date(), updatedAt: new Date() })
-      .where(eq(paymentOrders.id, order.id));
+    await apiOperation("lib.services.payments.payment-service.065", [{ status: "refunded", refundedAt: new Date(), updatedAt: new Date() }, order.id]);
 
-    await db
-      .update(serviceRequests)
-      .set({ status: "reembolsado", updatedAt: new Date() })
-      .where(eq(serviceRequests.id, order.requestId));
+    await apiOperation("lib.services.payments.payment-service.066", [{ status: "reembolsado", updatedAt: new Date() }, order.requestId]);
 
     if (order.contractId) {
-      await db
-        .update(serviceContracts)
-        .set({ status: "CANCELLED", updatedAt: new Date() })
-        .where(eq(serviceContracts.id, order.contractId));
+      await apiOperation("lib.services.payments.payment-service.067", [{ status: "CANCELLED", updatedAt: new Date() }, order.contractId]);
     }
 
     await recordLedgerEntry({
@@ -1146,7 +966,7 @@ export async function processPaymentWebhook(rawBody: string, headers: Record<str
  * Morador confirma "Tudo Certo" -> Libera repasse do split
  */
 export async function customerConfirmServiceCompletion(requestId: number, customerId: number) {
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.068", [requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== customerId) throw new Error("Não autorizado.");
 
@@ -1154,11 +974,7 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
   assertTransition(req.status, "CUSTOMER_CONFIRMED");
 
   // Localiza a ordem de pagamento do serviço
-  const [order] = await db
-    .select()
-    .from(paymentOrders)
-    .where(and(eq(paymentOrders.requestId, requestId), eq(paymentOrders.purpose, "servico")))
-    .limit(1);
+  const [order] = await apiOperation("lib.services.payments.payment-service.069", [requestId]);
 
   if (order) {
     // Idempotência: se já liberado anteriormente, não processa repasse duplo
@@ -1166,24 +982,18 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
       return { success: true, alreadyReleased: true };
     }
 
-    await db
-      .update(paymentOrders)
-      .set({
+    await apiOperation("lib.services.payments.payment-service.070", [{
         status: "released",
         releasedAt: new Date(),
         updatedAt: new Date(),
-      })
-      .where(eq(paymentOrders.id, order.id));
+      }, order.id]);
 
     // Atualiza status do repasse para PAID
-    await db
-      .update(payouts)
-      .set({
+    await apiOperation("lib.services.payments.payment-service.071", [{
         status: "PAID",
         paidAt: new Date(),
         updatedAt: new Date(),
-      })
-      .where(eq(payouts.paymentOrderId, order.id));
+      }, order.id]);
 
     // Executa liberação do repasse junto ao PSP se houver suporte
     const gateway = getPaymentGateway(order.pspProvider as any);
@@ -1209,26 +1019,20 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
   }
 
   // Atualiza contrato se houver
-  await db
-    .update(serviceContracts)
-    .set({ status: "COMPLETED", updatedAt: new Date() })
-    .where(eq(serviceContracts.requestId, requestId));
+  await apiOperation("lib.services.payments.payment-service.072", [{ status: "COMPLETED", updatedAt: new Date() }, requestId]);
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.073", [{
       status: "concluido",
       completedAt: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, requestId));
+    }, requestId]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.074", [{
     requestId,
     senderId: customerId,
     senderRole: "morador",
     body: "O cliente confirmou a conclusão do serviço (Tudo Certo!). Repasse financeiro liberado ao prestador pelo Zeladoria Protege.",
-  });
+  }]);
 
   return { success: true };
 }
@@ -1242,51 +1046,32 @@ export async function customerOpenDispute(params: {
   reason: string;
   description: string;
 }) {
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.075", [params.requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
   // Trava a ordem de pagamento
-  const [order] = await db
-    .select()
-    .from(paymentOrders)
-    .where(and(eq(paymentOrders.requestId, params.requestId), eq(paymentOrders.purpose, "servico")))
-    .limit(1);
+  const [order] = await apiOperation("lib.services.payments.payment-service.076", [params.requestId]);
 
   if (order) {
-    await db
-      .update(paymentOrders)
-      .set({ status: "in_dispute", updatedAt: new Date() })
-      .where(eq(paymentOrders.id, order.id));
+    await apiOperation("lib.services.payments.payment-service.077", [{ status: "in_dispute", updatedAt: new Date() }, order.id]);
 
     // Trava o repasse financeiro do prestador associado à ordem de pagamento
-    await db
-      .update(payouts)
-      .set({ status: "BLOCKED_DISPUTE", updatedAt: new Date() })
-      .where(eq(payouts.paymentOrderId, order.id));
+    await apiOperation("lib.services.payments.payment-service.078", [{ status: "BLOCKED_DISPUTE", updatedAt: new Date() }, order.id]);
   }
 
   // Atualiza contrato
-  await db
-    .update(serviceContracts)
-    .set({ status: "DISPUTED", updatedAt: new Date() })
-    .where(eq(serviceContracts.requestId, params.requestId));
+  await apiOperation("lib.services.payments.payment-service.079", [{ status: "DISPUTED", updatedAt: new Date() }, params.requestId]);
 
-  const [dispute] = await db
-    .insert(serviceDisputes)
-    .values({
+  const [dispute] = await apiOperation("lib.services.payments.payment-service.080", [{
       requestId: params.requestId,
       openedById: params.customerId,
       reason: params.reason,
       description: params.description,
       status: "aberta",
-    })
-    .returning();
+    }]);
 
-  await db
-    .update(serviceRequests)
-    .set({ status: "em_disputa", updatedAt: new Date() })
-    .where(eq(serviceRequests.id, params.requestId));
+  await apiOperation("lib.services.payments.payment-service.081", [{ status: "em_disputa", updatedAt: new Date() }, params.requestId]);
 
   await recordLedgerEntry({
     condoId: req.condoId,
@@ -1299,12 +1084,12 @@ export async function customerOpenDispute(params: {
     description: `Repasse retido devido à contestação aberta: "${params.reason}"`,
   });
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.082", [{
     requestId: params.requestId,
     senderId: params.customerId,
     senderRole: "morador",
     body: `Contestação aberta pelo cliente: "${params.reason}". O repasse financeiro foi retido para mediação pelo condomínio através do Zeladoria Protege.`,
-  });
+  }]);
 
   return dispute;
 }
@@ -1324,7 +1109,7 @@ export async function providerCreateContractAddendum(params: {
   photos?: string[];
   estimatedExtraHours?: number;
 }) {
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.083", [params.requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.vendorId !== params.vendorId) throw new Error("Não autorizado.");
 
@@ -1332,9 +1117,7 @@ export async function providerCreateContractAddendum(params: {
     throw new Error("O valor adicional deve ser superior a zero.");
   }
 
-  const [addendum] = await db
-    .insert(contractAddendums)
-    .values({
+  const [addendum] = await apiOperation("lib.services.payments.payment-service.084", [{
       requestId: params.requestId,
       quoteId: params.quoteId,
       contractId: params.contractId || null,
@@ -1346,29 +1129,28 @@ export async function providerCreateContractAddendum(params: {
       photos: params.photos || [],
       estimatedExtraHours: params.estimatedExtraHours || 0,
       status: "proposto",
-    })
-    .returning();
+    }]);
 
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, params.vendorId)).limit(1);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.085", [params.vendorId]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.086", [{
     requestId: params.requestId,
     senderId: params.vendorId,
     senderRole: "prestador",
     body: `Aditivo contratual de escopo proposto: "${params.title}" (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}). Motivo: ${params.reason || params.description}. O cliente precisa aprovar antes de prosseguir.`,
-  });
+  }]);
 
   // Notifica o morador sobre a solicitação de adicional
-  await db.insert(notifications).values({
+  await apiOperation("lib.services.payments.payment-service.087", [{
     condoId: req.condoId,
     userId: req.customerId,
     title: `Adicional de serviço solicitado`,
     body: `${vendor?.name || "O prestador"} solicitou um adicional de R$ ${(params.additionalAmountCents / 100).toFixed(2)} para "${params.title}".`,
     link: `/painel/servicos`,
     channel: "app",
-  });
+  }]);
 
-  await db.insert(auditLogs).values({
+  await apiOperation("lib.services.payments.payment-service.088", [{
     condoId: req.condoId,
     userId: vendor?.userId || null,
     userName: vendor?.name || "prestador",
@@ -1377,7 +1159,7 @@ export async function providerCreateContractAddendum(params: {
     entityId: String(addendum.id),
     summary: `Adicional de escopo proposto (+R$ ${(params.additionalAmountCents / 100).toFixed(2)}) no chamado #${req.code}`,
     critical: false,
-  });
+  }]);
 
   return addendum;
 }
@@ -1391,10 +1173,10 @@ export async function customerAcceptContractAddendum(params: {
   condoId?: number;
   billingType?: "PIX" | "CREDIT_CARD";
 }) {
-  const [addendum] = await db.select().from(contractAddendums).where(eq(contractAddendums.id, params.addendumId)).limit(1);
+  const [addendum] = await apiOperation("lib.services.payments.payment-service.089", [params.addendumId]);
   if (!addendum) throw new Error("Aditivo não encontrado.");
 
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, addendum.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.090", [addendum.requestId]);
   if (!req || req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
   if (params.condoId && req.condoId !== params.condoId) {
@@ -1403,11 +1185,7 @@ export async function customerAcceptContractAddendum(params: {
 
   // Idempotência anti-duplo clique: se já existe cobrança gerada para este aditivo, reaproveita
   if (addendum.paymentOrderId) {
-    const [existingOrder] = await db
-      .select()
-      .from(paymentOrders)
-      .where(eq(paymentOrders.id, addendum.paymentOrderId))
-      .limit(1);
+    const [existingOrder] = await apiOperation("lib.services.payments.payment-service.091", [addendum.paymentOrderId]);
 
     if (
       existingOrder &&
@@ -1426,7 +1204,7 @@ export async function customerAcceptContractAddendum(params: {
     }
   }
 
-  const [customerUser] = await db.select().from(users).where(eq(users.id, req.customerId)).limit(1);
+  const [customerUser] = await apiOperation("lib.services.payments.payment-service.092", [req.customerId]);
   const settings = await getMarketplaceSettings(req.condoId);
   const platformFeeCents = Math.round((addendum.additionalAmountCents * settings.commissionPercent) / 100);
   const netVendorCents = addendum.additionalAmountCents - platformFeeCents;
@@ -1452,9 +1230,7 @@ export async function customerAcceptContractAddendum(params: {
     },
   });
 
-  const [order] = await db
-    .insert(paymentOrders)
-    .values({
+  const [order] = await apiOperation("lib.services.payments.payment-service.093", [{
       code: orderCode,
       condoId: req.condoId,
       requestId: req.id,
@@ -1472,18 +1248,14 @@ export async function customerAcceptContractAddendum(params: {
       pixQrCode: chargeRes.pixQrCode,
       pixCopiaECola: chargeRes.pixCopiaECola,
       status: "pending",
-    })
-    .returning();
+    }]);
 
-  await db
-    .update(contractAddendums)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.094", [{
       status: "aceito",
       acceptedAt: new Date(),
       paymentOrderId: order.id,
       updatedAt: new Date(),
-    })
-    .where(eq(contractAddendums.id, addendum.id));
+    }, addendum.id]);
 
   await recordLedgerEntry({
     condoId: req.condoId,
@@ -1498,19 +1270,19 @@ export async function customerAcceptContractAddendum(params: {
   });
 
   // Notifica o prestador sobre o aceite
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, req.vendorId || 0)).limit(1);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.095", [req.vendorId || 0]);
   if (vendor?.userId) {
-    await db.insert(notifications).values({
+    await apiOperation("lib.services.payments.payment-service.096", [{
       condoId: req.condoId,
       userId: vendor.userId,
       title: `Aditivo aceito pelo cliente`,
       body: `O morador aceitou o aditivo "${addendum.title}". Aguardando confirmação do pagamento.`,
       link: `/prestador/chamados`,
       channel: "app",
-    });
+    }]);
   }
 
-  await db.insert(auditLogs).values({
+  await apiOperation("lib.services.payments.payment-service.097", [{
     condoId: req.condoId,
     userId: params.customerId,
     userName: customerUser?.name || "morador",
@@ -1519,7 +1291,7 @@ export async function customerAcceptContractAddendum(params: {
     entityId: String(addendum.id),
     summary: `Morador aceitou aditivo (+R$ ${(addendum.additionalAmountCents / 100).toFixed(2)}) e gerou cobrança ${orderCode}`,
     critical: false,
-  });
+  }]);
 
   return { addendum, order, chargeRes };
 }
@@ -1533,10 +1305,10 @@ export async function customerRejectContractAddendum(params: {
   condoId?: number;
   reason?: string;
 }) {
-  const [addendum] = await db.select().from(contractAddendums).where(eq(contractAddendums.id, params.addendumId)).limit(1);
+  const [addendum] = await apiOperation("lib.services.payments.payment-service.098", [params.addendumId]);
   if (!addendum) throw new Error("Aditivo não encontrado.");
 
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, addendum.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.099", [addendum.requestId]);
   if (!req || req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
   if (params.condoId && req.condoId !== params.condoId) {
@@ -1547,37 +1319,34 @@ export async function customerRejectContractAddendum(params: {
     throw new Error(`Este aditivo não pode ser recusado pois já está no status "${addendum.status}".`);
   }
 
-  await db
-    .update(contractAddendums)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.100", [{
       status: "recusado",
       rejectedAt: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(contractAddendums.id, addendum.id));
+    }, addendum.id]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.101", [{
     requestId: req.id,
     senderId: params.customerId,
     senderRole: "morador",
     body: `Aditivo contratual recusado pelo morador: "${addendum.title}". O serviço deve prosseguir dentro do escopo originalmente aprovado.${params.reason ? ` Motivo: ${params.reason}` : ""}`,
-  });
+  }]);
 
-  const [customerUser] = await db.select().from(users).where(eq(users.id, params.customerId)).limit(1);
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, req.vendorId || 0)).limit(1);
+  const [customerUser] = await apiOperation("lib.services.payments.payment-service.102", [params.customerId]);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.103", [req.vendorId || 0]);
 
   if (vendor?.userId) {
-    await db.insert(notifications).values({
+    await apiOperation("lib.services.payments.payment-service.104", [{
       condoId: req.condoId,
       userId: vendor.userId,
       title: `Aditivo recusado no chamado #${req.code}`,
       body: `O morador recusou o aditivo "${addendum.title}". O escopo original permanece vigente.`,
       link: `/prestador/chamados`,
       channel: "app",
-    });
+    }]);
   }
 
-  await db.insert(auditLogs).values({
+  await apiOperation("lib.services.payments.payment-service.105", [{
     condoId: req.condoId,
     userId: params.customerId,
     userName: customerUser?.name || "morador",
@@ -1586,7 +1355,7 @@ export async function customerRejectContractAddendum(params: {
     entityId: String(addendum.id),
     summary: `Morador recusou aditivo de escopo (+R$ ${(addendum.additionalAmountCents / 100).toFixed(2)}) no chamado #${req.code}`,
     critical: false,
-  });
+  }]);
 
   return { success: true, addendumId: addendum.id, status: "recusado" };
 }
@@ -1599,7 +1368,7 @@ export async function customerRequestWarranty(params: {
   customerId: number;
   description: string;
 }) {
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.106", [params.requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
@@ -1608,31 +1377,23 @@ export async function customerRequestWarranty(params: {
     throw new Error("Garantia só pode ser acionada para serviços concluídos.");
   }
 
-  const [quote] = await db
-    .select()
-    .from(serviceQuotes)
-    .where(eq(serviceQuotes.requestId, req.id))
-    .orderBy(desc(serviceQuotes.id))
-    .limit(1);
+  const [quote] = await apiOperation("lib.services.payments.payment-service.107", [req.id]);
 
-  const [ticket] = await db
-    .insert(serviceWarrantyTickets)
-    .values({
+  const [ticket] = await apiOperation("lib.services.payments.payment-service.108", [{
       requestId: req.id,
       quoteId: quote?.id || 0,
       customerId: params.customerId,
       vendorId: req.vendorId || 0,
       description: params.description,
       status: "aberto",
-    })
-    .returning();
+    }]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.109", [{
     requestId: req.id,
     senderId: params.customerId,
     senderRole: "morador",
     body: `Solicitação de suporte em garantia aberta: "${params.description}". O prestador foi notificado para retorno técnico gratuito dentro da garantia contratual.`,
-  });
+  }]);
 
   return ticket;
 }
@@ -1649,11 +1410,7 @@ export async function providerRecordEvidence(params: {
   fileUrl: string;
   caption?: string;
 }) {
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, params.requestId))
-    .limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.110", [params.requestId]);
 
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.vendorId && req.vendorId !== params.vendorId) {
@@ -1663,9 +1420,7 @@ export async function providerRecordEvidence(params: {
     throw new Error("Não autorizado: condomínio divergente.");
   }
 
-  const [evidence] = await db
-    .insert(serviceEvidences)
-    .values({
+  const [evidence] = await apiOperation("lib.services.payments.payment-service.111", [{
       condoId: params.condoId,
       requestId: params.requestId,
       contractId: params.contractId || null,
@@ -1673,8 +1428,7 @@ export async function providerRecordEvidence(params: {
       stage: params.stage,
       fileUrl: params.fileUrl,
       caption: params.caption || null,
-    })
-    .returning();
+    }]);
 
   return evidence;
 }
@@ -1689,7 +1443,7 @@ export async function providerFinalizeService(params: {
   finalPhotos?: string[];
   warrantyDays?: number;
 }) {
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, params.requestId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.112", [params.requestId]);
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.vendorId !== params.vendorId) throw new Error("Não autorizado.");
 
@@ -1699,31 +1453,28 @@ export async function providerFinalizeService(params: {
   // Salva fotos finais como evidências DEPOIS
   if (params.finalPhotos && params.finalPhotos.length > 0) {
     for (const url of params.finalPhotos) {
-      await db.insert(serviceEvidences).values({
+      await apiOperation("lib.services.payments.payment-service.113", [{
         condoId: req.condoId,
         requestId: req.id,
         vendorId: params.vendorId,
         stage: "DEPOIS",
         fileUrl: url,
         caption: "Evidência de conclusão do serviço",
-      });
+      }]);
     }
   }
 
-  await db
-    .update(serviceRequests)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.114", [{
       status: "prestador_concluiu",
       updatedAt: new Date(),
-    })
-    .where(eq(serviceRequests.id, req.id));
+    }, req.id]);
 
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.115", [{
     requestId: req.id,
     senderId: params.vendorId,
     senderRole: "prestador",
     body: `Serviço finalizado pelo profissional! Laudo de entrega: "${params.finalNotes}". Por favor, verifique o resultado e confirme a conclusão no painel para liberação do repasse.`,
-  });
+  }]);
 
   return { success: true };
 }
@@ -1741,18 +1492,10 @@ export async function getContractReceipt(
     isSuperAdmin?: boolean;
   }
 ) {
-  let [contract] = await db
-    .select()
-    .from(serviceContracts)
-    .where(eq(serviceContracts.id, contractIdOrRequestId))
-    .limit(1);
+  let [contract] = await apiOperation("lib.services.payments.payment-service.116", [contractIdOrRequestId]);
 
   if (!contract) {
-    [contract] = await db
-      .select()
-      .from(serviceContracts)
-      .where(eq(serviceContracts.requestId, contractIdOrRequestId))
-      .limit(1);
+    [contract] = await apiOperation("lib.services.payments.payment-service.117", [contractIdOrRequestId]);
   }
 
   if (!contract) throw new Error("Contrato digital não localizado.");
@@ -1770,11 +1513,11 @@ export async function getContractReceipt(
     }
   }
 
-  const [req] = await db.select().from(serviceRequests).where(eq(serviceRequests.id, contract.requestId)).limit(1);
-  const [vendor] = await db.select().from(vendors).where(eq(vendors.id, contract.vendorId)).limit(1);
-  const [customer] = await db.select().from(users).where(eq(users.id, contract.customerId)).limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.118", [contract.requestId]);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.119", [contract.vendorId]);
+  const [customer] = await apiOperation("lib.services.payments.payment-service.120", [contract.customerId]);
   const [order] = contract.paymentOrderId
-    ? await db.select().from(paymentOrders).where(eq(paymentOrders.id, contract.paymentOrderId)).limit(1)
+    ? await apiOperation("lib.services.payments.payment-service.121", [contract.paymentOrderId])
     : [undefined];
 
   return {
@@ -1820,26 +1563,7 @@ export async function getContractReceipt(
  * 17. Painel financeiro do prestador (Cláusula 47: A receber, Em processamento, Recebido)
  */
 export async function getProviderFinancialSummary(vendorId: number) {
-  const orders = await db
-    .select({
-      id: paymentOrders.id,
-      code: paymentOrders.code,
-      purpose: paymentOrders.purpose,
-      amountGrossCents: paymentOrders.amountGrossCents,
-      platformFeeCents: paymentOrders.platformFeeCents,
-      netVendorCents: paymentOrders.netVendorCents,
-      status: paymentOrders.status,
-      billingType: paymentOrders.billingType,
-      paidAt: paymentOrders.paidAt,
-      releasedAt: paymentOrders.releasedAt,
-      createdAt: paymentOrders.createdAt,
-      requestId: paymentOrders.requestId,
-      serviceTitle: serviceRequests.title,
-    })
-    .from(paymentOrders)
-    .leftJoin(serviceRequests, eq(serviceRequests.id, paymentOrders.requestId))
-    .where(eq(paymentOrders.vendorId, vendorId))
-    .orderBy(desc(paymentOrders.createdAt));
+  const orders = await apiOperation("lib.services.payments.payment-service.122", [vendorId]);
 
   // A receber: ordens pagas pelo cliente mas ainda retidas sob proteção (retained)
   const pendingReleaseCents = orders
@@ -1871,30 +1595,10 @@ export async function getProviderFinancialSummary(vendorId: number) {
  * 18. Dashboard Administrativo Consolidado do Zeladoria Pay (Cláusula 55-56)
  */
 export async function getAdminFinancialDashboard(condoId: number) {
-  const allOrders = await db
-    .select()
-    .from(paymentOrders)
-    .where(eq(paymentOrders.condoId, condoId))
-    .orderBy(desc(paymentOrders.createdAt));
+  const allOrders = await apiOperation("lib.services.payments.payment-service.123", [condoId]);
 
   // Isolamento multi-tenant estrito: contestações apenas do condomínio logado
-  const allDisputes = await db
-    .select({
-      id: serviceDisputes.id,
-      requestId: serviceDisputes.requestId,
-      openedById: serviceDisputes.openedById,
-      reason: serviceDisputes.reason,
-      description: serviceDisputes.description,
-      status: serviceDisputes.status,
-      resolutionNotes: serviceDisputes.resolutionNotes,
-      resolvedById: serviceDisputes.resolvedById,
-      resolvedAt: serviceDisputes.resolvedAt,
-      createdAt: serviceDisputes.createdAt,
-    })
-    .from(serviceDisputes)
-    .innerJoin(serviceRequests, eq(serviceRequests.id, serviceDisputes.requestId))
-    .where(eq(serviceRequests.condoId, condoId))
-    .orderBy(desc(serviceDisputes.createdAt));
+  const allDisputes = await apiOperation("lib.services.payments.payment-service.124", [condoId]);
 
   const activeOrders = allOrders.filter((o) => o.status !== "cancelled" && o.status !== "refunded");
   const approvedOrders = allOrders.filter(
@@ -1903,7 +1607,7 @@ export async function getAdminFinancialDashboard(condoId: number) {
 
   // GMV = Volume total bruto transacionado
   const totalVolumeGrossCents = approvedOrders.reduce((acc, o) => acc + o.amountGrossCents, 0);
-  
+
   // Receita da Zeladoria = Comissões efetivamente retidas
   const platformRevenueCents = approvedOrders.reduce((acc, o) => acc + o.platformFeeCents, 0);
 
@@ -1941,43 +1645,25 @@ export async function adminResolveDispute(params: {
   action: "release_payout" | "refund_customer" | "rework";
   resolutionNotes: string;
 }) {
-  const [dispute] = await db
-    .select()
-    .from(serviceDisputes)
-    .where(eq(serviceDisputes.id, params.disputeId))
-    .limit(1);
+  const [dispute] = await apiOperation("lib.services.payments.payment-service.125", [params.disputeId]);
 
   if (!dispute) throw new Error("Contestação não encontrada.");
 
-  const [req] = await db
-    .select()
-    .from(serviceRequests)
-    .where(eq(serviceRequests.id, dispute.requestId))
-    .limit(1);
+  const [req] = await apiOperation("lib.services.payments.payment-service.126", [dispute.requestId]);
 
   if (!req || req.condoId !== params.condoId) {
     throw new Error("Acesso negado: contestação pertence a outro condomínio.");
   }
 
-  const [order] = await db
-    .select()
-    .from(paymentOrders)
-    .where(and(eq(paymentOrders.requestId, req.id), eq(paymentOrders.purpose, "servico")))
-    .limit(1);
+  const [order] = await apiOperation("lib.services.payments.payment-service.127", [req.id]);
 
   const gateway = getPaymentGateway(order?.pspProvider as any || "asaas");
 
   if (params.action === "release_payout") {
     if (order) {
-      await db
-        .update(paymentOrders)
-        .set({ status: "released", releasedAt: new Date(), updatedAt: new Date() })
-        .where(eq(paymentOrders.id, order.id));
+      await apiOperation("lib.services.payments.payment-service.128", [{ status: "released", releasedAt: new Date(), updatedAt: new Date() }, order.id]);
 
-      await db
-        .update(payouts)
-        .set({ status: "PAID", paidAt: new Date(), updatedAt: new Date() })
-        .where(eq(payouts.paymentOrderId, order.id));
+      await apiOperation("lib.services.payments.payment-service.129", [{ status: "PAID", paidAt: new Date(), updatedAt: new Date() }, order.id]);
 
       if (gateway.releasePayout && order.pspPaymentId) {
         try {
@@ -2000,33 +1686,21 @@ export async function adminResolveDispute(params: {
       });
     }
 
-    await db
-      .update(serviceContracts)
-      .set({ status: "COMPLETED", updatedAt: new Date() })
-      .where(eq(serviceContracts.requestId, req.id));
+    await apiOperation("lib.services.payments.payment-service.130", [{ status: "COMPLETED", updatedAt: new Date() }, req.id]);
 
-    await db
-      .update(serviceRequests)
-      .set({ status: "concluido", completedAt: new Date(), updatedAt: new Date() })
-      .where(eq(serviceRequests.id, req.id));
+    await apiOperation("lib.services.payments.payment-service.131", [{ status: "concluido", completedAt: new Date(), updatedAt: new Date() }, req.id]);
 
-    await db.insert(serviceMessages).values({
+    await apiOperation("lib.services.payments.payment-service.132", [{
       requestId: req.id,
       senderId: req.customerId,
       senderRole: "sistema",
       body: `Mediação Zeladoria Protege concluída: o repasse ao prestador foi liberado. Resolução: "${params.resolutionNotes}".`,
-    });
+    }]);
   } else if (params.action === "refund_customer") {
     if (order) {
-      await db
-        .update(paymentOrders)
-        .set({ status: "refunded", refundedAt: new Date(), updatedAt: new Date() })
-        .where(eq(paymentOrders.id, order.id));
+      await apiOperation("lib.services.payments.payment-service.133", [{ status: "refunded", refundedAt: new Date(), updatedAt: new Date() }, order.id]);
 
-      await db
-        .update(payouts)
-        .set({ status: "CANCELLED", updatedAt: new Date() })
-        .where(eq(payouts.paymentOrderId, order.id));
+      await apiOperation("lib.services.payments.payment-service.134", [{ status: "CANCELLED", updatedAt: new Date() }, order.id]);
 
       if (gateway.refundCharge && order.pspPaymentId) {
         try {
@@ -2049,45 +1723,33 @@ export async function adminResolveDispute(params: {
       });
     }
 
-    await db
-      .update(serviceContracts)
-      .set({ status: "CANCELLED", updatedAt: new Date() })
-      .where(eq(serviceContracts.requestId, req.id));
+    await apiOperation("lib.services.payments.payment-service.135", [{ status: "CANCELLED", updatedAt: new Date() }, req.id]);
 
-    await db
-      .update(serviceRequests)
-      .set({ status: "cancelado", updatedAt: new Date() })
-      .where(eq(serviceRequests.id, req.id));
+    await apiOperation("lib.services.payments.payment-service.136", [{ status: "cancelado", updatedAt: new Date() }, req.id]);
 
-    await db.insert(serviceMessages).values({
+    await apiOperation("lib.services.payments.payment-service.137", [{
       requestId: req.id,
       senderId: req.customerId,
       senderRole: "sistema",
       body: `Mediação Zeladoria Protege concluída: reembolso integral ao morador aprovado. Resolução: "${params.resolutionNotes}".`,
-    });
+    }]);
   } else if (params.action === "rework") {
-    await db
-      .update(serviceRequests)
-      .set({ status: "em_atendimento", updatedAt: new Date() })
-      .where(eq(serviceRequests.id, req.id));
+    await apiOperation("lib.services.payments.payment-service.138", [{ status: "em_atendimento", updatedAt: new Date() }, req.id]);
 
-    await db.insert(serviceMessages).values({
+    await apiOperation("lib.services.payments.payment-service.139", [{
       requestId: req.id,
       senderId: req.customerId,
       senderRole: "sistema",
       body: `Mediação Zeladoria Protege concluída: determinado retrabalho técnico em garantia sem custos adicionais. Resolução: "${params.resolutionNotes}".`,
-    });
+    }]);
   }
 
-  await db
-    .update(serviceDisputes)
-    .set({
+  await apiOperation("lib.services.payments.payment-service.140", [{
       status: "resolvida",
       resolvedById: params.resolvedById,
       resolvedAt: new Date(),
       resolutionNotes: params.resolutionNotes,
-    })
-    .where(eq(serviceDisputes.id, params.disputeId));
+    }, params.disputeId]);
 
   return { success: true, disputeId: params.disputeId };
 }
@@ -2113,11 +1775,7 @@ export async function rebookServiceRequest(params: {
   location?: string;
   attachments?: string[];
 }) {
-  const [vendor] = await db
-    .select()
-    .from(vendors)
-    .where(and(eq(vendors.id, params.vendorId), eq(vendors.condoId, params.condoId)))
-    .limit(1);
+  const [vendor] = await apiOperation("lib.services.payments.payment-service.141", [params.vendorId, params.condoId]);
 
   if (!vendor) {
     throw new Error("Profissional não encontrado no condomínio.");
@@ -2133,10 +1791,7 @@ export async function rebookServiceRequest(params: {
   }
 
   // Gera código sequencial único
-  const [countRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(serviceRequests)
-    .where(eq(serviceRequests.condoId, params.condoId));
+  const [countRow] = await apiOperation("lib.services.payments.payment-service.142", [params.condoId]);
 
   const year = new Date().getFullYear();
   const seqNum = String((countRow?.n ?? 0) + 1).padStart(4, "0");
@@ -2145,9 +1800,7 @@ export async function rebookServiceRequest(params: {
   const category = (params.category || vendor.category || "servicos").toLowerCase();
   const title = params.title?.trim() || `Novo chamado com ${vendor.name}`;
 
-  const [newRequest] = await db
-    .insert(serviceRequests)
-    .values({
+  const [newRequest] = await apiOperation("lib.services.payments.payment-service.143", [{
       condoId: params.condoId,
       code,
       customerId: params.customerId,
@@ -2161,31 +1814,30 @@ export async function rebookServiceRequest(params: {
       location: params.location || "Minha Unidade",
       attachments: params.attachments || [],
       status: "solicitado", // Inicia aguardando NOVO orçamento do prestador (preço antigo NUNCA reaproveitado)
-    })
-    .returning();
+    }]);
 
   // Registra mensagem no chat do novo chamado
-  await db.insert(serviceMessages).values({
+  await apiOperation("lib.services.payments.payment-service.144", [{
     requestId: newRequest.id,
     senderId: params.customerId,
     senderRole: "sistema",
     body: `Recontratação direta iniciada com ${vendor.name} para a categoria ${category}. Aguardando envio de novo orçamento pelo profissional.`,
-  });
+  }]);
 
   // Notifica o prestador sobre o chamado direto
   if (vendor.userId) {
-    await db.insert(notifications).values({
+    await apiOperation("lib.services.payments.payment-service.145", [{
       condoId: params.condoId,
       userId: vendor.userId,
       title: `Novo chamado direto #${code}`,
       body: `Um cliente anterior solicitou um novo serviço para você. Envie um orçamento para começar.`,
       link: `/prestador/chamados`,
       channel: "app",
-    });
+    }]);
   }
 
   // Registra auditoria
-  await db.insert(auditLogs).values({
+  await apiOperation("lib.services.payments.payment-service.146", [{
     condoId: params.condoId,
     userId: params.customerId,
     action: "REBOOK_CREATED",
@@ -2193,7 +1845,7 @@ export async function rebookServiceRequest(params: {
     entityId: String(newRequest.id),
     summary: `Morador recontratou prestador ${vendor.name} (novo chamado #${code})`,
     critical: false,
-  });
+  }]);
 
   return newRequest;
 }
@@ -2202,48 +1854,5 @@ export async function rebookServiceRequest(params: {
  * 21. Retorna lista de prestadores que o morador já contratou ("Seus Profissionais")
  */
 export async function getCustomerHiredProviders(customerId: number, condoId: number) {
-  const completedRequests = await db
-    .select({
-      vendorId: serviceRequests.vendorId,
-      category: serviceRequests.category,
-      completedAt: serviceRequests.completedAt,
-      createdAt: serviceRequests.createdAt,
-    })
-    .from(serviceRequests)
-    .where(
-      and(
-        eq(serviceRequests.customerId, customerId),
-        eq(serviceRequests.condoId, condoId),
-        sql`${serviceRequests.vendorId} IS NOT NULL`
-      )
-    );
-
-  const vendorCounts: Record<number, { count: number; lastDate: Date; category: string }> = {};
-  for (const r of completedRequests) {
-    if (!r.vendorId) continue;
-    const date = r.completedAt || r.createdAt;
-    if (!vendorCounts[r.vendorId]) {
-      vendorCounts[r.vendorId] = { count: 0, lastDate: date, category: r.category };
-    }
-    vendorCounts[r.vendorId].count++;
-    if (date > vendorCounts[r.vendorId].lastDate) {
-      vendorCounts[r.vendorId].lastDate = date;
-    }
-  }
-
-  const vendorIds = Object.keys(vendorCounts).map(Number);
-  if (vendorIds.length === 0) return [];
-
-  const vendorList = await db
-    .select()
-    .from(vendors)
-    .where(inArray(vendors.id, vendorIds));
-
-  return vendorList
-    .map((v) => ({
-      ...v,
-      hireCount: vendorCounts[v.id]?.count || 1,
-      lastHiredAt: vendorCounts[v.id]?.lastDate || v.createdAt,
-    }))
-    .sort((a, b) => new Date(b.lastHiredAt).getTime() - new Date(a.lastHiredAt).getTime());
+  return domainRequest<(DomainModels["vendors"] & { hireCount: number; lastHiredAt: Date })[]>(`/servicos/historico?condoId=${condoId}`);
 }

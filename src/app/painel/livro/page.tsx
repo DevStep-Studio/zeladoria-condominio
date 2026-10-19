@@ -1,6 +1,5 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, occurrences, shifts, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat } from "@/components/ui";
@@ -22,32 +21,7 @@ export default async function LivroPage({ searchParams }: { searchParams: Promis
   const scope = v && allowed.includes(v) ? [v] : allowed;
   const canAck = ["superadmin", "sindico", "conselho"].includes(session.role);
 
-  const rows = await db
-    .select({
-      id: occurrences.id,
-      code: occurrences.code,
-      visibility: occurrences.visibility,
-      category: occurrences.category,
-      severity: occurrences.severity,
-      title: occurrences.title,
-      description: occurrences.description,
-      actionsTaken: occurrences.actionsTaken,
-      occurredAt: occurrences.occurredAt,
-      ackAt: occurrences.ackAt,
-      attachments: occurrences.attachments,
-      reporter: users.name,
-      unit: units.number,
-      block: blocks.name,
-      shiftPeriod: shifts.period,
-    })
-    .from(occurrences)
-    .leftJoin(users, eq(users.id, occurrences.reportedById))
-    .leftJoin(units, eq(units.id, occurrences.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(shifts, eq(shifts.id, occurrences.shiftId))
-    .where(and(eq(occurrences.condoId, condoId), inArray(occurrences.visibility, scope)))
-    .orderBy(desc(occurrences.occurredAt))
-    .limit(80);
+  const rows = await domainRequest<any[]>("/painel/livro", { query: { condoId, role: session.role, v } });
 
   const unitList = await unitOptions(condoId);
   const withoutAck = rows.filter((r) => !r.ackAt).length;

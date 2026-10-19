@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { ensureSeed } from "@/db/seed";
+
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { LoginForm } from "./login-form";
@@ -16,7 +16,7 @@ const DEMOS = [
 ];
 
 export default async function LoginPage() {
-  await ensureSeed();
+
   const session = await getSession();
   if (session) redirect("/painel");
 

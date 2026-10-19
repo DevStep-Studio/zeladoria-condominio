@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { documents, users } from "@/db/schema";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, EmptyState, PageHeader, StatCard } from "@/components/ui";
@@ -65,23 +64,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
   const canUpload = ALL_STAFF.includes(session.role);
   const scopes = session.role === "morador" ? ["publico", "moradores"] : ["publico", "moradores", "administrativo"];
 
-  const rows = await db
-    .select({
-      id: documents.id,
-      title: documents.title,
-      category: documents.category,
-      description: documents.description,
-      fileName: documents.fileName,
-      sizeKb: documents.sizeKb,
-      visibility: documents.visibility,
-      version: documents.version,
-      createdAt: documents.createdAt,
-      author: users.name,
-    })
-    .from(documents)
-    .leftJoin(users, eq(users.id, documents.uploadedById))
-    .where(eq(documents.condoId, condoId))
-    .orderBy(desc(documents.createdAt));
+  const rows = await domainRequest<any[]>("/painel/documentos", { query: { condoId } });
 
   const visible = rows.filter((r) => scopes.includes(r.visibility));
   const categories = [...new Set(visible.map((v) => v.category))].sort();

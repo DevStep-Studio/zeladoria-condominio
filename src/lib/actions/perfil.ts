@@ -1,12 +1,12 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { requireSession, verifyPassword, hashPassword } from "@/lib/auth";
+import { backendRequest, ApiError } from "@/lib/api/server";
+import { domainAction } from "@/lib/api/domain";
+import { requireSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { str, bool } from "@/lib/utils";
+import { str } from "@/lib/utils";
 
 export async function updateProfileInfoAction(formData: FormData) {
   const session = await requireSession();
@@ -17,15 +17,13 @@ export async function updateProfileInfoAction(formData: FormData) {
 
   if (!name) return { success: false, error: "O nome é obrigatório." };
 
-  await db
-    .update(users)
-    .set({
-      name,
-      phone: phone || null,
-      document: document || null,
-      avatarUrl: avatarUrl || null,
-    })
-    .where(eq(users.id, session.user.id));
+  const result = await domainAction("/perfil", "PATCH", {
+    name,
+    phone: phone || null,
+    document: document || null,
+    avatarUrl: avatarUrl || null,
+  });
+  if (!result.success) return result;
 
   await logAudit({
     session,
@@ -43,11 +41,8 @@ export async function updateProfileInfoAction(formData: FormData) {
 
 export async function updateDependentsAction(dependentsList: any[]) {
   const session = await requireSession();
-
-  await db
-    .update(users)
-    .set({ dependents: dependentsList })
-    .where(eq(users.id, session.user.id));
+  const result = await domainAction("/perfil", "PATCH", { dependents: dependentsList });
+  if (!result.success) return result;
 
   await logAudit({
     session,
@@ -64,11 +59,8 @@ export async function updateDependentsAction(dependentsList: any[]) {
 
 export async function updateVehiclesAction(vehiclesList: any[]) {
   const session = await requireSession();
-
-  await db
-    .update(users)
-    .set({ vehicles: vehiclesList })
-    .where(eq(users.id, session.user.id));
+  const result = await domainAction("/perfil", "PATCH", { vehicles: vehiclesList });
+  if (!result.success) return result;
 
   await logAudit({
     session,
@@ -85,11 +77,8 @@ export async function updateVehiclesAction(vehiclesList: any[]) {
 
 export async function updateEmergencyContactsAction(contactsList: any[]) {
   const session = await requireSession();
-
-  await db
-    .update(users)
-    .set({ emergencyContacts: contactsList })
-    .where(eq(users.id, session.user.id));
+  const result = await domainAction("/perfil", "PATCH", { emergencyContacts: contactsList });
+  if (!result.success) return result;
 
   await logAudit({
     session,
@@ -105,12 +94,9 @@ export async function updateEmergencyContactsAction(contactsList: any[]) {
 }
 
 export async function updateNotificationPreferencesAction(preferences: any) {
-  const session = await requireSession();
-
-  await db
-    .update(users)
-    .set({ notificationPreferences: preferences })
-    .where(eq(users.id, session.user.id));
+  await requireSession();
+  const result = await domainAction("/perfil", "PATCH", { notificationPreferences: preferences });
+  if (!result.success) return result;
 
   revalidatePath("/painel/perfil");
   return { success: true };
@@ -134,17 +120,12 @@ export async function updatePasswordAction(formData: FormData) {
     return { success: false, error: "A nova senha deve possuir no mínimo 8 caracteres." };
   }
 
-  const [user] = await db.select().from(users).where(eq(users.id, session.user.id)).limit(1);
-  if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
-    return { success: false, error: "A senha atual está incorreta." };
+  try {
+    await backendRequest("/auth/password", { method: "PUT", token: (await cookies()).get("gc_session")?.value, body: { currentPassword, newPassword, confirmPassword } });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 422) return { success: false, error: "Verifique a senha atual e a confirmação da nova senha." };
+    throw error;
   }
-
-  const newHash = hashPassword(newPassword);
-
-  await db
-    .update(users)
-    .set({ passwordHash: newHash })
-    .where(eq(users.id, session.user.id));
 
   await logAudit({
     session,
@@ -162,11 +143,8 @@ export async function updatePasswordAction(formData: FormData) {
 
 export async function toggleTwoFactorAction(enabled: boolean) {
   const session = await requireSession();
-
-  await db
-    .update(users)
-    .set({ twoFactorEnabled: enabled })
-    .where(eq(users.id, session.user.id));
+  const result = await domainAction("/perfil", "PATCH", { twoFactorEnabled: enabled });
+  if (!result.success) return result;
 
   await logAudit({
     session,

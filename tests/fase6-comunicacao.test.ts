@@ -8,11 +8,6 @@ import {
   WhatsAppTemplateKey,
 } from "../src/lib/services/whatsapp/whatsapp-service";
 
-after(async () => {
-  const { pool } = await import("../src/db");
-  await pool.end();
-});
-
 describe("FASE 6 — COMUNICAÇÃO E WHATSAPP", () => {
   // --------------------------------------------------------------------------
   // 1. TEMPLATES ESTRUTURADOS PARA CADA MOMENTO DA JORNADA

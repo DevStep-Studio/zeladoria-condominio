@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
+
 import { requireRole } from "@/lib/auth";
 import { Badge, Card, Field, PageHeader } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";

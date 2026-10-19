@@ -1,8 +1,8 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { domainRequest } from "@/lib/api/server";
+
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { db } from "@/db";
-import { notifications } from "@/db/schema";
+
 import { requireCondo, requireSession } from "@/lib/auth";
 import { Badge, Card, EmptyState, InfoNote, PageHeader } from "@/components/ui";
 import { dateTimeBR } from "@/lib/utils";
@@ -12,10 +12,7 @@ export const dynamic = "force-dynamic";
 async function markAllReadAction() {
   "use server";
   const session = await requireSession();
-  await db
-    .update(notifications)
-    .set({ readAt: new Date() })
-    .where(and(eq(notifications.userId, session.user.id), isNull(notifications.readAt)));
+  await domainRequest("/notificacoes/ler-todas", { method: "POST", body: { userId: session.user.id } });
   revalidatePath("/painel/notificacoes");
   revalidatePath("/painel", "layout");
 }
@@ -23,12 +20,7 @@ async function markAllReadAction() {
 export default async function NotificacoesPage() {
   const { session, condoId } = await requireCondo();
 
-  const rows = await db
-    .select()
-    .from(notifications)
-    .where(and(eq(notifications.userId, session.user.id), eq(notifications.condoId, condoId)))
-    .orderBy(desc(notifications.createdAt))
-    .limit(60);
+  const rows = await domainRequest<any[]>("/painel/notificacoes", { query: { condoId } });
 
   const unread = rows.filter((r) => !r.readAt).length;
 

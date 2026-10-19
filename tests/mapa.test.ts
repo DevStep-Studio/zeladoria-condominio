@@ -1,11 +1,10 @@
-import { describe, it } from "node:test";
+import { testSessionCookie } from "./session-helper";
+import { apiOperation } from "@/lib/api/server";
+import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { db } from "../src/db";
-import { condominiums, occurrences } from "../src/db/schema";
-import { eq } from "drizzle-orm";
 
 const SECRET = process.env.SESSION_SECRET ?? "gestao-condominio-dev-secret";
 const SESSION_COOKIE = "gc_session";
@@ -23,9 +22,11 @@ function generateSessionCookie(userId: number, maxAgeSeconds = 60 * 60 * 24 * 30
 }
 
 describe("Módulo Mapa do Condomínio — Testes Funcionais & E2E", () => {
-  const sessionCookieSindico = generateSessionCookie(2); // Marina Duarte (Síndica)
   const condoId = 1;
-  const authHeaderSindico = `${SESSION_COOKIE}=${sessionCookieSindico}; ${CONDO_COOKIE}=${condoId}`;
+  let authHeaderSindico: string;
+  before(async () => {
+    authHeaderSindico = `${SESSION_COOKIE}=${await testSessionCookie(2)}; ${CONDO_COOKIE}=${condoId}`;
+  });
 
   it("1. Síndico: GET /painel deve responder com status 200 OK", async () => {
     const res = await fetch(`${BASE_URL}/painel`, {
@@ -37,19 +38,7 @@ describe("Módulo Mapa do Condomínio — Testes Funcionais & E2E", () => {
   });
 
   it("2. Ocorrências no Banco de Dados possuem coordenadas geográficas ou suporte a lat/lng", async () => {
-    const occs = await db
-      .select({
-        id: occurrences.id,
-        code: occurrences.code,
-        title: occurrences.title,
-        category: occurrences.category,
-        severity: occurrences.severity,
-        status: occurrences.status,
-        latitude: occurrences.latitude,
-        longitude: occurrences.longitude,
-      })
-      .from(occurrences)
-      .where(eq(occurrences.condoId, condoId));
+    const occs = await apiOperation("tests.mapa-test.001", [condoId]);
 
     assert.ok(occs.length > 0, "Deve haver ocorrências cadastradas para o condomínio");
     for (const occ of occs) {

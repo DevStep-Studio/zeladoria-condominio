@@ -1,6 +1,5 @@
-import { asc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, memberships, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireRole } from "@/lib/auth";
 import { ALL_STAFF, ROLE_LABEL, type Role } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
@@ -21,35 +20,11 @@ export default async function MoradoresPage() {
   const { session, condoId } = await requireRole(ALL_STAFF);
   const canEdit = ["superadmin", "sindico"].includes(session.role);
 
-  const people = await db
-    .select({
-      userId: users.id,
-      name: users.name,
-      email: users.email,
-      phone: users.phone,
-      role: memberships.role,
-      relation: memberships.relation,
-      status: memberships.status,
-      invitedAt: memberships.invitedAt,
-      lastLoginAt: users.lastLoginAt,
-      firstAccessAt: users.firstAccessAt,
-      unit: units.number,
-      block: blocks.name,
-    })
-    .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.userId))
-    .leftJoin(units, eq(units.id, memberships.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(eq(memberships.condoId, condoId))
-    .orderBy(asc(users.name));
-
-  const blockList = await db.select().from(blocks).where(eq(blocks.condoId, condoId)).orderBy(asc(blocks.name));
-  const unitRows = await db
-    .select({ id: units.id, number: units.number, floor: units.floor, fraction: units.fraction, status: units.status, spots: units.parkingSpots, block: blocks.name })
-    .from(units)
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(eq(units.condoId, condoId))
-    .orderBy(asc(blocks.name), asc(units.number));
+  const { people, blockList, unitRows } = await domainRequest<{
+    people: any[];
+    blockList: any[];
+    unitRows: any[];
+  }>("/painel/moradores", { query: { condoId, role: session.role } });
   const unitList = await unitOptions(condoId);
 
   const invited = people.filter((p) => p.status === "convidado");

@@ -1,6 +1,5 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { lostItems } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat } from "@/components/ui";
@@ -14,7 +13,7 @@ export default async function AchadosPage() {
   const { session, condoId } = await requireCondo();
   const canManage = [...ALL_STAFF, "porteiro"].includes(session.role);
 
-  const rows = await db.select().from(lostItems).where(eq(lostItems.condoId, condoId)).orderBy(desc(lostItems.foundAt));
+  const rows = await domainRequest<any[]>("/painel/achados", { query: { condoId } });
   const stored = rows.filter((r) => r.status === "guardado");
   const unitList = await unitOptions(condoId);
 

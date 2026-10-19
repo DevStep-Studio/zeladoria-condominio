@@ -1,8 +1,7 @@
+import { backendRequest } from "@/lib/api/server";
+import type { ApiOperations } from "@/lib/api/contracts";
 import Link from "next/link";
-import { and, eq, inArray } from "drizzle-orm";
-import { db } from "@/db";
-import { ensureSeed } from "@/db/seed";
-import { amenities, condominiums, reservations } from "@/db/schema";
+
 import { Badge, EmptyState, InfoNote } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
@@ -26,33 +25,19 @@ export default async function PublicBookingPage({
 }: {
   searchParams: Promise<{ service?: string; date?: string; time?: string }>;
 }) {
-  await ensureSeed();
+
   const params = await searchParams;
-  const [condo] = await db.select().from(condominiums).orderBy(condominiums.id).limit(1);
-  const services = condo
-    ? await db
-        .select()
-        .from(amenities)
-        .where(and(eq(amenities.condoId, condo.id), eq(amenities.active, true)))
-        .orderBy(amenities.name)
-    : [];
+  const query = new URLSearchParams();
+  if (params.service) query.set("service", params.service);
+  if (params.date) query.set("date", params.date);
+  const { condo, services, existing } = await backendRequest<{
+    condo: ApiOperations["app.agendar.page.001"][number] | null;
+    services: ApiOperations["app.agendar.page.002"];
+    existing: ApiOperations["app.agendar.page.003"];
+  }>(`/agendar?${query.toString()}`);
 
   const selectedService = services.find((item) => String(item.id) === params.service) ?? services[0];
   const selectedDate = params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : isoDate();
-  const existing =
-    condo && selectedService
-      ? await db
-          .select({ start: reservations.startTime, end: reservations.endTime })
-          .from(reservations)
-          .where(
-            and(
-              eq(reservations.condoId, condo.id),
-              eq(reservations.amenityId, selectedService.id),
-              eq(reservations.date, selectedDate),
-              inArray(reservations.status, ["pendente", "aprovada"]),
-            ),
-          )
-      : [];
 
   const slots = selectedService
     ? buildSlots(selectedService.openTime ?? "08:00", selectedService.closeTime ?? "22:00").filter((slot) => {

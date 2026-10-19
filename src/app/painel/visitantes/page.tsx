@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { and, desc, eq, inArray, or } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, units, users, visitors, visits } from "@/db/schema";
+
 import { requireCondo } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, statusTone, TableWrap } from "@/components/ui";
@@ -19,45 +18,11 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
   const isResident = session.role === "morador";
   const isGate = GATE.includes(session.role);
 
-  const scope = isResident && session.unitId ? eq(visits.unitId, session.unitId) : undefined;
-  const statusFilter = status && status !== "todos" ? eq(visits.status, status) : undefined;
-
-  const rows = await db
-    .select({
-      id: visits.id,
-      status: visits.status,
-      purpose: visits.purpose,
-      validFrom: visits.validFrom,
-      validUntil: visits.validUntil,
-      qrToken: visits.qrToken,
-      checkinAt: visits.checkinAt,
-      checkoutAt: visits.checkoutAt,
-      deniedReason: visits.deniedReason,
-      plate: visits.vehiclePlate,
-      visitorId: visitors.id,
-      name: visitors.name,
-      document: visitors.document,
-      kind: visitors.kind,
-      company: visitors.company,
-      blocked: visitors.blocked,
-      unit: units.number,
-      block: blocks.name,
-      host: users.name,
-    })
-    .from(visits)
-    .innerJoin(visitors, eq(visitors.id, visits.visitorId))
-    .leftJoin(units, eq(units.id, visits.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .leftJoin(users, eq(users.id, visits.hostUserId))
-    .where(and(eq(visits.condoId, condoId), scope, statusFilter))
-    .orderBy(desc(visits.createdAt))
-    .limit(60);
-
-  const recurring = await db
-    .select()
-    .from(visitors)
-    .where(and(eq(visitors.condoId, condoId), or(eq(visitors.recurring, true), eq(visitors.blocked, true))))
-    .orderBy(desc(visitors.blocked), visitors.name);
+  const { rows, recurring, allVisitsInScope } = await domainRequest<{
+    rows: any[];
+    recurring: any[];
+    allVisitsInScope: any[];
+  }>("/painel/visitantes", { query: { condoId, role: session.role, status } });
 
   const pendingForMe = rows.filter(
     (r) => r.status === "aguardando" && (isResident ? true : ["sindico", "superadmin"].includes(session.role)),
@@ -71,15 +36,6 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
   for (const visit of highlighted) {
     qrCodes.set(visit.id, await qrDataUrl(visit.qrToken, 132));
   }
-
-  // Query all visits in scope for exact badge counts
-  const allVisitsInScope = await db
-    .select({
-      id: visits.id,
-      status: visits.status,
-    })
-    .from(visits)
-    .where(and(eq(visits.condoId, condoId), scope));
 
   const counts = {
     todos: allVisitsInScope.length,

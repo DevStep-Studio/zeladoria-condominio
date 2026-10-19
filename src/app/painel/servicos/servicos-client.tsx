@@ -260,10 +260,53 @@ export function ServicosClient({
     return count;
   }, [filters, onlyAvailableNow]);
 
+  const isContratacoesTab = (params: { get: (k: string) => string | null }) => {
+    const tab = params.get("tab");
+    const aba = params.get("aba");
+    return (
+      tab === "minhas-contratacoes" ||
+      tab === "contratacoes" ||
+      aba === "contratacoes" ||
+      aba === "minhas-contratacoes"
+    );
+  };
+
+  const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">(
+    isContratacoesTab(searchParams) ? "contratacoes" : "marketplace"
+  );
+  const [onlyFavorites, setOnlyFavorites] = useState<boolean>(
+    searchParams.get("tab") === "favoritos"
+  );
+
+  useEffect(() => {
+    setActiveView(isContratacoesTab(searchParams) ? "contratacoes" : "marketplace");
+    setOnlyFavorites(searchParams.get("tab") === "favoritos");
+  }, [searchParams]);
+
+  const switchView = (view: "marketplace" | "contratacoes") => {
+    setActiveView(view);
+    if (view === "marketplace") {
+      setOnlyFavorites(false);
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("aba");
+    if (view === "contratacoes") {
+      params.set("tab", role === "morador" ? "minhas-contratacoes" : "contratacoes");
+    } else {
+      params.delete("tab");
+    }
+    const queryStr = params.toString();
+    const newPath = queryStr ? `/painel/servicos?${queryStr}` : `/painel/servicos`;
+    window.history.replaceState(null, "", newPath);
+  };
+
   // Filtered & Sorted Providers List
   const filteredVendors = useMemo(() => {
     return providers
       .filter((v) => {
+        if (onlyFavorites && !favorites.includes(v.id)) {
+          return false;
+        }
         const activeCategory = filters.category !== "Todas" ? filters.category : selectedCategory;
         if (activeCategory !== "Todas" && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
           return false;
@@ -314,7 +357,7 @@ export function ServicosClient({
         if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
         return 0;
       });
-  }, [providers, search, selectedCategory, filters, sortBy, onlyAvailableNow]);
+  }, [providers, search, selectedCategory, filters, sortBy, onlyAvailableNow, onlyFavorites, favorites]);
 
   const sponsoredList = useMemo(() => {
     const rawSponsored = providers.filter((v) => v.isSponsored);
@@ -369,10 +412,6 @@ export function ServicosClient({
       .sort((a, b) => (b.condoHiredCount ?? 0) - (a.condoHiredCount ?? 0))
       .slice(0, 3);
   }, [providers]);
-
-  const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">(
-    searchParams.get("aba") === "contratacoes" ? "contratacoes" : "marketplace"
-  );
 
   // Review Modal State
   const [reviewRequest, setReviewRequest] = useState<any | null>(null);
@@ -638,7 +677,7 @@ export function ServicosClient({
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl shrink-0">
           <button
             type="button"
-            onClick={() => setActiveView("marketplace")}
+            onClick={() => switchView("marketplace")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === "marketplace"
                 ? "bg-white text-[#1355FF] shadow-xs"
@@ -651,7 +690,7 @@ export function ServicosClient({
 
           <button
             type="button"
-            onClick={() => setActiveView("contratacoes")}
+            onClick={() => switchView("contratacoes")}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === "contratacoes"
                 ? "bg-white text-[#1355FF] shadow-xs"
@@ -718,7 +757,7 @@ export function ServicosClient({
               </p>
               <button
                 type="button"
-                onClick={() => setActiveView("marketplace")}
+                onClick={() => switchView("marketplace")}
                 className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
               >
                 Buscar Profissionais
@@ -1466,6 +1505,92 @@ export function ServicosClient({
                         )}
                       </div>
                     </div>
+                  </div>
+                );
+              })}
+
+              {/* Service Orders / Contratações Registradas */}
+              {services.map((svc: any) => {
+                const svcVendor =
+                  providers.find((p) => p.id === svc.vendorId) ||
+                  vendors.find((v: any) => v.id === svc.vendorId);
+                const isCompleted = svc.status === "concluido";
+                return (
+                  <div
+                    key={`svc-${svc.id}`}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-md">
+                          {svc.code}
+                        </span>
+                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">{svc.title}</h3>
+                        <span className="rounded bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 capitalize">
+                          {svc.category}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-[4px] ${
+                          isCompleted
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-blue-50 text-[#1355FF] border border-blue-200"
+                        }`}
+                      >
+                        {(svc.status || "solicitado").replace("_", " ")}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                      <div>
+                        <span className="text-slate-400">Profissional:</span>{" "}
+                        <strong className="text-slate-800">
+                          {svcVendor?.name || "Prestador credenciado"}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Local:</span>{" "}
+                        <strong className="text-slate-800">
+                          {svc.location ||
+                            (svc.blockName && svc.unitNumber
+                              ? `${svc.blockName} · Unidade ${svc.unitNumber}`
+                              : "Unidade no condomínio")}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Data/Previsão:</span>{" "}
+                        <strong className="text-slate-800">
+                          {svc.scheduledFor || svc.preferredTime || "Conforme agendado"}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {svc.description && (
+                      <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        {svc.description}
+                      </p>
+                    )}
+
+                    {svc.costCents != null && svc.costCents > 0 && (
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <span className="text-slate-500">
+                          Valor registrado:{" "}
+                          <strong className="text-slate-900">
+                            R$ {(svc.costCents / 100).toFixed(2)}
+                          </strong>
+                        </span>
+                        {svc.vendorId && (
+                          <button
+                            type="button"
+                            onClick={() => handleRehire(svc)}
+                            className="rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <Icon name="refresh" size={12} />
+                            <span>Contratar novamente</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}

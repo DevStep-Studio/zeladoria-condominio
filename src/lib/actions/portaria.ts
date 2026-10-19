@@ -1,9 +1,8 @@
 "use server";
+import { apiOperation } from "@/lib/api/server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { memberships, occurrences, parcels, shifts, units, visitors, visits } from "@/db/schema";
+
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
 import { bool, maybeDate, num, pickupCode, sequence, str, token } from "@/lib/utils";
@@ -11,18 +10,12 @@ import { GATE } from "@/lib/rbac";
 
 async function unitResidents(condoId: number, unitId: number | null) {
   if (!unitId) return [];
-  const rows = await db
-    .select({ userId: memberships.userId })
-    .from(memberships)
-    .where(and(eq(memberships.condoId, condoId), eq(memberships.unitId, unitId)));
+  const rows = await apiOperation("lib.actions.portaria.001", [condoId, unitId]);
   return rows.map((r) => r.userId);
 }
 
 async function nextCode(table: "occurrence", condoId: number) {
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(occurrences)
-    .where(eq(occurrences.condoId, condoId));
+  const [row] = await apiOperation("lib.actions.portaria.002", [condoId]);
   return sequence(table === "occurrence" ? "OC" : "XX", Number(row?.n ?? 0) + 1);
 }
 
@@ -45,9 +38,9 @@ export async function saveVisitorAction(formData: FormData) {
   };
   if (!values.name) return;
   if (id) {
-    await db.update(visitors).set(values).where(and(eq(visitors.id, id), eq(visitors.condoId, condoId)));
+    await apiOperation("lib.actions.portaria.003", [values, id, condoId]);
   } else {
-    await db.insert(visitors).values(values);
+    await apiOperation("lib.actions.portaria.004", [values]);
   }
   await logAudit({
     session,
@@ -64,13 +57,10 @@ export async function saveVisitorAction(formData: FormData) {
 export async function toggleBlockVisitorAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico", "porteiro", "zelador"]);
   const id = num(formData, "id");
-  const [visitor] = await db.select().from(visitors).where(eq(visitors.id, id)).limit(1);
+  const [visitor] = await apiOperation("lib.actions.portaria.005", [id]);
   if (!visitor || visitor.condoId !== condoId) return;
   const blocked = !visitor.blocked;
-  await db
-    .update(visitors)
-    .set({ blocked, blockReason: blocked ? str(formData, "reason", "Bloqueio de segurança") : null })
-    .where(eq(visitors.id, id));
+  await apiOperation("lib.actions.portaria.006", [{ blocked, blockReason: blocked ? str(formData, "reason", "Bloqueio de segurança") : null }, id]);
   await logAudit({
     session,
     condoId,
@@ -91,9 +81,7 @@ export async function createVisitAction(formData: FormData) {
   const name = str(formData, "name");
 
   if (!visitorId && name) {
-    const [created] = await db
-      .insert(visitors)
-      .values({
+    const [created] = await apiOperation("lib.actions.portaria.007", [{
         condoId,
         name,
         document: str(formData, "document") || null,
@@ -103,13 +91,12 @@ export async function createVisitAction(formData: FormData) {
         company: str(formData, "company") || null,
         vehiclePlate: str(formData, "vehiclePlate").toUpperCase() || null,
         recurring: bool(formData, "recurring"),
-      })
-      .returning();
+      }]);
     visitorId = created.id;
   }
   if (!visitorId) return;
 
-  const [visitor] = await db.select().from(visitors).where(eq(visitors.id, visitorId)).limit(1);
+  const [visitor] = await apiOperation("lib.actions.portaria.008", [visitorId]);
   if (!visitor || visitor.condoId !== condoId) return;
 
   const isResident = session.role === "morador";
@@ -118,9 +105,7 @@ export async function createVisitAction(formData: FormData) {
   const validUntil = maybeDate(formData, "validUntil") ?? new Date(Date.now() + 86400000);
   const autoAuthorize = isResident || session.role === "sindico" || session.role === "superadmin";
 
-  const [visit] = await db
-    .insert(visits)
-    .values({
+  const [visit] = await apiOperation("lib.actions.portaria.009", [{
       condoId,
       visitorId,
       unitId: unitId ?? null,
@@ -136,8 +121,7 @@ export async function createVisitAction(formData: FormData) {
       vehiclePlate: str(formData, "visitPlate").toUpperCase() || visitor.vehiclePlate,
       notes: str(formData, "notes") || null,
       createdById: session.user.id,
-    })
-    .returning();
+    }]);
 
   if (!autoAuthorize && unitId) {
     await notify(
@@ -165,21 +149,18 @@ export async function decideVisitAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
   const decision = str(formData, "decision");
-  const [visit] = await db.select().from(visits).where(eq(visits.id, id)).limit(1);
+  const [visit] = await apiOperation("lib.actions.portaria.010", [id]);
   if (!visit || visit.condoId !== condoId) return;
   const isHost = visit.hostUserId === session.user.id || (session.unitId && visit.unitId === session.unitId);
   if (!isHost && !["superadmin", "sindico", "porteiro", "zelador"].includes(session.role)) return;
 
   const status = decision === "autorizar" ? "autorizado" : "negado";
-  await db
-    .update(visits)
-    .set({
+  await apiOperation("lib.actions.portaria.011", [{
       status,
       authorizedById: session.user.id,
       authorizedAt: new Date(),
       deniedReason: decision === "autorizar" ? null : str(formData, "reason", "Não autorizado pelo morador"),
-    })
-    .where(eq(visits.id, id));
+    }, id]);
   await logAudit({
     session,
     condoId,
@@ -199,16 +180,13 @@ export async function gateMoveAction(formData: FormData) {
   const { session, condoId } = await requireRole(GATE);
   const id = num(formData, "id");
   const move = str(formData, "move");
-  const [visit] = await db.select().from(visits).where(eq(visits.id, id)).limit(1);
+  const [visit] = await apiOperation("lib.actions.portaria.012", [id]);
   if (!visit || visit.condoId !== condoId) return;
-  const [visitor] = await db.select().from(visitors).where(eq(visitors.id, visit.visitorId)).limit(1);
+  const [visitor] = await apiOperation("lib.actions.portaria.013", [visit.visitorId]);
 
   if (move === "entrada") {
     if (visit.status !== "autorizado") return;
-    await db
-      .update(visits)
-      .set({ status: "dentro", checkinAt: new Date(), checkinById: session.user.id })
-      .where(eq(visits.id, id));
+    await apiOperation("lib.actions.portaria.014", [{ status: "dentro", checkinAt: new Date(), checkinById: session.user.id }, id]);
     await notify(
       condoId,
       await unitResidents(condoId, visit.unitId),
@@ -217,10 +195,7 @@ export async function gateMoveAction(formData: FormData) {
       "/painel/visitantes",
     );
   } else {
-    await db
-      .update(visits)
-      .set({ status: "finalizado", checkoutAt: new Date(), checkoutById: session.user.id })
-      .where(eq(visits.id, id));
+    await apiOperation("lib.actions.portaria.015", [{ status: "finalizado", checkoutAt: new Date(), checkoutById: session.user.id }, id]);
   }
   await logAudit({
     session,
@@ -242,10 +217,8 @@ export async function registerParcelAction(formData: FormData) {
   const { session, condoId } = await requireRole(GATE);
   const unitId = num(formData, "unitId");
   if (!unitId) return;
-  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(parcels).where(eq(parcels.condoId, condoId));
-  const [parcel] = await db
-    .insert(parcels)
-    .values({
+  const [row] = await apiOperation("lib.actions.portaria.016", [condoId]);
+  const [parcel] = await apiOperation("lib.actions.portaria.017", [{
       condoId,
       unitId,
       code: sequence("ENC", Number(row?.n ?? 0) + 1),
@@ -257,10 +230,9 @@ export async function registerParcelAction(formData: FormData) {
       shelf: str(formData, "shelf") || null,
       pickupCode: pickupCode(),
       receivedById: session.user.id,
-    })
-    .returning();
+    }]);
 
-  const [unit] = await db.select().from(units).where(eq(units.id, unitId)).limit(1);
+  const [unit] = await apiOperation("lib.actions.portaria.018", [unitId]);
   await notify(
     condoId,
     await unitResidents(condoId, unitId),
@@ -284,7 +256,7 @@ export async function registerParcelAction(formData: FormData) {
 export async function deliverParcelAction(formData: FormData) {
   const { session, condoId } = await requireRole(GATE);
   const id = num(formData, "id");
-  const [parcel] = await db.select().from(parcels).where(eq(parcels.id, id)).limit(1);
+  const [parcel] = await apiOperation("lib.actions.portaria.019", [id]);
   if (!parcel || parcel.condoId !== condoId || parcel.status !== "pendente") return;
   const informed = str(formData, "pickupCode");
   if (informed && informed !== parcel.pickupCode) {
@@ -300,17 +272,14 @@ export async function deliverParcelAction(formData: FormData) {
     });
     return;
   }
-  await db
-    .update(parcels)
-    .set({
+  await apiOperation("lib.actions.portaria.020", [{
       status: "entregue",
       pickedUpAt: new Date(),
       pickedUpBy: str(formData, "pickedUpBy", "Morador"),
       pickedUpDocument: str(formData, "pickedUpDocument") || null,
       signature: str(formData, "signature") || str(formData, "pickedUpBy") || null,
       notes: str(formData, "notes") || parcel.notes,
-    })
-    .where(eq(parcels.id, id));
+    }, id]);
   await notify(
     condoId,
     await unitResidents(condoId, parcel.unitId),
@@ -339,10 +308,7 @@ export async function openShiftAction(formData: FormData) {
   const checklistKeys = ["radios", "chaves", "cameras", "extintores", "interfone"];
   const checklist: Record<string, boolean> = {};
   for (const key of checklistKeys) checklist[key] = bool(formData, key);
-  const [shift] = await db
-    .insert(shifts)
-    .values({ condoId, userId: session.user.id, period: str(formData, "period", "manha"), checklist })
-    .returning();
+  const [shift] = await apiOperation("lib.actions.portaria.021", [{ condoId, userId: session.user.id, period: str(formData, "period", "manha"), checklist }]);
   await logAudit({
     session,
     condoId,
@@ -360,18 +326,15 @@ export async function openShiftAction(formData: FormData) {
 export async function closeShiftAction(formData: FormData) {
   const { session, condoId } = await requireRole(GATE);
   const id = num(formData, "id");
-  const [shift] = await db.select().from(shifts).where(eq(shifts.id, id)).limit(1);
+  const [shift] = await apiOperation("lib.actions.portaria.022", [id]);
   if (!shift || shift.condoId !== condoId || shift.status !== "aberto") return;
-  await db
-    .update(shifts)
-    .set({
+  await apiOperation("lib.actions.portaria.023", [{
       status: "encerrado",
       endedAt: new Date(),
       handoverToId: num(formData, "handoverToId") || null,
       handoverNotes: str(formData, "handoverNotes"),
       pendingItems: str(formData, "pendingItems") || null,
-    })
-    .where(eq(shifts.id, id));
+    }, id]);
   const nextUser = num(formData, "handoverToId");
   if (nextUser) {
     await notify(condoId, [nextUser], "Passagem de turno registrada", str(formData, "handoverNotes", "Sem observações."), "/painel/turnos");
@@ -394,16 +357,9 @@ export async function closeShiftAction(formData: FormData) {
 
 export async function createOccurrenceAction(formData: FormData) {
   const { session, condoId } = await requireRole([...GATE, "conselho"]);
-  const [openShift] = await db
-    .select()
-    .from(shifts)
-    .where(and(eq(shifts.condoId, condoId), eq(shifts.status, "aberto")))
-    .orderBy(desc(shifts.startedAt))
-    .limit(1);
+  const [openShift] = await apiOperation("lib.actions.portaria.024", [condoId]);
 
-  const [occurrence] = await db
-    .insert(occurrences)
-    .values({
+  const [occurrence] = await apiOperation("lib.actions.portaria.025", [{
       condoId,
       shiftId: openShift?.id ?? null,
       code: await nextCode("occurrence", condoId),
@@ -417,8 +373,7 @@ export async function createOccurrenceAction(formData: FormData) {
       reportedById: session.user.id,
       unitId: num(formData, "unitId") || null,
       attachments: str(formData, "attachments") ? str(formData, "attachments").split(",").map((s) => s.trim()) : [],
-    })
-    .returning();
+    }]);
 
   await logAudit({
     session,
@@ -438,10 +393,7 @@ export async function createOccurrenceAction(formData: FormData) {
 export async function ackOccurrenceAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico", "conselho"]);
   const id = num(formData, "id");
-  await db
-    .update(occurrences)
-    .set({ ackById: session.user.id, ackAt: new Date() })
-    .where(and(eq(occurrences.id, id), eq(occurrences.condoId, condoId)));
+  await apiOperation("lib.actions.portaria.026", [{ ackById: session.user.id, ackAt: new Date() }, id, condoId]);
   await logAudit({
     session,
     condoId,
@@ -457,13 +409,13 @@ export async function ackOccurrenceAction(formData: FormData) {
 export async function addOccurrenceFollowUpAction(formData: FormData) {
   const { session, condoId } = await requireRole([...GATE, "conselho"]);
   const id = num(formData, "id");
-  const [occurrence] = await db.select().from(occurrences).where(eq(occurrences.id, id)).limit(1);
+  const [occurrence] = await apiOperation("lib.actions.portaria.027", [id]);
   if (!occurrence || occurrence.condoId !== condoId) return;
   const addition = str(formData, "addition");
   if (!addition) return;
   const stamp = new Date().toLocaleString("pt-BR");
   const merged = `${occurrence.actionsTaken ?? ""}\n[${stamp} · ${session.user.name}] ${addition}`.trim();
-  await db.update(occurrences).set({ actionsTaken: merged }).where(eq(occurrences.id, id));
+  await apiOperation("lib.actions.portaria.028", [{ actionsTaken: merged }, id]);
   await logAudit({
     session,
     condoId,

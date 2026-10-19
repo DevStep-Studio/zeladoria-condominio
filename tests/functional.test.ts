@@ -1,4 +1,5 @@
-import { describe, it } from "node:test";
+import { testSessionCookie } from "./session-helper";
+import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -148,12 +149,13 @@ describe("3. Conformidade Visual e Regressões de Design System", () => {
 });
 
 describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
-  const sessionCookieMorador = generateSessionCookie(7); // Ana Ribeiro (Moradora)
-  const sessionCookieSindico = generateSessionCookie(2); // Marina Duarte (Síndica)
-  const condoId = 1; // Residencial Parque das Águas
-
-  const authHeaderMorador = `${SESSION_COOKIE}=${sessionCookieMorador}; ${CONDO_COOKIE}=${condoId}`;
-  const authHeaderSindico = `${SESSION_COOKIE}=${sessionCookieSindico}; ${CONDO_COOKIE}=${condoId}`;
+  const condoId = 1;
+  let authHeaderMorador: string;
+  let authHeaderSindico: string;
+  before(async () => {
+    authHeaderMorador = `${SESSION_COOKIE}=${await testSessionCookie(7)}; ${CONDO_COOKIE}=${condoId}`;
+    authHeaderSindico = `${SESSION_COOKIE}=${await testSessionCookie(2)}; ${CONDO_COOKIE}=${condoId}`;
+  });
 
   it("GET /login deve responder 200 OK sem autenticação", async () => {
     const res = await fetch(`${BASE_URL}/login`);
@@ -222,7 +224,7 @@ describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
   });
 
   it("Porteiro: GET /painel/manutencao deve responder 200 OK", async () => {
-    const sessionCookiePorteiro = generateSessionCookie(3); // Carlos Nogueira (Porteiro)
+    const sessionCookiePorteiro = await testSessionCookie(3); // Carlos Nogueira (Porteiro)
     const authHeaderPorteiro = `${SESSION_COOKIE}=${sessionCookiePorteiro}; ${CONDO_COOKIE}=${condoId}`;
     const res = await fetch(`${BASE_URL}/painel/manutencao`, {
       headers: { Cookie: authHeaderPorteiro },
@@ -234,7 +236,7 @@ describe("4. Testes Funcionais de Rotas HTTP do Painel (Dev Server)", () => {
   });
 
   it("Zelador: GET /painel/manutencao deve responder 200 OK", async () => {
-    const sessionCookieZelador = generateSessionCookie(5); // Jonas Alencar (Zelador)
+    const sessionCookieZelador = await testSessionCookie(5); // Jonas Alencar (Zelador)
     const authHeaderZelador = `${SESSION_COOKIE}=${sessionCookieZelador}; ${CONDO_COOKIE}=${condoId}`;
     const res = await fetch(`${BASE_URL}/painel/manutencao`, {
       headers: { Cookie: authHeaderZelador },

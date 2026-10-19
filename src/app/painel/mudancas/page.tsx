@@ -1,6 +1,5 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { blocks, moveRequests, units, users } from "@/db/schema";
+import { domainRequest } from "@/lib/api/server";
+
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, statusTone } from "@/components/ui";
@@ -15,35 +14,7 @@ export default async function MudancasPage() {
   const canDecide = ALL_STAFF.includes(session.role);
   const isResident = session.role === "morador";
 
-  const rows = await db
-    .select({
-      id: moveRequests.id,
-      kind: moveRequests.kind,
-      scheduledDate: moveRequests.scheduledDate,
-      startTime: moveRequests.startTime,
-      endTime: moveRequests.endTime,
-      elevator: moveRequests.elevator,
-      carrierName: moveRequests.carrierName,
-      carrierDoc: moveRequests.carrierDoc,
-      vehiclePlate: moveRequests.vehiclePlate,
-      workers: moveRequests.workers,
-      description: moveRequests.description,
-      artUrl: moveRequests.artUrl,
-      status: moveRequests.status,
-      reviewNotes: moveRequests.reviewNotes,
-      deadlineAt: moveRequests.deadlineAt,
-      termAccepted: moveRequests.termAccepted,
-      requester: users.name,
-      unit: units.number,
-      block: blocks.name,
-      requestedById: moveRequests.requestedById,
-    })
-    .from(moveRequests)
-    .leftJoin(users, eq(users.id, moveRequests.requestedById))
-    .leftJoin(units, eq(units.id, moveRequests.unitId))
-    .leftJoin(blocks, eq(blocks.id, units.blockId))
-    .where(eq(moveRequests.condoId, condoId))
-    .orderBy(desc(moveRequests.scheduledDate));
+  const rows = await domainRequest<any[]>("/painel/mudancas", { query: { condoId } });
 
   const visible = isResident ? rows.filter((r) => r.requestedById === session.user.id) : rows;
   const unitList = await unitOptions(condoId);

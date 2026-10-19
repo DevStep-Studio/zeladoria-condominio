@@ -1,16 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { count, desc, eq, inArray, sql } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  condominiums,
-  paymentOrders,
-  serviceContracts,
-  serviceDisputes,
-  tickets,
-  users,
-  vendors,
-  auditLogs,
-} from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon, type IconName } from "@/components/icon";
 import { dateTimeBR, money } from "@/lib/utils";
@@ -25,52 +15,27 @@ export const metadata = {
 export default async function AdminDashboardPage() {
   const session = await requireSession();
 
-  // 1. Contagens de negócio da plataforma
-  const [{ totalCondos } = { totalCondos: 0 }] = await db
-    .select({ totalCondos: count() })
-    .from(condominiums);
-
-  const [{ totalUsers } = { totalUsers: 0 }] = await db
-    .select({ totalUsers: count() })
-    .from(users);
-
-  const [{ totalVendors } = { totalVendors: 0 }] = await db
-    .select({ totalVendors: count() })
-    .from(vendors);
-
-  const [{ totalTickets } = { totalTickets: 0 }] = await db
-    .select({ totalTickets: count() })
-    .from(tickets);
-
-  const [{ totalContracts } = { totalContracts: 0 }] = await db
-    .select({ totalContracts: count() })
-    .from(serviceContracts);
-
-  // 2. Indicadores financeiros do Zeladoria Pay
-  const [financialStats] = await db
-    .select({
-      totalGmvCents: sql<number>`coalesce(sum(${paymentOrders.amountGrossCents}), 0)::int`,
-      totalFeeCents: sql<number>`coalesce(sum(${paymentOrders.platformFeeCents}), 0)::int`,
-    })
-    .from(paymentOrders)
-    .where(inArray(paymentOrders.status, ["paid", "released"]));
-
-  const [{ pendingOrdersCount } = { pendingOrdersCount: 0 }] = await db
-    .select({ pendingOrdersCount: count() })
-    .from(paymentOrders)
-    .where(eq(paymentOrders.status, "pending"));
-
-  const [{ openDisputesCount } = { openDisputesCount: 0 }] = await db
-    .select({ openDisputesCount: count() })
-    .from(serviceDisputes)
-    .where(eq(serviceDisputes.status, "open"));
-
-  // 3. Auditoria recente de eventos da plataforma
-  const recentLogs = await db
-    .select()
-    .from(auditLogs)
-    .orderBy(desc(auditLogs.createdAt))
-    .limit(6);
+  const {
+    totalCondos = 0,
+    totalUsers = 0,
+    totalVendors = 0,
+    totalTickets = 0,
+    totalContracts = 0,
+    financialStats,
+    pendingOrdersCount = 0,
+    openDisputesCount = 0,
+    recentLogs = [],
+  } = await domainRequest<{
+    totalCondos: number;
+    totalUsers: number;
+    totalVendors: number;
+    totalTickets: number;
+    totalContracts: number;
+    financialStats: { totalGmvCents?: number; totalFeeCents?: number } | null;
+    pendingOrdersCount: number;
+    openDisputesCount: number;
+    recentLogs: any[];
+  }>("/painel/admin");
 
   const gmvValue = money(financialStats?.totalGmvCents ?? 0);
   const revenueValue = money(financialStats?.totalFeeCents ?? 0);

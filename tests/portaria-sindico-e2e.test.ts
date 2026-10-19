@@ -1,3 +1,4 @@
+import { testSessionCookie } from "./session-helper";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
@@ -82,7 +83,7 @@ describe("FASE 93: Teste de Permissões & Route Guards (HTTP)", () => {
   const SINDICO_USER_ID = 1;  // Síndica no seed
 
   it("porteiro tentando acessar financeiro ou configurações administrativas deve receber 403", async () => {
-    const porteiroCookie = generateSessionCookie(PORTEIRO_USER_ID);
+    const porteiroCookie = await testSessionCookie(PORTEIRO_USER_ID);
     const res = await fetch(`${BASE_URL}/painel/financeiro`, {
       headers: { Cookie: `gc_session=${porteiroCookie}; gc_condo=1` },
       redirect: "manual",
@@ -94,7 +95,7 @@ describe("FASE 93: Teste de Permissões & Route Guards (HTTP)", () => {
   });
 
   it("morador tentando acessar ordens de manutenção deve receber 403", async () => {
-    const moradorCookie = generateSessionCookie(MORADOR_USER_ID);
+    const moradorCookie = await testSessionCookie(MORADOR_USER_ID);
     const res = await fetch(`${BASE_URL}/painel/ordens`, {
       headers: { Cookie: `gc_session=${moradorCookie}; gc_condo=1` },
       redirect: "manual",
@@ -105,7 +106,7 @@ describe("FASE 93: Teste de Permissões & Route Guards (HTTP)", () => {
   });
 
   it("síndico autorizado acessando rotas de gestão deve receber 200 OK", async () => {
-    const sindicoCookie = generateSessionCookie(SINDICO_USER_ID);
+    const sindicoCookie = await testSessionCookie(SINDICO_USER_ID);
     const res = await fetch(`${BASE_URL}/painel`, {
       headers: { Cookie: `gc_session=${sindicoCookie}; gc_condo=1` },
     });

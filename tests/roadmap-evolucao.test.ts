@@ -1,11 +1,6 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 
-after(async () => {
-  const { pool } = await import("../src/db");
-  await pool.end();
-});
-
 describe("ROADMAP DE EVOLUÇÃO — PWA PUSH, EFICIÊNCIA OPERACIONAL E CONTRATOS RECORRENTES", () => {
   // --------------------------------------------------------------------------
   // 1. APP MÓVEL & PWA WEB PUSH

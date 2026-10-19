@@ -1,12 +1,5 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
-import {
-  contracts,
-  financialLedgerEntries,
-  paymentOrders,
-  payouts,
-  vendors,
-} from "@/db/schema";
+import { apiOperation } from "@/lib/api/server";
+
 import { getMarketplaceSettings, recordLedgerEntry } from "./payment-service";
 import { notify } from "@/lib/audit";
 import { sendWhatsAppNotification } from "../whatsapp/whatsapp-service";
@@ -34,11 +27,7 @@ export async function generateRecurringContractCycle(params: {
   const { contractId, condoId, cycleDate = new Date() } = params;
 
   // 1. Busca contrato ativo
-  const [contract] = await db
-    .select()
-    .from(contracts)
-    .where(and(eq(contracts.id, contractId), eq(contracts.condoId, condoId)))
-    .limit(1);
+  const [contract] = await apiOperation("lib.services.payments.recurring-service.001", [contractId, condoId]);
 
   if (!contract) {
     throw new Error("Contrato não encontrado ou não pertence a este condomínio.");
@@ -52,11 +41,7 @@ export async function generateRecurringContractCycle(params: {
   const code = `REC-${contract.id}-${yearMonth}`;
 
   // 2. Idempotência: verifica se o ciclo já foi emitido
-  const [existingOrder] = await db
-    .select()
-    .from(paymentOrders)
-    .where(eq(paymentOrders.code, code))
-    .limit(1);
+  const [existingOrder] = await apiOperation("lib.services.payments.recurring-service.002", [code]);
 
   if (existingOrder) {
     return {
@@ -83,9 +68,7 @@ export async function generateRecurringContractCycle(params: {
   const netVendorCents = grossAmountCents - platformFeeCents;
 
   // 4. Criação da ordem de pagamento recorrente
-  const [order] = await db
-    .insert(paymentOrders)
-    .values({
+  const [order] = await apiOperation("lib.services.payments.recurring-service.003", [{
       condoId,
       requestId: 0,
       contractId: contract.id,
@@ -99,11 +82,10 @@ export async function generateRecurringContractCycle(params: {
       commissionPercent,
       pspProvider: "asaas",
       status: "pending",
-    })
-    .returning();
+    }]);
 
   // 5. Criação do repasse previsto para a empresa prestadora
-  await db.insert(payouts).values({
+  await apiOperation("lib.services.payments.recurring-service.004", [{
     condoId,
     vendorId: contract.vendorId,
     paymentOrderId: order.id,
@@ -112,7 +94,7 @@ export async function generateRecurringContractCycle(params: {
     processingFeeCents: 0,
     netAmountCents: netVendorCents,
     status: "ELIGIBLE",
-  });
+  }]);
 
   // 6. Registro no Ledger Imutável
   await recordLedgerEntry({

@@ -57,7 +57,7 @@ export function DestaqueClient({
       });
 
       if (res.success) {
-        setSuccessMsg("Campanha de destaque ativada com sucesso! Seu perfil aparecerá no topo da sua categoria.");
+        setSuccessMsg(res.status === "ACTIVE" ? "Campanha de destaque ativada com sucesso!" : "Campanha criada. A ativação aguarda a confirmação do pagamento.");
         setTimeout(() => setSuccessMsg(null), 5000);
       } else {
         setErrorMsg(res.error || "Erro ao ativar plano de destaque.");

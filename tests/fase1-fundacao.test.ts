@@ -1,3 +1,4 @@
+import { apiOperation } from "@/lib/api/server";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
@@ -241,12 +242,9 @@ describe("FASE 1 — FUNDAÇÃO: Auditoria, Multi-Tenancy, RBAC e Gestão de Con
   // 5. BANCO DE DADOS: ISOLAMENTO MULTI-TENANT REAL E PERSISTÊNCIA
   // --------------------------------------------------------------------------
   describe("5. Banco de Dados: Isolamento Multi-Tenant Real e Integridade Referencial", () => {
-    it("deve confirmar que os condomínios cadastrados possuem identificadores e dados distintos no PostgreSQL", async () => {
-      const { db } = await import("../src/db");
-      const { condominiums, units, blocks } = await import("../src/db/schema");
-      const { eq } = await import("drizzle-orm");
+    it("deve confirmar que os condomínios cadastrados possuem identificadores e dados distintos no MySQL", async () => {
 
-      const existingCondos = await db.select().from(condominiums);
+      const existingCondos = await apiOperation("tests.fase1-fundacao-test.001", []);
       assert.ok(existingCondos.length >= 2, "Banco deve conter ao menos 2 condomínios para validação multi-tenant");
 
       const condoA = existingCondos[0];
@@ -254,9 +252,9 @@ describe("FASE 1 — FUNDAÇÃO: Auditoria, Multi-Tenancy, RBAC e Gestão de Con
       assert.notEqual(condoA.id, condoB.id);
 
       // Unidades do Condomínio A
-      const unitsCondoA = await db.select().from(units).where(eq(units.condoId, condoA.id));
+      const unitsCondoA = await apiOperation("tests.fase1-fundacao-test.002", [condoA.id]);
       // Unidades do Condomínio B
-      const unitsCondoB = await db.select().from(units).where(eq(units.condoId, condoB.id));
+      const unitsCondoB = await apiOperation("tests.fase1-fundacao-test.003", [condoB.id]);
 
       // Nenhuma unidade do Condomínio A pode ter condoId do Condomínio B
       for (const u of unitsCondoA) {
@@ -271,48 +269,36 @@ describe("FASE 1 — FUNDAÇÃO: Auditoria, Multi-Tenancy, RBAC e Gestão de Con
     });
 
     it("deve persistir e isolar um condomínio temporário com blocos e unidades gerados e limpá-lo com segurança", async () => {
-      const { db } = await import("../src/db");
-      const { condominiums, blocks, units } = await import("../src/db/schema");
-      const { eq } = await import("drizzle-orm");
 
       const testSlug = `condo-teste-fase1-${Date.now()}`;
-      const [newCondo] = await db
-        .insert(condominiums)
-        .values({
+      const [newCondo] = await apiOperation("tests.fase1-fundacao-test.004", [{
           name: "Condomínio Teste Fase 1",
           slug: testSlug,
           city: "Campinas",
           state: "SP",
           plan: "enterprise",
           brandColor: "#1355FF",
-        })
-        .returning();
+        }]);
 
       assert.ok(newCondo.id > 0);
 
       // Inserir Bloco A
-      const [blockA] = await db
-        .insert(blocks)
-        .values({
+      const [blockA] = await apiOperation("tests.fase1-fundacao-test.005", [{
           condoId: newCondo.id,
           name: "Bloco Teste A",
           floors: 2,
-        })
-        .returning();
+        }]);
 
       // Inserir 4 unidades no bloco
-      await db.insert(units).values([
+      await apiOperation("tests.fase1-fundacao-test.006", [[
         { condoId: newCondo.id, blockId: blockA.id, number: "101", floor: 1 },
         { condoId: newCondo.id, blockId: blockA.id, number: "102", floor: 1 },
         { condoId: newCondo.id, blockId: blockA.id, number: "201", floor: 2 },
         { condoId: newCondo.id, blockId: blockA.id, number: "202", floor: 2 },
-      ]);
+      ]]);
 
       // Consultar unidades restritas pelo condoId
-      const queriedUnits = await db
-        .select()
-        .from(units)
-        .where(eq(units.condoId, newCondo.id));
+      const queriedUnits = await apiOperation("tests.fase1-fundacao-test.007", [newCondo.id]);
 
       assert.equal(queriedUnits.length, 4);
       assert.deepEqual(
@@ -321,14 +307,11 @@ describe("FASE 1 — FUNDAÇÃO: Auditoria, Multi-Tenancy, RBAC e Gestão de Con
       );
 
       // Limpeza segura dos dados de teste
-      await db.delete(units).where(eq(units.condoId, newCondo.id));
-      await db.delete(blocks).where(eq(blocks.condoId, newCondo.id));
-      await db.delete(condominiums).where(eq(condominiums.id, newCondo.id));
+      await apiOperation("tests.fase1-fundacao-test.008", [newCondo.id]);
+      await apiOperation("tests.fase1-fundacao-test.009", [newCondo.id]);
+      await apiOperation("tests.fase1-fundacao-test.010", [newCondo.id]);
 
-      const afterDelete = await db
-        .select()
-        .from(condominiums)
-        .where(eq(condominiums.id, newCondo.id));
+      const afterDelete = await apiOperation("tests.fase1-fundacao-test.011", [newCondo.id]);
       assert.equal(afterDelete.length, 0);
     });
   });

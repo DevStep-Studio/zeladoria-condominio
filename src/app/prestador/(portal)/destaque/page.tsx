@@ -1,8 +1,7 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { promotionPlans, providerPromotions, vendors } from "@/db/schema";
+import { domainRequest } from "@/lib/api/domain";
+import type { DomainModels } from "@/lib/api/models";
+
 import { requireProvider } from "@/lib/auth";
-import { DEFAULT_PROMOTION_PLANS } from "@/lib/services/promotions";
 import { DestaqueClient } from "./destaque-client";
 
 export const dynamic = "force-dynamic";
@@ -13,46 +12,9 @@ export const metadata = {
 };
 
 export default async function PrestadorDestaquePage() {
-  const { session, vendor } = await requireProvider();
-
-  let targetVendor = vendor;
-  if (!targetVendor && session.role === "superadmin") {
-    const [first] = await db.select().from(vendors).limit(1);
-    targetVendor = first;
-  }
-
-  if (!targetVendor) {
-    return <div>Prestador não encontrado.</div>;
-  }
-
-  // Buscar planos disponíveis
-  let plans: any[] = [];
-  try {
-    plans = await db.select().from(promotionPlans).where(eq(promotionPlans.active, true));
-  } catch {
-    plans = [];
-  }
-  if (!plans.length) {
-    plans = DEFAULT_PROMOTION_PLANS;
-  }
-
-  // Buscar campanhas deste prestador
-  let promotions: any[] = [];
-  try {
-    promotions = await db
-      .select()
-      .from(providerPromotions)
-      .where(eq(providerPromotions.vendorId, targetVendor.id))
-      .orderBy(desc(providerPromotions.createdAt));
-  } catch {
-    promotions = [];
-  }
-
-  return (
-    <DestaqueClient
-      vendor={targetVendor}
-      plans={plans}
-      promotions={promotions}
-    />
-  );
+  await requireProvider();
+  const vendor = await domainRequest<DomainModels["vendors"]>("/prestador/perfil");
+  const plans = await domainRequest<DomainModels["promotionPlans"][]>("/prestador/planos");
+  const promotions = await domainRequest<DomainModels["providerPromotions"][]>("/prestador/campanhas");
+  return <DestaqueClient vendor={vendor} plans={plans.map(p => ({ ...p, badge: p.badge ?? undefined, description: p.description ?? undefined }))} promotions={promotions} />;
 }

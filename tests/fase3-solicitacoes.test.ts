@@ -1,3 +1,4 @@
+import { apiOperation } from "@/lib/api/server";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { calculateHaversineKm } from "../src/lib/services/geo";
@@ -115,18 +116,13 @@ describe("FASE 3 — SOLICITAÇÕES E DISTRIBUIÇÃO COM CONCORRÊNCIA", () => {
   // --------------------------------------------------------------------------
   describe("3. Concorrência Atômica no Aceite (Cenário 4)", () => {
     it("deve simular duas requisições concorrentes de aceite e garantir que apenas uma confirme e a outra falhe com segurança", async () => {
-      const { db } = await import("../src/db");
-      const { serviceRequests, condominiums, users } = await import("../src/db/schema");
-      const { and, eq, isNull, or } = await import("drizzle-orm");
 
-      const [firstCondo] = await db.select().from(condominiums).limit(1);
-      const [firstUser] = await db.select().from(users).limit(1);
+      const [firstCondo] = await apiOperation("tests.fase3-solicitacoes-test.001", []);
+      const [firstUser] = await apiOperation("tests.fase3-solicitacoes-test.002", []);
       assert.ok(firstCondo && firstUser);
 
       // 1. Cria chamado de teste aberto com vaga única
-      const [testReq] = await db
-        .insert(serviceRequests)
-        .values({
+      const [testReq] = await apiOperation("tests.fase3-solicitacoes-test.003", [{
           condoId: firstCondo.id,
           customerId: firstUser.id,
           code: `SRV-RACE-${Date.now().toString().slice(-4)}`,
@@ -134,32 +130,18 @@ describe("FASE 3 — SOLICITAÇÕES E DISTRIBUIÇÃO COM CONCORRÊNCIA", () => {
           title: "Disjuntor disparando teste concorrência",
           description: "Teste de concorrência com dois prestadores aceitando no mesmo instante",
           status: "buscando_prestador",
-        })
-        .returning();
+        }]);
 
       assert.ok(testReq.id > 0);
 
       // Função atômica simulando o aceite pelo servidor
       async function attemptAccept(requestId: number, vendorId: number): Promise<{ success: boolean }> {
-        const updated = await db
-          .update(serviceRequests)
-          .set({
+        const updated = await apiOperation("tests.fase3-solicitacoes-test.004", [{
             vendorId,
             status: "aceito",
             acceptedAt: new Date(),
             updatedAt: new Date(),
-          })
-          .where(
-            and(
-              eq(serviceRequests.id, requestId),
-              or(
-                eq(serviceRequests.status, "solicitado"),
-                eq(serviceRequests.status, "buscando_prestador")
-              ),
-              isNull(serviceRequests.vendorId)
-            )
-          )
-          .returning();
+          }, requestId]);
 
         return { success: updated.length > 0 };
       }
@@ -175,17 +157,13 @@ describe("FASE 3 — SOLICITAÇÕES E DISTRIBUIÇÃO COM CONCORRÊNCIA", () => {
       assert.equal(successCount, 1, "Exatamente um prestador deve conseguir assumir a vaga única");
 
       // 3. Verifica o estado final no banco de dados
-      const [finalReq] = await db
-        .select()
-        .from(serviceRequests)
-        .where(eq(serviceRequests.id, testReq.id))
-        .limit(1);
+      const [finalReq] = await apiOperation("tests.fase3-solicitacoes-test.005", [testReq.id]);
 
       assert.equal(finalReq.status, "aceito");
       assert.ok(finalReq.vendorId === 101 || finalReq.vendorId === 102);
 
       // 4. Limpeza segura
-      await db.delete(serviceRequests).where(eq(serviceRequests.id, testReq.id));
+      await apiOperation("tests.fase3-solicitacoes-test.006", [testReq.id]);
     });
   });
 });

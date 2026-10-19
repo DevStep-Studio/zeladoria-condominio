@@ -54,3 +54,7 @@ logs/
 
 # Serena
 .serena/
+
+# Local databases belong to external services, never to the frontend
+.pgdata/
+.mysql-data/

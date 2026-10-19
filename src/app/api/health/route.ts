@@ -1,18 +1,12 @@
-import { db } from "@/db";
-import { sql } from "drizzle-orm";
-
+import { backendFetch } from "@/lib/api/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    await db.execute(sql`select 1`);
-    return Response.json({
-      ok: true,
-      service: "portaria-mais",
-      database: "up",
-      checkedAt: new Date().toISOString(),
-    });
+    const response = await backendFetch("/health");
+    const payload = await response.json();
+    return Response.json(payload.data, { status: response.status });
   } catch {
-    return Response.json({ ok: false, database: "down" }, { status: 500 });
+    return Response.json({ ok: false, service: "zeladoria-api", database: "unknown" }, { status: 503 });
   }
 }

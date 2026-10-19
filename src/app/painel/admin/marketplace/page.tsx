@@ -1,7 +1,6 @@
+import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { vendors, serviceReviews, promotionPlans } from "@/db/schema";
+
 import { requireSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 import { dateTimeBR, money } from "@/lib/utils";
@@ -21,9 +20,12 @@ export default async function AdminMarketplacePage({
   await requireSession();
   const { tab = "prestadores" } = await searchParams;
 
-  const allVendors = await db.select().from(vendors).orderBy(desc(vendors.createdAt));
+  const { allVendors, reviewsList } = await domainRequest<{
+    allVendors: any[];
+    reviewsList: any[];
+  }>("/painel/admin/marketplace");
   const servicesList = allVendors.flatMap((v) =>
-    (v.services ?? []).map((s) => ({
+    (v.services ?? []).map((s: any) => ({
       id: `${v.id}-${s.id}`,
       name: s.name,
       vendorName: v.name || v.companyName || "Prestador",
@@ -32,7 +34,6 @@ export default async function AdminMarketplacePage({
       description: s.description,
     }))
   );
-  const reviewsList = await db.select().from(serviceReviews).orderBy(desc(serviceReviews.createdAt)).limit(30);
 
   const pendingApprovals = allVendors.filter((v) => !v.active);
 
