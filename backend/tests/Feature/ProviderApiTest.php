@@ -70,6 +70,50 @@ final class ProviderApiTest extends TestCase
         $this->patchJson('/api/v1/prestador/perfil', ['serviceRadiusKm' => -1])->assertUnprocessable()->assertJsonValidationErrors('serviceRadiusKm');
     }
 
+    public function test_provider_can_change_condominium_and_marketplace_visibility_follows(): void
+    {
+        $a = $this->condo();
+        $b = $this->condo('condo-b');
+        $provider = $this->user();
+        $vendor = $this->provider($a, $provider);
+        $other = $this->provider($a, $this->user('other@example.com'));
+        $this->authenticate($provider);
+        $this->patchJson('/api/v1/prestador/perfil', ['condoId' => $b, 'vendorId' => $other])->assertOk()->assertJsonPath('data.success', true);
+        $this->assertDatabaseHas('vendors', ['id' => $vendor, 'condo_id' => $b]);
+        $this->assertDatabaseHas('vendors', ['id' => $other, 'condo_id' => $a]);
+        $this->assertDatabaseMissing('memberships', ['user_id' => $provider->id]);
+        $resident = $this->user('resident@example.com');
+        DB::table('memberships')->insert([
+            ['condo_id' => $a, 'user_id' => $resident->id, 'role' => 'morador'],
+            ['condo_id' => $b, 'user_id' => $resident->id, 'role' => 'morador'],
+        ]);
+        $this->authenticate($resident);
+        $this->getJson('/api/v1/servicos/prestadores?condoId='.$b)->assertOk()->assertJsonPath('data.vendorRows.0.id', $vendor);
+        $old = $this->getJson('/api/v1/servicos/prestadores?condoId='.$a)->assertOk();
+        $this->assertNotContains($vendor, array_column($old->json('data.vendorRows'), 'id'));
+    }
+
+    public function test_condominium_change_rejects_invalid_private_and_historical_destinations(): void
+    {
+        $a = $this->condo();
+        $b = $this->condo('condo-b');
+        $private = $this->condo('private');
+        DB::table('condominiums')->where('id', $private)->update(['public_page' => false]);
+        $provider = $this->user();
+        $vendor = $this->provider($a, $provider);
+        $customer = $this->user('customer@example.com');
+        $this->authenticate($provider);
+        foreach ([$private, 999999, null] as $invalid) {
+            $this->patchJson('/api/v1/prestador/perfil', ['condoId' => $invalid])->assertUnprocessable()->assertJsonValidationErrors('condoId');
+        }
+        $service = $this->service($a, $customer, $vendor, 'concluido');
+        $this->patchJson('/api/v1/prestador/perfil', ['condoId' => $b, 'description' => 'Do not save'])->assertConflict();
+        $this->assertDatabaseHas('vendors', ['id' => $vendor, 'condo_id' => $a]);
+        $this->assertDatabaseMissing('vendors', ['id' => $vendor, 'description' => 'Do not save']);
+        $this->assertDatabaseHas('service_requests', ['id' => $service, 'condo_id' => $a, 'vendor_id' => $vendor]);
+        $this->patchJson('/api/v1/prestador/perfil', ['condoId' => $a, 'description' => 'Allowed'])->assertOk();
+    }
+
     public function test_provider_dashboard_never_includes_requests_assigned_to_other_vendors_or_tenants(): void
     {
         $a = $this->condo();

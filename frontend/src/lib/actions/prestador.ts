@@ -123,6 +123,7 @@ export async function updateServiceProgressAction(
 }
 
 export async function updateProviderStorefrontAction(payload: {
+  condoId?: number;
   description?: string;
   whatsapp?: string;
   phone?: string;

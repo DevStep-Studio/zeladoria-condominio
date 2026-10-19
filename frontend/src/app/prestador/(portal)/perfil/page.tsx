@@ -1,4 +1,5 @@
-import { domainRequest, type ProviderDashboard } from "@/lib/api/domain";
+import { backendRequest } from "@/lib/api/server";
+import { domainRequest } from "@/lib/api/domain";
 import type { DomainModels } from "@/lib/api/models";
 
 import { requireProvider } from "@/lib/auth";
@@ -12,7 +13,8 @@ export const metadata = {
 };
 
 export default async function PrestadorPerfilPage() {
-  const { session } = await requireProvider();
+  await requireProvider();
   const vendor = await domainRequest<DomainModels["vendors"]>("/prestador/perfil");
-  return <ProviderPerfilEditorClient vendor={vendor} />;
+  const condos = await backendRequest<{ id: number; name: string; city: string | null }[]>("/condominios/publicos");
+  return <ProviderPerfilEditorClient vendor={vendor} condos={condos} />;
 }

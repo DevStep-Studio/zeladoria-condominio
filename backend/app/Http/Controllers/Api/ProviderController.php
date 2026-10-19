@@ -6,6 +6,7 @@ use App\Services\ProviderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 final class ProviderController
 {
@@ -27,6 +28,7 @@ final class ProviderController
     {
         $v = $this->providers->vendor($request);
         $data = $request->validate([
+            'condoId' => ['sometimes', 'integer', Rule::exists('condominiums', 'id')->where(fn ($query) => $query->where('public_page', true)->orWhere('id', $v->condo_id))],
             'description' => 'sometimes|nullable|string|max:10000', 'whatsapp' => 'sometimes|nullable|string|max:32', 'phone' => 'sometimes|nullable|string|max:32',
             'serviceArea' => 'sometimes|nullable|string|max:240', 'serviceRadiusKm' => 'sometimes|numeric|min:1|max:1000', 'workingHours' => 'sometimes|nullable|string|max:1000',
             'photoUrl' => 'sometimes|nullable|string|max:4000000', 'coverUrl' => 'sometimes|nullable|string|max:4000000',
@@ -34,8 +36,17 @@ final class ProviderController
             'services.*.id' => 'required|string|max:100', 'services.*.name' => 'required|string|max:200', 'services.*.description' => 'sometimes|nullable|string|max:5000', 'services.*.priceFromCents' => 'nullable|integer|min:0|max:100000000',
             'portfolio' => 'sometimes|array|max:100', 'portfolio.*' => 'array:url,caption,category,date', 'portfolio.*.url' => 'required|string|max:4000000', 'portfolio.*.caption' => 'sometimes|nullable|string|max:1000',
         ]);
-        $columns = ['description' => 'description', 'whatsapp' => 'whatsapp', 'phone' => 'phone', 'serviceArea' => 'service_area', 'serviceRadiusKm' => 'service_radius_km', 'workingHours' => 'working_hours', 'photoUrl' => 'photo_url', 'coverUrl' => 'cover_url', 'services' => 'services', 'portfolio' => 'portfolio'];
+        $columns = ['condoId' => 'condo_id', 'description' => 'description', 'whatsapp' => 'whatsapp', 'phone' => 'phone', 'serviceArea' => 'service_area', 'serviceRadiusKm' => 'service_radius_km', 'workingHours' => 'working_hours', 'photoUrl' => 'photo_url', 'coverUrl' => 'cover_url', 'services' => 'services', 'portfolio' => 'portfolio'];
         DB::transaction(function () use ($request, $v, $data, $columns) {
+            $current = DB::table('vendors')->where('id', $v->id)->lockForUpdate()->first();
+            if (isset($data['condoId']) && (int) $data['condoId'] !== $current->condo_id) {
+                abort_if(
+                    DB::table('service_requests')->where('vendor_id', $v->id)->exists()
+                    || DB::table('tickets')->where('vendor_id', $v->id)->exists(),
+                    409,
+                    'Não é possível trocar o condomínio de um prestador com contratações registradas. O histórico precisa ser preservado.'
+                );
+            }
             $values = [];
             foreach ($data as $key => $value) {
                 $values[$columns[$key]] = in_array($key, ['services', 'portfolio'], true) ? json_encode($value, JSON_THROW_ON_ERROR) : $value;

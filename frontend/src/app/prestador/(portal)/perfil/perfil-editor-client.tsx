@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { updateProviderStorefrontAction } from "@/lib/actions/prestador";
 
-export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
+export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; condos: { id: number; name: string; city: string | null }[] }) {
+  const [condoId, setCondoId] = useState<number>(vendor.condoId);
+  const [error, setError] = useState("");
   const [description, setDescription] = useState(vendor.description || "");
   const [phone, setPhone] = useState(vendor.phone || "");
   const [whatsapp, setWhatsapp] = useState(vendor.whatsapp || vendor.phone || "");
@@ -39,19 +41,30 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
 
   const handleSave = () => {
     startTransition(async () => {
-      await updateProviderStorefrontAction({
-        description,
-        phone,
-        whatsapp,
-        serviceArea,
-        serviceRadiusKm,
-        workingHours,
-        photoUrl,
-        coverUrl,
-        portfolio,
-      });
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
+      setError("");
+      setSavedSuccess(false);
+      try {
+        const result = await updateProviderStorefrontAction({
+          condoId,
+          description,
+          phone,
+          whatsapp,
+          serviceArea,
+          serviceRadiusKm,
+          workingHours,
+          photoUrl,
+          coverUrl,
+          portfolio,
+        });
+        if (!result.success) {
+          setError(result.error || "Não foi possível salvar o perfil.");
+          return;
+        }
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 3000);
+      } catch {
+        setError("Não foi possível salvar o perfil. Tente novamente.");
+      }
     });
   };
 
@@ -91,6 +104,7 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
         </div>
       </div>
 
+      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {savedSuccess && (
         <div className="p-3 rounded-[12px] bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-150">
           <Icon name="check-circle" size={15} className="text-emerald-600" />
@@ -250,6 +264,29 @@ export function ProviderPerfilEditorClient({ vendor }: { vendor: any }) {
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded-[8px] border border-slate-200/80 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
           />
+        </div>
+
+        <div>
+          <label htmlFor="provider-condo" className="block text-xs font-bold text-slate-700 mb-1">
+            Condomínio de atendimento
+          </label>
+          <select
+            id="provider-condo"
+            value={condoId}
+            disabled={isPending}
+            onChange={(event) => { setCondoId(Number(event.target.value)); setSavedSuccess(false); }}
+            className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-900"
+          >
+            {!condos.some((condo) => condo.id === vendor.condoId) && (
+              <option value={vendor.condoId}>Condomínio atual (#{vendor.condoId})</option>
+            )}
+            {condos.map((condo) => (
+              <option key={condo.id} value={condo.id}>{condo.name}{condo.city ? ` — ${condo.city}` : ""}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            Seu perfil aparece para os moradores deste condomínio. A troca fica disponível enquanto você não tiver contratações registradas.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
