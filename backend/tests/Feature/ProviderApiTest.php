@@ -203,6 +203,58 @@ final class ProviderApiTest extends TestCase
         $this->get('/api/v1/export/moradores?condoId='.$a)->assertForbidden();
     }
 
+    public function test_resident_hiring_reaches_provider_and_status_returns_to_resident(): void
+    {
+        $condo = $this->condo();
+        $customer = $this->user('resident@example.com');
+        $provider = $this->user();
+        $vendor = $this->provider($condo, $provider);
+        DB::table('vendors')->where('id', $vendor)->update(['category' => 'eletricista']);
+        DB::table('memberships')->insert(['condo_id' => $condo, 'user_id' => $customer->id, 'role' => 'morador']);
+        $this->authenticate($customer);
+        $this->getJson('/api/v1/servicos/prestadores?condoId='.$condo)->assertOk()->assertJsonPath('data.vendorRows.0.id', $vendor);
+        $result = $this->postJson('/api/v1/servicos', ['condoId' => $condo, 'vendorId' => $vendor, 'mode' => 'quote', 'category' => 'eletrica', 'title' => 'Consertar tomada', 'description' => 'A tomada não funciona']);
+        $result->assertCreated()->assertJsonPath('data.success', true);
+        $id = $result->json('data.requestId');
+        $this->assertDatabaseHas('service_requests', ['id' => $id, 'customer_id' => $customer->id, 'vendor_id' => $vendor, 'status' => 'solicitado']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $provider->id, 'link' => '/prestador/chamados']);
+        $this->authenticate($provider);
+        $this->getJson('/api/v1/auth/session')->assertOk()->assertJsonPath('data.condo', null)->assertJsonPath('data.role', 'prestador');
+        $this->getJson('/api/v1/prestador/chamados/'.$id)->assertOk()->assertJsonPath('data.request.id', $id);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/aceite')->assertOk();
+        $this->authenticate($customer);
+        $this->getJson('/api/v1/servicos/'.$id.'?condoId='.$condo)->assertOk()->assertJsonPath('data.request.status', 'aceito');
+        $this->assertDatabaseHas('notifications', ['user_id' => $customer->id, 'link' => '/painel/servicos']);
+    }
+
+    public function test_provider_can_switch_to_condo_only_with_an_active_membership(): void
+    {
+        $condo = $this->condo();
+        $provider = $this->user();
+        $this->provider($condo, $provider);
+        $this->authenticate($provider);
+        $this->getJson('/api/v1/auth/session?role=morador&condoId='.$condo)->assertOk()->assertJsonPath('data.role', 'prestador')->assertJsonPath('data.condo', null);
+        DB::table('memberships')->insert(['condo_id' => $condo, 'user_id' => $provider->id, 'role' => 'morador', 'status' => 'ativo']);
+        $this->getJson('/api/v1/auth/session?role=morador&condoId='.$condo)->assertOk()->assertJsonPath('data.role', 'morador')->assertJsonPath('data.condo.id', $condo);
+        $this->getJson('/api/v1/painel/layout?role=morador&condoId='.$condo)->assertOk();
+        DB::table('memberships')->where('user_id', $provider->id)->update(['status' => 'inativo']);
+        $this->getJson('/api/v1/auth/session?role=morador&condoId='.$condo)->assertOk()->assertJsonPath('data.role', 'prestador')->assertJsonPath('data.condo', null);
+    }
+
+    public function test_open_opportunities_match_legacy_and_registration_categories(): void
+    {
+        $condo = $this->condo();
+        $customer = $this->user('customer@example.com');
+        $provider = $this->user();
+        $vendor = $this->provider($condo, $provider);
+        DB::table('vendors')->where('id', $vendor)->update(['category' => 'eletricista']);
+        $id = $this->service($condo, $customer, null, 'buscando_prestador');
+        $this->authenticate($provider);
+        $this->getJson('/api/v1/prestador/chamados')->assertOk()->assertJsonFragment(['id' => $id]);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/aceite')->assertOk();
+        $this->assertDatabaseHas('service_requests', ['id' => $id, 'vendor_id' => $vendor, 'status' => 'aceito']);
+    }
+
     public function test_registration_does_not_reuse_an_existing_account_or_trust_verification_flags(): void
     {
         $condo = $this->condo();

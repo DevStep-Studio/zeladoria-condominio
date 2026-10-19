@@ -2,6 +2,7 @@ import { domainRequest } from "@/lib/api/domain";
 import type { ApiOperations } from "@/lib/api/contracts";
 import "server-only";
 
+import { normalizeServiceCategory } from "./providers-data";
 import { calculateProviderScore } from "./ranking";
 import type { MarketplaceProvider, PortfolioItem, ServiceOffering, VerifiedReview } from "./providers-data";
 
@@ -109,7 +110,7 @@ export async function getMarketplaceProviders(
       }));
 
     const servicesOffered: ServiceOffering[] = Array.isArray(v.services)
-      ? (v.services as ServiceOffering[])
+      ? (v.services as ServiceOffering[]).filter((service) => service && typeof service.name === "string").map((service) => ({ ...service, description: service.description ?? "" }))
       : [];
     const portfolio: PortfolioItem[] = Array.isArray(v.portfolio) ? (v.portfolio as PortfolioItem[]) : [];
 
@@ -149,7 +150,7 @@ export async function getMarketplaceProviders(
       contactName: v.contactName,
       providerType: v.providerType,
       isCompany,
-      category: v.category,
+      category: normalizeServiceCategory(v.category),
       rating: Math.round(computedRating * 10) / 10,
       reviewsCount,
       score,
@@ -182,6 +183,6 @@ export async function getMarketplaceProviders(
   });
   } catch (error) {
     console.warn("Could not load marketplace providers from database:", error);
-    return [];
+    throw error;
   }
 }

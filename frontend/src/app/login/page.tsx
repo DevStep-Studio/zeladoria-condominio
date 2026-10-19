@@ -18,7 +18,7 @@ const DEMOS = [
 export default async function LoginPage() {
 
   const session = await getSession();
-  if (session) redirect("/painel");
+  if (session) redirect(session.role === "prestador" ? "/prestador" : "/painel");
 
   return (
     <main className="w-full min-h-screen lg:h-screen bg-white flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-[#1355FF] selection:text-white">

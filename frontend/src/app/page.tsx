@@ -8,7 +8,7 @@ export default async function HomePage() {
   const session = await getSession();
 
   if (session) {
-    redirect("/painel");
+    redirect(session.role === "prestador" ? "/prestador" : "/painel");
   }
 
   redirect("/login");

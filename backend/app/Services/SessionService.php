@@ -28,7 +28,7 @@ final class SessionService
             }
         }
         $active = collect($memberships)->firstWhere('condoId', $condoId) ?? ($memberships[0] ?? null);
-        $condo = $active ? DB::table('condominiums')->find($active['condoId']) : ($vendor ? DB::table('condominiums')->find($vendor->condo_id) : null);
+        $condo = $active ? DB::table('condominiums')->find($active['condoId']) : null;
         $roles = array_values(array_unique([...($user->is_super_admin ? ['superadmin', 'sindico', 'morador', 'prestador'] : []), ...($vendor ? ['prestador'] : []), ...array_column($memberships, 'role')]));
         $allowedHere = $user->is_super_admin ? $roles : array_values(array_unique([...($active ? [$active['role']] : []), ...($vendor ? ['prestador'] : [])]));
         $defaultRole = $user->is_super_admin ? 'superadmin' : ($active['role'] ?? ($vendor ? 'prestador' : 'morador'));

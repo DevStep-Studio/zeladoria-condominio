@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'frontend' => ['token' => env('FRONTEND_SERVICE_TOKEN')],
+    'frontend' => ['token' => env('FRONTEND_SERVICE_TOKEN'), 'url' => env('FRONTEND_URL', 'http://localhost:3000')],
 
     /*
     |--------------------------------------------------------------------------

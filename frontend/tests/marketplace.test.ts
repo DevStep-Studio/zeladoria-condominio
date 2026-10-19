@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { ROLE_PERMISSIONS_MAP, hasPermission, type Permission } from "../src/lib/permissions";
 import { calculateProviderScore } from "../src/lib/services/ranking";
 import { calculateHaversineKm, formatDistanceText } from "../src/lib/services/geo";
-import { getCategorySubcategories } from "../src/lib/services/providers-data";
+import { getCategorySubcategories, normalizeServiceCategory } from "../src/lib/services/providers-data";
 
 describe("Marketplace 1: Permissões e Matriz de RBAC", () => {
   it("prestador deve ter permissões exclusivas de prestador e NÃO de morador ou síndico", () => {
@@ -177,3 +177,13 @@ describe("Marketplace 7: Rotas Públicas e Acesso ao Cadastro de Prestador", () 
 });
 
 
+
+
+describe("Compatibilidade de categorias do cadastro e do marketplace", () => {
+  it("encontra as mesmas especialidades nos registros antigos e novos", () => {
+    for (const [registered, legacy] of [["Eletricista", "elétrica"], ["encanador", "hidraulica"], ["ar_condicionado", "climatizacao"], ["reparos_gerais", "servicos"]]) {
+      assert.equal(normalizeServiceCategory(registered), normalizeServiceCategory(legacy));
+      assert.deepEqual(getCategorySubcategories(registered), getCategorySubcategories(legacy));
+    }
+  });
+});

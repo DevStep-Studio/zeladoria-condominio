@@ -17,6 +17,11 @@ export function ProviderShell({
   vendor: any;
   children: React.ReactNode;
 }) {
+  const condoRole = session?.user?.isSuperAdmin
+    ? "superadmin"
+    : session?.memberships?.find(
+        (m: { role: string; status: string }) => m.status === "ativo" && m.role !== "prestador"
+      )?.role;
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -200,14 +205,19 @@ export function ProviderShell({
             {/* RIGHT: Switch to Condo + User Popover */}
             <div className="flex items-center gap-2.5 shrink-0">
               {/* Painel do Condomínio Shortcut */}
-              <Link
-                href="/painel"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors shadow-2xs"
-                title="Ir para o Painel Geral do Condomínio"
-              >
-                <Icon name="grid" size={13} className="text-[#1355FF]" />
-                <span className="hidden md:inline">Painel Condomínio</span>
-              </Link>
+              {condoRole && (
+                <form action={switchRoleAction}>
+                  <input type="hidden" name="role" value={condoRole} />
+                  <button
+                    type="submit"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors shadow-2xs"
+                    title="Ir para o Painel Geral do Condomínio"
+                  >
+                    <Icon name="grid" size={13} className="text-[#1355FF]" />
+                    <span className="hidden md:inline">Painel Condomínio</span>
+                  </button>
+                </form>
+              )}
 
               {/* User Profile Pill & Dropdown */}
               <div ref={profileRef} className="relative">
@@ -266,14 +276,18 @@ export function ProviderShell({
                         <span>Configurações</span>
                       </Link>
 
-                      <Link
-                        href="/painel"
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-[#1355FF] hover:bg-blue-50 transition-colors"
-                      >
-                        <Icon name="grid" size={14} className="text-[#1355FF]" />
-                        <span>Painel do Condomínio</span>
-                      </Link>
+                      {condoRole && (
+                        <form action={switchRoleAction}>
+                          <input type="hidden" name="role" value={condoRole} />
+                          <button
+                            type="submit"
+                            className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-[#1355FF] hover:bg-blue-50 transition-colors"
+                          >
+                            <Icon name="grid" size={14} className="text-[#1355FF]" />
+                            <span>Painel do Condomínio</span>
+                          </button>
+                        </form>
+                      )}
                     </div>
 
                     {session?.availableRoles && session.availableRoles.length > 1 && (

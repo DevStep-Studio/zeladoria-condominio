@@ -223,7 +223,7 @@ export function ProviderCard({
           }}
           className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
         >
-          Solicitar
+          Contratar
         </button>
       </div>
     </div>

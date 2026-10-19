@@ -1,5 +1,6 @@
 "use client";
 
+import { forgotPasswordAction } from "@/lib/actions/password-reset";
 import Link from "next/link";
 import { useState, useTransition, useEffect } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -7,6 +8,7 @@ import { Icon } from "@/components/icon";
 
 export default function EsqueciSenhaPage() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [countdown, setCountdown] = useState(60);
@@ -26,8 +28,9 @@ export default function EsqueciSenhaPage() {
     e.preventDefault();
     if (!email) return;
     startTransition(async () => {
-      // Simulação de envio com delay suave
-      await new Promise((r) => setTimeout(r, 600));
+      setError("");
+      const result = await forgotPasswordAction(email);
+      if (result.error) { setError(result.error); return; }
       setSent(true);
       setCountdown(60);
       setCanResend(false);
@@ -37,7 +40,9 @@ export default function EsqueciSenhaPage() {
   const handleResend = () => {
     if (!canResend || isPending) return;
     startTransition(async () => {
-      await new Promise((r) => setTimeout(r, 500));
+      setError("");
+      const result = await forgotPasswordAction(email);
+      if (result.error) { setError(result.error); return; }
       setCountdown(60);
       setCanResend(false);
     });
@@ -62,6 +67,7 @@ export default function EsqueciSenhaPage() {
       {/* Main Card Container */}
       <div className="my-auto sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-[20px] border border-slate-200 shadow-sm space-y-6">
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           {sent ? (
             <div className="text-center space-y-5 animate-in fade-in-50 duration-200">
               {/* Success Badge */}
@@ -76,30 +82,12 @@ export default function EsqueciSenhaPage() {
                   Verifique seu e-mail
                 </h1>
                 <p className="mt-2 text-xs sm:text-sm text-slate-500 font-normal leading-relaxed">
-                  Enviamos as instruções e o link seguro para você redefinir sua senha no endereço:
+                  Se houver uma conta ativa com este e-mail, você receberá um link seguro para redefinir sua senha:
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/80 text-xs font-bold text-slate-800">
                   <Icon name="user" size={13} className="text-[#1355FF]" />
                   <span>{email}</span>
                 </div>
-              </div>
-
-              {/* Demo Action Helper */}
-              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/70 text-left space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#1355FF]">
-                  <Icon name="sparkles" size={14} />
-                  <span>Ambiente de Testes / Demonstração</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-snug">
-                  Para testar o fluxo completo de troca de senha sem precisar abrir sua caixa de entrada:
-                </p>
-                <Link
-                  href="/redefinir-senha"
-                  className="inline-flex items-center justify-center gap-2 w-full h-9 rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  <span>Abrir Tela de Redefinição de Senha</span>
-                  <Icon name="arrow-right" size={13} />
-                </Link>
               </div>
 
               <div className="pt-2 border-t border-slate-100 space-y-3">

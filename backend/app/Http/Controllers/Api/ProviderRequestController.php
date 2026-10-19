@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\ProviderService;
+use App\Services\ServiceCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ final class ProviderRequestController
 
         return DB::transaction(function () use ($request, $v, $service) {
             $row = DB::table('service_requests')->where('id', $service)->where('condo_id', $v->condo_id)->lockForUpdate()->first() ?? abort(404);
-            abort_unless($row->vendor_id === $v->id || ($row->vendor_id === null && $row->category === $v->category), 404);
+            abort_unless($row->vendor_id === $v->id || ($row->vendor_id === null && ServiceCategory::normalize($row->category) === ServiceCategory::normalize($v->category)), 404);
             abort_unless(in_array($row->status, ['solicitado', 'buscando_prestador', 'aguardando_orcamentos'], true), 409, 'Oportunidade indisponível.');
             DB::table('service_requests')->where('id', $row->id)->update(['vendor_id' => $v->id, 'status' => 'aceito', 'accepted_at' => now(), 'updated_at' => now()]);
             $this->providers->message($request, $row, $v->name.' confirmou o atendimento.');

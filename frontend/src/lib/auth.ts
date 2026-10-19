@@ -101,6 +101,7 @@ export async function requireProvider() {
 
 export async function requireCondo() {
   const session = await requireSession();
+  if (session.role === "prestador") redirect("/prestador");
   if (!session.condo) redirect("/login?erro=sem-condominio");
   return { session, condo: session.condo, condoId: session.condo.id };
 }

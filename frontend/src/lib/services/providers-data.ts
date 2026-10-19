@@ -1,5 +1,23 @@
 import type { IconName } from "@/components/icon";
 
+export function normalizeServiceCategory(category: string): string {
+  const key = category.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    eletricista: "eletrica",
+    encanador: "hidraulica",
+    pintor: "pintura",
+    marceneiro: "marcenaria",
+    chaveiro: "seguranca",
+    "ar-condicionado": "climatizacao",
+    "ar condicionado": "climatizacao",
+    ar_condicionado: "climatizacao",
+    reparos_gerais: "servicos",
+    seguranca_eletronica: "seguranca",
+    portoes_eletronicos: "portoes",
+  };
+  return aliases[key] ?? key;
+}
+
 export interface ServiceOffering {
   id: string;
   name: string;
@@ -74,7 +92,7 @@ export const SUBCATEGORIES_BY_CATEGORY: Record<string, string[]> = {
 };
 
 export function getCategorySubcategories(category: string): string[] {
-  return SUBCATEGORIES_BY_CATEGORY[category.toLowerCase()] ?? [];
+  return SUBCATEGORIES_BY_CATEGORY[normalizeServiceCategory(category)] ?? [];
 }
 
 export const CATEGORY_ICONS: Record<string, IconName> = {
@@ -108,11 +126,11 @@ export const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export function categoryImage(category: string): string | null {
-  return CATEGORY_IMAGES[category.toLowerCase()] ?? null;
+  return CATEGORY_IMAGES[normalizeServiceCategory(category)] ?? null;
 }
 
 export function categoryIcon(category: string): IconName {
-  return CATEGORY_ICONS[category.toLowerCase()] ?? "briefcase";
+  return CATEGORY_ICONS[normalizeServiceCategory(category)] ?? "briefcase";
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -131,7 +149,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function categoryLabel(category: string): string {
-  return CATEGORY_LABELS[category.toLowerCase()] ?? category;
+  return CATEGORY_LABELS[normalizeServiceCategory(category)] ?? category;
 }
 
 export interface CategoryOption {
@@ -146,7 +164,8 @@ export interface CategoryOption {
 export function buildCategoriesConfig(providers: MarketplaceProvider[]): CategoryOption[] {
   const counts = new Map<string, number>();
   for (const p of providers) {
-    counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+    const category = normalizeServiceCategory(p.category);
+    counts.set(category, (counts.get(category) ?? 0) + 1);
   }
   const categories: CategoryOption[] = [
     { id: "Todas", name: "Todas as categorias", icon: "grid", imageUrl: null, count: providers.length },

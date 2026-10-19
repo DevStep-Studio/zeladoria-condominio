@@ -35,7 +35,7 @@ export async function loginAction(_prev: string | null, formData: FormData): Pro
     summary: `${user.name} acessou o sistema`,
     origin: "login",
   });
-  redirect("/painel");
+  redirect(session?.role === "prestador" ? "/prestador" : "/painel");
 }
 
 export async function providerLoginAction(_prev: string | null, formData: FormData): Promise<string | null> {
@@ -106,7 +106,7 @@ export async function switchRoleAction(formData: FormData) {
 
   // Se estiver alternando para morador ou síndico e o condomínio atual não tiver esse papel,
   // selecionar o primeiro condomínio onde o usuário possui esse papel
-  if (targetRole === "morador" || targetRole === "sindico") {
+  if (targetRole !== "prestador" && targetRole !== "superadmin") {
     const matchingMembership = session.memberships.find((m) => m.role === targetRole);
     if (matchingMembership && (!session.condo || session.role !== targetRole)) {
       await setActiveCondo(matchingMembership.condoId);

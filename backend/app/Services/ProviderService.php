@@ -40,7 +40,7 @@ final class ProviderService
         return DB::table('service_requests as r')->where('r.condo_id', $vendor->condo_id)
             ->where(function (Builder $q) use ($vendor) {
                 $q->where('r.vendor_id', $vendor->id)->orWhere(function (Builder $open) use ($vendor) {
-                    $open->whereNull('r.vendor_id')->where('r.category', $vendor->category)->whereIn('r.status', self::OPEN_STATUSES);
+                    $open->whereNull('r.vendor_id')->whereIn('r.category', ServiceCategory::variants($vendor->category))->whereIn('r.status', self::OPEN_STATUSES);
                 });
             });
     }

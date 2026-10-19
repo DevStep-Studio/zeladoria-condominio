@@ -1,7 +1,7 @@
 import { domainRequest } from "@/lib/api/domain";
 import type { ReactNode } from "react";
 
-import { requireSession } from "@/lib/auth";
+import { requireCondo } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/rbac";
 import { getNavigationGroups, getMobileNavItems } from "@/lib/navigation";
 import { Shell } from "@/components/shell";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PainelLayout({ children }: { children: ReactNode }) {
 
-  const session = await requireSession();
+  const { session } = await requireCondo();
   const condoId = session.condo?.id ?? 0;
 
   const { unread, annCount } = await domainRequest<{ unread: number; annCount: number }>(`/painel/layout?condoId=${condoId}`);

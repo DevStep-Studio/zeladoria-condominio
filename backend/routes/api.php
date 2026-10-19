@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CondoController;
 use App\Http\Controllers\Api\MarketplaceProviderController;
 use App\Http\Controllers\Api\OperationController;
 use App\Http\Controllers\Api\PanelController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ProviderAdminController;
 use App\Http\Controllers\Api\ProviderController;
 use App\Http\Controllers\Api\ProviderRegistrationController;
@@ -29,6 +30,8 @@ Route::prefix('v1')->middleware(RequireFrontendService::class)->group(function (
     Route::post('/prestadores/cadastro', [ProviderRegistrationController::class, 'store'])->middleware('throttle:10,1')->name('api.prestadores.store');
     Route::get('/prestadores/{slug}', [MarketplaceProviderController::class, 'show'])->name('api.prestadores.show');
     Route::post('/prestador/login', [AuthController::class, 'login'])->name('api.prestador.login');
+    Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot'])->middleware('throttle:10,1');
+    Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:10,1');
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/sessions', [AuthController::class, 'create']);
     Route::middleware('auth:sanctum')->group(function () {

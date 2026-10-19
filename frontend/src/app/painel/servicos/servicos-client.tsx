@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import {
   buildCategoriesConfig,
+  normalizeServiceCategory,
   getCategorySubcategories,
   type MarketplaceProvider,
   type ServiceOffering,
@@ -308,7 +309,7 @@ export function ServicosClient({
           return false;
         }
         const activeCategory = filters.category !== "Todas" ? filters.category : selectedCategory;
-        if (activeCategory !== "Todas" && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
+        if (activeCategory !== "Todas" && normalizeServiceCategory(v.category) !== normalizeServiceCategory(activeCategory)) {
           return false;
         }
 
@@ -393,7 +394,7 @@ export function ServicosClient({
 
   const topOrganicRegion = useMemo(() => {
     return [...providers]
-      .filter((v) => (selectedCategory === "Todas" ? true : v.category.toLowerCase() === selectedCategory.toLowerCase()))
+      .filter((v) => (selectedCategory === "Todas" ? true : normalizeServiceCategory(v.category) === normalizeServiceCategory(selectedCategory)))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
   }, [providers, selectedCategory]);
