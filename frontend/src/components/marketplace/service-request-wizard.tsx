@@ -148,7 +148,6 @@ export function ServiceRequestWizard({
           setIsSuccess(true);
           setCreatedCode(res.code || "");
           setEmailWarning(res.emailWarning || "");
-          onSuccess?.();
         } else {
           setErrorMessage(res?.error || "Não foi possível registrar o chamado. Tente novamente.");
         }
@@ -236,14 +235,14 @@ export function ServiceRequestWizard({
 
               <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                 {provider
-                  ? "O prestador foi notificado e responderá diretamente pelo sistema."
-                  : "Os prestadores credenciados foram notificados para enviar orçamentos."}
+                  ? "A solicitação está no painel do prestador. Acompanhe a resposta pelo sistema."
+                  : "Sua solicitação foi registrada. Acompanhe os orçamentos pelo sistema."}
               </p>
 
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => { onSuccess?.(); onClose(); }}
                   className="w-full rounded-md bg-[#1355FF] hover:bg-[#0D47E6] text-white py-2.5 text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Concluir

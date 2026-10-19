@@ -122,7 +122,13 @@ final class ServiceController
 
             return ['success' => true, 'requestId' => $id, 'code' => $code];
         });
-        if (! $notifier->send($result['requestId'])) {
+        try {
+            $emailsSent = $notifier->send($result['requestId']);
+        } catch (\Throwable $exception) {
+            report($exception);
+            $emailsSent = false;
+        }
+        if (! $emailsSent) {
             $result['emailWarning'] = 'Solicitação registrada, mas não foi possível enviar todos os e-mails. Você pode acompanhar pelo painel; não é necessário contratar novamente.';
         }
 
