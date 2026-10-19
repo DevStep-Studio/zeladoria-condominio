@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\ServiceRequested;
 use App\Notifications\ServiceStatusChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -66,6 +67,25 @@ final class ServiceRequestEmailTest extends TestCase
         });
         Notification::assertCount(2);
         $this->assertDatabaseHas('service_requests', ['id' => $response->json('data.requestId'), 'vendor_id' => $this->vendor]);
+    }
+
+    public function test_rehiring_creates_an_independent_request_without_reusing_old_price_or_schedule(): void
+    {
+        Notification::fake();
+        $previous = $this->postJson('/api/v1/servicos', $this->payload($this->vendor))->assertCreated();
+        $oldId = $previous->json('data.requestId');
+        DB::table('service_requests')->where('id', $oldId)->update(['status' => 'concluido', 'estimated_amount_cents' => 35000]);
+        $payload = $this->payload($this->vendor);
+        unset($payload['scheduledDate'], $payload['scheduledTimeSlot']);
+        $payload['description'] = 'Outro problema na cozinha';
+        $current = $this->postJson('/api/v1/servicos', $payload)->assertCreated();
+        $newId = $current->json('data.requestId');
+        $this->assertNotSame($oldId, $newId);
+        $this->assertNotSame($previous->json('data.code'), $current->json('data.code'));
+        $this->assertDatabaseHas('service_requests', ['id' => $oldId, 'status' => 'concluido', 'estimated_amount_cents' => 35000]);
+        $this->assertDatabaseHas('service_requests', ['id' => $newId, 'status' => 'solicitado', 'estimated_amount_cents' => null, 'scheduled_date' => null, 'scheduled_time_slot' => null]);
+        Notification::assertSentToTimes($this->customer, ServiceRequested::class, 2);
+        Notification::assertSentToTimes($this->provider, ServiceRequested::class, 2);
     }
 
     public function test_request_without_a_provider_only_confirms_to_customer(): void
@@ -150,6 +170,44 @@ final class ServiceRequestEmailTest extends TestCase
         Notification::assertSentTo($this->customer, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'cancelado');
         Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'cancelado');
         Notification::assertCount(2);
+    }
+
+    public function test_new_quote_versions_and_correction_request_notify_both(): void
+    {
+        Notification::fake();
+        $created = $this->postJson('/api/v1/servicos', $this->payload(null))->assertCreated();
+        $id = $created->json('data.requestId');
+        Notification::fake();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->provider->createToken('provider-test')->plainTextToken);
+        $quote = ['laborCents' => 10000, 'materialsCents' => 500, 'description' => 'Reparar tomada'];
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/orcamentos', $quote)->assertCreated();
+        Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'proposta_enviada');
+        Notification::assertCount(2);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/orcamentos', [...$quote, 'laborCents' => 11000])->assertCreated();
+        Notification::assertCount(4);
+        DB::table('service_requests')->where('id', $id)->update(['vendor_id' => $this->vendor, 'status' => 'prestador_concluiu']);
+        Notification::fake();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->customer->createToken('customer-test')->plainTextToken);
+        $this->postJson('/api/v1/servicos/'.$id.'/validacao', ['approved' => false, 'correctionNotes' => 'Revisar acabamento'])->assertOk();
+        Notification::assertSentTo($this->customer, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'correcao_solicitada');
+        Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'correcao_solicitada');
+        Notification::assertCount(2);
+    }
+
+    public function test_status_mail_failure_does_not_rollback_attendance(): void
+    {
+        Notification::fake();
+        $created = $this->postJson('/api/v1/servicos', $this->payload($this->vendor))->assertCreated();
+        $id = $created->json('data.requestId');
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->provider->createToken('provider-test')->plainTextToken);
+        Notification::swap(\Mockery::mock(ChannelManager::class));
+        Notification::shouldReceive('send')->twice()->andThrow(new \RuntimeException('SMTP unavailable'));
+        $response = $this->postJson('/api/v1/prestador/chamados/'.$id.'/aceite')->assertOk();
+        $this->assertNotEmpty($response->json('data.emailWarning'));
+        $this->assertDatabaseHas('service_requests', ['id' => $id, 'status' => 'aceito']);
     }
 
     public function test_smtp_failure_keeps_service_and_still_attempts_other_recipient(): void

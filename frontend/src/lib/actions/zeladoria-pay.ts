@@ -26,7 +26,6 @@ import {
   providerFinalizeService,
   providerRecordEvidence,
   providerRespondInspection,
-  rebookServiceRequest,
   sendDigitalProposal,
 } from "@/lib/services/payments/payment-service";
 
@@ -449,26 +448,24 @@ export async function rebookServiceRequestAction(payload: {
   scheduledDate?: string;
   location?: string;
   attachments?: string[];
-}) {
+}): Promise<{ success: boolean; error?: string; requestId?: number; code?: string; emailWarning?: string }> {
   try {
-    const { session, condoId } = await requireCondo();
-    const request = await rebookServiceRequest({
-      customerId: session.user.id,
-      condoId,
+    const result = await domainAction<{ success: boolean; requestId: number; code: string; emailWarning?: string }>("/servicos", "POST", {
       vendorId: payload.vendorId,
-      serviceType: payload.serviceType,
-      category: payload.category,
-      title: payload.title,
+      mode: "quote",
+      category: payload.category || "servicos",
+      title: payload.title?.trim() || "Nova solicitação de atendimento",
       description: payload.description,
-      urgency: payload.urgency,
+      urgency: payload.urgency || "hoje",
       scheduledDate: payload.scheduledDate,
       location: payload.location,
-      attachments: payload.attachments,
+      attachments: payload.attachments || [],
     });
+    if (!result.success) return result;
 
     revalidatePath("/painel/servicos");
     revalidatePath("/prestador/chamados");
-    return { success: true, requestId: request.id, code: request.code };
+    return { ...result, success: true };
   } catch (err: any) {
     console.error("Erro em rebookServiceRequestAction:", err);
     return { success: false, error: err?.message || "Erro ao recontratar profissional." };

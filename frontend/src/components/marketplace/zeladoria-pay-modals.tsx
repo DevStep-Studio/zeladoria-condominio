@@ -1,4 +1,5 @@
 "use client";
+import { canRebookProvider } from "@/lib/services/rebooking";
 
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/icon";
@@ -1785,7 +1786,7 @@ export function RebookServiceModal({
   if (!isOpen || !vendor) return null;
 
   // Validação de elegibilidade (Cláusula 41-42)
-  const isAvailable = vendor.active && vendor.onboardingStatus !== "suspenso";
+  const isAvailable = canRebookProvider(vendor);
 
   const handleAddPhoto = () => {
     if (!photoUrl.trim()) return;
@@ -1840,7 +1841,7 @@ export function RebookServiceModal({
               <span>{vendor.name} não está recebendo novos serviços no momento.</span>
             </div>
             <p className="text-xs text-amber-800">
-              O profissional está temporariamente indisponível ou sem agenda no condomínio. Você pode buscar outros prestadores parceiros na mesma categoria.
+              O perfil do profissional está inativo, bloqueado ou indisponível neste condomínio. Você pode buscar outros prestadores parceiros na mesma categoria.
             </p>
             <div className="pt-2">
               <button

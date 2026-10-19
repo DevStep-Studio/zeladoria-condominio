@@ -187,3 +187,21 @@ describe("Compatibilidade de categorias do cadastro e do marketplace", () => {
     }
   });
 });
+
+
+describe("Recontratação com dados reais do prestador", () => {
+  it("preserva os dados de elegibilidade do backend e o catálogo", async () => {
+    const { resolveRebookProvider, canRebookProvider } = await import("../src/lib/services/rebooking");
+    const catalog = [{ id: "one", name: "Tomada", description: "Reparo", priceFromCents: 10000 }];
+    const record = { id: 7, name: "Prestador", active: true, onboardingStatus: "aprovado", services: catalog };
+    const profile = { id: 7, name: "Prestador", category: "eletrica", servicesOffered: catalog } as import("../src/lib/services/providers-data").MarketplaceProvider;
+    const resolved = resolveRebookProvider(7, [profile], [record]);
+    assert.equal(canRebookProvider(resolved), true);
+    assert.deepEqual(resolved?.services, catalog);
+    assert.equal(canRebookProvider({ active: true, onboardingStatus: "em_analise" }), true);
+    assert.equal(canRebookProvider({ active: false }), false);
+    assert.equal(canRebookProvider({ active: true, onboardingStatus: "suspenso" }), false);
+    assert.equal(canRebookProvider({ active: true, onboardingStatus: "rejeitado" }), false);
+    assert.equal(canRebookProvider(resolveRebookProvider(9, [], [record])), false);
+  });
+});

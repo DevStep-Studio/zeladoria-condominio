@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveRebookProvider } from "@/lib/services/rebooking";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -596,6 +597,7 @@ export function ServicosClient({
       try {
         const res = await rebookServiceRequestAction(data);
         if (res.success) {
+          if ("emailWarning" in res && res.emailWarning) alert(res.emailWarning);
           setIsRebookModalOpen(false);
           setRebookVendor(null);
           setActiveView("contratacoes");
@@ -611,15 +613,13 @@ export function ServicosClient({
 
   const handleRehire = (reqOrVendor: any) => {
     const vId = reqOrVendor.vendorId || reqOrVendor.id;
-    const target =
-      providers.find((p) => p.id === vId) ||
-      vendors.find((v) => v.id === vId) || {
-        id: vId,
-        name: reqOrVendor.vendorCompany || reqOrVendor.vendorName || reqOrVendor.name || "Profissional",
-        category: reqOrVendor.category || "Serviços Residenciais",
-        active: true,
-        services: reqOrVendor.services || [],
-      };
+    const target = resolveRebookProvider(vId, providers, vendors) ?? {
+      id: vId,
+      name: reqOrVendor.vendorCompany || reqOrVendor.vendorName || reqOrVendor.name || "Profissional",
+      category: reqOrVendor.category || "Serviços Residenciais",
+      active: false,
+      services: [],
+    };
     setRebookVendor(target);
     setIsRebookModalOpen(true);
   };

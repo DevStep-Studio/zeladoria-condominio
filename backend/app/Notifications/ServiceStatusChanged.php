@@ -38,9 +38,14 @@ final class ServiceStatusChanged extends Notification
             'provider_arrived' => 'Prestador chegou ao local', 'in_progress' => 'Serviço em execução',
             'provider_completed' => 'Prestador concluiu: aguardando confirmação do morador',
             'customer_confirmed' => 'Conclusão confirmada pelo morador', 'completed' => 'Serviço concluído e confirmado',
+            'aguardando_pagamento' => 'Pagamento pendente', 'aguardando_pagamento_servico' => 'Pagamento do serviço pendente',
+            'aguardando_pagamento_vistoria' => 'Pagamento da vistoria pendente', 'servico_pago_liberado' => 'Pagamento do serviço confirmado',
+            'vistoria_confirmada' => 'Vistoria confirmada', 'em_deslocamento' => 'Prestador a caminho',
+            'disputed' => 'Disputa aberta no atendimento', 'in_dispute' => 'Disputa aberta no atendimento',
+            'reembolsado' => 'Reembolso registrado', 'refunded' => 'Reembolso registrado',
             'canceled' => 'Atendimento cancelado', 'cancelled' => 'Atendimento cancelado',
         ];
-        $label = $labels[strtolower($this->status)] ?? 'Atualização do atendimento: '.str_replace('_', ' ', strtolower($this->status));
+        $label = $labels[strtolower($this->status)] ?? 'Seu atendimento foi atualizado. Confira os detalhes no painel';
         $path = $this->forProvider ? '/prestador/chamados' : '/painel/servicos?tab=minhascontratacoes';
         $mail = (new MailMessage)->subject($label.' — '.$this->code)
             ->greeting('Olá!')->line($label.'.')

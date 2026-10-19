@@ -41,6 +41,8 @@ export interface VerifiedReview {
 }
 
 export interface MarketplaceProvider {
+  active?: boolean;
+  onboardingStatus?: string;
   id: number;
   name: string;
   company: string;

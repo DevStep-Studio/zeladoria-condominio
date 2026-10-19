@@ -145,6 +145,8 @@ export async function getMarketplaceProviders(
 
     const provider: MarketplaceProvider = {
       id: v.id,
+      active: v.active,
+      onboardingStatus: v.onboardingStatus,
       name: displayName,
       company: companyDisplayName,
       contactName: v.contactName,
