@@ -21,7 +21,7 @@ export async function createMarketplaceRequestAction(payload: {
   location?: string;
   attachments?: string[];
 }) {
-  const result = await domainAction<{ success: boolean; error?: string; requestId?: number; code?: string }>("/servicos", "POST", payload);
+  const result = await domainAction<{ success: boolean; error?: string; requestId?: number; code?: string; emailWarning?: string }>("/servicos", "POST", payload);
   if (result.success) {
     revalidatePath("/painel/servicos");
     revalidatePath("/prestador", "layout");

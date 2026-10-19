@@ -81,6 +81,7 @@ export function ServiceRequestWizard({
   // Status de Envio e Sucesso
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [emailWarning, setEmailWarning] = useState("");
   const [createdCode, setCreatedCode] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -146,6 +147,7 @@ export function ServiceRequestWizard({
         if (res?.success) {
           setIsSuccess(true);
           setCreatedCode(res.code || "");
+          setEmailWarning(res.emailWarning || "");
           onSuccess?.();
         } else {
           setErrorMessage(res?.error || "Não foi possível registrar o chamado. Tente novamente.");
@@ -196,6 +198,7 @@ export function ServiceRequestWizard({
           {/* TELA DE SUCESSO */}
           {isSuccess ? (
             <div className="py-6 text-center space-y-4">
+              {emailWarning && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">{emailWarning}</p>}
               <div className="h-12 w-12 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
                 <Icon name="check-circle" size={24} />
               </div>

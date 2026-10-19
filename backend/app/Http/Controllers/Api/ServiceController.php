@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Services\OperationService;
 use App\Services\ProviderService;
+use App\Services\ServiceRequestNotifier;
 use App\Services\SessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -103,12 +104,12 @@ final class ServiceController
         return response()->json(['data' => $vendors]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, ServiceRequestNotifier $notifier): JsonResponse
     {
         $ctx = $this->context($request);
         $data = $request->validate(['vendorId' => 'sometimes|nullable|integer|min:1', 'mode' => 'required|in:on_demand,quote', 'category' => 'required|string|max:40', 'title' => 'required|string|max:200', 'description' => 'required|string|max:10000', 'urgency' => 'sometimes|in:agora,hoje,agendar,media,urgente', 'scheduledDate' => 'sometimes|nullable|date_format:Y-m-d', 'scheduledTimeSlot' => 'sometimes|nullable|string|max:80', 'location' => 'sometimes|nullable|string|max:160', 'attachments' => 'sometimes|array|max:30', 'attachments.*' => 'string|max:4000000']);
 
-        return DB::transaction(function () use ($request, $ctx, $data) {
+        $result = DB::transaction(function () use ($request, $ctx, $data) {
             $condoId = $ctx['condo']['id'];
             $vendor = isset($data['vendorId']) ? DB::table('vendors')->where('id', $data['vendorId'])->where('condo_id', $condoId)->where('active', true)->whereNotIn('onboarding_status', ['suspenso', 'rejeitado'])->first() ?? abort(404) : null;
             DB::table('condominiums')->where('id', $condoId)->lockForUpdate()->first();
@@ -119,8 +120,13 @@ final class ServiceController
                 DB::table('notifications')->insert(['condo_id' => $condoId, 'user_id' => $vendor->user_id, 'title' => 'Novo chamado: '.$code, 'body' => trim($data['title']), 'link' => '/prestador/chamados']);
             }
 
-            return response()->json(['data' => ['success' => true, 'requestId' => $id, 'code' => $code]], 201);
+            return ['success' => true, 'requestId' => $id, 'code' => $code];
         });
+        if (! $notifier->send($result['requestId'])) {
+            $result['emailWarning'] = 'Solicitação registrada, mas não foi possível enviar todos os e-mails. Você pode acompanhar pelo painel; não é necessário contratar novamente.';
+        }
+
+        return response()->json(['data' => $result], 201);
     }
 
     public function show(Request $request, int $service): JsonResponse
