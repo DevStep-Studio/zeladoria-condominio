@@ -8,13 +8,6 @@ import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
 
-const DEMOS = [
-  { email: "sindico@portariamais.com.br", label: "Síndica", desc: "Acesso administrativo completo" },
-  { email: "portaria@portariamais.com.br", label: "Portaria", desc: "Visitantes, encomendas e turnos" },
-  { email: "morador@portariamais.com.br", label: "Morador", desc: "Apto 302 · Bloco A" },
-  { email: "admin@portariamais.com.br", label: "Super admin", desc: "Multi-condomínio e adoção" },
-];
-
 export default async function LoginPage() {
 
   const session = await getSession();
@@ -48,7 +41,7 @@ export default async function LoginPage() {
           </div>
 
           {/* Interactive Form Component */}
-          <LoginForm demos={DEMOS} />
+          <LoginForm />
         </div>
 
         {/* SaaS Footer */}

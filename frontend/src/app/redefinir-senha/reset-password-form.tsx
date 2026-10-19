@@ -236,15 +236,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
       {/* Footer */}
       <footer className="max-w-md w-full mx-auto pt-6 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
         <span>© 2026 Zeladoria Condomínio</span>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="hover:text-[#1355FF] transition-colors">
-            Acesso Moradores
-          </Link>
-          <span>·</span>
-          <Link href="/prestador/login" className="hover:text-[#1355FF] transition-colors">
-            Área do Prestador
-          </Link>
-        </div>
+
       </footer>
     </main>
   );

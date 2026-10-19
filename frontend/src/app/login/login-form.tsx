@@ -5,27 +5,11 @@ import Link from "next/link";
 import { loginAction } from "@/lib/actions/session";
 import { Icon } from "@/components/icon";
 
-type Demo = { email: string; label: string; desc: string };
-
-export function LoginForm({ demos }: { demos: Demo[] }) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const [error, formAction, pending] = useActionState(loginAction, null);
-
-  function selectDemo(demo: Demo) {
-    setEmail(demo.email);
-    setPassword("demo1234");
-    setActiveDemo(demo.email);
-  }
-
-  function handleEmailChange(val: string) {
-    setEmail(val);
-    if (activeDemo && val !== activeDemo) {
-      setActiveDemo(null);
-    }
-  }
 
   return (
     <div className="space-y-4">
@@ -40,7 +24,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
               autoComplete="email"
               className="h-13 sm:h-14 w-full rounded-2xl bg-transparent px-5 text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
               value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="E-mail ou identificação"
               required
             />
@@ -143,49 +127,7 @@ export function LoginForm({ demos }: { demos: Demo[] }) {
         </button>
       </form>
 
-      {/* Acesso rápido Demo (Minimalista e elegante) */}
-      <div className="pt-2 border-t border-slate-100">
-        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2 px-1">
-          <span className="font-semibold uppercase tracking-wider">Acesso rápido para demonstração</span>
-          <span className="text-[10px]">1 clique para preencher</span>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {demos.map((d) => {
-            const isSelected = activeDemo === d.email || email === d.email;
-            return (
-              <button
-                key={d.email}
-                type="button"
-                onClick={() => selectDemo(d)}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 cursor-pointer border ${
-                  isSelected
-                    ? "bg-blue-50 border-[#1355FF] text-[#1355FF] shadow-2xs font-bold"
-                    : "bg-[#F8F9FA] border-slate-200/80 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium"
-                }`}
-              >
-                <span className="text-xs">{d.label}</span>
-                <span className="text-[9px] text-slate-400 truncate max-w-full">
-                  {d.label === "Síndica" ? "Admin" : d.label === "Portaria" ? "Portaria" : d.label === "Morador" ? "Apto 302" : "Multi"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Rodapé do Form */}
-      <div className="text-center pt-2">
-        <p className="text-xs text-slate-500">
-          É um prestador de serviços parceiro?{" "}
-          <Link
-            href="/prestador/login"
-            className="font-bold text-[#1355FF] hover:underline"
-          >
-            Área do Prestador
-          </Link>
-        </p>
-      </div>
     </div>
   );
 }

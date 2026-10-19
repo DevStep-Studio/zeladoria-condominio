@@ -436,7 +436,7 @@ export function ServicosClient({
   const [receiptModalData, setReceiptModalData] = useState<any>(null);
   const [warrantyModalReq, setWarrantyModalReq] = useState<any>(null);
   const [selectedInspectionSlots, setSelectedInspectionSlots] = useState<Record<number, { date: string; time: string }>>({});
-  
+
   // Marketplace: Ordenação de orçamentos e modal de resumo de aceite
   const [quoteSortBy, setQuoteSortBy] = useState<Record<number, "recomendados" | "menor_preco" | "melhor_avaliacao" | "mais_rapido">>({});
   const [selectedQuoteForAcceptance, setSelectedQuoteForAcceptance] = useState<{ quote: any; request: any } | null>(null);
@@ -718,13 +718,7 @@ export function ServicosClient({
             </Link>
           )}
 
-          <Link
-            href="/prestador"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1355FF] bg-white border border-blue-200 hover:bg-blue-50 transition-all shadow-2xs"
-          >
-            <Icon name="briefcase" size={13} />
-            <span>Portal do Prestador</span>
-          </Link>
+
         </div>
       </div>
 

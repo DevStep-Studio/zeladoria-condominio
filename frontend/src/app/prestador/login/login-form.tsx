@@ -5,66 +5,14 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { providerLoginAction } from "@/lib/actions/session";
 
-export type ProviderDemo = {
-  email: string;
-  name: string;
-  role: string;
-  category: string;
-};
-
-export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
-  const [email, setEmail] = useState("carlos@eletrica.com.br");
-  const [password, setPassword] = useState("demo1234");
+export function ProviderLoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [activeDemo, setActiveDemo] = useState<string | null>("carlos@eletrica.com.br");
   const [error, formAction, isPending] = useActionState(providerLoginAction, null);
-
-  const selectDemo = (demo: ProviderDemo) => {
-    setEmail(demo.email);
-    setPassword("demo1234");
-    setActiveDemo(demo.email);
-  };
 
   return (
     <div className="space-y-5">
-      {/* Demo Accounts Quick-Select */}
-      {demos && demos.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Acessos de Demonstração (1-Clique)
-            </span>
-            <span className="text-[10px] font-medium text-slate-400">Senha: demo1234</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {demos.map((d) => {
-              const isSelected = activeDemo === d.email;
-              return (
-                <button
-                  key={d.email}
-                  type="button"
-                  onClick={() => selectDemo(d)}
-                  className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                    isSelected
-                      ? "border-[#1355FF] bg-blue-50/70 shadow-xs ring-1 ring-[#1355FF]"
-                      : "border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-bold text-slate-900 truncate">{d.name}</span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500 truncate">{d.category}</span>
-                    <span className="text-[#1355FF] font-bold text-[10px]">{d.role}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       <form action={formAction} className="space-y-4">
         {error && (
           <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-medium flex items-center gap-2">
@@ -93,13 +41,8 @@ export function ProviderLoginForm({ demos }: { demos: ProviderDemo[] }) {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (activeDemo && e.target.value !== activeDemo) {
-                  setActiveDemo(null);
-                }
-              }}
-              placeholder="carlos@eletrica.com.br"
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
               className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all"
             />
           </div>

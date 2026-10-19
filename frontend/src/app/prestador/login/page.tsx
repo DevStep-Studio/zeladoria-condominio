@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
-import { ProviderLoginForm, type ProviderDemo } from "./login-form";
+import { ProviderLoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
 
@@ -12,21 +12,6 @@ export const metadata = {
   title: "Acesso do Prestador · Zeladoria Serviços",
   description: "Encontre novos clientes e gerencie seus serviços de condomínio.",
 };
-
-const DEMOS: ProviderDemo[] = [
-  {
-    email: "carlos@eletrica.com.br",
-    name: "Carlos Eletricista",
-    category: "Volt & Luz Soluções",
-    role: "Prestador",
-  },
-  {
-    email: "admin@portariamais.com.br",
-    name: "Super Administrador",
-    category: "Gestor Multi-Condomínio",
-    role: "Super Admin",
-  },
-];
 
 export default async function PrestadorLoginPage() {
 
@@ -55,7 +40,7 @@ export default async function PrestadorLoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-5 shadow-xs border border-slate-200 sm:rounded-2xl sm:px-10 space-y-6">
-          <ProviderLoginForm demos={DEMOS} />
+          <ProviderLoginForm />
 
           <div className="pt-4 border-t border-slate-100 text-center space-y-2">
             <p className="text-xs text-slate-500 font-medium">
@@ -70,14 +55,7 @@ export default async function PrestadorLoginPage() {
           </div>
         </div>
 
-        <div className="mt-6 text-center">
-          <Link
-            href="/login"
-            className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            ← Voltar para o login de Moradores e Condomínios
-          </Link>
-        </div>
+
       </div>
     </div>
   );

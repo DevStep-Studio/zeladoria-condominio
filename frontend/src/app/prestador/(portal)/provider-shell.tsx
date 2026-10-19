@@ -6,7 +6,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { Icon, type IconName } from "@/components/icon";
 import { toggleProviderOnlineAction } from "@/lib/actions/prestador";
-import { logoutAction, switchRoleAction } from "@/lib/actions/session";
+import { logoutAction } from "@/lib/actions/session";
 
 export function ProviderShell({
   session,
@@ -17,11 +17,6 @@ export function ProviderShell({
   vendor: any;
   children: React.ReactNode;
 }) {
-  const condoRole = session?.user?.isSuperAdmin
-    ? "superadmin"
-    : session?.memberships?.find(
-        (m: { role: string; status: string }) => m.status === "ativo" && m.role !== "prestador"
-      )?.role;
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -202,22 +197,9 @@ export function ProviderShell({
               </div>
             </nav>
 
-            {/* RIGHT: Switch to Condo + User Popover */}
+            {/* User menu */}
             <div className="flex items-center gap-2.5 shrink-0">
-              {/* Painel do Condomínio Shortcut */}
-              {condoRole && (
-                <form action={switchRoleAction}>
-                  <input type="hidden" name="role" value={condoRole} />
-                  <button
-                    type="submit"
-                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors shadow-2xs"
-                    title="Ir para o Painel Geral do Condomínio"
-                  >
-                    <Icon name="grid" size={13} className="text-[#1355FF]" />
-                    <span className="hidden md:inline">Painel Condomínio</span>
-                  </button>
-                </form>
-              )}
+
 
               {/* User Profile Pill & Dropdown */}
               <div ref={profileRef} className="relative">
@@ -276,64 +258,8 @@ export function ProviderShell({
                         <span>Configurações</span>
                       </Link>
 
-                      {condoRole && (
-                        <form action={switchRoleAction}>
-                          <input type="hidden" name="role" value={condoRole} />
-                          <button
-                            type="submit"
-                            className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-[#1355FF] hover:bg-blue-50 transition-colors"
-                          >
-                            <Icon name="grid" size={14} className="text-[#1355FF]" />
-                            <span>Painel do Condomínio</span>
-                          </button>
-                        </form>
-                      )}
+
                     </div>
-
-                    {session?.availableRoles && session.availableRoles.length > 1 && (
-                      <div className="px-2 py-1.5 border-t border-slate-100 my-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Usar Zeladoria como
-                        </span>
-                        <div className="mt-1 space-y-0.5">
-                          {session.availableRoles.map((r: string) => {
-                            const isActive = r === "prestador";
-                            const roleTitle =
-                              r === "morador"
-                                ? "Morador"
-                                : r === "sindico"
-                                ? "Síndico"
-                                : r === "prestador"
-                                ? "Prestador de Serviços"
-                                : r === "superadmin"
-                                ? "Admin da Plataforma"
-                                : r === "porteiro"
-                                ? "Porteiro"
-                                : r === "zelador"
-                                ? "Zelador"
-                                : "Conselho";
-
-                            return (
-                              <form key={r} action={switchRoleAction}>
-                                <input type="hidden" name="role" value={r} />
-                                <button
-                                  type="submit"
-                                  onClick={() => setProfileOpen(false)}
-                                  className={`w-full text-left rounded-[6px] px-2 py-1 text-xs transition-colors flex items-center justify-between gap-1 cursor-pointer ${
-                                    isActive
-                                      ? "bg-blue-50 font-bold text-[#1355FF]"
-                                      : "text-slate-600 hover:bg-slate-50"
-                                  }`}
-                                >
-                                  <span className="truncate flex-1 text-[11px]">{roleTitle}</span>
-                                  {isActive && <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />}
-                                </button>
-                              </form>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
 
                     <div className="pt-1 border-t border-slate-100">
                       <form action={logoutAction}>

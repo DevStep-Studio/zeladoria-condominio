@@ -87,12 +87,10 @@ export function Shell({
   userName,
   roleLabel,
   role,
-  availableRoles = [],
   unitLabel,
   condoName,
   unread: initialUnread,
   switchAction,
-  switchRoleAction,
   logout,
   children,
 }: {
@@ -104,13 +102,11 @@ export function Shell({
   userName: string;
   roleLabel: string;
   role?: string;
-  availableRoles?: Role[];
   unitLabel: string | null;
   unreadCount?: number;
   condoName: string;
   unread: number;
   switchAction: (formData: FormData) => Promise<void>;
-  switchRoleAction?: (formData: FormData) => Promise<void>;
   logout: () => Promise<void>;
   children: ReactNode;
 }) {
@@ -156,29 +152,6 @@ export function Shell({
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isSwitchingCondo, startSwitchTransition] = useTransition();
   const [switchingCondoId, setSwitchingCondoId] = useState<number | null>(null);
-
-  const [isSwitchingRole, startSwitchRoleTransition] = useTransition();
-  const [switchingRoleName, setSwitchingRoleName] = useState<string | null>(null);
-
-  const handleRoleSwitch = (targetRole: Role) => {
-    if (targetRole === role || !switchRoleAction) {
-      setProfileMenuOpen(false);
-      return;
-    }
-    setSwitchingRoleName(targetRole);
-    startSwitchRoleTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append("role", targetRole);
-        await switchRoleAction(formData);
-      } catch (err) {
-        console.error("Erro ao alternar perfil:", err);
-      } finally {
-        setProfileMenuOpen(false);
-        setSwitchingRoleName(null);
-      }
-    });
-  };
 
   const topItemHref = role === "prestador" ? "/prestador" : role === "superadmin" ? "/painel/admin" : "/painel";
   const topItemLabel = role === "superadmin" ? "Dashboard" : role === "sindico" ? "Visão Geral" : "Início";
@@ -500,55 +473,6 @@ export function Shell({
                   <Icon name="user" size={14} className="text-[#1355FF]" />
                   <span>Meu Perfil</span>
                 </Link>
-
-                {availableRoles.length > 1 && switchRoleAction && (
-                  <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Usar Zeladoria como
-                    </span>
-                    <div className="mt-1 space-y-0.5">
-                      {availableRoles.map((r) => {
-                        const isActiveRole = r === role;
-                        const isSwitchingThis = isSwitchingRole && switchingRoleName === r;
-                        const roleTitle =
-                          r === "morador"
-                            ? "Morador"
-                            : r === "sindico"
-                            ? "Síndico"
-                            : r === "prestador"
-                            ? "Prestador de Serviços"
-                            : r === "superadmin"
-                            ? "Admin da Plataforma"
-                            : r === "porteiro"
-                            ? "Porteiro"
-                            : r === "zelador"
-                            ? "Zelador"
-                            : "Conselho";
-
-                        return (
-                          <button
-                            key={r}
-                            type="button"
-                            disabled={isSwitchingRole}
-                            onClick={() => handleRoleSwitch(r)}
-                            className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
-                              isActiveRole
-                                ? "bg-blue-50 font-bold text-[#1355FF]"
-                                : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-                            }`}
-                          >
-                            <span className="truncate flex-1 text-[11px] leading-snug">{roleTitle}</span>
-                            {isSwitchingThis ? (
-                              <Icon name="refresh" size={12} className="animate-spin text-[#1355FF] shrink-0" />
-                            ) : isActiveRole ? (
-                              <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {condos.length > 1 && (
                   <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
