@@ -56,9 +56,18 @@ export function ProviderChamadosClient({
       if (r.status === "concluido") {
         tab = "concluidos";
       } else if (
-        ["a_caminho", "chegou", "em_atendimento", "executado_prestador", "PROVIDER_COMPLETED"].includes(
-          r.status
-        )
+        [
+          "a_caminho",
+          "chegou",
+          "em_atendimento",
+          "correcao_solicitada",
+          "prestador_concluiu",
+          "conclusao_solicitada",
+          "prestador_finalizou",
+          "servico_finalizado_prestador",
+          "executado_prestador",
+          "PROVIDER_COMPLETED",
+        ].includes(r.status)
       ) {
         tab = "em_andamento";
       } else if (
@@ -508,7 +517,7 @@ export function ProviderChamadosClient({
                         </>
                       )}
 
-                      {(req.status === "executado_prestador" || req.status === "PROVIDER_COMPLETED") && (
+                      {["prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "executado_prestador", "PROVIDER_COMPLETED"].includes(req.status) && (
                         <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1.5">
                           <Icon name="clock" size={13} />
                           <span>Finalizado por você. Aguardando confirmação do morador.</span>

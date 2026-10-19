@@ -542,6 +542,7 @@ export function ServicosClient({
         comment: revComment,
       });
       setReviewRequest(null);
+      router.refresh();
     });
   };
 
@@ -563,6 +564,7 @@ export function ServicosClient({
       if (targetReq) {
         setReviewRequest(targetReq);
       }
+      router.refresh();
     });
   };
 
@@ -787,6 +789,8 @@ export function ServicosClient({
                         className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-[4px] ${
                           req.status === "concluido"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : ["prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status)
+                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200 animate-pulse"
                             : req.status === "em_atendimento"
                             ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
                             : req.status === "a_caminho" || req.status === "chegou"
@@ -794,22 +798,22 @@ export function ServicosClient({
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        {req.status.replace("_", " ")}
+                        {req.status.replace(/_/g, " ")}
                       </span>
                     </div>
 
                     {/* Progress State Machine Indicators */}
                     <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold text-slate-400 pt-1">
-                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "aceito", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "proposta_enviada", "orcamento_aprovado", "SERVICO_PAGO_LIBERADO", "aceito", "a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         1. Solicitado
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "SERVICO_PAGO_LIBERADO", "a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         2. Aceito
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         3. Deslocamento
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
+                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-blue-50 text-[#1355FF]" : "bg-slate-50"}`}>
                         4. Atendimento
                       </div>
                       <div className={`p-1.5 rounded-lg ${req.status === "concluido" ? "bg-emerald-50 text-emerald-700" : "bg-slate-50"}`}>
@@ -1355,7 +1359,7 @@ export function ServicosClient({
                     )}
 
                     {/* Banner Prestador Informou Conclusão */}
-                    {["prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status) && (
+                    {["prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status) && (
                       <div className="p-3.5 rounded-xl border border-blue-300 bg-blue-50/70 space-y-2 text-xs text-blue-950">
                         <div className="flex items-center gap-2">
                           <Icon name="check-circle" size={16} className="text-[#1355FF] shrink-0" />

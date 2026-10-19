@@ -292,9 +292,17 @@ export function ProviderDashboardClient({
                 {requests.slice(0, 5).map((req) => {
                   const isAccepted = [
                     "aceito",
+                    "SERVICO_PAGO_LIBERADO",
                     "a_caminho",
                     "chegou",
                     "em_atendimento",
+                    "correcao_solicitada",
+                    "prestador_concluiu",
+                    "conclusao_solicitada",
+                    "prestador_finalizou",
+                    "servico_finalizado_prestador",
+                    "executado_prestador",
+                    "PROVIDER_COMPLETED",
                     "orcamento_aprovado",
                     "concluido",
                   ].includes(req.status);
@@ -435,6 +443,12 @@ export function ProviderDashboardClient({
                             >
                               Concluir atendimento
                             </button>
+                          )}
+
+                          {["prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "executado_prestador", "PROVIDER_COMPLETED"].includes(req.status) && (
+                            <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-[8px] border border-indigo-200">
+                              Aguardando confirmação do morador
+                            </span>
                           )}
 
                           {req.mode === "orcamento" && req.status === "solicitado" && (
