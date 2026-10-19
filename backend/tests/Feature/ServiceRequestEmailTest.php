@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Notifications\ServiceRequested;
+use App\Notifications\ServiceStatusChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -82,6 +83,73 @@ final class ServiceRequestEmailTest extends TestCase
         $this->postJson('/api/v1/servicos', [...$this->payload($this->vendor), 'title' => ''])->assertUnprocessable();
         Notification::assertNothingSent();
         $this->assertDatabaseCount('service_requests', 0);
+    }
+
+    public function test_entire_attendance_flow_emails_both_parties_only_on_successful_changes(): void
+    {
+        Notification::fake();
+        $created = $this->postJson('/api/v1/servicos', $this->payload($this->vendor))->assertCreated();
+        $id = $created->json('data.requestId');
+        Notification::fake();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->provider->createToken('provider-test')->plainTextToken);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/aceite')->assertOk();
+        foreach (['a_caminho', 'chegou', 'em_atendimento'] as $status) {
+            $this->patchJson('/api/v1/prestador/chamados/'.$id.'/status', ['status' => $status])->assertOk();
+            foreach ([$this->customer, $this->provider] as $recipient) {
+                Notification::assertSentTo($recipient, ServiceStatusChanged::class, fn ($notification) => $notification->status === $status);
+            }
+        }
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/conclusao', [])->assertOk();
+        Notification::assertSentTo($this->customer, ServiceStatusChanged::class, function ($notification): bool {
+            if ($notification->status !== 'prestador_concluiu') {
+                return false;
+            }
+            $this->assertStringContainsString('aguardando confirmação', $notification->toMail($this->customer)->subject);
+
+            return true;
+        });
+        Notification::assertCount(10);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/conclusao', [])->assertConflict();
+        Notification::assertCount(10);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->customer->createToken('customer-test')->plainTextToken);
+        $this->postJson('/api/v1/servicos/'.$id.'/validacao', ['approved' => true])->assertOk();
+        Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'concluido');
+        Notification::assertCount(12);
+        $this->postJson('/api/v1/servicos/'.$id.'/validacao', ['approved' => true])->assertOk();
+        Notification::assertCount(12);
+    }
+
+    public function test_internal_payment_operations_notify_only_when_status_changes(): void
+    {
+        Notification::fake();
+        $created = $this->postJson('/api/v1/servicos', $this->payload($this->vendor))->assertCreated();
+        $id = $created->json('data.requestId');
+        Notification::fake();
+        $payload = ['parameters' => [['status' => 'orcamento_aprovado'], $id]];
+        $this->postJson('/api/v1/operations/lib.services.payments.payment-service.009', $payload)->assertOk();
+        Notification::assertSentTo($this->customer, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'orcamento_aprovado');
+        Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'orcamento_aprovado');
+        Notification::assertCount(2);
+        $this->postJson('/api/v1/operations/lib.services.payments.payment-service.009', $payload)->assertOk();
+        Notification::assertCount(2);
+    }
+
+    public function test_provider_cancellation_notifies_both_and_does_not_notify_for_foreign_service(): void
+    {
+        Notification::fake();
+        $created = $this->postJson('/api/v1/servicos', $this->payload($this->vendor))->assertCreated();
+        $id = $created->json('data.requestId');
+        Notification::fake();
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/recusa', [])->assertForbidden();
+        Notification::assertNothingSent();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->provider->createToken('provider-test')->plainTextToken);
+        $this->postJson('/api/v1/prestador/chamados/'.$id.'/recusa', ['reason' => 'Indisponível'])->assertOk();
+        Notification::assertSentTo($this->customer, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'cancelado');
+        Notification::assertSentTo($this->provider, ServiceStatusChanged::class, fn ($notification) => $notification->status === 'cancelado');
+        Notification::assertCount(2);
     }
 
     public function test_smtp_failure_keeps_service_and_still_attempts_other_recipient(): void

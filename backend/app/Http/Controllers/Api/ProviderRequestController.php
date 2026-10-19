@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Services\ProviderService;
 use App\Services\ServiceCategory;
+use App\Services\ServiceRequestNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 final class ProviderRequestController
 {
-    public function __construct(private ProviderService $providers) {}
+    public function __construct(private ProviderService $providers, private ServiceRequestNotifier $notifier) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -35,7 +36,7 @@ final class ProviderRequestController
     {
         $v = $this->providers->vendor($request);
 
-        return DB::transaction(function () use ($request, $v, $service) {
+        return $this->notifier->transition($service, function () use ($request, $v, $service) {
             $row = DB::table('service_requests')->where('id', $service)->where('condo_id', $v->condo_id)->lockForUpdate()->first() ?? abort(404);
             abort_unless($row->vendor_id === $v->id || ($row->vendor_id === null && ServiceCategory::normalize($row->category) === ServiceCategory::normalize($v->category)), 404);
             abort_unless(in_array($row->status, ['solicitado', 'buscando_prestador', 'aguardando_orcamentos'], true), 409, 'Oportunidade indisponível.');
@@ -52,7 +53,7 @@ final class ProviderRequestController
         $v = $this->providers->vendor($request);
         $data = $request->validate(['reason' => 'sometimes|nullable|string|max:2000']);
 
-        return DB::transaction(function () use ($request, $v, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $v, $service, $data) {
             $row = $this->providers->ownedRequest($v, $service, true);
             abort_unless(in_array($row->status, ['solicitado', 'buscando_prestador', 'aguardando_orcamentos', 'aceito'], true), 409, 'Este atendimento não pode mais ser recusado.');
             DB::table('service_requests')->where('id', $row->id)->update(['status' => 'cancelado', 'cancelled_by' => $request->user()->id, 'cancel_reason' => $data['reason'] ?? 'Prestador indisponível.', 'cancelled_at' => now(), 'updated_at' => now()]);
@@ -67,7 +68,7 @@ final class ProviderRequestController
         $v = $this->providers->vendor($request);
         $data = $request->validate(['status' => 'required|in:a_caminho,chegou,em_atendimento,prestador_concluiu,conclusao_solicitada,concluido,cancelado', 'reason' => 'sometimes|nullable|string|max:2000']);
 
-        return DB::transaction(function () use ($request, $v, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $v, $service, $data) {
             $row = $this->providers->ownedRequest($v, $service, true);
             // Only the customer may confirm completion and unlock a payout.
             $next = in_array($data['status'], ['concluido', 'conclusao_solicitada'], true) ? 'prestador_concluiu' : $data['status'];
@@ -145,7 +146,7 @@ final class ProviderRequestController
         $v = $this->providers->vendor($request);
         $data = [...$this->executionData($request), ...$request->validate(['finalNotes' => 'sometimes|nullable|string|max:10000', 'finalPhotos' => 'sometimes|array|max:30', 'finalPhotos.*' => 'string|max:4000000'])];
 
-        return DB::transaction(function () use ($request, $v, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $v, $service, $data) {
             $row = $this->providers->ownedRequest($v, $service, true);
             abort_unless(in_array($row->status, ['em_atendimento', 'correcao_solicitada'], true), 409, 'O serviço precisa estar em execução para solicitar a conclusão.');
             $values = ['status' => 'prestador_concluiu', 'completion_requested_at' => now(), 'updated_at' => now(), 'execution_notes' => $data['finalNotes'] ?? $row->execution_notes];
@@ -170,7 +171,7 @@ final class ProviderRequestController
         $v = $this->providers->vendor($request);
         $data = $request->validate(['laborCents' => 'required|integer|min:0|max:100000000', 'materialsCents' => 'required|integer|min:0|max:100000000', 'description' => 'required|string|max:10000', 'estimatedDays' => 'sometimes|integer|min:1|max:365']);
 
-        return DB::transaction(function () use ($request, $v, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $v, $service, $data) {
             $row = $this->providers->requests($v)->where('r.id', $service)->lockForUpdate()->first() ?? abort(404);
             abort_unless(in_array($row->status, [...ProviderService::OPEN_STATUSES, 'aceito', 'vistoria_realizada', 'diagnostico_registrado'], true), 409, 'Não é possível enviar proposta neste estado.');
             abort_if(DB::table('service_contracts')->where('request_id', $row->id)->exists(), 409, 'Serviço já possui contrato. Utilize um aditivo.');

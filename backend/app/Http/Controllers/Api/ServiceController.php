@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 final class ServiceController
 {
-    public function __construct(private SessionService $sessions, private OperationService $operations, private ProviderService $rows) {}
+    public function __construct(private SessionService $sessions, private OperationService $operations, private ProviderService $rows, private ServiceRequestNotifier $notifier) {}
 
     private function context(Request $request): array
     {
@@ -223,7 +223,7 @@ final class ServiceController
     {
         $ctx = $this->context($request);
 
-        return DB::transaction(function () use ($request, $ctx, $service) {
+        return $this->notifier->transition($service, function () use ($request, $ctx, $service) {
             $row = DB::table('service_requests')->where('id', $service)->where('condo_id', $ctx['condo']['id'])->lockForUpdate()->first() ?? abort(404, 'Chamado não encontrado.');
             abort_unless($row->customer_id === $request->user()->id || $ctx['role'] === 'superadmin', 403, 'Apenas o solicitante pode confirmar a conclusão.');
             DB::table('service_requests')->where('id', $row->id)->update([
@@ -250,7 +250,7 @@ final class ServiceController
             'description' => 'required|string|max:5000',
         ]);
 
-        return DB::transaction(function () use ($request, $ctx, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $ctx, $service, $data) {
             $row = $this->scoped($request, $ctx, $service, true);
             $id = DB::table('service_disputes')->insertGetId([
                 'request_id' => $row->id,
@@ -288,7 +288,7 @@ final class ServiceController
             'correctionNotes' => 'sometimes|nullable|string|max:5000',
         ]);
 
-        return DB::transaction(function () use ($request, $ctx, $service, $data) {
+        return $this->notifier->transition($service, function () use ($request, $ctx, $service, $data) {
             $row = DB::table('service_requests')->where('id', $service)->where('condo_id', $ctx['condo']['id'])->lockForUpdate()->first() ?? abort(404, 'Chamado não encontrado.');
             $isOwner = $row->customer_id === $request->user()->id;
             $isAdmin = in_array($ctx['role'], ['sindico', 'superadmin'], true);

@@ -37,7 +37,8 @@ final class OperationService
             return $this->select($op, $parameters);
         }
 
-        return DB::transaction(function () use ($op, $parameters) {
+        $changes = [];
+        $result = DB::transaction(function () use ($op, $parameters, &$changes) {
             $entity = $this->entities[$op['source']['table']];
             $table = $this->identifier($entity['name']);
             $bindings = [];
@@ -61,8 +62,16 @@ final class OperationService
                 }
                 // Lock and remember IDs, since a mutation may change its own predicate.
                 $ids = isset($op['returning']) ? array_column(DB::select('SELECT id FROM '.$table.$suffix.' FOR UPDATE', $bindings), 'id') : [];
+                $previous = $entity['name'] === 'service_requests' && isset($data['status'])
+                    ? DB::select('SELECT id, status FROM '.$table.$suffix.' FOR UPDATE', $bindings) : [];
                 $assignments = implode(', ', array_map(fn ($c) => $this->identifier($c).' = ?', array_keys($data)));
                 $count = DB::update('UPDATE '.$table.' SET '.$assignments.$suffix, [...array_values($data), ...$bindings]);
+
+                foreach ($previous as $row) {
+                    if ($row->status !== $data['status']) {
+                        $changes[] = [$row->id, $data['status']];
+                    }
+                }
 
                 return isset($op['returning']) ? $this->byIds($op, $parameters, $ids) : ['rowCount' => $count];
             }
@@ -86,6 +95,11 @@ final class OperationService
 
             return isset($op['returning']) ? $this->byIds($op, $parameters, $ids) : ['rowCount' => $count];
         });
+        foreach ($changes as [$requestId, $status]) {
+            app(ServiceRequestNotifier::class)->sendStatus($requestId, $status);
+        }
+
+        return $result;
     }
 
     private function byIds(array $op, array $parameters, array $ids): array
