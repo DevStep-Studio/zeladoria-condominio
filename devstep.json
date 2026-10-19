@@ -6,12 +6,12 @@
   "backend": {
     "dir": "backend",
     "type": "laravel",
-    "pm2_process": "condominio-backend"
+    "pm2_process": "null"
   },
   "frontend": {
     "dir": "frontend",
     "type": "nextjs",
-    "pm2_process": "condominio-frontend"
+    "pm2_process": "zeladoria-condominio"
   },
   "deploy_script": null
 }
