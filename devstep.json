@@ -6,6 +6,7 @@
   "backend": {
     "dir": "backend",
     "type": "laravel",
+    "pm2_process": "zeladoria-backend"
   },
   "frontend": {
     "dir": "frontend",
