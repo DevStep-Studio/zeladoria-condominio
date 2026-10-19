@@ -6,7 +6,6 @@
   "backend": {
     "dir": "backend",
     "type": "laravel",
-    "pm2_process": "null"
   },
   "frontend": {
     "dir": "frontend",
