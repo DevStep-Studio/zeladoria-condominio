@@ -35,6 +35,11 @@ final class ProviderController
             'services' => 'sometimes|array|max:100', 'services.*' => 'array:id,name,description,priceFromCents,priceType,estimatedDurationMinutes,warrantyDays',
             'services.*.id' => 'required|string|max:100', 'services.*.name' => 'required|string|max:200', 'services.*.description' => 'sometimes|nullable|string|max:5000', 'services.*.priceFromCents' => 'nullable|integer|min:0|max:100000000',
             'portfolio' => 'sometimes|array|max:100', 'portfolio.*' => 'array:url,caption,category,date', 'portfolio.*.url' => 'required|string|max:4000000', 'portfolio.*.caption' => 'sometimes|nullable|string|max:1000',
+            'identityVerification' => 'sometimes|array',
+            'identityVerification.documentType' => 'required_with:identityVerification|string|in:cnh,rg',
+            'identityVerification.frontUrl' => 'sometimes|nullable|string|max:4000000',
+            'identityVerification.backUrl' => 'sometimes|nullable|string|max:4000000',
+            'identityVerification.selfieUrl' => 'sometimes|nullable|string|max:4000000',
         ]);
         $columns = ['condoId' => 'condo_id', 'description' => 'description', 'whatsapp' => 'whatsapp', 'phone' => 'phone', 'serviceArea' => 'service_area', 'serviceRadiusKm' => 'service_radius_km', 'workingHours' => 'working_hours', 'photoUrl' => 'photo_url', 'coverUrl' => 'cover_url', 'services' => 'services', 'portfolio' => 'portfolio'];
         DB::transaction(function () use ($request, $v, $data, $columns) {
@@ -49,7 +54,23 @@ final class ProviderController
             }
             $values = [];
             foreach ($data as $key => $value) {
+                if ($key === 'identityVerification') {
+                    continue;
+                }
                 $values[$columns[$key]] = in_array($key, ['services', 'portfolio'], true) ? json_encode($value, JSON_THROW_ON_ERROR) : $value;
+            }
+            if (isset($data['identityVerification'])) {
+                $existing = json_decode($current->identity_verification ?? '{}', true) ?: [];
+                $hasDocs = ! empty($data['identityVerification']['frontUrl']) || ! empty($data['identityVerification']['selfieUrl']);
+                $newStatus = $hasDocs ? 'em_analise' : ($existing['status'] ?? 'pendente');
+                $merged = array_merge($existing, $data['identityVerification'], [
+                    'status' => $newStatus,
+                    'submittedAt' => now()->toIso8601String(),
+                ]);
+                $values['identity_verification'] = json_encode($merged, JSON_THROW_ON_ERROR);
+                if ($newStatus === 'em_analise' && $current->onboarding_status !== 'aprovado') {
+                    $values['onboarding_status'] = 'em_analise';
+                }
             }
             if ($values) {
                 DB::table('vendors')->where('id', $v->id)->update($values);

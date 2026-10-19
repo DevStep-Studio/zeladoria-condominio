@@ -4,13 +4,18 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Icon } from "@/components/icon";
 import { OnboardingWizard } from "./onboarding-wizard";
 
+import { getSession } from "@/lib/auth";
+
 export const metadata = {
   title: "Cadastro de Prestador · Zeladoria Serviços",
   description: "Cadastre-se como prestador parceiro e atenda condomínios da sua região.",
 };
 
 export default async function PrestadorCadastroPage() {
-  const condos = await backendRequest<{ id: number; name: string; city: string | null }[]>("/condominios/publicos");
+  const [condos, session] = await Promise.all([
+    backendRequest<{ id: number; name: string; city: string | null }[]>("/condominios/publicos").catch(() => []),
+    getSession().catch(() => null),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 sm:py-12 px-3 sm:px-6 lg:px-8">
@@ -31,7 +36,7 @@ export default async function PrestadorCadastroPage() {
 
         {/* Wizard Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-8 shadow-xs">
-          <OnboardingWizard condos={condos} />
+          <OnboardingWizard condos={condos} currentUser={session?.user || null} />
         </div>
 
         {/* Help footer */}

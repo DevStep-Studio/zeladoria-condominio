@@ -56,6 +56,7 @@ export function ProviderShell({
 
   // Abas Secundárias (Agrupadas no menu "Mais")
   const secondaryNavItems: Array<{ href: string; label: string; icon: IconName; desc: string }> = [
+    { href: "/prestador/documentos", label: "Documentos", icon: "shield", desc: "Comprovação de identidade e credenciamento" },
     { href: "/prestador/agenda", label: "Minha Agenda", icon: "calendar", desc: "Compromissos e horários agendados" },
     { href: "/prestador/disponibilidade", label: "Disponibilidade", icon: "clock", desc: "Configurar horários de atendimento" },
     { href: "/prestador/destaque", label: "Destaque / Planos", icon: "sparkles", desc: "Planos e visibilidade no condomínio" },
@@ -247,6 +248,15 @@ export function ProviderShell({
                       >
                         <Icon name="user" size={14} className="text-slate-400" />
                         <span>Meu Perfil</span>
+                      </Link>
+
+                      <Link
+                        href="/prestador/documentos"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                      >
+                        <Icon name="shield" size={14} className="text-slate-400" />
+                        <span>Documentos & Verificação</span>
                       </Link>
 
                       <Link

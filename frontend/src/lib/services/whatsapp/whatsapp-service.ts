@@ -1,4 +1,4 @@
-import { apiOperation } from "@/lib/api/server";
+// WhatsApp Service: Notificações transacionais e deep links
 
 export type WhatsAppTemplateKey =
   | "NOVA_SOLICITACAO"
@@ -230,14 +230,17 @@ export async function sendWhatsAppNotification(params: {
 
   // 3. Registra no histórico de notificações do sistema
   try {
-    await apiOperation("lib.services.whatsapp.whatsapp-service.001", [{
-      condoId,
-      userId,
-      title,
-      body: formattedMessage,
-      channel: "whatsapp",
-      link: templateParams.actionUrl || null,
-    }]);
+    const serverApi = await import("@/lib/api/server").catch(() => null);
+    if (serverApi?.apiOperation) {
+      await serverApi.apiOperation("lib.services.whatsapp.whatsapp-service.001", [{
+        condoId,
+        userId,
+        title,
+        body: formattedMessage,
+        channel: "whatsapp",
+        link: templateParams.actionUrl || null,
+      }]);
+    }
   } catch (err) {
     console.warn("Aviso ao persistir notification de WhatsApp no banco:", err);
   }
@@ -288,4 +291,18 @@ export function processWhatsAppDeliveryWebhook(payload: {
  */
 export function getWhatsAppNotificationStatus(idempotencyKey: string): WhatsAppDeliveryStatus | undefined {
   return dispatchedMessages.get(idempotencyKey);
+}
+
+/**
+ * Gera URL direta para WhatsApp Web / App (Click-to-Chat com texto formatado)
+ */
+export function generateWhatsAppDirectLink(
+  phone: string,
+  template: WhatsAppTemplateKey,
+  params: WhatsAppTemplateParams
+): string {
+  const cleanPhone = phone.replace(/\D/g, "");
+  const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+  const { formattedMessage } = buildWhatsAppMessage(template, params);
+  return `https://wa.me/${fullPhone}?text=${encodeURIComponent(formattedMessage)}`;
 }

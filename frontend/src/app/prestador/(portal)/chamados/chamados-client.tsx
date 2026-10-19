@@ -2,7 +2,11 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
-import { updateServiceProgressAction } from "@/lib/actions/prestador";
+import {
+  acceptServiceRequestAction,
+  rejectServiceRequestAction,
+  updateServiceProgressAction,
+} from "@/lib/actions/prestador";
 import {
   providerCreateContractAddendumAction,
   providerFinalizeServiceAction,
@@ -32,6 +36,7 @@ export function ProviderChamadosClient({
   const [isPending, startTransition] = useTransition();
 
   // Modais do Zeladoria Pay & Marketplace
+  const [detailsModalReq, setDetailsModalReq] = useState<any>(null);
   const [proposalModalReq, setProposalModalReq] = useState<any>(null);
   const [evidenceModalReq, setEvidenceModalReq] = useState<any>(null);
   const [addendumModalReq, setAddendumModalReq] = useState<any>(null);
@@ -132,6 +137,24 @@ export function ProviderChamadosClient({
   ) => {
     startTransition(async () => {
       await updateServiceProgressAction(requestId, nextStatus);
+    });
+  };
+
+  const handleAccept = (requestId: number) => {
+    startTransition(async () => {
+      const res = await acceptServiceRequestAction(requestId);
+      if (res.success) {
+        setDetailsModalReq(null);
+      }
+    });
+  };
+
+  const handleReject = (requestId: number, reason?: string) => {
+    startTransition(async () => {
+      const res = await rejectServiceRequestAction(requestId, reason);
+      if (res.success) {
+        setDetailsModalReq(null);
+      }
     });
   };
 
@@ -397,17 +420,40 @@ export function ProviderChamadosClient({
 
                 {/* Ações / CTA Dominante por Estado */}
                 <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5">
-                  {/* Aba Novos: CTA Dominante [ Enviar orçamento ] */}
+                  {/* Aba Novos: CTA Dominante [ Aceitar Trabalho ] ou [ Enviar Orçamento ] */}
                   {req.tabCategory === "novos" && (
-                    <button
-                      type="button"
-                      onClick={() => setProposalModalReq(req)}
-                      disabled={isPending}
-                      className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Icon name="send" size={14} />
-                      <span>Enviar Orçamento</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDetailsModalReq(req)}
+                        className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Icon name="eye" size={13} />
+                        <span>Ver Detalhes</span>
+                      </button>
+
+                      {req.priceFromCents || req.amountCents ? (
+                        <button
+                          type="button"
+                          onClick={() => handleAccept(req.id)}
+                          disabled={isPending}
+                          className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                          <Icon name="check-circle" size={14} />
+                          <span>Aceitar Trabalho (R$ {(((req.amountCents || req.priceFromCents)) / 100).toFixed(2)})</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setProposalModalReq(req)}
+                          disabled={isPending}
+                          className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Icon name="send" size={14} />
+                          <span>Enviar Orçamento</span>
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   {/* Aba Orçamentos Enviados */}
@@ -612,6 +658,212 @@ export function ProviderChamadosClient({
           });
         }}
       />
+
+      {/* MODAL 5: Detalhes Completos da Oportunidade */}
+      <OpportunityDetailModal
+        isOpen={!!detailsModalReq}
+        onClose={() => setDetailsModalReq(null)}
+        request={detailsModalReq}
+        isPending={isPending}
+        onAccept={handleAccept}
+        onOpenProposal={(req) => {
+          setDetailsModalReq(null);
+          setProposalModalReq(req);
+        }}
+        onReject={handleReject}
+      />
+    </div>
+  );
+}
+
+function OpportunityDetailModal({
+  isOpen,
+  onClose,
+  request,
+  onAccept,
+  onOpenProposal,
+  onReject,
+  isPending,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  request: any;
+  onAccept?: (requestId: number) => void;
+  onOpenProposal?: (request: any) => void;
+  onReject?: (requestId: number) => void;
+  isPending: boolean;
+}) {
+  if (!isOpen || !request) return null;
+
+  const hasFixedPrice = Boolean(request.amountCents || request.priceFromCents);
+  const priceFormatted = hasFixedPrice
+    ? ((request.amountCents || request.priceFromCents) / 100).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      })
+    : null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200/60 font-mono">
+                {request.code}
+              </span>
+              <span className="rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-2 py-0.5">
+                {request.category}
+              </span>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${
+                  request.urgency === "agora"
+                    ? "bg-rose-50 text-rose-700 border border-rose-200"
+                    : request.urgency === "hoje"
+                    ? "bg-amber-50 text-amber-800 border border-amber-200"
+                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                }`}
+              >
+                {request.urgency === "agora"
+                  ? "Urgente"
+                  : request.urgency === "hoje"
+                  ? "Para Hoje"
+                  : "Flexível"}
+              </span>
+            </div>
+            <h2 className="text-base font-bold text-slate-900 leading-snug">{request.title}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+
+        {/* Informações Principais */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase">Condomínio</p>
+            <p className="font-bold text-slate-800">{request.condoName || "Condomínio Residencial"}</p>
+            <p className="text-[11px] text-slate-500 italic mt-0.5">
+              Unidade e dados de contato liberados após o aceite.
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase">Remuneração do Serviço</p>
+            {hasFixedPrice ? (
+              <p className="text-base font-black text-emerald-700">{priceFormatted}</p>
+            ) : (
+              <p className="font-bold text-slate-700">A definir via Orçamento</p>
+            )}
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              Custódia garantida pelo Zeladoria Protege
+            </p>
+          </div>
+        </div>
+
+        {/* Descrição Detalhada */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            Descrição do Problema / Escopo:
+          </label>
+          <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
+            {request.description}
+          </div>
+        </div>
+
+        {/* Fotos Anexadas */}
+        {request.attachments && request.attachments.length > 0 && (
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Fotos enviadas pelo morador ({request.attachments.length}):
+            </label>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {request.attachments.map((url: string, idx: number) => (
+                <a
+                  key={idx}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-20 w-20 rounded-xl border border-slate-200 overflow-hidden shrink-0 group relative bg-slate-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={`Anexo ${idx + 1}`}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Garantias & Proteções */}
+        <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 text-xs space-y-1">
+          <p className="font-bold flex items-center gap-1.5">
+            <Icon name="shield" size={14} className="text-[#1355FF]" />
+            <span>Garantias da Zeladoria</span>
+          </p>
+          <ul className="text-[11px] text-blue-800 list-disc list-inside space-y-0.5">
+            <li>Pagamento retido em custódia até a conclusão e aprovação pelo cliente.</li>
+            <li>Garantia legal de 90 dias com cobertura do Zeladoria Protege.</li>
+            <li>Suporte e mediação de ouvidoria em caso de divergências de escopo.</li>
+          </ul>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+          {onReject && (
+            <button
+              type="button"
+              onClick={() => onReject(request.id)}
+              disabled={isPending}
+              className="text-xs text-slate-500 hover:text-rose-600 font-semibold cursor-pointer"
+            >
+              Dispensar oportunidade
+            </button>
+          )}
+
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+            >
+              Fechar
+            </button>
+
+            {hasFixedPrice && onAccept ? (
+              <button
+                type="button"
+                onClick={() => onAccept(request.id)}
+                disabled={isPending}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Icon name="check-circle" size={15} />
+                <span>Aceitar Trabalho ({priceFormatted})</span>
+              </button>
+            ) : onOpenProposal ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenProposal(request);
+                }}
+                disabled={isPending}
+                className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Icon name="send" size={14} />
+                <span>Enviar Orçamento</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

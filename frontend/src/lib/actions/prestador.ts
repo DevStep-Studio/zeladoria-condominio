@@ -138,6 +138,15 @@ export async function updateProviderStorefrontAction(payload: {
   return finish("/prestador/perfil", "PATCH", payload);
 }
 
+export async function updateProviderDocumentsAction(payload: {
+  documentType: "cnh" | "rg";
+  frontUrl?: string;
+  backUrl?: string;
+  selfieUrl?: string;
+}) : Promise<ProviderActionResult> {
+  return finish("/prestador/perfil", "PATCH", { identityVerification: payload });
+}
+
 export async function rejectServiceRequestAction(requestId: number, reason?: string) : Promise<ProviderActionResult> {
   return finish("/prestador/chamados/" + requestId + "/recusa", "POST", { reason });
 }

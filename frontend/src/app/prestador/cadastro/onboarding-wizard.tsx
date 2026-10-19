@@ -9,6 +9,7 @@ import { registerProviderAction } from "@/lib/actions/prestador";
 import { lookupCep } from "@/lib/services/cep";
 import { OFFICIAL_CATEGORIES, type CatalogCategory, type CatalogServiceItem } from "@/lib/services/categories-catalog";
 import { ProviderCoverageMap } from "@/components/map/provider-coverage-map";
+import { CameraCaptureModal, type CaptureMode } from "@/components/camera/camera-capture-modal";
 
 // Funções utilitárias de validação de CPF e CNPJ
 function isValidCpf(cpf: string): boolean {
@@ -87,21 +88,34 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export function OnboardingWizard({
   condos,
+  currentUser,
 }: {
   condos: { id: number; name: string; city: string | null }[];
+  currentUser?: any;
 }) {
   const router = useRouter();
+  const isExistingUser = !!currentUser;
   const [step, setStep] = useState<Step>(1);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Tela 2 — Dados Pessoais
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  // Tela 2 — Dados Pessoais (com auto-preenchimento caso usuário já esteja autenticado)
+  const [name, setName] = useState(
+    currentUser?.name ? currentUser.name.split(" ")[0] : ""
+  );
+  const [lastName, setLastName] = useState(
+    currentUser?.name
+      ? currentUser.name.split(" ").slice(1).join(" ")
+      : ""
+  );
+  const [email, setEmail] = useState(currentUser?.email || "");
+  const [phone, setPhone] = useState(
+    currentUser?.phone ? maskPhone(currentUser.phone) : ""
+  );
+  const [cpf, setCpf] = useState(
+    currentUser?.document ? maskCpf(currentUser.document) : ""
+  );
+  const [photoUrl, setPhotoUrl] = useState(currentUser?.avatarUrl || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -111,11 +125,13 @@ export function OnboardingWizard({
   const [cnpj, setCnpj] = useState("");
   const [selectedCondoId, setSelectedCondoId] = useState<number>(condos[0]?.id || 1);
 
-  // Tela 4 — Especialidades (Catálogo Oficial)
+  // Tela 4 — Especialidades (Catálogo Oficial com busca)
+  const [categorySearch, setCategorySearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("eletricista");
   const [specialties, setSpecialties] = useState<string[]>(["eletricista"]);
 
-  // Tela 5 — Seleção Detalhada de Serviços
+  // Tela 5 — Seleção Detalhada de Serviços (com busca interna)
+  const [serviceSearch, setServiceSearch] = useState("");
   const [selectedServices, setSelectedServices] = useState<CatalogServiceItem[]>([
     OFFICIAL_CATEGORIES[0].services[0],
   ]);
@@ -141,11 +157,13 @@ export function OnboardingWizard({
   const [bankAccount, setBankAccount] = useState("");
   const [bankAccountType, setBankAccountType] = useState<"corrente" | "poupanca">("corrente");
 
-  // Tela 8 — Verificação de Identidade
+  // Tela 8 — Verificação de Identidade e Câmera
   const [documentType, setDocumentType] = useState<"cnh" | "rg">("cnh");
   const [docFrontUrl, setDocFrontUrl] = useState("");
   const [docBackUrl, setDocBackUrl] = useState("");
   const [selfieUrl, setSelfieUrl] = useState("");
+  const [activeCameraModal, setActiveCameraModal] = useState<CaptureMode | null>(null);
+  const [skipVerification, setSkipVerification] = useState(false);
 
   const handleCepSearch = async () => {
     if (cep.replace(/\D/g, "").length !== 8) return;
@@ -188,6 +206,28 @@ export function OnboardingWizard({
     });
   };
 
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    target: "front" | "back" | "selfie"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (target === "front") {
+        setDocFrontUrl(result);
+        setSkipVerification(false);
+      } else if (target === "back") {
+        setDocBackUrl(result);
+      } else if (target === "selfie") {
+        setSelfieUrl(result);
+        setSkipVerification(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const validateStep = (): boolean => {
     setError(null);
     if (step === 2) {
@@ -199,13 +239,15 @@ export function OnboardingWizard({
         setError("O CPF informado é inválido. Verifique os dígitos.");
         return false;
       }
-      if (password.length < 6) {
-        setError("A senha deve ter no mínimo 6 caracteres.");
-        return false;
-      }
-      if (password !== confirmPassword) {
-        setError("A confirmação de senha não confere com a senha digitada.");
-        return false;
+      if (!isExistingUser) {
+        if (password.length < 6) {
+          setError("A senha deve ter no mínimo 6 caracteres.");
+          return false;
+        }
+        if (password !== confirmPassword) {
+          setError("A confirmação de senha não confere com a senha digitada.");
+          return false;
+        }
       }
     }
     if (step === 3) {
@@ -323,9 +365,9 @@ export function OnboardingWizard({
             : undefined,
         identityVerification: {
           documentType,
-          frontUrl: docFrontUrl.trim() || undefined,
-          backUrl: docBackUrl.trim() || undefined,
-          selfieUrl: selfieUrl.trim() || undefined,
+          frontUrl: skipVerification ? undefined : (docFrontUrl.trim() || undefined),
+          backUrl: skipVerification ? undefined : (docBackUrl.trim() || undefined),
+          selfieUrl: skipVerification ? undefined : (selfieUrl.trim() || undefined),
         },
         condoId: selectedCondoId,
       });
@@ -444,24 +486,42 @@ export function OnboardingWizard({
             </div>
           </div>
 
+          {isExistingUser && (
+            <div className="max-w-md mx-auto p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-left flex items-start gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1355FF] text-white shrink-0 mt-0.5">
+                <Icon name="user" size={16} />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-slate-900">
+                  Olá, {currentUser.name}!
+                </p>
+                <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                  Identificamos que você já possui acesso ao Zeladoria. Seu perfil profissional será vinculado à sua conta existente ({currentUser.email}) com 1 clique.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="pt-4 max-w-xs mx-auto space-y-3">
             <button
               type="button"
               onClick={() => setStep(2)}
               className="w-full h-11 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Cadastrar como Prestador</span>
+              <span>{isExistingUser ? "Ativar Perfil Profissional" : "Cadastrar como Prestador"}</span>
               <Icon name="arrow-right" size={14} />
             </button>
 
-            <div className="flex items-center justify-between text-xs pt-2">
-              <Link href="/prestador/login" className="font-semibold text-slate-600 hover:text-[#1355FF]">
-                Já é parceiro? Entrar
-              </Link>
-              <Link href="/esqueci-senha" className="text-slate-400 hover:text-slate-600">
-                Esqueceu a senha?
-              </Link>
-            </div>
+            {!isExistingUser && (
+              <div className="flex items-center justify-between text-xs pt-2">
+                <Link href="/prestador/login" className="font-semibold text-slate-600 hover:text-[#1355FF]">
+                  Já é parceiro? Entrar
+                </Link>
+                <Link href="/esqueci-senha" className="text-slate-400 hover:text-slate-600">
+                  Esqueceu a senha?
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -473,8 +533,21 @@ export function OnboardingWizard({
         <div className="space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-base font-bold text-slate-900">Dados Pessoais e Acesso</h3>
-            <p className="text-xs text-slate-500">Crie sua credencial de acesso ao Portal do Parceiro.</p>
+            <p className="text-xs text-slate-500">
+              {isExistingUser
+                ? "Confirme seus dados cadastrais para ativar o perfil profissional."
+                : "Crie sua credencial de acesso ao Portal do Parceiro."}
+            </p>
           </div>
+
+          {isExistingUser && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+              <Icon name="check-circle" size={16} className="text-emerald-600 shrink-0" />
+              <span>
+                <strong>Conta autenticada:</strong> Seus dados foram preenchidos automaticamente. Não é necessário cadastrar nova senha.
+              </span>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -504,8 +577,11 @@ export function OnboardingWizard({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                readOnly={isExistingUser}
                 placeholder="carlos@exemplo.com.br"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className={`w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none ${
+                  isExistingUser ? "bg-slate-50 text-slate-500 cursor-not-allowed" : "focus:border-[#1355FF]"
+                }`}
               />
             </div>
             <div>
@@ -540,28 +616,30 @@ export function OnboardingWizard({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Senha de Acesso *</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo de 6 caracteres"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
-              />
+          {!isExistingUser && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Senha de Acesso *</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo de 6 caracteres"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Confirmar Senha *</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a senha"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Confirmar Senha *</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repita a senha"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
-              />
-            </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -662,7 +740,7 @@ export function OnboardingWizard({
       )}
 
       {/* =====================================================================
-          TELA 4 — ESPECIALIDADES (14 CATEGORIAS OFICIAIS)
+          TELA 4 — ESPECIALIDADES (CATÁLOGO OFICIAL EXPANSÍVEL)
       ===================================================================== */}
       {step === 4 && (
         <div className="space-y-4">
@@ -676,43 +754,69 @@ export function OnboardingWizard({
             </span>
           </div>
 
+          {/* Campo de Busca Rápida de Categorias */}
+          <div className="relative">
+            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              placeholder="Buscar especialidade (ex: Eletricista, Encanador, Diarista, Pintura, Instalações...)"
+              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-[420px] overflow-y-auto pr-1">
-            {OFFICIAL_CATEGORIES.map((cat) => {
-              const isSelected = specialties.includes(cat.id);
-              const isPrimary = selectedCategory === cat.id;
+            {OFFICIAL_CATEGORIES
+              .filter((c) =>
+                categorySearch.trim()
+                  ? c.name.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                    c.description.toLowerCase().includes(categorySearch.toLowerCase())
+                  : true
+              )
+              .map((cat) => {
+                const isSelected = specialties.includes(cat.id);
+                const selectedInCat = selectedServices.filter((s) =>
+                  cat.services.some((cs) => cs.id === s.id)
+                ).length;
 
-              return (
-                <div
-                  key={cat.id}
-                  onClick={() => {
-                    toggleSpecialty(cat.id);
-                    if (!isSelected) setSelectedCategory(cat.id);
-                  }}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
-                    isSelected
-                      ? "border-[#1355FF] bg-blue-50/40 shadow-xs"
-                      : "border-slate-200 hover:border-slate-300 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                      isSelected ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-600"
-                    }`}>
-                      <Icon name={cat.icon} size={14} />
-                    </span>
-
-                    {isSelected && (
-                      <span className="h-4 w-4 rounded-full bg-[#1355FF] text-white flex items-center justify-center text-[10px]">
-                        ✓
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => {
+                      toggleSpecialty(cat.id);
+                      if (!isSelected) setSelectedCategory(cat.id);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                      isSelected
+                        ? "border-[#1355FF] bg-blue-50/40 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+                        isSelected ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-600"
+                      }`}>
+                        <Icon name={cat.icon} size={14} />
                       </span>
-                    )}
-                  </div>
 
-                  <p className="text-xs font-bold text-slate-900 leading-snug">{cat.name}</p>
-                  <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">{cat.description}</p>
-                </div>
-              );
-            })}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                          {selectedInCat}/{cat.services.length} svcs
+                        </span>
+                        {isSelected && (
+                          <span className="h-4 w-4 rounded-full bg-[#1355FF] text-white flex items-center justify-center text-[10px]">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-xs font-bold text-slate-900 leading-snug">{cat.name}</p>
+                    <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">{cat.description}</p>
+                  </div>
+                );
+              })}
           </div>
         </div>
       )}
@@ -726,7 +830,7 @@ export function OnboardingWizard({
             <div>
               <h3 className="text-base font-bold text-slate-900">Seleção Detalhada de Serviços</h3>
               <p className="text-xs text-slate-500">
-                Serviços pré-configurados com garantia legal de 90 dias (Zeladoria Protege).
+                Ative ou desative cada serviço específico que você executa. Garantia legal sugerida: 90 dias.
               </p>
             </div>
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#1355FF]">
@@ -734,63 +838,86 @@ export function OnboardingWizard({
             </span>
           </div>
 
+          {/* Campo de Busca Rápida de Serviços */}
+          <div className="relative">
+            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={serviceSearch}
+              onChange={(e) => setServiceSearch(e.target.value)}
+              placeholder="Buscar serviço no catálogo (ex: lâmpada, persiana, chuveiro, vazamento, estofados...)"
+              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+            />
+          </div>
+
           <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-            {OFFICIAL_CATEGORIES.filter((c) => specialties.includes(c.id)).map((cat) => (
-              <div key={cat.id} className="space-y-2">
-                <div className="flex items-center gap-2 pt-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-[#1355FF]">
-                    <Icon name={cat.icon} size={12} />
-                  </span>
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                    {cat.name}
-                  </span>
-                </div>
+            {OFFICIAL_CATEGORIES.filter((c) => specialties.includes(c.id)).map((cat) => {
+              const filteredServices = cat.services.filter((svc) =>
+                serviceSearch.trim()
+                  ? svc.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+                    svc.description.toLowerCase().includes(serviceSearch.toLowerCase())
+                  : true
+              );
 
-                <div className="grid grid-cols-1 gap-2">
-                  {cat.services.map((svc) => {
-                    const isSelected = selectedServices.some((s) => s.id === svc.id);
+              if (filteredServices.length === 0) return null;
 
-                    return (
-                      <div
-                        key={svc.id}
-                        onClick={() => toggleService(svc)}
-                        className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-[#1355FF] bg-blue-50/30"
-                            : "border-slate-200 hover:border-slate-300 bg-white"
-                        }`}
-                      >
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => {}}
-                              className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
-                            />
-                            <p className="text-xs font-bold text-slate-900">{svc.name}</p>
+              return (
+                <div key={cat.id} className="space-y-2">
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-[#1355FF]">
+                      <Icon name={cat.icon} size={12} />
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                      {cat.name}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    {filteredServices.map((svc) => {
+                      const isSelected = selectedServices.some((s) => s.id === svc.id);
+
+                      return (
+                        <div
+                          key={svc.id}
+                          onClick={() => toggleService(svc)}
+                          className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[#1355FF] bg-blue-50/30"
+                              : "border-slate-200 hover:border-slate-300 bg-white"
+                          }`}
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                              />
+                              <p className="text-xs font-bold text-slate-900">{svc.name}</p>
+                            </div>
+                            <p className="text-[11px] text-slate-500 pl-5">{svc.description}</p>
+                            <div className="flex items-center gap-3 pl-5 text-[10px] text-slate-400 pt-0.5">
+                              <span>⏱ ~{svc.estimatedDurationMinutes} min</span>
+                              <span>🛡 Garantia: {svc.warrantyDays} dias</span>
+                            </div>
                           </div>
-                          <p className="text-[11px] text-slate-500 pl-5">{svc.description}</p>
-                          <div className="flex items-center gap-3 pl-5 text-[10px] text-slate-400 pt-0.5">
-                            <span>⏱ ~{svc.estimatedDurationMinutes} min</span>
-                            <span>🛡 Garantia: {svc.warrantyDays} dias</span>
+
+                          <div className="text-right shrink-0">
+                            <p className="text-xs font-black text-slate-900">
+                              R$ {(svc.priceFromCents / 100).toFixed(2).replace(".", ",")}
+                            </p>
+                            <span className="text-[10px] text-slate-400 capitalize">
+                              {svc.priceType.replace("_", " ")}
+                            </span>
                           </div>
                         </div>
-
-                        <div className="text-right shrink-0">
-                          <p className="text-xs font-black text-slate-900">
-                            R$ {(svc.priceFromCents / 100).toFixed(2).replace(".", ",")}
-                          </p>
-                          <span className="text-[10px] text-slate-400 capitalize">
-                            {svc.priceType.replace("_", " ")}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -803,7 +930,7 @@ export function OnboardingWizard({
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-base font-bold text-slate-900">Área Geográfica de Atendimento</h3>
             <p className="text-xs text-slate-500">
-              Informe seu CEP base. O sistema calculará a distância real por coordenadas geográficas.
+              Informe seu CEP base. O sistema calculará a distância geográfica real por coordenadas (Haversine).
             </p>
           </div>
 
@@ -865,7 +992,7 @@ export function OnboardingWizard({
             </div>
           </div>
 
-          {/* Slider de Raio em km */}
+          {/* Slider de Raio em km (de 5 a 50 km conforme referência do vídeo) */}
           <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-slate-800">Raio de Cobertura de Atendimento</span>
@@ -875,13 +1002,18 @@ export function OnboardingWizard({
             </div>
             <input
               type="range"
-              min="3"
-              max="60"
+              min="5"
+              max="50"
               step="1"
               value={serviceRadiusKm}
               onChange={(e) => setServiceRadiusKm(Number(e.target.value))}
               className="w-full accent-[#1355FF] cursor-pointer"
             />
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+              <span>5 km</span>
+              <span>25 km</span>
+              <span>50 km</span>
+            </div>
             <p className="text-[11px] text-slate-500">
               Você receberá oportunidades de condomínios situados a até {serviceRadiusKm} km de distância desta base.
             </p>
@@ -1032,11 +1164,24 @@ export function OnboardingWizard({
       ===================================================================== */}
       {step === 8 && (
         <div className="space-y-4">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-bold text-slate-900">Verificação de Identidade</h3>
-            <p className="text-xs text-slate-500">
-              Para segurança dos condomínios e moradores, solicitamos a comprovação documental do profissional.
-            </p>
+          <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Verificação de Identidade</h3>
+              <p className="text-xs text-slate-500">
+                Para segurança dos condomínios e moradores, solicitamos a comprovação documental do profissional.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSkipVerification(true);
+                setStep(9);
+              }}
+              className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <span>Lembrar mais tarde</span>
+              <Icon name="chevron-right" size={13} />
+            </button>
           </div>
 
           <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200 text-blue-900 text-xs flex items-center gap-2">
@@ -1046,10 +1191,10 @@ export function OnboardingWizard({
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Documento Apresentado</label>
-              <div className="flex gap-3">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Documento Apresentado</label>
+              <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                   <input
                     type="radio"
@@ -1071,39 +1216,233 @@ export function OnboardingWizard({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">Frente do Documento (ou PDF)</label>
-                <input
-                  value={docFrontUrl}
-                  onChange={(e) => setDocFrontUrl(e.target.value)}
-                  placeholder="URL do arquivo / foto frontal"
-                  className="w-full h-8 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-[#1355FF] bg-white"
-                />
-                <p className="text-[10px] text-slate-400">Certifique-se de que o nome e foto estejam legíveis.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Card 1: Frente do Documento */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                    <span>Frente do Documento (ou PDF)</span>
+                  </label>
+                  {docFrontUrl ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Anexado
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-slate-400">Pendente</span>
+                  )}
+                </div>
+
+                {docFrontUrl ? (
+                  <div className="space-y-2">
+                    {docFrontUrl.startsWith("data:image/") || docFrontUrl.startsWith("http") ? (
+                      <div className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={docFrontUrl}
+                          alt="Frente do Documento"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 truncate">
+                        Documento PDF / Arquivo carregado
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCameraModal("document_front")}
+                        className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                      >
+                        Tirar outra foto
+                      </button>
+                      <span className="text-slate-300">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setDocFrontUrl("")}
+                        className="text-xs text-rose-600 hover:underline font-semibold cursor-pointer"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCameraModal("document_front")}
+                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Icon name="camera" size={14} />
+                        <span>Tirar Foto com a Câmera</span>
+                      </button>
+                      <label className="w-full h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                        <Icon name="file" size={14} />
+                        <span>Carregar Arquivo / PDF</span>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileUpload(e, "front")}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-slate-400">Certifique-se de que o nome e foto estejam legíveis.</p>
+                  </div>
+                )}
               </div>
 
-              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">Verso do Documento</label>
-                <input
-                  value={docBackUrl}
-                  onChange={(e) => setDocBackUrl(e.target.value)}
-                  placeholder="URL do verso (opcional para CNH digital)"
-                  className="w-full h-8 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-[#1355FF] bg-white"
-                />
-                <p className="text-[10px] text-slate-400">Onde constam os números de registro e filiação.</p>
+              {/* Card 2: Verso do Documento */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                    <span>Verso do Documento</span>
+                  </label>
+                  {docBackUrl ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Anexado
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-slate-400">Opcional</span>
+                  )}
+                </div>
+
+                {docBackUrl ? (
+                  <div className="space-y-2">
+                    {docBackUrl.startsWith("data:image/") || docBackUrl.startsWith("http") ? (
+                      <div className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={docBackUrl}
+                          alt="Verso do Documento"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 truncate">
+                        Documento PDF / Arquivo carregado
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCameraModal("document_back")}
+                        className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                      >
+                        Tirar outra foto
+                      </button>
+                      <span className="text-slate-300">·</span>
+                      <button
+                        type="button"
+                        onClick={() => setDocBackUrl("")}
+                        className="text-xs text-rose-600 hover:underline font-semibold cursor-pointer"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCameraModal("document_back")}
+                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Icon name="camera" size={14} />
+                        <span>Tirar Foto com a Câmera</span>
+                      </button>
+                      <label className="w-full h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                        <Icon name="file" size={14} />
+                        <span>Carregar Arquivo / PDF</span>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileUpload(e, "back")}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-slate-400">Onde constam os números de registro e filiação.</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">Selfie com Documento</label>
-              <input
-                value={selfieUrl}
-                onChange={(e) => setSelfieUrl(e.target.value)}
-                placeholder="URL da selfie segurando o documento ao lado do rosto"
-                className="w-full h-8 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-[#1355FF] bg-white"
-              />
-              <p className="text-[10px] text-slate-400">Utilizado para verificação humana de autenticidade.</p>
+            {/* Card 3: Selfie com Documento */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Icon name="user" size={14} className="text-[#1355FF]" />
+                  <span>Selfie Segurando o Documento</span>
+                </label>
+                {selfieUrl ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Anexado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium text-slate-400">Pendente</span>
+                )}
+              </div>
+
+              {selfieUrl ? (
+                <div className="space-y-2">
+                  <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-slate-100 border-2 border-[#1355FF]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={selfieUrl}
+                      alt="Selfie com Documento"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCameraModal("selfie")}
+                      className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                    >
+                      Tirar outra selfie
+                    </button>
+                    <span className="text-slate-300">·</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelfieUrl("")}
+                      className="text-xs text-rose-600 hover:underline font-semibold cursor-pointer"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCameraModal("selfie")}
+                      className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Icon name="camera" size={14} />
+                      <span>Abrir Câmera Frontal</span>
+                    </button>
+                    <label className="flex-1 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                      <Icon name="file" size={14} />
+                      <span>Carregar Arquivo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, "selfie")}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[10px] text-slate-400 text-center">
+                    Segure o documento ao lado do seu rosto em local bem iluminado para verificação facial.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1155,6 +1494,29 @@ export function OnboardingWizard({
                 {payoutMethod === "pix" ? (pixKey || cpf) : `Ag: ${bankAgency} · Cc: ${bankAccount}`}
               </p>
             </div>
+
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1 sm:col-span-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Verificação Documental</p>
+              {skipVerification || (!docFrontUrl && !selfieUrl) ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    Envio Pendente
+                  </span>
+                  <span className="text-xs text-slate-600">
+                    Você poderá anexar seus documentos a qualquer momento na aba <strong>Documentos</strong> do portal.
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Documentos Anexados
+                  </span>
+                  <span className="text-xs text-slate-600">
+                    Frente{docBackUrl ? ", Verso" : ""} e Selfie prontos para análise da moderação.
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1171,14 +1533,28 @@ export function OnboardingWizard({
           </button>
 
           {step < 9 ? (
-            <button
-              type="button"
-              onClick={nextStep}
-              className="px-5 py-2 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>Continuar</span>
-              <Icon name="chevron-right" size={14} />
-            </button>
+            <div className="flex items-center gap-3">
+              {step === 8 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSkipVerification(true);
+                    setStep(9);
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-700 font-medium cursor-pointer"
+                >
+                  Pular por enquanto
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={nextStep}
+                className="px-5 py-2 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Continuar</span>
+                <Icon name="chevron-right" size={14} />
+              </button>
+            </div>
           ) : (
             <button
               type="button"
@@ -1197,6 +1573,27 @@ export function OnboardingWizard({
             </button>
           )}
         </div>
+      )}
+
+      {/* Modal de Captura de Câmera / Selfie */}
+      {activeCameraModal && (
+        <CameraCaptureModal
+          isOpen={true}
+          mode={activeCameraModal}
+          onClose={() => setActiveCameraModal(null)}
+          onConfirm={(dataUrl: string) => {
+            if (activeCameraModal === "document_front") {
+              setDocFrontUrl(dataUrl);
+              setSkipVerification(false);
+            } else if (activeCameraModal === "document_back") {
+              setDocBackUrl(dataUrl);
+            } else if (activeCameraModal === "selfie") {
+              setSelfieUrl(dataUrl);
+              setSkipVerification(false);
+            }
+            setActiveCameraModal(null);
+          }}
+        />
       )}
     </div>
   );
