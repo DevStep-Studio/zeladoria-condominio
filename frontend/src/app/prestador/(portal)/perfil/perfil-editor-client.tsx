@@ -315,6 +315,36 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
             />
           </div>
         </div>
+
+        {/* Raio de Atendimento e Deslocamento */}
+        <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Icon name="navigation" size={14} className="text-[#1355FF]" />
+              <span>Raio Máximo de Cobertura / Deslocamento</span>
+            </label>
+            <span className="text-xs font-black text-[#1355FF] bg-white px-2.5 py-0.5 rounded-full border border-blue-200 shadow-2xs">
+              {serviceRadiusKm} km
+            </span>
+          </div>
+          <input
+            type="range"
+            min={5}
+            max={50}
+            step={1}
+            value={serviceRadiusKm}
+            onChange={(e) => setServiceRadiusKm(Number(e.target.value))}
+            className="w-full accent-[#1355FF] cursor-pointer"
+          />
+          <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+            <span>5 km (Local / Bairro)</span>
+            <span>25 km (Regional)</span>
+            <span>50 km (Metropolitana)</span>
+          </div>
+          <p className="text-[11px] text-slate-600">
+            Você receberá chamados e notificações de condomínios localizados em um raio de até <strong>{serviceRadiusKm} km</strong> a partir do seu endereço de atendimento.
+          </p>
+        </div>
       </div>
 
       {/* Portfolio Editor */}
