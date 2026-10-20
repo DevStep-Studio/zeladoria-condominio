@@ -55,6 +55,12 @@ logs/
 # Serena
 .serena/
 
+# Superpowers & Playwright
+.superpowers/
+test-results/
+playwright-report/
+
 # Local databases belong to external services, never to the frontend
 .pgdata/
 .mysql-data/
+

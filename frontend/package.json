@@ -14,6 +14,7 @@
     "test:reservas": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/reservas.test.ts",
     "test:mapa": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/mapa.test.ts",
     "test:portaria": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/portaria-sindico-e2e.test.ts",
+    "test:responsive": "playwright test --config=playwright.config.ts",
     "autocommit": "node scripts/auto-commit.mjs",
     "autocommit:push": "node scripts/auto-commit.mjs --push",
     "autocommit:once": "node scripts/auto-commit.mjs --once",
@@ -40,6 +41,7 @@
     "tsx": "^4.23.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
     "@types/react": "19.2.14",
