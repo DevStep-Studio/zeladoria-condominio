@@ -194,7 +194,30 @@ export function Shell({
   // Global Search state with debounce
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchMobileOpen, setSearchMobileOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Scroll lock when mobile drawer is open + Escape key handler
+  useEffect(() => {
+    if (mobileOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setMobileOpen(false);
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [mobileOpen]);
+
+  // Close mobile drawer and search overlay on route change
+  useEffect(() => {
+    setMobileOpen(false);
+    setSearchMobileOpen(false);
+  }, [pathname]);
 
   // Notifications dropdown state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -301,6 +324,15 @@ export function Shell({
               aria-label="Recolher menu lateral"
             >
               <Icon name="panel" size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="flex lg:hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Fechar menu"
+              aria-label="Fechar menu"
+            >
+              <Icon name="x" size={16} />
             </button>
           </>
         ) : (
@@ -569,50 +601,123 @@ export function Shell({
         }`}
       >
         {/* Global Minimalist Header - Executivo, Compacto e Integrado */}
-        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-6 shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
+        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white px-3 sm:px-6 shadow-[0_1px_2px_rgba(15,23,42,0.02)] relative">
+          {/* Mobile Full-width Search Bar Overlay */}
+          {searchMobileOpen && (
+            <div className="absolute inset-0 z-50 flex items-center bg-white px-3 sm:px-6 shadow-md animate-in fade-in duration-150">
+              <div className="relative flex-1 flex items-center">
+                <Icon name="search" size={15} className="absolute left-3 text-slate-400" />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-10 w-full rounded-[8px] border border-blue-200 bg-slate-50 pl-9 pr-8 text-xs text-slate-900 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <Icon name="x" size={13} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchMobileOpen(false);
+                  setSearchQuery("");
+                }}
+                className="ml-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
+              >
+                Cancelar
+              </button>
+              {/* Autocomplete dropdown mobile */}
+              {searchQuery.trim().length > 0 && (
+                <div className="absolute left-3 right-3 top-full mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl z-50">
+                  {searchResults.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400">
+                      Nenhum resultado encontrado para &quot;{searchQuery}&quot;
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {Object.entries(groupedSearchResults).map(([cat, items]) => {
+                        if (items.length === 0) return null;
+                        return (
+                          <div key={cat}>
+                            <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-md">
+                              {cat}
+                            </div>
+                            {items.map((item) => (
+                              <Link
+                                key={item.title}
+                                href={item.href}
+                                onClick={() => {
+                                  setSearchMobileOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="block p-2 rounded-lg hover:bg-blue-50/70 transition-colors"
+                              >
+                                <p className="text-xs font-bold text-slate-900">{item.title}</p>
+                                <p className="text-[11px] text-slate-500">{item.subtitle}</p>
+                              </Link>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden shrink-0"
               aria-label="Abrir menu"
             >
               <Icon name="menu" size={18} />
             </button>
 
             {/* Mobile logo only */}
-            <div className="lg:hidden">
+            <div className="lg:hidden shrink-0">
               <BrandLogo size="md" showText={false} />
             </div>
 
             {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio: morador, síndico, portaria, conselho) */}
             {role !== "prestador" && role !== "superadmin" && (
-              <div ref={condoRef} className="relative">
+              <div ref={condoRef} className="relative min-w-0">
                 <button
                   type="button"
                   onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
                   disabled={isSwitchingCondo}
-                  className={`group flex items-center gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
+                  className={`group flex items-center gap-1.5 sm:gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-2 sm:px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
                     condos.length > 1 ? "cursor-pointer" : "cursor-default"
                   }`}
                   title={condos.length > 1 ? "Trocar condomínio" : condoName}
                 >
-                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#1355FF]">
+                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#1355FF] shrink-0">
                     {isSwitchingCondo ? (
                       <Icon name="refresh" size={12} className="animate-spin text-[#1355FF]" />
                     ) : (
                       <Icon name="building" size={12} strokeWidth={2} />
                     )}
                   </span>
-                  <span className="truncate max-w-[170px] sm:max-w-[240px]">
+                  <span className="truncate max-w-[100px] xs:max-w-[150px] sm:max-w-[240px]">
                     {condoName || "Residencial Parque das Águas"}
                   </span>
                   {condos.length > 1 && (
                     <Icon
                       name="chevron-down"
                       size={11}
-                      className={`text-slate-400 group-hover:text-slate-600 transition-transform ${
+                      className={`text-slate-400 group-hover:text-slate-600 transition-transform shrink-0 ${
                         condoDropdownOpen ? "rotate-180" : ""
                       }`}
                     />
@@ -726,8 +831,19 @@ export function Shell({
             )}
           </div>
 
-          {/* Right: Notifications Dropdown + User Avatar */}
-          <div className="flex items-center gap-2">
+          {/* Right: Search Mobile + Notifications Dropdown + User Avatar */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Mobile Search Button (apenas telas < md) */}
+            <button
+              type="button"
+              onClick={() => setSearchMobileOpen(true)}
+              title="Buscar no sistema"
+              className="flex md:hidden h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+              aria-label="Abrir busca"
+            >
+              <Icon name="search" size={15} />
+            </button>
+
             {/* Notifications Dropdown */}
             <div ref={notifRef} className="relative">
               <button
@@ -826,7 +942,7 @@ export function Shell({
         </main>
 
         {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#1355FF] px-1 py-1 lg:hidden shadow-lg select-none text-white">
+        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#1355FF] px-1 py-1 lg:hidden shadow-lg select-none text-white pb-[max(env(safe-area-inset-bottom),0.35rem)]">
           {(mobileNav && mobileNav.length > 0
             ? mobileNav
             : [

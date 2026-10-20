@@ -291,12 +291,12 @@ export function ProviderShell({
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-12">
         {children}
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION (Fixed at bottom on small screens) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 px-2 py-1.5 flex justify-around items-center shadow-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 px-2 py-1.5 flex justify-around items-center shadow-lg pb-[max(env(safe-area-inset-bottom),0.4rem)]">
         {mobileNav.map((item) => {
           const isActive = pathname === item.href;
           return (
