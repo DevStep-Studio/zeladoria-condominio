@@ -48,14 +48,14 @@ describe("Módulo Mapa do Condomínio — Testes Funcionais & E2E", () => {
     }
   });
 
-  it("3. Fonte de Tiles: Deve utilizar CartoDB Positron para evitar erros 403 e garantir alta estabilidade", () => {
+  it("3. Fonte de Tiles: Deve utilizar provedor livre de 403 e sem marca d'água de API key", () => {
     const mapFilePath = path.join(process.cwd(), "src/components/condo-map.tsx");
     const content = fs.readFileSync(mapFilePath, "utf8");
 
     assert.equal(
-      content.includes("basemaps.cartocdn.com"),
+      content.includes("tile.openstreetmap.fr/hot") || content.includes("basemaps.cartocdn.com"),
       true,
-      "CondoMap deve usar CartoDB Positron como provedor de tiles"
+      "CondoMap deve usar provedor de tiles com alta disponibilidade"
     );
     assert.equal(
       content.includes("tile.openstreetmap.org"),

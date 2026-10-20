@@ -55,19 +55,27 @@ export function ProviderCoverageMap({
 
         L.control.zoom({ position: "bottomright" }).addTo(map);
 
-        // CARTO Positron Light Tiles (Zero 403 errors, high performance, clean aesthetic)
+        // OpenStreetMap Humanitarian (HOT) tiles com fallback automático para ESRI World Street Map
+        // 100% gratuito, sem necessidade de API key, sem marcas d'água e sem bloqueio 403
         const tileLayer = L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
           {
             attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: "abcd",
-            maxZoom: 20,
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>',
+            subdomains: ["a", "b"],
+            maxZoom: 19,
           }
         );
 
-        tileLayer.on("tileerror", () => {
-          // Silently handle any tile loading glitch
+        tileLayer.on("tileerror", (error: any) => {
+          // Fallback automático transparente para ESRI World Street Map se algum tile falhar
+          if (error?.tile && !error.tile.dataset?.fallback) {
+            error.tile.dataset.fallback = "true";
+            const coords = error.coords;
+            if (coords) {
+              error.tile.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${coords.z}/${coords.y}/${coords.x}`;
+            }
+          }
         });
 
         tileLayer.addTo(map);
