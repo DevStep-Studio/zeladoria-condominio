@@ -8,8 +8,8 @@ export function MarketplaceMap({
   providers = [],
   condoName = "Residencial Parque das Águas",
   condoAddress = "Av. das Nações, 1200",
-  condoLat = -23.5615,
-  condoLng = -46.6559,
+  condoLat = -25.4284,
+  condoLng = -49.2733,
   onSelectProvider,
   onRequestBudget,
   onChangeLocationClick,
@@ -306,10 +306,10 @@ export function MarketplaceMap({
               <div className="text-right shrink-0">
                 <div className="flex items-center gap-1 font-black text-xs text-[#0F172A]">
                   <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
-                  <span>{selectedProvider.rating ? selectedProvider.rating.toFixed(1) : "Novo"}</span>
+                  <span>{selectedProvider.reviewsCount > 0 ? selectedProvider.rating.toFixed(1) : "Sem avaliações"}</span>
                 </div>
                 <span className="text-[11px] text-slate-400">
-                  {selectedProvider.distanceKm != null ? `${selectedProvider.distanceKm.toFixed(1)} km` : "Próximo"}
+                  {selectedProvider.distanceKm != null ? `~${selectedProvider.distanceKm.toFixed(1).replace(".", ",")} km` : "Atende a região"}
                 </span>
               </div>
             </div>
@@ -318,7 +318,7 @@ export function MarketplaceMap({
               <span className="font-black text-[#0F172A]">
                 {selectedProvider.startingPriceCents
                   ? `A partir de R$ ${(selectedProvider.startingPriceCents / 100).toFixed(0)}`
-                  : "Sob consulta"}
+                  : "Sob orçamento"}
               </span>
 
               <div className="flex items-center gap-1.5">
@@ -412,14 +412,16 @@ export function MarketplaceMap({
                       <div className="flex items-center justify-between gap-2 mt-1.5 text-xs">
                         <div className="flex items-center gap-1 font-bold text-[#0F172A]">
                           <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                          <span>{p.rating ? p.rating.toFixed(1) : "Novo"}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            ({p.reviewsCount})
-                          </span>
+                          <span>{p.reviewsCount > 0 ? p.rating.toFixed(1) : "Sem avaliações"}</span>
+                          {p.reviewsCount > 0 && (
+                            <span className="text-[10px] text-slate-400 font-normal">
+                              ({p.reviewsCount})
+                            </span>
+                          )}
                         </div>
 
                         <span className="text-[11px] text-slate-400">
-                          {p.distanceKm != null ? `${p.distanceKm.toFixed(1)} km` : "Próximo"}
+                          {p.distanceKm != null ? `~${p.distanceKm.toFixed(1).replace(".", ",")} km` : "Atende a região"}
                         </span>
                       </div>
                     </div>
@@ -434,7 +436,7 @@ export function MarketplaceMap({
                       <span className="text-xs font-black text-[#0F172A]">
                         {p.startingPriceCents
                           ? `R$ ${(p.startingPriceCents / 100).toFixed(0)}`
-                          : "Sob consulta"}
+                          : "Sob orçamento"}
                       </span>
                     </div>
 

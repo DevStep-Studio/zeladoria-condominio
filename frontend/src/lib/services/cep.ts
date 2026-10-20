@@ -22,6 +22,8 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   "belo horizonte": { lat: -19.9167, lng: -43.9345 },
   "porto alegre": { lat: -30.0346, lng: -51.2177 },
   "brasilia": { lat: -15.7975, lng: -47.8919 },
+  "queimados": { lat: -22.7161, lng: -43.5558 },
+  "florianopolis": { lat: -27.5954, lng: -48.548 },
 };
 
 export async function lookupCep(rawCep: string): Promise<CepResult | null> {

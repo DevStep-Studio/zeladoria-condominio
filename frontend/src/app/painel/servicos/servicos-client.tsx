@@ -103,45 +103,25 @@ export function ServicosClient({
 
   // Condomínios disponíveis para escolha rápida
   const availableCondos = useMemo(() => {
-    return [
-      ...(condoInfo
-        ? [
-            {
-              id: condoInfo.id,
-              name: condoInfo.name,
-              address: condoInfo.address,
-              city: condoInfo.city,
-              state: condoInfo.state,
-              lat: condoInfo.latitude ? Number(condoInfo.latitude) : -25.432,
-              lng: condoInfo.longitude ? Number(condoInfo.longitude) : -49.278,
-            },
-          ]
-        : []),
-      {
-        id: 991,
-        name: "Edifício Jardins Corporate",
-        address: "Av. Paulista, 1000",
-        city: "São Paulo",
-        state: "SP",
-        lat: -23.5615,
-        lng: -46.6559,
-      },
-      {
-        id: 992,
-        name: "Residencial Bosque Barigui",
-        address: "Rua Cândido Hartmann, 1500",
-        city: "Curitiba",
-        state: "PR",
-        lat: -25.4284,
-        lng: -49.2733,
-      },
-    ];
+    return condoInfo
+      ? [
+          {
+            id: condoInfo.id,
+            name: condoInfo.name,
+            address: condoInfo.address,
+            city: condoInfo.city,
+            state: condoInfo.state,
+            lat: condoInfo.latitude ? Number(condoInfo.latitude) : -25.4284,
+            lng: condoInfo.longitude ? Number(condoInfo.longitude) : -49.2733,
+          },
+        ]
+      : [];
   }, [condoInfo]);
 
   // Location State (Interativo no topo e no mapa)
   const [serviceLocation, setServiceLocation] = useState<ServiceLocation>(() => {
-    const defaultLat = condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432;
-    const defaultLng = condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278;
+    const defaultLat = condoInfo?.latitude ? Number(condoInfo.latitude) : -25.4284;
+    const defaultLng = condoInfo?.longitude ? Number(condoInfo.longitude) : -49.2733;
     return {
       type: "meu_condominio",
       name: condoInfo?.name || "Residencial Parque das Águas",
@@ -154,6 +134,8 @@ export function ServicosClient({
     };
   });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
 
   // URL state persistence
   const initialCategory = searchParams.get("categoria") || "Todas";
@@ -348,8 +330,8 @@ export function ServicosClient({
 
   // Distância dinâmica recalculada em tempo real com base no local de atendimento selecionado
   const providersWithDynamicDistance = useMemo(() => {
-    const targetLat = serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432);
-    const targetLng = serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278);
+    const targetLat = serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.4284);
+    const targetLng = serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.2733);
 
     return providers.map((p) => {
       if (p.lat != null && p.lng != null) {
@@ -2056,8 +2038,8 @@ export function ServicosClient({
                 providers={filteredVendors}
                 condoName={serviceLocation.name}
                 condoAddress={serviceLocation.address}
-                condoLat={serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432)}
-                condoLng={serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278)}
+                condoLat={serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.4284)}
+                condoLng={serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.2733)}
                 onSelectProvider={(p) => setSelectedProfileVendor(p)}
                 onRequestBudget={(p) => setBudgetVendor(p)}
                 onChangeLocationClick={() => setIsLocationModalOpen(true)}
@@ -2075,47 +2057,100 @@ export function ServicosClient({
             ) : (
               /* Display Mode: LISTA */
               <>
-                {providers.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                      <Icon name="briefcase" size={22} />
+                {filteredVendors.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 text-center space-y-5 shadow-xs max-w-xl mx-auto my-6">
+                    <div className="h-14 w-14 rounded-2xl bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto shadow-2xs">
+                      <Icon name="map-pin" size={26} />
                     </div>
-                    <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador cadastrado ainda</h3>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Ainda não há prestadores credenciados disponíveis para esta localidade.
-                    </p>
-                  </div>
-                ) : filteredVendors.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                      <Icon name="search" size={22} />
+                    <div className="space-y-1.5">
+                      <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
+                        Ainda não encontramos profissionais cadastrados nesta região.
+                      </h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto">
+                        Para a região de <strong>{serviceLocation.name}</strong> ({serviceLocation.city} - {serviceLocation.state}), não há prestadores aprovados com os filtros atuais.
+                      </p>
                     </div>
-                    <h3 className="text-sm font-bold text-[#0F172A]">Nenhum prestador encontrado com estes filtros</h3>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Tente alterar os termos de busca, limpar filtros ou selecionar outra categoria.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearch("");
-                        setSelectedCategory("Todas");
-                        setOnlyAvailableNow(false);
-                        setFilters({
-                          category: "Todas",
-                          subcategory: undefined,
-                          minRating: 0,
-                          verifiedOnly: false,
-                          maxPrice: 50000,
-                          availableNowOnly: false,
-                          condoHiredOnly: false,
-                          maxDistanceKm: undefined,
-                        });
-                        updateUrlParams("Todas", "", "score");
-                      }}
-                      className="rounded-xl bg-[#1355FF] text-white px-4 py-2 text-xs font-bold cursor-pointer"
-                    >
-                      Limpar Filtros
-                    </button>
+
+                    <div className="pt-3 border-t border-slate-100">
+                      <p className="text-xs font-bold text-slate-700 mb-3 text-left">
+                        Alternativas disponíveis:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                        {/* 1. Ampliar o raio de busca */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFilters((prev) => ({ ...prev, maxDistanceKm: 100 }));
+                          }}
+                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                            <Icon name="compass" size={15} />
+                          </span>
+                          <div>
+                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
+                              Ampliar o raio de busca
+                            </span>
+                            <span className="text-[10px] text-slate-400">Expandir raio para até 100 km</span>
+                          </div>
+                        </button>
+
+                        {/* 2. Alterar a localização */}
+                        <button
+                          type="button"
+                          onClick={() => setIsLocationModalOpen(true)}
+                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                            <Icon name="map-pin" size={15} />
+                          </span>
+                          <div>
+                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
+                              Alterar a localização
+                            </span>
+                            <span className="text-[10px] text-slate-400">Buscar por GPS, CEP ou cidade</span>
+                          </div>
+                        </button>
+
+                        {/* 3. Buscar outra especialidade */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCategory("Todas");
+                            setFilters((prev) => ({ ...prev, category: "Todas", subcategory: undefined }));
+                            updateUrlParams("Todas", search, sortBy);
+                          }}
+                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                            <Icon name="grid" size={15} />
+                          </span>
+                          <div>
+                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
+                              Buscar outra especialidade
+                            </span>
+                            <span className="text-[10px] text-slate-400">Ver todas as especialidades</span>
+                          </div>
+                        </button>
+
+                        {/* 4. Convidar um profissional para se cadastrar */}
+                        <button
+                          type="button"
+                          onClick={() => setIsInviteModalOpen(true)}
+                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                            <Icon name="users" size={15} />
+                          </span>
+                          <div>
+                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
+                              Convidar um profissional
+                            </span>
+                            <span className="text-[10px] text-slate-400">Enviar convite de adesão</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -2746,6 +2781,97 @@ export function ServicosClient({
         onSubmit={handleRebookSubmit}
         isPending={isActionPending}
       />
+
+      {/* Modal Convidar Prestador de Serviços */}
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setIsInviteModalOpen(false)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl z-10 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
+                  <Icon name="users" size={16} />
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-[#0F172A]">Convidar Prestador</h3>
+                  <p className="text-[11px] text-slate-400">Credenciamento de profissionais de confiança</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Conhece um eletricista, encanador, pintor ou técnico de confiança? Envie o link de adesão para que ele crie seu perfil profissional e atenda os moradores de <strong>{serviceLocation.name}</strong>.
+            </p>
+
+            <div className="space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Link de Cadastro Oficial
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value="https://zeladoriacondominio.com.br/seja-um-prestador"
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-mono select-all focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText("https://zeladoriacondominio.com.br/seja-um-prestador");
+                    setInviteCopied(true);
+                    setTimeout(() => setInviteCopied(false), 2500);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 ${
+                    inviteCopied ? "bg-emerald-600 text-white" : "bg-[#1355FF] text-white hover:bg-[#0D47E6]"
+                  }`}
+                >
+                  {inviteCopied ? "Copiado!" : "Copiar"}
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-[11px] text-blue-900 space-y-1">
+              <span className="font-bold block">Como funciona a aprovação?</span>
+              <p className="text-blue-700">
+                O prestador realiza o cadastro, envia documentos e dados de contato. Nossa administração analisa as informações e, quando aprovado, o profissional passa a aparecer no marketplace da região.
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const text = encodeURIComponent(
+                    `Olá! Gostaria de convidar você para se cadastrar como prestador de serviços parceiro no Zeladoria Condomínio e receber chamados no nosso condomínio (${serviceLocation.name}). Acesse o link para iniciar seu cadastro: https://zeladoriacondominio.com.br/seja-um-prestador`
+                  );
+                  window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+              >
+                <Icon name="send" size={14} />
+                <span>Enviar via WhatsApp</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

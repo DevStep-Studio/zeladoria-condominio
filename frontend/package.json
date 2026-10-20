@@ -11,6 +11,7 @@
     "test:pay": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/zeladoria-pay.test.ts",
     "test:integration": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/functional.test.ts",
     "test:marketplace": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/marketplace.test.ts",
+    "test:marketplace-real": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/marketplace-real.test.ts",
     "test:reservas": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/reservas.test.ts",
     "test:mapa": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/mapa.test.ts",
     "test:portaria": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/portaria-sindico-e2e.test.ts",

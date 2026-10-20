@@ -82,7 +82,7 @@ export async function getMarketplaceProviders(
 
     const reviewsCount = allRatings.length;
     const ratingSum = allRatings.reduce((acc, r) => acc + r.rating, 0);
-    const computedRating = reviewsCount > 0 ? ratingSum / reviewsCount : (v.rating || 0);
+    const computedRating = reviewsCount > 0 ? ratingSum / reviewsCount : 0;
 
     const completedOrCancelled = vendorTickets.filter((t) => t.status === "concluido" || t.status === "cancelado");
     const completionRate =

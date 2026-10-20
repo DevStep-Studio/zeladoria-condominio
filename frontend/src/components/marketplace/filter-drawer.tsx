@@ -238,12 +238,14 @@ export function FilterDrawer({
               <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400">
                 Raio de Proximidade
               </label>
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5">
                 {[
                   { val: undefined, label: "Qualquer" },
-                  { val: 3, label: "3 km" },
                   { val: 5, label: "5 km" },
                   { val: 10, label: "10 km" },
+                  { val: 20, label: "20 km" },
+                  { val: 50, label: "50 km" },
+                  { val: 100, label: "100 km" },
                 ].map((item) => (
                   <button
                     key={item.label}

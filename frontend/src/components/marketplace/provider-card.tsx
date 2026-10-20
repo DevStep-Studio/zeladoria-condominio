@@ -146,8 +146,8 @@ export function ProviderCard({
                 </span>
               </div>
             ) : (
-              <span className="text-[10px] font-bold text-[#1355FF]">
-                Novo no Zeladoria
+              <span className="text-[10px] font-bold text-slate-500">
+                Sem avaliações
               </span>
             )}
 
@@ -176,26 +176,26 @@ export function ProviderCard({
                 A partir de
               </span>
               <span className="text-xs sm:text-sm font-black text-[#0F172A]">
-                {provider.startingPriceCents != null
+                {provider.startingPriceCents != null && provider.startingPriceCents > 0
                   ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
-                  : "Sob consulta"}
+                  : "Sob orçamento"}
               </span>
             </div>
 
             <div className="text-right text-[10px]">
-              {provider.availableNow ? (
+              {provider.availableNow && provider.isOnline ? (
                 <span className="font-bold text-emerald-700 block">
                   Disponível hoje
                 </span>
               ) : (
                 <span className="text-slate-400 block">
-                  Atende a região
+                  Sob agendamento
                 </span>
               )}
               <span className="text-slate-400">
                 {provider.distanceKm != null
-                  ? `${provider.distanceKm.toFixed(1).replace(".", ",")} km`
-                  : "Próximo"}
+                  ? `~${provider.distanceKm.toFixed(1).replace(".", ",")} km (aprox.)`
+                  : "Atende a região"}
               </span>
             </div>
           </div>

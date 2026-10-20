@@ -27,6 +27,8 @@ const PRESET_CITIES = [
   { label: "Rio de Janeiro (RJ)", name: "Rio de Janeiro", city: "Rio de Janeiro", state: "RJ", lat: -22.9068, lng: -43.1729 },
   { label: "Belo Horizonte (MG)", name: "Belo Horizonte", city: "Belo Horizonte", state: "MG", lat: -19.9167, lng: -43.9345 },
   { label: "Brasília (DF)", name: "Brasília", city: "Brasília", state: "DF", lat: -15.7975, lng: -47.8919 },
+  { label: "Queimados (RJ)", name: "Queimados - Baixada Fluminense", city: "Queimados", state: "RJ", lat: -22.7161, lng: -43.5558 },
+  { label: "Florianópolis (SC)", name: "Florianópolis", city: "Florianópolis", state: "SC", lat: -27.5954, lng: -48.548 },
 ];
 
 export function LocationModal({
