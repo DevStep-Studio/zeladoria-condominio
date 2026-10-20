@@ -44,6 +44,15 @@ export function MarketplaceMap({
     let isMounted = true;
 
     async function initMap() {
+      // Inject Leaflet CSS if not already present
+      if (!document.getElementById("leaflet-css")) {
+        const link = document.createElement("link");
+        link.id = "leaflet-css";
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
+
       const L = (await import("leaflet")).default;
       if (!isMounted || !mapContainerRef.current) return;
 
@@ -56,10 +65,22 @@ export function MarketplaceMap({
 
         L.control.zoom({ position: "bottomright" }).addTo(map);
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
-          maxZoom: 19,
-        }).addTo(map);
+        // CARTO Positron Light Tiles (Zero 403 errors, high performance, clean aesthetic)
+        const tileLayer = L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: "abcd",
+            maxZoom: 20,
+          }
+        );
+
+        tileLayer.on("tileerror", () => {
+          // Silently handle any tile loading glitch
+        });
+
+        tileLayer.addTo(map);
 
         const markersLayer = L.layerGroup().addTo(map);
         markersLayerRef.current = markersLayer;
