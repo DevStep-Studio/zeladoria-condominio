@@ -46,7 +46,48 @@ export default async function AdminPrestadoresPage() {
       </div>
 
       <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Cards (< md) */}
+        <div className="md:hidden space-y-3 p-4">
+          {vendorsList.map((v) => (
+            <div key={v.id} className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2 shadow-2xs">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold text-slate-900 text-sm">{v.name}</p>
+                  <p className="text-[11px] text-slate-500">{v.companyName || "Profissional Autônomo"}</p>
+                </div>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                  v.active ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                }`}>
+                  {v.active ? "Habilitado" : "Inativo"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
+                  {v.category || "Geral"}
+                </span>
+                <span className="inline-flex items-center gap-1 text-amber-600 font-bold text-xs">
+                  <Icon name="star" size={12} className="fill-amber-400 text-amber-500" />
+                  {v.rating ? Number(v.rating).toFixed(1) : "5.0"}
+                </span>
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                  v.isOnline ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${v.isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+                  {v.isOnline ? "Online" : "Offline"}
+                </span>
+              </div>
+              {(v.phone || v.email) && (
+                <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-100 font-mono">
+                  {v.phone && <span>{v.phone}</span>}
+                  {v.email && <span className="block text-[10px] text-slate-400">{v.email}</span>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
               <tr>

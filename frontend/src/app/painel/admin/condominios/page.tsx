@@ -48,7 +48,40 @@ export default async function AdminCondominiosPage() {
       </div>
 
       <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Cards (< md) */}
+        <div className="md:hidden space-y-3 p-4">
+          {condosList.map((c) => {
+            const totalU = unitsMap.get(c.id) ?? 0;
+            return (
+              <div key={c.id} className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2 shadow-2xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">{c.name}</p>
+                    <p className="text-[11px] text-slate-400 font-mono">/{c.slug}</p>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
+                    {c.plan || "Padrão"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600">
+                  <span>{c.city ? `${c.city} - ${c.state || "SP"}` : "São Paulo - SP"}</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">
+                    {totalU} un.
+                  </span>
+                </div>
+                {c.cnpj && (
+                  <p className="text-[11px] text-slate-400 font-mono pt-1 border-t border-slate-100">
+                    CNPJ: {c.cnpj}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
               <tr>

@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Grid de KPIs da Plataforma */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {kpis.map((kpi) => (
           <Link
             key={kpi.label}

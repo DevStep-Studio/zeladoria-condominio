@@ -16,7 +16,7 @@ export default async function LoginPage() {
   return (
     <main className="w-full min-h-screen lg:h-screen bg-white flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-[#1355FF] selection:text-white">
       {/* LEFT COLUMN: Clean Form taking full height, not centered in a floating box */}
-      <section className="flex-1 w-full lg:w-[48%] xl:w-[45%] h-full flex flex-col justify-between px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 overflow-y-auto">
+      <section className="flex-1 w-full lg:w-[48%] xl:w-[45%] h-full flex flex-col justify-between px-4 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 overflow-y-auto">
         {/* Top Brand Header */}
         <div className="flex items-center justify-between shrink-0">
           <Link
