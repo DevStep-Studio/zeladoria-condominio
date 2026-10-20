@@ -260,7 +260,7 @@ export function SindicoDashboard({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3">
           {displayCards.map((card) => {
             const hasUrgent = card.urgent || (card.count !== undefined && card.count > 0);
             return (
@@ -525,7 +525,7 @@ export function SindicoDashboard({
           ) : (
             <div className="divide-y divide-slate-100">
               {logbookEntries.slice(0, 4).map((log) => (
-                <div key={log.id} className="py-3 flex items-start justify-between gap-3">
+                <div key={log.id} className="py-3 flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3">
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-black text-slate-700">{log.code}</span>
@@ -539,7 +539,7 @@ export function SindicoDashboard({
                       {log.reporterName} {log.unit ? `· ${log.unit}` : ""} · {log.timeAgo}
                     </p>
                   </div>
-                  <div className="shrink-0 flex flex-col gap-1 items-end">
+                  <div className="shrink-0 flex items-center sm:flex-col gap-2 sm:gap-1 sm:items-end">
                     {!log.ackAt ? (
                       <button
                         onClick={() => handleAck(log.id)}
@@ -595,7 +595,7 @@ export function SindicoDashboard({
         ) : (
           <div className="divide-y divide-slate-100">
             {recentActivities.slice(0, 6).map((occ) => (
-              <div key={occ.id} className="py-2.5 flex items-center justify-between gap-3">
+              <div key={occ.id} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs font-bold text-slate-700">{occ.code}</span>
@@ -610,7 +610,7 @@ export function SindicoDashboard({
                 </div>
                 <button
                   onClick={() => setSelectedOccurrenceForOS(occ.id)}
-                  className="btn-primary min-h-7.5 px-3 py-1 text-xs shrink-0 cursor-pointer"
+                  className="btn-primary min-h-7.5 px-3 py-1 text-xs shrink-0 cursor-pointer self-start sm:self-center"
                 >
                   Gerar OS
                 </button>
@@ -622,8 +622,8 @@ export function SindicoDashboard({
 
       {/* MODAL: CRIAR OS A PARTIR DE OCORRÊNCIA */}
       {selectedOccurrenceForOS && (
-        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white rounded-[16px] max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-[16px] max-w-lg w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Icon name="wrench" size={18} className="text-[#1355FF]" />
@@ -650,7 +650,7 @@ export function SindicoDashboard({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Data Prevista de Execução</label>
                   <input type="date" name="scheduledFor" className="w-full input text-sm" />
@@ -670,7 +670,7 @@ export function SindicoDashboard({
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setSelectedOccurrenceForOS(null)}

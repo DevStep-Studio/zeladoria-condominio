@@ -243,7 +243,7 @@ export function PorteiroDashboard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {activeShift ? (
             <button
               id="btn-encerrar-turno"
@@ -284,7 +284,7 @@ export function PorteiroDashboard({
       )}
 
       {/* 2. 4 Primary Operational Quick Action Buttons (EXTREMELY ACCESSIBLE) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         <button
           id="btn-autorizar-visitante"
           onClick={() => setModal("autorizar")}
@@ -424,10 +424,10 @@ export function PorteiroDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           {/* Sub Navigation */}
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto whitespace-nowrap -webkit-overflow-scrolling-touch">
             <button
               onClick={() => setActiveTab("dentro")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors shrink-0 ${
                 activeTab === "dentro" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -435,7 +435,7 @@ export function PorteiroDashboard({
             </button>
             <button
               onClick={() => setActiveTab("esperados")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors shrink-0 ${
                 activeTab === "esperados" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -443,7 +443,7 @@ export function PorteiroDashboard({
             </button>
             <button
               onClick={() => setActiveTab("encomendas")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors shrink-0 ${
                 activeTab === "encomendas" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -647,15 +647,16 @@ export function PorteiroDashboard({
       </div>
 
       {/* MODAL: AUTORIZAR VISITANTE */}
+      {/* MODAL: AUTORIZAR VISITANTE */}
       {modal === "autorizar" && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                 <Icon name="users" size={20} className="text-[#1355FF]" />
                 Autorizar Visitante / Prestador
               </h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -666,7 +667,7 @@ export function PorteiroDashboard({
                 <input name="name" required placeholder="Ex: Carlos Silva" className="w-full input text-sm" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Tipo</label>
                   <select name="kind" className="w-full input text-sm">
@@ -686,7 +687,7 @@ export function PorteiroDashboard({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Documento (RG / CNH)</label>
                   <input name="document" placeholder="00.000.000-0" className="w-full input text-sm" />
@@ -702,11 +703,11 @@ export function PorteiroDashboard({
                 <input name="company" placeholder="Ex: Enel / Visita familiar" className="w-full input text-sm" />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0044AA] text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0044AA] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Gravando..." : "Confirmar & Liberar Entrada"}
                 </button>
               </div>
@@ -717,14 +718,14 @@ export function PorteiroDashboard({
 
       {/* MODAL: REGISTRAR ENCOMENDA */}
       {modal === "encomenda" && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                 <Icon name="package" size={20} className="text-[#1355FF]" />
                 Registrar Encomenda na Portaria
               </h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -740,7 +741,7 @@ export function PorteiroDashboard({
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Transportadora / Origem</label>
                   <input name="carrier" placeholder="Ex: Mercado Livre, Amazon, Correios" className="w-full input text-sm" />
@@ -756,8 +757,8 @@ export function PorteiroDashboard({
                 <input name="description" placeholder="Ex: Caixa média, envelope pardo" className="w-full input text-sm" />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
                 <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
@@ -771,11 +772,11 @@ export function PorteiroDashboard({
 
       {/* MODAL: ENTREGAR ENCOMENDA */}
       {modal === "entregar_encomenda" && selectedParcel && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900">Entregar Encomenda {selectedParcel.code}</h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">Entregar Encomenda {selectedParcel.code}</h3>
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -802,11 +803,11 @@ export function PorteiroDashboard({
                 <input name="pickedUpDocument" placeholder="RG ou CPF" className="w-full input text-sm" />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Concluindo..." : "Confirmar Entrega"}
                 </button>
               </div>
@@ -817,14 +818,14 @@ export function PorteiroDashboard({
 
       {/* MODAL: CONSULTAR UNIDADE */}
       {modal === "consultar" && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                 <Icon name="search" size={20} className="text-[#1355FF]" />
                 Consulta Rápida de Unidades & Moradores
               </h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -853,7 +854,7 @@ export function PorteiroDashboard({
                       onClick={() => {
                         setModal("autorizar");
                       }}
-                      className="px-3 py-1 bg-[#1355FF] text-white text-xs font-bold rounded-lg"
+                      className="px-3 py-1 bg-[#1355FF] text-white text-xs font-bold rounded-lg cursor-pointer"
                     >
                       + Acesso
                     </button>
@@ -867,14 +868,14 @@ export function PorteiroDashboard({
 
       {/* MODAL: OCORRÊNCIA RÁPIDA */}
       {modal === "ocorrencia" && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                 <Icon name="clipboard" size={20} className="text-amber-600" />
                 Registrar Ocorrência Rápida na Portaria
               </h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -885,7 +886,7 @@ export function PorteiroDashboard({
                 <input name="title" required placeholder="Ex: Falha no portão de pedestres" className="w-full input text-sm" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Categoria</label>
                   <select name="category" className="w-full input text-sm">
@@ -911,11 +912,11 @@ export function PorteiroDashboard({
                 <textarea name="description" rows={3} required placeholder="Descreva o que ocorreu durante o turno..." className="w-full input text-sm" />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Salvando..." : "Registrar no Livro"}
                 </button>
               </div>
@@ -926,14 +927,14 @@ export function PorteiroDashboard({
 
       {/* MODAL: FECHAR TURNO */}
       {modal === "turno_fechar" && activeShift && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                 <Icon name="refresh" size={20} className="text-[#1355FF]" />
                 Encerrar Turno & Passagem de Serviço
               </h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -964,8 +965,8 @@ export function PorteiroDashboard({
                 <input name="pendingItems" placeholder="Ex: Prestador voltará às 14h; encomenda frágil unidade 302" className="w-full input text-sm" />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
                 <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
@@ -979,11 +980,11 @@ export function PorteiroDashboard({
 
       {/* MODAL: ABRIR TURNO */}
       {modal === "turno_abrir" && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900">Iniciar Turno de Portaria</h3>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">Iniciar Turno de Portaria</h3>
+              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <Icon name="x" size={20} />
               </button>
             </div>
@@ -1014,11 +1015,11 @@ export function PorteiroDashboard({
                 </label>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold">
+              <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] text-white rounded-xl font-bold">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Iniciando..." : "Iniciar Turno"}
                 </button>
               </div>

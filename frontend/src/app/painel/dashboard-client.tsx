@@ -436,7 +436,7 @@ export function DashboardClient({
           </div>
 
           {/* Ações contextuais de cabeçalho: Emergência discreta e Assistente */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               type="button"
               onClick={() => setEmergencyModalOpen(true)}
@@ -461,7 +461,7 @@ export function DashboardClient({
 
         {/* 2. AÇÕES RÁPIDAS (1º botão azul primário destacado, demais com ícone azul primário consistente) */}
         <section className="space-y-1.5">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* 1. Registrar ocorrência (Destaque Primário) */}
             <Link
               href="/painel/ocorrencias/nova"
@@ -893,7 +893,7 @@ export function DashboardClient({
         </div>
 
         {/* Ações de Suporte no Topo */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {/* Botão de Emergência Compacto */}
           <button
             type="button"
@@ -920,7 +920,7 @@ export function DashboardClient({
 
       {/* 2. AÇÕES PRINCIPAIS (Zeladoria: 1º amarelo, demais azul) */}
       <section className="space-y-2.5">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pb-2 pt-1">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pb-2 pt-1">
           {(isResident
             ? [
                 {
