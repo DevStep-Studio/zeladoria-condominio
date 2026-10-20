@@ -735,33 +735,35 @@ export function ServicosClient({
         </div>
 
         {/* View Switcher: Marketplace vs Minhas Contratações */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl shrink-0">
+        <div className="w-full sm:w-auto flex items-stretch sm:items-center gap-1 bg-slate-100 p-1 rounded-2xl sm:rounded-xl shrink-0 border border-slate-200/60 shadow-2xs overflow-x-auto scrollbar-none">
           <button
             type="button"
             onClick={() => switchView("marketplace")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
               activeView === "marketplace"
                 ? "bg-white text-[#1355FF] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
             }`}
           >
-            <Icon name="grid" size={13} />
-            <span>Explorar Serviços</span>
+            <Icon name="grid" size={14} />
+            <span className="hidden sm:inline">Explorar Serviços</span>
+            <span className="sm:hidden">Explorar</span>
           </button>
 
           <button
             type="button"
             onClick={() => switchView("contratacoes")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
               activeView === "contratacoes"
                 ? "bg-white text-[#1355FF] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
             }`}
           >
-            <Icon name="clipboard" size={13} />
-            <span>Minhas Contratações</span>
+            <Icon name="clipboard" size={14} />
+            <span className="hidden sm:inline">Minhas Contratações</span>
+            <span className="sm:hidden">Contratações</span>
             {totalContractedCount > 0 && (
-              <span className="rounded-[4px] bg-[#1355FF] text-white px-1.5 py-0.2 text-[9px] font-bold">
+              <span className="rounded-full bg-[#1355FF] text-white px-2 py-0.5 text-[10px] font-black">
                 {totalContractedCount}
               </span>
             )}
@@ -770,15 +772,14 @@ export function ServicosClient({
           {(role === "sindico" || role === "superadmin") && (
             <Link
               href="/painel/admin/marketplace/destaques"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-[#1355FF] hover:bg-white transition-all"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold text-slate-700 hover:text-[#1355FF] hover:bg-white transition-all whitespace-nowrap min-h-[38px] sm:min-h-0"
               title="Gerenciar Planos de Publicidade e Destaques"
             >
-              <Icon name="sparkles" size={13} />
-              <span>Destaques Admin</span>
+              <Icon name="sparkles" size={14} />
+              <span className="hidden xs:inline">Destaques Admin</span>
+              <span className="xs:hidden">Destaques</span>
             </Link>
           )}
-
-
         </div>
       </div>
 
@@ -1864,8 +1865,8 @@ export function ServicosClient({
 
             {/* Subcategorias quando categoria selecionada */}
             {selectedCategory !== "Todas" && getCategorySubcategories(selectedCategory).length > 0 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1 snap-start">
                   Subcategorias:
                 </span>
                 {getCategorySubcategories(selectedCategory).map((subcat) => {
@@ -1883,7 +1884,7 @@ export function ServicosClient({
                           setFilters((prev) => ({ ...prev, subcategory: subcat }));
                         }
                       }}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer border ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-colors cursor-pointer border snap-start ${
                         isSelected
                           ? "bg-[#1355FF] text-white border-[#1355FF] shadow-xs"
                           : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1355FF]"
@@ -1967,77 +1968,85 @@ export function ServicosClient({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 justify-between sm:justify-end flex-wrap">
-                {/* Escolher Localização Button */}
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
+                {/* Escolher Localização Button: full width no mobile, inline no desktop */}
                 <button
                   type="button"
                   onClick={() => setIsLocationModalOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-1.5 text-xs font-bold text-[#1355FF] hover:bg-blue-100/70 transition-colors cursor-pointer"
+                  className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 sm:py-1.5 text-xs font-bold text-[#1355FF] hover:bg-blue-100/70 transition-colors cursor-pointer"
                   title="Alterar endereço ou condomínio de atendimento"
                 >
-                  <Icon name="map-pin" size={13} className="text-[#1355FF]" />
-                  <span className="truncate max-w-[120px] sm:max-w-[180px]">
-                    {serviceLocation.name}
-                  </span>
-                  <Icon name="chevron-down" size={11} className="text-[#1355FF]" />
-                </button>
-
-                {/* View Switcher: Lista vs Mapa */}
-                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setDisplayMode("lista")}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      displayMode === "lista"
-                        ? "bg-[#1355FF] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Icon name="grid" size={12} />
-                    <span>Lista</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDisplayMode("mapa")}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      displayMode === "mapa"
-                        ? "bg-[#1355FF] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Icon name="map-pin" size={12} />
-                    <span>Mapa</span>
-                  </button>
-                </div>
-
-                {/* Filter Drawer Trigger */}
-                <button
-                  type="button"
-                  onClick={() => setIsFilterSheetOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  <Icon name="filter" size={13} className="text-[#1355FF]" />
-                  <span>Filtros</span>
-                  {activeFiltersCount > 0 && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1355FF] text-white text-[9px] font-black">
-                      {activeFiltersCount}
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Icon name="map-pin" size={13} className="text-[#1355FF] shrink-0" />
+                    <span className="truncate max-w-[200px] sm:max-w-[170px]">
+                      {serviceLocation.name}
                     </span>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#1355FF] shrink-0">
+                    <span className="sm:hidden">Trocar</span>
+                    <Icon name="chevron-down" size={11} className="text-[#1355FF]" />
+                  </div>
                 </button>
 
-                {/* Sort selector */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer"
-                >
-                  <option value="score">Ordenar: Recomendados</option>
-                  <option value="distance">Ordenar: Mais próximos</option>
-                  <option value="rating">Ordenar: Melhor avaliados</option>
-                  <option value="condo">Ordenar: Mais contratados no condomínio</option>
-                  <option value="response">Ordenar: Resposta mais rápida</option>
-                  <option value="price_asc">Ordenar: Menor preço inicial</option>
-                </select>
+                {/* Linha de Abas e Controles: [Lista | Mapa] + [Filtros] + [Ordenar] */}
+                <div className="w-full sm:w-auto flex items-center gap-2">
+                  {/* View Switcher: Lista vs Mapa (segmented tabs) */}
+                  <div className="flex-1 sm:flex-initial grid grid-cols-2 sm:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode("lista")}
+                      className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                        displayMode === "lista"
+                          ? "bg-[#1355FF] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Icon name="grid" size={12} />
+                      <span>Lista</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode("mapa")}
+                      className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                        displayMode === "mapa"
+                          ? "bg-[#1355FF] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Icon name="map-pin" size={12} />
+                      <span>Mapa</span>
+                    </button>
+                  </div>
+
+                  {/* Filter Drawer Trigger */}
+                  <button
+                    type="button"
+                    onClick={() => setIsFilterSheetOpen(true)}
+                    className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
+                  >
+                    <Icon name="filter" size={13} className="text-[#1355FF]" />
+                    <span className="hidden xs:inline">Filtros</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1355FF] text-white text-[9px] font-black">
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Sort selector */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    className="flex-1 sm:flex-initial rounded-xl border border-slate-200 bg-white px-2 sm:px-3 py-2 sm:py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer truncate max-w-[130px] sm:max-w-none"
+                  >
+                    <option value="score">Recomendados</option>
+                    <option value="distance">Mais próximos</option>
+                    <option value="rating">Melhor avaliados</option>
+                    <option value="condo">Mais contratados</option>
+                    <option value="response">Resposta rápida</option>
+                    <option value="price_asc">Menor preço</option>
+                  </select>
+                </div>
               </div>
             </div>
 

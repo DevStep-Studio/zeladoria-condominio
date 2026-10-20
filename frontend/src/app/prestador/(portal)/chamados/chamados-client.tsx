@@ -197,7 +197,7 @@ export function ProviderChamadosClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-200/80">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-200/80 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
         {tabs.map((t) => {
           const isActive = activeTab === t.id;
           return (
@@ -205,7 +205,7 @@ export function ProviderChamadosClient({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id as any)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer snap-start ${
                 isActive
                   ? "bg-[#1355FF] text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"

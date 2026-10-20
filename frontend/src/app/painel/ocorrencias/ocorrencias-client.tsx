@@ -477,7 +477,7 @@ export function OcorrenciasClient({
       {/* 2. STATUS SEGMENTADO & BUSCA / FILTROS */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Segmented Tabs */}
-        <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200/80 overflow-x-auto max-w-full">
+        <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200/80 overflow-x-auto max-w-full scrollbar-none">
           {[
             { key: "todas" as FilterTab, label: "Todas", count: counts.todas },
             { key: "recebidas" as FilterTab, label: "Recebidas", count: counts.recebidas },
@@ -490,7 +490,7 @@ export function OcorrenciasClient({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
                     ? "bg-white text-slate-900 shadow-2xs font-semibold"
                     : "text-slate-600 hover:text-slate-900 font-medium"

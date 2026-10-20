@@ -118,7 +118,7 @@ export function ReservasClient({
 
       {/* Main Tab Capsule Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto max-w-full">
+        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto max-w-full scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveTab("areas")}

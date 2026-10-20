@@ -242,11 +242,11 @@ export function ProviderProfileModal({
           </div>
 
           {/* TABS DE NAVEGAÇÃO SEGMENTADAS (Pills Modernas sem Bordas Pesadas) */}
-          <div className="flex items-center gap-1.5 px-5 sm:px-8 py-2 bg-slate-50 border-b border-slate-200 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 px-3 sm:px-8 py-2 bg-slate-50 border-b border-slate-200 overflow-x-auto scrollbar-none snap-x">
             <button
               type="button"
               onClick={() => setActiveTab("servicos")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "servicos"
                   ? "bg-white text-[#1355FF] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -270,7 +270,7 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("portfolio")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "portfolio"
                   ? "bg-white text-[#1355FF] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -294,7 +294,7 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("avaliacoes")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "avaliacoes"
                   ? "bg-white text-[#1355FF] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -318,14 +318,15 @@ export function ProviderProfileModal({
             <button
               type="button"
               onClick={() => setActiveTab("sobre")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "sobre"
                   ? "bg-white text-[#1355FF] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Icon name="shield" size={12} />
-              <span>Sobre o Prestador</span>
+              <span className="hidden sm:inline">Sobre o Prestador</span>
+              <span className="sm:hidden">Sobre</span>
             </button>
           </div>
         </div>
