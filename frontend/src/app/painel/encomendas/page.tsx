@@ -217,7 +217,7 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
                       key={p.id}
                       className="group relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] hover:shadow-md hover:border-slate-300 transition-all duration-200"
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col xs:flex-row items-start gap-3 sm:gap-4">
                         {qrMap.get(p.id) ? (
                           <div className="relative shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xs">
                             <img
@@ -316,39 +316,66 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
             {rows.length === 0 ? (
               <EmptyState title="Sem histórico" icon="package" />
             ) : (
-              <TableWrap>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Unidade</th>
-                    <th>Recebida</th>
-                    <th>Retirada</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                {/* Mobile Cards View */}
+                <div className="md:hidden space-y-2.5">
                   {rows.map((p) => (
-                    <tr key={p.id}>
-                      <td className="font-mono text-xs">{p.code}</td>
-                      <td className="text-xs">{p.block} {p.unit}</td>
-                      <td className="whitespace-nowrap text-xs">{dateTimeBR(p.receivedAt)}</td>
-                      <td className="text-xs">
-                        {p.pickedUpAt ? (
-                          <>
-                            {dateTimeBR(p.pickedUpAt)}
-                            <span className="block text-[var(--color-subtle)]">por {p.pickedUpBy} · assinado: {p.signature}</span>
-                          </>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td>
+                    <div
+                      key={p.id}
+                      className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs space-y-1.5 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-slate-900">{p.code}</span>
                         <Badge tone={p.status === "entregue" ? "green" : "amber"}>{p.status}</Badge>
-                      </td>
-                    </tr>
+                      </div>
+                      <p className="text-slate-600 font-medium">Unidade: {p.block} {p.unit}</p>
+                      <p className="text-slate-400 text-[11px]">Recebido: {dateTimeBR(p.receivedAt)}</p>
+                      {p.pickedUpAt && (
+                        <p className="text-emerald-700 text-[11px] pt-1 border-t border-slate-100">
+                          Entregue em {dateTimeBR(p.pickedUpAt)} por {p.pickedUpBy}
+                        </p>
+                      )}
+                    </div>
                   ))}
-                </tbody>
-              </TableWrap>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <TableWrap>
+                    <thead>
+                      <tr>
+                        <th>Código</th>
+                        <th>Unidade</th>
+                        <th>Recebida</th>
+                        <th>Retirada</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((p) => (
+                        <tr key={p.id}>
+                          <td className="font-mono text-xs">{p.code}</td>
+                          <td className="text-xs">{p.block} {p.unit}</td>
+                          <td className="whitespace-nowrap text-xs">{dateTimeBR(p.receivedAt)}</td>
+                          <td className="text-xs">
+                            {p.pickedUpAt ? (
+                              <>
+                                {dateTimeBR(p.pickedUpAt)}
+                                <span className="block text-[var(--color-subtle)]">por {p.pickedUpBy} · assinado: {p.signature}</span>
+                              </>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td>
+                            <Badge tone={p.status === "entregue" ? "green" : "amber"}>{p.status}</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </TableWrap>
+                </div>
+              </>
             )}
           </Card>
         </div>
@@ -366,7 +393,7 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
                     ))}
                   </select>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <label className="block">
                     <span className="label">Tipo</span>
                     <select name="kind" className="input">
@@ -388,7 +415,7 @@ export default async function EncomendasPage({ searchParams }: { searchParams: P
                   <span className="label">Descrição</span>
                   <input name="description" className="input" placeholder="Caixa média, envelope..." />
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <label className="block">
                     <span className="label">Prateleira</span>
                     <input name="shelf" className="input" />

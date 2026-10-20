@@ -135,39 +135,45 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
             {rows.length === 0 ? (
               <EmptyState title="Nenhuma visita registrada" icon="user-check" />
             ) : (
-              <TableWrap>
-                <thead>
-                  <tr>
-                    <th>Visitante</th>
-                    <th>Unidade</th>
-                    <th>Validade</th>
-                    <th>Entrada / saída</th>
-                    <th>Status</th>
-                    <th className="no-print">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                {/* Mobile Cards View */}
+                <div className="md:hidden space-y-2.5">
                   {rows.map((v) => (
-                    <tr key={v.id}>
-                      <td>
-                        <span className="font-semibold text-[var(--color-ink)]">{v.name}</span>
-                        <span className="block text-xs text-[var(--color-subtle)]">
-                          {v.kind}{v.company ? ` · ${v.company}` : ""}{v.document ? ` · ${v.document}` : ""}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap text-xs">
-                        {v.block ?? "—"} {v.unit ?? ""}
-                        <span className="block text-[var(--color-subtle)]">{v.host ?? "sem anfitrião"}</span>
-                      </td>
-                      <td className="whitespace-nowrap text-xs">{dateTimeBR(v.validUntil)}</td>
-                      <td className="whitespace-nowrap text-xs">
-                        {v.checkinAt ? dateTimeBR(v.checkinAt) : "—"}
-                        <span className="block text-[var(--color-subtle)]">{v.checkoutAt ? dateTimeBR(v.checkoutAt) : v.deniedReason ?? ""}</span>
-                      </td>
-                      <td>
+                    <div
+                      key={v.id}
+                      className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-slate-900 text-sm">{v.name}</p>
+                          <p className="text-[11px] text-slate-500">
+                            {v.kind}{v.company ? ` · ${v.company}` : ""}{v.document ? ` · ${v.document}` : ""}
+                          </p>
+                        </div>
                         <Badge tone={statusTone(v.status)}>{v.status}</Badge>
-                      </td>
-                      <td className="no-print">
+                      </div>
+
+                      <div className="text-xs text-slate-600 space-y-0.5">
+                        <p>
+                          <strong>Destino:</strong> {v.block ?? "—"} {v.unit ?? ""} {v.host ? `· Anfitrião: ${v.host}` : ""}
+                        </p>
+                        <p className="text-slate-500 text-[11px]">
+                          Válido até: {dateTimeBR(v.validUntil)}
+                        </p>
+                        {(v.checkinAt || v.checkoutAt) && (
+                          <p className="text-slate-500 text-[11px]">
+                            {v.checkinAt ? `Entrada: ${dateTimeBR(v.checkinAt)}` : ""}
+                            {v.checkoutAt ? ` · Saída: ${dateTimeBR(v.checkoutAt)}` : ""}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 no-print">
+                        <Link href={`/v/${v.qrToken}`} className="btn-ghost btn-sm" target="_blank">
+                          <Icon name="search" size={13} />
+                          <span>Ver QR Code</span>
+                        </Link>
+
                         <div className="flex flex-wrap gap-1.5">
                           {isGate && v.status === "autorizado" ? (
                             <form action={gateMoveAction}>
@@ -183,15 +189,73 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                               <button className="btn-dark btn-sm">Saída</button>
                             </form>
                           ) : null}
-                          <Link href={`/v/${v.qrToken}`} className="btn-ghost btn-sm" target="_blank">
-                            QR
-                          </Link>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </TableWrap>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <TableWrap>
+                    <thead>
+                      <tr>
+                        <th>Visitante</th>
+                        <th>Unidade</th>
+                        <th>Validade</th>
+                        <th>Entrada / saída</th>
+                        <th>Status</th>
+                        <th className="no-print">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((v) => (
+                        <tr key={v.id}>
+                          <td>
+                            <span className="font-semibold text-[var(--color-ink)]">{v.name}</span>
+                            <span className="block text-xs text-[var(--color-subtle)]">
+                              {v.kind}{v.company ? ` · ${v.company}` : ""}{v.document ? ` · ${v.document}` : ""}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap text-xs">
+                            {v.block ?? "—"} {v.unit ?? ""}
+                            <span className="block text-[var(--color-subtle)]">{v.host ?? "sem anfitrião"}</span>
+                          </td>
+                          <td className="whitespace-nowrap text-xs">{dateTimeBR(v.validUntil)}</td>
+                          <td className="whitespace-nowrap text-xs">
+                            {v.checkinAt ? dateTimeBR(v.checkinAt) : "—"}
+                            <span className="block text-[var(--color-subtle)]">{v.checkoutAt ? dateTimeBR(v.checkoutAt) : v.deniedReason ?? ""}</span>
+                          </td>
+                          <td>
+                            <Badge tone={statusTone(v.status)}>{v.status}</Badge>
+                          </td>
+                          <td className="no-print">
+                            <div className="flex flex-wrap gap-1.5">
+                              {isGate && v.status === "autorizado" ? (
+                                <form action={gateMoveAction}>
+                                  <input type="hidden" name="id" value={v.id} />
+                                  <input type="hidden" name="move" value="entrada" />
+                                  <button className="btn-success btn-sm">Entrada</button>
+                                </form>
+                              ) : null}
+                              {isGate && v.status === "dentro" ? (
+                                <form action={gateMoveAction}>
+                                  <input type="hidden" name="id" value={v.id} />
+                                  <input type="hidden" name="move" value="saida" />
+                                  <button className="btn-dark btn-sm">Saída</button>
+                                </form>
+                              ) : null}
+                              <Link href={`/v/${v.qrToken}`} className="btn-ghost btn-sm" target="_blank">
+                                QR
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </TableWrap>
+                </div>
+              </>
             )}
           </Card>
 
@@ -235,7 +299,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                 <span className="label">Nome completo</span>
                 <input name="name" className="input" placeholder="Se for novo visitante" />
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label className="block">
                   <span className="label">Documento</span>
                   <input name="document" className="input" />
@@ -249,7 +313,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                   </select>
                 </label>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label className="block">
                   <span className="label">Empresa</span>
                   <input name="company" className="input" />
@@ -281,7 +345,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                   </label>
                 </>
               ) : null}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label className="block">
                   <span className="label">Válido de</span>
                   <input type="datetime-local" name="validFrom" className="input" />
@@ -349,7 +413,7 @@ export default async function VisitantesPage({ searchParams }: { searchParams: P
                   <span className="label">Nome</span>
                   <input name="name" className="input" required />
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <label className="block">
                     <span className="label">Documento</span>
                     <input name="document" className="input" />

@@ -110,7 +110,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
       />
 
       {/* 4 Cards de Resumo Minimalistas e Alinhados à Home */}
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <section className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <Link
           href="/painel/documentos?categoria=todos"
           className={`group relative flex flex-col justify-between rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${

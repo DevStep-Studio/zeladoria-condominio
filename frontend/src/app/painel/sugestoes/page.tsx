@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icon, type IconName } from "@/components/icon";
 
 type SuggestionStatus = "recebida" | "em_analise" | "aceita" | "recusada" | "concluida";
@@ -74,6 +74,21 @@ export default function SugestoesPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>(INITIAL_SUGGESTIONS);
   const [filterStatus, setFilterStatus] = useState<string>("todas");
   const [showNewModal, setShowNewModal] = useState(false);
+
+  // Scroll lock and Escape key listener
+  useEffect(() => {
+    if (!showNewModal) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowNewModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [showNewModal]);
 
   // New suggestion form
   const [title, setTitle] = useState("");
@@ -233,7 +248,7 @@ export default function SugestoesPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                   Evolução da Sugestão:
                 </span>
-                <div className="flex items-center gap-2 text-[11px]">
+                <div className="flex flex-wrap items-center gap-2 text-[11px]">
                   {["Recebida", "Em análise", "Aceita", "Concluída"].map((step, idx) => {
                     const stepKey = step.toLowerCase().replace(" ", "_");
                     const isDone =
@@ -278,7 +293,7 @@ export default function SugestoesPage() {
             onClick={() => setShowNewModal(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-[16px] border border-slate-200 bg-white p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[16px] border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-[#0F172A]">
                 Enviar Sugestão

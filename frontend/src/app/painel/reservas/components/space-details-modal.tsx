@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { Icon, type IconName } from "@/components/icon";
 import { dateBR, isoDate, money } from "@/lib/utils";
@@ -78,6 +78,20 @@ export function SpaceDetailsModal({
   const [rulesAccepted, setRulesAccepted] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmedReservation, setConfirmedReservation] = useState<{ id?: number; status: string } | null>(null);
+
+  useEffect(() => {
+    if (!space) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [space, onClose]);
 
   const [isPending, startTransition] = useTransition();
 

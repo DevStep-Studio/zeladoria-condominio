@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import { isoDate } from "@/lib/utils";
 import { createBlockAction } from "@/lib/actions/reservas";
@@ -23,6 +23,19 @@ export function BlockModal({ amenities, onClose, onSuccess }: BlockModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
   const handleSaveBlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +64,7 @@ export function BlockModal({ amenities, onClose, onSuccess }: BlockModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl space-y-4">
+      <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Bloquear Espaço / Manutenção</h3>

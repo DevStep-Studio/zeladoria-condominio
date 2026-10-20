@@ -203,6 +203,27 @@ export function OcorrenciasClient({
     }
   }, [occurrences]);
 
+  // Lock de scroll e listener Escape para modais e drawer
+  useEffect(() => {
+    if (!activeOccurrence && !filterModalOpen && !reopenModalOpen && !ratingModalOpen && !lightbox) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (lightbox) setLightbox(null);
+        else if (ratingModalOpen) setRatingModalOpen(false);
+        else if (reopenModalOpen) setReopenModalOpen(false);
+        else if (filterModalOpen) setFilterModalOpen(false);
+        else if (activeOccurrence) closeOccurrence();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [activeOccurrence, filterModalOpen, reopenModalOpen, ratingModalOpen, lightbox]);
+
   function openOccurrence(occ: OccurrenceItem, updateUrl = true) {
     setActiveOccurrence(occ);
     setAdminStatus(occ.status);
@@ -622,106 +643,163 @@ export function OcorrenciasClient({
         </div>
       ) : isStaff ? (
         /* ========================================================================= */
-        /* TABELA DE GESTÃO PARA SÍNDICO / STAFF (Desktop Denso, Mobile Compacto)     */
+        /* TABELA DE GESTÃO PARA SÍNDICO / STAFF (Desktop Denso, Mobile Cards)        */
         /* ========================================================================= */
-        <div className="rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
-                <tr>
-                  <th className="px-4 py-2.5">Código</th>
-                  <th className="px-4 py-2.5">Ocorrência</th>
-                  <th className="px-4 py-2.5">Localização</th>
-                  <th className="px-4 py-2.5">Prioridade</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Responsável</th>
-                  <th className="px-4 py-2.5">Atualização</th>
-                  <th className="px-4 py-2.5 text-right">Ação</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredOccurrences.map((occ) => {
-                  const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
-                  const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+        <>
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-2.5">
+            {filteredOccurrences.map((occ) => {
+              const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
+              const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
 
-                  return (
-                    <tr
-                      key={occ.id}
-                      onClick={() => openOccurrence(occ)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                    >
-                      {/* Código */}
-                      <td className="px-4 py-2.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
+              return (
+                <div
+                  key={occ.id}
+                  onClick={() => openOccurrence(occ)}
+                  className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-blue-300 transition-all cursor-pointer space-y-2.5 active:bg-slate-50"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-mono text-[11px] font-bold text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
                         {occ.code}
-                      </td>
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
+                      >
+                        {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
+                        {sv.label}
+                      </span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
+                      {st.label}
+                    </span>
+                  </div>
 
-                      {/* Título + Morador */}
-                      <td className="px-4 py-2.5 max-w-[280px]">
-                        <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
-                          {occ.title}
-                        </p>
-                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                          {occ.reporterName || "Morador"}
-                          {occ.unitNumber ? ` · Unidade ${occ.unitNumber}` : ""}
-                        </p>
-                      </td>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#0F172A] leading-snug">{occ.title}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {occ.exactLocation || "Área comum"} · {occ.reporterName || "Morador"}
+                      {occ.unitNumber ? ` (Unidade ${occ.unitNumber})` : ""}
+                    </p>
+                  </div>
 
-                      {/* Localização */}
-                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                        <span className="flex items-center gap-1 font-medium text-slate-700">
-                          <Icon name="map-pin" size={12} className="text-slate-400" />
-                          <span className="truncate max-w-[160px]">{occ.exactLocation || "Área comum"}</span>
-                        </span>
-                      </td>
-
-                      {/* Prioridade */}
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
-                        >
-                          {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
-                          {sv.label}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
-                          {st.label}
-                        </span>
-                      </td>
-
-                      {/* Responsável */}
-                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                        {occ.assignedToName ? (
-                          <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
-                        ) : (
-                          <span className="text-slate-400 italic">Sem responsável</span>
-                        )}
-                      </td>
-
-                      {/* Atualização */}
-                      <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
-                        {timeAgoBR(occ.createdAt)}
-                      </td>
-
-                      {/* Ação */}
-                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                        <span className="text-xs font-semibold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
-                          Ver detalhe
-                          <Icon name="chevron-right" size={12} />
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                    <span className="truncate max-w-[180px]">
+                      {occ.assignedToName ? `Resp: ${occ.assignedToName}` : "Sem responsável"}
+                    </span>
+                    <span className="text-[#1355FF] font-semibold inline-flex items-center gap-1 shrink-0">
+                      Ver detalhe
+                      <Icon name="chevron-right" size={12} />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th className="px-4 py-2.5">Código</th>
+                    <th className="px-4 py-2.5">Ocorrência</th>
+                    <th className="px-4 py-2.5">Localização</th>
+                    <th className="px-4 py-2.5">Prioridade</th>
+                    <th className="px-4 py-2.5">Status</th>
+                    <th className="px-4 py-2.5">Responsável</th>
+                    <th className="px-4 py-2.5">Atualização</th>
+                    <th className="px-4 py-2.5 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredOccurrences.map((occ) => {
+                    const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
+                    const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+
+                    return (
+                      <tr
+                        key={occ.id}
+                        onClick={() => openOccurrence(occ)}
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      >
+                        {/* Código */}
+                        <td className="px-4 py-2.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
+                          {occ.code}
+                        </td>
+
+                        {/* Título + Morador */}
+                        <td className="px-4 py-2.5 max-w-[280px]">
+                          <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
+                            {occ.title}
+                          </p>
+                          <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                            {occ.reporterName || "Morador"}
+                            {occ.unitNumber ? ` · Unidade ${occ.unitNumber}` : ""}
+                          </p>
+                        </td>
+
+                        {/* Localização */}
+                        <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
+                          <span className="flex items-center gap-1 font-medium text-slate-700">
+                            <Icon name="map-pin" size={12} className="text-slate-400" />
+                            <span className="truncate max-w-[160px]">{occ.exactLocation || "Área comum"}</span>
+                          </span>
+                        </td>
+
+                        {/* Prioridade */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
+                          >
+                            {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
+                            {sv.label}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-2.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
+                            {st.label}
+                          </span>
+                        </td>
+
+                        {/* Responsável */}
+                        <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
+                          {occ.assignedToName ? (
+                            <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
+                          ) : (
+                            <span className="text-slate-400 italic">Sem responsável</span>
+                          )}
+                        </td>
+
+                        {/* Atualização */}
+                        <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
+                          {timeAgoBR(occ.createdAt)}
+                        </td>
+
+                        {/* Ação */}
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                          <span className="text-xs font-semibold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
+                            Ver detalhe
+                            <Icon name="chevron-right" size={12} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       ) : (
         /* ========================================================================= */
         /* VISÃO DO MORADOR: LINHAS / CARDS COMPACTOS (Conforme Seções 6, 7, 8, 9)   */

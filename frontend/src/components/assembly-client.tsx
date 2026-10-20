@@ -422,7 +422,7 @@ export function AssembliesClientView({
   return (
     <div className="space-y-6">
       {/* Metrics Row — Minimalistas, Elegantes e Alinhados à Home */}
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <section className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <button
           type="button"
           onClick={() => setTab("proximas")}
@@ -1114,7 +1114,7 @@ export function AssembliesClientView({
             <input name="title" defaultValue={editingAssembly?.title || ""} className="input" placeholder="Ex: Assembleia Geral Ordinária 2026" required />
           </label>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="block">
               <span className="label">Tipo de Assembleia</span>
               <select name="kind" defaultValue={editingAssembly?.kind || "ordinaria"} className="input">
@@ -1133,7 +1133,7 @@ export function AssembliesClientView({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="block">
               <span className="label">Data e Hora 1ª Convocação *</span>
               <input
@@ -1167,7 +1167,7 @@ export function AssembliesClientView({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="block">
               <span className="label">Horário de Início</span>
               <input type="time" name="startTime" defaultValue={editingAssembly?.startTime || "19:00"} className="input" />
@@ -1198,7 +1198,7 @@ export function AssembliesClientView({
             <textarea name="guidelines" rows={2} defaultValue={editingAssembly?.guidelines || ""} className="input" placeholder="Apresentar documento com foto ou procuração com firma reconhecida." />
           </label>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="block">
               <span className="label">Escopo Convocado</span>
               <select name="audienceScope" defaultValue={editingAssembly?.audienceScope || "todos"} className="input">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { Icon, type IconName } from "@/components/icon";
 import { money } from "@/lib/utils";
@@ -44,6 +44,19 @@ const AVAILABLE_FEATURES = [
 export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModalProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
   // Form State
   const [name, setName] = useState(space?.name || "");
