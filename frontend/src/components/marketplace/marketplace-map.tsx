@@ -12,6 +12,8 @@ export function MarketplaceMap({
   condoLng = -46.6559,
   onSelectProvider,
   onRequestBudget,
+  onChangeLocationClick,
+  onLocationChange,
 }: {
   providers: MarketplaceProvider[];
   condoName?: string;
@@ -20,11 +22,19 @@ export function MarketplaceMap({
   condoLng?: number;
   onSelectProvider: (p: MarketplaceProvider) => void;
   onRequestBudget: (p: MarketplaceProvider) => void;
+  onChangeLocationClick?: () => void;
+  onLocationChange?: (coords: { lat: number; lng: number; address?: string }) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersLayerRef = useRef<any>(null);
+  const centerMarkerRef = useRef<any>(null);
   const providerCardsListRef = useRef<HTMLDivElement>(null);
+  const onLocationChangeRef = useRef(onLocationChange);
+
+  useEffect(() => {
+    onLocationChangeRef.current = onLocationChange;
+  }, [onLocationChange]);
 
   const [selectedProvider, setSelectedProvider] = useState<MarketplaceProvider | null>(
     providers.length > 0 ? providers[0] : null
@@ -90,52 +100,87 @@ export function MarketplaceMap({
 
         tileLayer.addTo(map);
 
+        // Clique no mapa para alterar localização de atendimento
+        map.on("click", (e: any) => {
+          const { lat, lng } = e.latlng;
+          onLocationChangeRef.current?.({
+            lat: Number(lat.toFixed(6)),
+            lng: Number(lng.toFixed(6)),
+            address: "Local selecionado no mapa",
+          });
+        });
+
         const markersLayer = L.layerGroup().addTo(map);
         markersLayerRef.current = markersLayer;
         mapInstanceRef.current = map;
+      } else {
+        // Suave animação para novas coordenadas
+        mapInstanceRef.current.flyTo([condoLat, condoLng], mapInstanceRef.current.getZoom(), {
+          duration: 0.8,
+        });
       }
 
       // Render markers
       if (markersLayerRef.current) {
         markersLayerRef.current.clearLayers();
 
-        // 1. Central Pin do Condomínio (Ponto de Atendimento)
+        // 1. Central Pin do Condomínio (Ponto de Atendimento) — Interativo e arrastável
         const condoIcon = L.divIcon({
           className: "condo-center-pin",
           html: `
             <div style="
               background-color: #1355FF;
               color: #FFFFFF;
-              width: 34px;
-              height: 34px;
+              width: 38px;
+              height: 38px;
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
               border: 3px solid #FFFFFF;
-              box-shadow: 0 4px 12px rgba(0,85,212,0.4);
+              box-shadow: 0 4px 14px rgba(19,85,255,0.45);
+              cursor: grab;
             ">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
           `,
-          iconSize: [34, 34],
-          iconAnchor: [17, 17],
+          iconSize: [38, 38],
+          iconAnchor: [19, 19],
         });
 
-        L.marker([condoLat, condoLng], { icon: condoIcon })
-          .bindTooltip(`Atendimento em ${condoName}`, {
+        const centerMarker = L.marker([condoLat, condoLng], {
+          icon: condoIcon,
+          draggable: true,
+          title: "Arraste para mover o local de atendimento ou clique no mapa",
+        })
+          .bindTooltip(`📍 Atendimento em ${condoName} (Arraste para mover)`, {
             permanent: false,
             direction: "top",
-            offset: [0, -18],
+            offset: [0, -20],
           })
           .addTo(markersLayerRef.current);
 
-        // 2. Pins dos Prestadores (dispersos com base no raio de atendimento, sem expor endereço residencial)
+        centerMarker.on("dragend", (e: any) => {
+          const pos = e.target.getLatLng();
+          onLocationChangeRef.current?.({
+            lat: Number(pos.lat.toFixed(6)),
+            lng: Number(pos.lng.toFixed(6)),
+            address: "Local calibrado no mapa",
+          });
+        });
+
+        centerMarkerRef.current = centerMarker;
+
+        // 2. Pins dos Prestadores
         providers.forEach((p, idx) => {
-          const angle = (idx * (360 / Math.max(1, providers.length))) * (Math.PI / 180);
-          const distance = 0.007 + (idx % 4) * 0.005;
-          const lat = condoLat + Math.cos(angle) * distance;
-          const lng = condoLng + Math.sin(angle) * distance;
+          let lat = p.lat;
+          let lng = p.lng;
+          if (lat == null || lng == null) {
+            const angle = (idx * (360 / Math.max(1, providers.length))) * (Math.PI / 180);
+            const distance = 0.007 + (idx % 4) * 0.005;
+            lat = condoLat + Math.cos(angle) * distance;
+            lng = condoLng + Math.sin(angle) * distance;
+          }
 
           const isSelected = selectedProvider?.id === p.id;
 
@@ -170,7 +215,8 @@ export function MarketplaceMap({
 
           const marker = L.marker([lat, lng], { icon: providerPin }).addTo(markersLayerRef.current);
 
-          marker.on("click", () => {
+          marker.on("click", (e: any) => {
+            L.DomEvent.stopPropagation(e);
             setSelectedProvider(p);
             // Scroll to card in desktop list
             const el = document.getElementById(`provider-map-card-${p.id}`);
@@ -202,15 +248,31 @@ export function MarketplaceMap({
       <div className="relative flex-1 lg:flex-[58] h-full min-h-[340px] bg-slate-100 overflow-hidden">
         <div ref={mapContainerRef} className="w-full h-full z-10" />
 
-        {/* Legenda Limpa do Mapa */}
-        <div className="absolute top-3 left-3 z-20 bg-white p-2.5 rounded-xl border border-slate-200 text-xs shadow-xs space-y-1">
-          <div className="flex items-center gap-1.5 font-bold text-[#0F172A]">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#1355FF]" />
-            <span>Local do Atendimento ({condoName})</span>
+        {/* Legenda Limpa do Mapa com Botão de Escolher Local */}
+        <div className="absolute top-3 left-3 z-20 bg-white/95 backdrop-blur-xs p-3 rounded-2xl border border-slate-200 text-xs shadow-md space-y-2 max-w-[280px] sm:max-w-[340px]">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 font-black text-[#0F172A]">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#1355FF] shrink-0" />
+                <span className="truncate">{condoName}</span>
+              </div>
+              <p className="text-[11px] text-slate-500 truncate mt-0.5">{condoAddress}</p>
+            </div>
+            {onChangeLocationClick && (
+              <button
+                type="button"
+                onClick={onChangeLocationClick}
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-[#1355FF] text-white font-bold text-xs hover:bg-[#0D47E6] transition-colors cursor-pointer shadow-xs flex items-center gap-1"
+                title="Escolher localização de atendimento"
+              >
+                <Icon name="map-pin" size={12} />
+                <span>Alterar</span>
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-            <span className="h-2 w-2 rounded-full border border-amber-400 bg-white" />
-            <span>Profissionais credenciados que atendem aqui</span>
+          <div className="flex items-center gap-1.5 text-slate-500 text-[11px] pt-1.5 border-t border-slate-100">
+            <span className="h-2 w-2 rounded-full border border-amber-400 bg-white shrink-0" />
+            <span className="truncate">Clique ou arraste o pin azul para mudar o local</span>
           </div>
         </div>
 

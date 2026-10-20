@@ -68,6 +68,8 @@ export interface MarketplaceProvider {
   avatarUrl: string | null;
   portfolio: PortfolioItem[];
   distanceKm?: number | null;
+  lat?: number | null;
+  lng?: number | null;
   condoHiredCount?: number;
   hasHiredBefore?: boolean;
   responseTimeMinutes?: number | null;

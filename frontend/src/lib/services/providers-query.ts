@@ -163,6 +163,8 @@ export async function getMarketplaceProviders(
       condoHiredCount: vendorTickets.length,
       hasHiredBefore,
       distanceKm,
+      lat: v.lat ?? null,
+      lng: v.lng ?? null,
       responseTimeMinutes: v.responseTimeMinutes || 15,
       startingPriceCents: v.priceFromCents,
       regionCoverage: v.serviceArea,

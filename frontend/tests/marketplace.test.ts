@@ -205,3 +205,39 @@ describe("Recontratação com dados reais do prestador", () => {
     assert.equal(canRebookProvider(resolveRebookProvider(9, [], [record])), false);
   });
 });
+
+describe("Escolha e Calibração de Localização no Marketplace", () => {
+  it("recalcula distâncias dinamicamente ao alternar entre Curitiba e São Paulo", () => {
+    const curitibaCoords = { lat: -25.4284, lng: -49.2733 };
+    const saoPauloCoords = { lat: -23.5505, lng: -46.6333 };
+
+    // Prestador localizado em Curitiba (Carlos Eduardo)
+    const providerCuritiba = { lat: -25.432, lng: -49.278 };
+
+    const distFromCuritiba = calculateHaversineKm(
+      curitibaCoords.lat,
+      curitibaCoords.lng,
+      providerCuritiba.lat,
+      providerCuritiba.lng
+    );
+    const distFromSaoPaulo = calculateHaversineKm(
+      saoPauloCoords.lat,
+      saoPauloCoords.lng,
+      providerCuritiba.lat,
+      providerCuritiba.lng
+    );
+
+    // Em Curitiba, a distância é menor que 2 km
+    assert.ok(distFromCuritiba < 2, `Distância em Curitiba deve ser próxima (<2km), obteve ${distFromCuritiba} km`);
+    // Em São Paulo, a distância deve ser ~335 km
+    assert.ok(distFromSaoPaulo > 300, `Distância de SP para Curitiba deve ser >300km, obteve ${distFromSaoPaulo} km`);
+  });
+
+  it("formata texto de distância de forma amigável ao usuário", () => {
+    assert.equal(formatDistanceText(1.2), "1,2 km");
+    assert.equal(formatDistanceText(0.5), "0,5 km");
+    assert.equal(formatDistanceText(null), "Atende seu condomínio");
+    assert.equal(formatDistanceText(undefined), "Atende seu condomínio");
+  });
+});
+

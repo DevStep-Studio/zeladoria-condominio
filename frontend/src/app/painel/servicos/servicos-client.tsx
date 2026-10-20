@@ -20,6 +20,7 @@ import { FilterDrawer, type ExtendedFilterState } from "@/components/marketplace
 import { LocationModal, type ServiceLocation } from "@/components/marketplace/location-modal";
 import { MarketplaceMap } from "@/components/marketplace/marketplace-map";
 import { MarketplaceImageBanner } from "@/components/marketplace/marketplace-image-banner";
+import { calculateHaversineKm } from "@/lib/services/geo";
 import { selectEligiblePromotions } from "@/lib/services/promotions";
 import {
   acceptQuoteAction,
@@ -100,14 +101,57 @@ export function ServicosClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Location State (Interativo no topo)
-  const [serviceLocation, setServiceLocation] = useState<ServiceLocation>({
-    type: "meu_condominio",
-    name: condoInfo?.name || "Residencial Parque das Águas",
-    address: condoInfo?.address || "Av. das Nações, 1200",
-    unit: "Unidade 302",
-    city: condoInfo?.city || "Curitiba",
-    state: condoInfo?.state || "PR",
+  // Condomínios disponíveis para escolha rápida
+  const availableCondos = useMemo(() => {
+    return [
+      ...(condoInfo
+        ? [
+            {
+              id: condoInfo.id,
+              name: condoInfo.name,
+              address: condoInfo.address,
+              city: condoInfo.city,
+              state: condoInfo.state,
+              lat: condoInfo.latitude ? Number(condoInfo.latitude) : -25.432,
+              lng: condoInfo.longitude ? Number(condoInfo.longitude) : -49.278,
+            },
+          ]
+        : []),
+      {
+        id: 991,
+        name: "Edifício Jardins Corporate",
+        address: "Av. Paulista, 1000",
+        city: "São Paulo",
+        state: "SP",
+        lat: -23.5615,
+        lng: -46.6559,
+      },
+      {
+        id: 992,
+        name: "Residencial Bosque Barigui",
+        address: "Rua Cândido Hartmann, 1500",
+        city: "Curitiba",
+        state: "PR",
+        lat: -25.4284,
+        lng: -49.2733,
+      },
+    ];
+  }, [condoInfo]);
+
+  // Location State (Interativo no topo e no mapa)
+  const [serviceLocation, setServiceLocation] = useState<ServiceLocation>(() => {
+    const defaultLat = condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432;
+    const defaultLng = condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278;
+    return {
+      type: "meu_condominio",
+      name: condoInfo?.name || "Residencial Parque das Águas",
+      address: condoInfo?.address || "Av. das Nações, 1200",
+      unit: "Unidade 302",
+      city: condoInfo?.city || "Curitiba",
+      state: condoInfo?.state || "PR",
+      lat: defaultLat,
+      lng: defaultLng,
+    };
   });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
@@ -302,9 +346,23 @@ export function ServicosClient({
     window.history.replaceState(null, "", newPath);
   };
 
+  // Distância dinâmica recalculada em tempo real com base no local de atendimento selecionado
+  const providersWithDynamicDistance = useMemo(() => {
+    const targetLat = serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432);
+    const targetLng = serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278);
+
+    return providers.map((p) => {
+      if (p.lat != null && p.lng != null) {
+        const dist = calculateHaversineKm(targetLat, targetLng, p.lat, p.lng);
+        return { ...p, distanceKm: dist };
+      }
+      return p;
+    });
+  }, [providers, serviceLocation.lat, serviceLocation.lng, condoInfo?.latitude, condoInfo?.longitude]);
+
   // Filtered & Sorted Providers List
   const filteredVendors = useMemo(() => {
-    return providers
+    return providersWithDynamicDistance
       .filter((v) => {
         if (onlyFavorites && !favorites.includes(v.id)) {
           return false;
@@ -359,7 +417,7 @@ export function ServicosClient({
         if (sortBy === "price_asc") return (a.startingPriceCents ?? Infinity) - (b.startingPriceCents ?? Infinity);
         return 0;
       });
-  }, [providers, search, selectedCategory, filters, sortBy, onlyAvailableNow, onlyFavorites, favorites]);
+  }, [providersWithDynamicDistance, search, selectedCategory, filters, sortBy, onlyAvailableNow, onlyFavorites, favorites]);
 
   const sponsoredList = useMemo(() => {
     const rawSponsored = providers.filter((v) => v.isSponsored);
@@ -1894,12 +1952,36 @@ export function ServicosClient({
                     {filteredVendors.length}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"} próximos de {serviceLocation.name}
-                </p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <p className="text-[11px] text-slate-500">
+                    {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"} próximos de <strong>{serviceLocation.name}</strong>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1355FF] hover:underline cursor-pointer"
+                  >
+                    <Icon name="map-pin" size={11} />
+                    <span>Alterar local</span>
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 justify-between sm:justify-end flex-wrap">
+                {/* Escolher Localização Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsLocationModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-1.5 text-xs font-bold text-[#1355FF] hover:bg-blue-100/70 transition-colors cursor-pointer"
+                  title="Alterar endereço ou condomínio de atendimento"
+                >
+                  <Icon name="map-pin" size={13} className="text-[#1355FF]" />
+                  <span className="truncate max-w-[120px] sm:max-w-[180px]">
+                    {serviceLocation.name}
+                  </span>
+                  <Icon name="chevron-down" size={11} className="text-[#1355FF]" />
+                </button>
+
                 {/* View Switcher: Lista vs Mapa */}
                 <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
                   <button
@@ -1965,10 +2047,21 @@ export function ServicosClient({
                 providers={filteredVendors}
                 condoName={serviceLocation.name}
                 condoAddress={serviceLocation.address}
-                condoLat={condoInfo?.latitude ? Number(condoInfo.latitude) : -23.5615}
-                condoLng={condoInfo?.longitude ? Number(condoInfo.longitude) : -46.6559}
+                condoLat={serviceLocation.lat ?? (condoInfo?.latitude ? Number(condoInfo.latitude) : -25.432)}
+                condoLng={serviceLocation.lng ?? (condoInfo?.longitude ? Number(condoInfo.longitude) : -49.278)}
                 onSelectProvider={(p) => setSelectedProfileVendor(p)}
                 onRequestBudget={(p) => setBudgetVendor(p)}
+                onChangeLocationClick={() => setIsLocationModalOpen(true)}
+                onLocationChange={(coords) => {
+                  setServiceLocation((prev) => ({
+                    ...prev,
+                    type: "mapa",
+                    name: coords.address || "Local no Mapa",
+                    address: `Lat: ${coords.lat.toFixed(4)}, Lng: ${coords.lng.toFixed(4)}`,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                  }));
+                }}
               />
             ) : (
               /* Display Mode: LISTA */
@@ -2211,21 +2304,12 @@ export function ServicosClient({
       <LocationModal
         isOpen={isLocationModalOpen}
         currentLocation={serviceLocation}
-        availableCondos={
-          condoInfo
-            ? [
-                {
-                  id: condoInfo.id,
-                  name: condoInfo.name,
-                  address: condoInfo.address,
-                  city: condoInfo.city,
-                  state: condoInfo.state,
-                },
-              ]
-            : []
-        }
+        availableCondos={availableCondos}
         onClose={() => setIsLocationModalOpen(false)}
         onSave={(loc) => setServiceLocation(loc)}
+        onPickOnMap={() => {
+          setDisplayMode("mapa");
+        }}
       />
 
       {/* Filter Drawer (Lateral no desktop / Bottom Sheet no mobile) */}
