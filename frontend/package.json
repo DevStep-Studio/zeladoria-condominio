@@ -14,6 +14,7 @@
     "test:reservas": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/reservas.test.ts",
     "test:mapa": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/mapa.test.ts",
     "test:portaria": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/portaria-sindico-e2e.test.ts",
+    "test:encomendas": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/encomendas-functional.test.ts",
     "test:responsive": "playwright test --config=playwright.config.ts",
     "autocommit": "node scripts/auto-commit.mjs",
     "autocommit:push": "node scripts/auto-commit.mjs --push",

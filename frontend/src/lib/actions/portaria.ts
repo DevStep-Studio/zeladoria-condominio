@@ -1,11 +1,11 @@
 "use server";
-import { apiOperation } from "@/lib/api/server";
+import { apiOperation, domainRequest } from "@/lib/api/server";
 
 import { revalidatePath } from "next/cache";
 
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
-import { bool, maybeDate, num, pickupCode, sequence, str, token } from "@/lib/utils";
+import { bool, dateTimeBR, maybeDate, num, pickupCode, sequence, str, token } from "@/lib/utils";
 import { GATE } from "@/lib/rbac";
 
 async function unitResidents(condoId: number, unitId: number | null) {
@@ -213,26 +213,42 @@ export async function gateMoveAction(formData: FormData) {
 
 /* ------------------------------------------------------------ ENCOMENDAS */
 
-export async function registerParcelAction(formData: FormData) {
+export async function registerParcelAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireRole(GATE);
   const unitId = num(formData, "unitId");
-  if (!unitId) return;
-  const [row] = await apiOperation("lib.actions.portaria.016", [condoId]);
-  const [parcel] = await apiOperation("lib.actions.portaria.017", [{
-      condoId,
-      unitId,
-      code: sequence("ENC", Number(row?.n ?? 0) + 1),
-      kind: str(formData, "kind", "encomenda"),
-      carrier: str(formData, "carrier") || null,
-      trackingCode: str(formData, "trackingCode") || null,
-      description: str(formData, "description") || null,
-      photoUrl: str(formData, "photoUrl") || null,
-      shelf: str(formData, "shelf") || null,
-      pickupCode: pickupCode(),
-      receivedById: session.user.id,
-    }]);
+  if (!unitId) {
+    return { success: false, error: "Selecione a unidade de destino da encomenda." };
+  }
 
   const [unit] = await apiOperation("lib.actions.portaria.018", [unitId]);
+  if (!unit || unit.condoId !== condoId) {
+    return { success: false, error: "A unidade selecionada não pertence a este condomínio." };
+  }
+
+  const [row] = await apiOperation("lib.actions.portaria.016", [condoId]);
+  const code = sequence("ENC", Number(row?.n ?? 0) + 1);
+  const kind = str(formData, "kind", "encomenda");
+  const carrier = str(formData, "carrier") || null;
+  const trackingCode = str(formData, "trackingCode") || null;
+  const description = str(formData, "description") || null;
+  const photoUrl = str(formData, "photoUrl") || null;
+  const shelf = str(formData, "shelf") || null;
+  const codePin = pickupCode();
+
+  const [parcel] = await apiOperation("lib.actions.portaria.017", [{
+    condoId,
+    unitId,
+    code,
+    kind,
+    carrier,
+    trackingCode,
+    description,
+    photoUrl,
+    shelf,
+    pickupCode: codePin,
+    receivedById: session.user.id,
+  }]);
+
   await notify(
     condoId,
     await unitResidents(condoId, unitId),
@@ -251,15 +267,74 @@ export async function registerParcelAction(formData: FormData) {
   });
   revalidatePath("/painel/encomendas");
   revalidatePath("/painel/portaria");
+  return { success: true, message: `Encomenda ${parcel.code} registrada com sucesso!`, parcel };
 }
 
-export async function deliverParcelAction(formData: FormData) {
+export async function lookupParcelForDeliveryAction(codeOrPin: string) {
   const { session, condoId } = await requireRole(GATE);
-  const id = num(formData, "id");
-  const [parcel] = await apiOperation("lib.actions.portaria.019", [id]);
-  if (!parcel || parcel.condoId !== condoId || parcel.status !== "pendente") return;
+  const clean = codeOrPin.trim();
+  if (!clean) return { success: false, error: "Informe o código de 6 dígitos ou o código da encomenda (ENC-...)." };
+
+  // Parse se formato QR "ENC:ENC-00001:837587"
+  let targetCode = clean;
+  let targetPin = clean;
+  if (clean.startsWith("ENC:")) {
+    const parts = clean.split(":");
+    if (parts.length >= 3) {
+      targetCode = parts[1];
+      targetPin = parts[2];
+    }
+  }
+
+  const { rows } = await domainRequest<{ rows: any[] }>("/painel/encomendas", { query: { condoId, role: session.role } });
+  const found = rows.find(
+    (p) =>
+      p.code.toLowerCase() === targetCode.toLowerCase() ||
+      p.pickupCode === targetPin ||
+      (p.tracking && p.tracking.toLowerCase() === clean.toLowerCase())
+  );
+
+  if (!found) {
+    return { success: false, error: "Nenhuma encomenda encontrada com o código informado neste condomínio." };
+  }
+
+  return { success: true, parcel: found };
+}
+
+export async function deliverParcelAction(formData: FormData): Promise<any> {
+  const { session, condoId } = await requireRole(GATE);
+  let id = num(formData, "id");
+  let parcel: any = null;
+
+  if (id) {
+    const [p] = await apiOperation("lib.actions.portaria.019", [id]);
+    parcel = p;
+  } else {
+    // Busca por pickupCode informado diretamente
+    const codeOrPin = str(formData, "pickupCode");
+    if (codeOrPin) {
+      const lookup = await lookupParcelForDeliveryAction(codeOrPin);
+      if (lookup.success && lookup.parcel) {
+        parcel = lookup.parcel;
+        id = parcel.id;
+      }
+    }
+  }
+
+  if (!parcel || parcel.condoId !== condoId) {
+    return { success: false, error: "Encomenda não encontrada no condomínio atual." };
+  }
+
+  // Prevenção de concorrência e entrega duplicada
+  if (parcel.status !== "pendente") {
+    return {
+      success: false,
+      error: `Esta encomenda já foi entregue anteriormente em ${dateTimeBR(parcel.pickedUpAt)} para ${parcel.pickedUpBy ?? "morador"}.`,
+    };
+  }
+
   const informed = str(formData, "pickupCode");
-  if (informed && informed !== parcel.pickupCode) {
+  if (informed && informed !== parcel.pickupCode && !informed.includes(parcel.pickupCode)) {
     await logAudit({
       session,
       condoId,
@@ -270,21 +345,31 @@ export async function deliverParcelAction(formData: FormData) {
       critical: true,
       origin: "portaria",
     });
-    return;
+    return {
+      success: false,
+      error: "Código de retirada incorreto. Verifique o código de 6 dígitos ou o QR Code apresentado pelo morador.",
+    };
   }
+
+  const pickedUpBy = str(formData, "pickedUpBy", "Morador");
+  const pickedUpDocument = str(formData, "pickedUpDocument") || null;
+  const signature = str(formData, "signature") || pickedUpBy || null;
+  const notes = str(formData, "notes") || parcel.notes;
+
   await apiOperation("lib.actions.portaria.020", [{
-      status: "entregue",
-      pickedUpAt: new Date(),
-      pickedUpBy: str(formData, "pickedUpBy", "Morador"),
-      pickedUpDocument: str(formData, "pickedUpDocument") || null,
-      signature: str(formData, "signature") || str(formData, "pickedUpBy") || null,
-      notes: str(formData, "notes") || parcel.notes,
-    }, id]);
+    status: "entregue",
+    pickedUpAt: new Date(),
+    pickedUpBy,
+    pickedUpDocument,
+    signature,
+    notes,
+  }, id]);
+
   await notify(
     condoId,
     await unitResidents(condoId, parcel.unitId),
     "Encomenda retirada",
-    `${parcel.code} foi retirada por ${str(formData, "pickedUpBy", "morador")}.`,
+    `${parcel.code} foi retirada por ${pickedUpBy}.`,
     "/painel/encomendas",
   );
   await logAudit({
@@ -293,12 +378,13 @@ export async function deliverParcelAction(formData: FormData) {
     action: "entregar",
     entity: "encomenda",
     entityId: id,
-    summary: `Entregou ${parcel.code} para ${str(formData, "pickedUpBy", "morador")}`,
+    summary: `Entregou ${parcel.code} para ${pickedUpBy} (Doc: ${pickedUpDocument ?? "Não informado"})`,
     critical: true,
     origin: "portaria",
   });
   revalidatePath("/painel/encomendas");
   revalidatePath("/painel/portaria");
+  return { success: true, message: `Retirada da encomenda ${parcel.code} confirmada com sucesso!` };
 }
 
 /* --------------------------------------------------------------- TURNOS */
