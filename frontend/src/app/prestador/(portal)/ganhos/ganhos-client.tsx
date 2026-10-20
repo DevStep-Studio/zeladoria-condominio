@@ -55,7 +55,7 @@ export function ProviderGanhosClient({
       </div>
 
       {/* Metrics Cards: A receber | Em processamento | Recebido | Comissão Zeladoria */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-amber-800 font-bold uppercase">
             <span>A receber (Retido)</span>
@@ -108,65 +108,131 @@ export function ProviderGanhosClient({
         </h2>
 
         {hasOrders ? (
-          <div className="rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
-                <tr>
-                  <th className="p-3.5">Código / Finalidade</th>
-                  <th className="p-3.5">Data</th>
-                  <th className="p-3.5">Status Repasse</th>
-                  <th className="p-3.5 text-right">Valor Bruto</th>
-                  <th className="p-3.5 text-right">Comissão</th>
-                  <th className="p-3.5 text-right">Líquido Prestador</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-slate-50/50">
-                    <td className="p-3.5">
-                      <span className="font-bold text-[#1355FF] block">{o.code}</span>
-                      <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+          <>
+            {/* Mobile Cards View */}
+            <div className="md:hidden space-y-3">
+              {orders.map((o) => (
+                <div key={o.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-[#1355FF] text-sm block">{o.code}</span>
+                      <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.5 rounded mt-0.5 ${
                         o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
                       }`}>
                         {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
                       </span>
-                    </td>
-                    <td className="p-3.5 text-slate-500">
-                      {o.paidAt ? new Date(o.paidAt).toLocaleDateString("pt-BR") : new Date(o.createdAt).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="p-3.5">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                        o.status === "released" || o.status === "paid"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : o.status === "retained"
-                          ? "bg-amber-50 text-amber-700 border border-amber-200"
-                          : o.status === "in_dispute"
-                          ? "bg-rose-50 text-rose-700 border border-rose-200"
-                          : "bg-slate-100 text-slate-600"
-                      }`}>
-                        {o.status === "retained"
-                          ? "Protegido (Retido)"
-                          : o.status === "released"
-                          ? "Repasse Liberado"
-                          : o.status === "paid"
-                          ? "Pago"
-                          : o.status}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right font-semibold text-slate-800">
-                      R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right text-slate-500">
-                      R$ {((o.platformFeeCents || 0) / 100).toFixed(2)} ({o.commissionPercent || 10}%)
-                    </td>
-                    <td className="p-3.5 text-right font-black text-emerald-700">
-                      R$ {((o.netVendorCents || 0) / 100).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded shrink-0 ${
+                      o.status === "released" || o.status === "paid"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : o.status === "retained"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : o.status === "in_dispute"
+                        ? "bg-rose-50 text-rose-700 border border-rose-200"
+                        : "bg-slate-100 text-slate-600"
+                    }`}>
+                      {o.status === "retained"
+                        ? "Protegido (Retido)"
+                        : o.status === "released"
+                        ? "Repasse Liberado"
+                        : o.status === "paid"
+                        ? "Pago"
+                        : o.status}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                    <Icon name="calendar" size={12} />
+                    <span>Data: {o.paidAt ? new Date(o.paidAt).toLocaleDateString("pt-BR") : new Date(o.createdAt).toLocaleDateString("pt-BR")}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
+                    <div className="bg-slate-50 p-2 rounded-xl">
+                      <div className="text-[10px] text-slate-500 font-medium">Bruto</div>
+                      <div className="text-xs font-bold text-slate-800 mt-0.5">
+                        R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl">
+                      <div className="text-[10px] text-slate-500 font-medium">Comissão</div>
+                      <div className="text-xs font-semibold text-slate-600 mt-0.5">
+                        R$ {((o.platformFeeCents || 0) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100">
+                      <div className="text-[10px] text-emerald-700 font-bold">Líquido</div>
+                      <div className="text-xs font-black text-emerald-800 mt-0.5">
+                        R$ {((o.netVendorCents || 0) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
+                    <tr>
+                      <th className="p-3.5">Código / Finalidade</th>
+                      <th className="p-3.5">Data</th>
+                      <th className="p-3.5">Status Repasse</th>
+                      <th className="p-3.5 text-right">Valor Bruto</th>
+                      <th className="p-3.5 text-right">Comissão</th>
+                      <th className="p-3.5 text-right">Líquido Prestador</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {orders.map((o) => (
+                      <tr key={o.id} className="hover:bg-slate-50/50">
+                        <td className="p-3.5">
+                          <span className="font-bold text-[#1355FF] block">{o.code}</span>
+                          <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                            o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
+                          }`}>
+                            {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-slate-500">
+                          {o.paidAt ? new Date(o.paidAt).toLocaleDateString("pt-BR") : new Date(o.createdAt).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                            o.status === "released" || o.status === "paid"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : o.status === "retained"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : o.status === "in_dispute"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : "bg-slate-100 text-slate-600"
+                          }`}>
+                            {o.status === "retained"
+                              ? "Protegido (Retido)"
+                              : o.status === "released"
+                              ? "Repasse Liberado"
+                              : o.status === "paid"
+                              ? "Pago"
+                              : o.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-right font-semibold text-slate-800">
+                          R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="p-3.5 text-right text-slate-500">
+                          R$ {((o.platformFeeCents || 0) / 100).toFixed(2)} ({o.commissionPercent || 10}%)
+                        </td>
+                        <td className="p-3.5 text-right font-black text-emerald-700">
+                          R$ {((o.netVendorCents || 0) / 100).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         ) : services.length === 0 ? (
           <div className="rounded-[16px] border border-slate-200/80 bg-white p-12 text-center space-y-2 shadow-2xs">
             <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -178,37 +244,74 @@ export function ProviderGanhosClient({
             </p>
           </div>
         ) : (
-          <div className="rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
-                <tr>
-                  <th className="p-3.5">Código / Serviço</th>
-                  <th className="p-3.5">Data Conclusão</th>
-                  <th className="p-3.5 text-right">Valor Bruto</th>
-                  <th className="p-3.5 text-right">Líquido</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {services.map((s) => (
-                  <tr key={s.id} className="hover:bg-slate-50/50">
-                    <td className="p-3.5">
-                      <span className="font-bold text-[#1355FF] block">{s.code}</span>
-                      <span className="text-slate-600">{s.title}</span>
-                    </td>
-                    <td className="p-3.5 text-slate-500">
-                      {s.completedAt ? new Date(s.completedAt).toLocaleDateString("pt-BR") : "—"}
-                    </td>
-                    <td className="p-3.5 text-right font-semibold text-slate-800">
-                      R$ {((s.finalAmountCents || 0) / 100).toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right font-black text-emerald-700">
-                      R$ {(((s.finalAmountCents || 0) - (s.platformFeeCents || 0)) / 100).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile Cards View for Services */}
+            <div className="md:hidden space-y-3">
+              {services.map((s) => (
+                <div key={s.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-[#1355FF] text-sm block">{s.code}</span>
+                      <p className="text-xs text-slate-800 font-semibold">{s.title}</p>
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                    <Icon name="calendar" size={12} />
+                    <span>Conclusão: {s.completedAt ? new Date(s.completedAt).toLocaleDateString("pt-BR") : "—"}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-center">
+                    <div className="bg-slate-50 p-2 rounded-xl">
+                      <div className="text-[10px] text-slate-500 font-medium">Valor Bruto</div>
+                      <div className="text-xs font-bold text-slate-800 mt-0.5">
+                        R$ {((s.finalAmountCents || 0) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100">
+                      <div className="text-[10px] text-emerald-700 font-bold">Líquido</div>
+                      <div className="text-xs font-black text-emerald-800 mt-0.5">
+                        R$ {(((s.finalAmountCents || 0) - (s.platformFeeCents || 0)) / 100).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View for Services */}
+            <div className="hidden md:block rounded-[16px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
+                    <tr>
+                      <th className="p-3.5">Código / Serviço</th>
+                      <th className="p-3.5">Data Conclusão</th>
+                      <th className="p-3.5 text-right">Valor Bruto</th>
+                      <th className="p-3.5 text-right">Líquido</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {services.map((s) => (
+                      <tr key={s.id} className="hover:bg-slate-50/50">
+                        <td className="p-3.5">
+                          <span className="font-bold text-[#1355FF] block">{s.code}</span>
+                          <span className="text-slate-600">{s.title}</span>
+                        </td>
+                        <td className="p-3.5 text-slate-500">
+                          {s.completedAt ? new Date(s.completedAt).toLocaleDateString("pt-BR") : "—"}
+                        </td>
+                        <td className="p-3.5 text-right font-semibold text-slate-800">
+                          R$ {((s.finalAmountCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="p-3.5 text-right font-black text-emerald-700">
+                          R$ {(((s.finalAmountCents || 0) - (s.platformFeeCents || 0)) / 100).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import {
@@ -29,6 +29,20 @@ export function ProviderDashboardClient({
   const [quoteDesc, setQuoteDesc] = useState("Mão de obra com garantia de serviço.");
   const [quoteDays, setQuoteDays] = useState(1);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!selectedQuoteRequest) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedQuoteRequest(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [selectedQuoteRequest]);
 
   // Completude do Perfil centralizada
   const completeness = calculateProfileCompleteness(vendor);
@@ -152,7 +166,7 @@ export function ProviderDashboardClient({
       </div>
 
       {/* 2. 4 Cards de Métricas Essenciais */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Novos Chamados */}
         <Link
           href="/prestador/chamados"
@@ -587,8 +601,8 @@ export function ProviderDashboardClient({
 
       {/* Modal: Montar Proposta de Orçamento */}
       {selectedQuoteRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-[16px] border border-slate-200 bg-white p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/50 backdrop-blur-xs">
+          <div className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[16px] border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-[#0F172A]">
@@ -608,7 +622,7 @@ export function ProviderDashboardClient({
             </div>
 
             <form onSubmit={handleSendQuoteSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Mão de Obra (R$)

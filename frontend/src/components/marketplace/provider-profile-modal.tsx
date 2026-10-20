@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { categoryImage, type MarketplaceProvider, type ServiceOffering, type PortfolioItem } from "@/lib/services/providers-data";
@@ -26,6 +26,20 @@ export function ProviderProfileModal({
 }) {
   const [activeTab, setActiveTab] = useState<"servicos" | "portfolio" | "avaliacoes" | "sobre">("servicos");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!provider) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [provider, onClose]);
 
   if (!provider) return null;
 

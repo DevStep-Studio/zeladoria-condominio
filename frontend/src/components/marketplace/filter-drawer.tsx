@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Icon } from "@/components/icon";
 import {
   getCategorySubcategories,
@@ -34,6 +35,20 @@ export function FilterDrawer({
   onChange: (updated: Partial<ExtendedFilterState>) => void;
   onReset: () => void;
 }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const currentSubcategories =

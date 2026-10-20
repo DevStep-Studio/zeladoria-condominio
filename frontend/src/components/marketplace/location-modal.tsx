@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/icon";
 import { lookupCep } from "@/lib/services/cep";
 
@@ -66,6 +66,20 @@ export function LocationModal({
   const [isCepSearching, setIsCepSearching] = useState(false);
   const [cepMessage, setCepMessage] = useState<string | null>(null);
   const [isGpsLoading, setIsGpsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { createMarketplaceRequestAction } from "@/lib/actions/marketplace";
 import { inferCategory } from "@/lib/services/occurrence-inference";
@@ -48,6 +48,19 @@ export function ServiceRequestWizard({
   onClose: () => void;
   onSuccess?: () => void;
 }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
   // 1. O que está acontecendo?
   const [description, setDescription] = useState("");
 

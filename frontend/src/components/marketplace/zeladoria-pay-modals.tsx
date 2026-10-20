@@ -4,6 +4,22 @@ import { canRebookProvider } from "@/lib/services/rebooking";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/icon";
 
+function useModalLock(isOpen: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onClose]);
+}
+
 // 1. MODAL: PRESTADOR RESPONDE VISTORIA (GRATUITA OU PAGA)
 export function ProviderInspectionResponseModal({
   isOpen,
@@ -24,6 +40,7 @@ export function ProviderInspectionResponseModal({
   }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [type, setType] = useState<"gratuita" | "paga">("paga");
   const [priceVal, setPriceVal] = useState("80.00");
   const [duration, setDuration] = useState(40);
@@ -257,6 +274,7 @@ export function CustomerInspectionCheckoutModal({
   onSimulatePay: (orderCode: string) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(600); // 10 min em segundos
 
@@ -426,6 +444,7 @@ export function ProviderDiagnosisModal({
   onSubmit: (data: { diagnosticReport: string; evidencePhotos?: string[] }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [report, setReport] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
@@ -543,6 +562,7 @@ export function ProviderDigitalProposalModal({
   }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [amountVal, setAmountVal] = useState("350.00");
   const [desc, setDesc] = useState("Troca do sifão e reparo da conexão da pia.");
   const [estimatedDays, setEstimatedDays] = useState(1);
@@ -773,6 +793,7 @@ export function CustomerServiceCheckoutModal({
   onSimulatePay: (orderCode: string) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [copied, setCopied] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "cartao">("pix");
   
@@ -1015,6 +1036,7 @@ export function ProviderAddendumModal({
   onSubmit: (data: { title: string; description: string; additionalAmountCents: number }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [title, setTitle] = useState("Substituição de tubulação oculta");
   const [additionalVal, setAdditionalVal] = useState("120.00");
   const [desc, setDesc] = useState("Tubulação antiga estava rompida por dentro da alvenaria e necessitou de novo cano PVC 50mm.");
@@ -1136,6 +1158,7 @@ export function CustomerDisputeModal({
   onSubmit: (data: { reason: string; description: string }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [reason, setReason] = useState("Serviço incompleto");
   const [desc, setDesc] = useState("");
 
@@ -1233,6 +1256,7 @@ export function ProviderEvidenceModal({
   onSubmit: (data: { stage: "ANTES" | "DURANTE" | "DEPOIS"; fileUrl: string; caption?: string }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [stage, setStage] = useState<"ANTES" | "DURANTE" | "DEPOIS">("ANTES");
   const [fileUrl, setFileUrl] = useState("");
   const [caption, setCaption] = useState("");
@@ -1345,6 +1369,7 @@ export function ProviderFinalizeModal({
   onSubmit: (data: { finalNotes: string; finalPhotos?: string[]; warrantyDays?: number }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [finalNotes, setFinalNotes] = useState("Serviço executado conforme proposta técnica e testes operacionais realizados.");
   const [photoUrl, setPhotoUrl] = useState("");
   const [photosList, setPhotosList] = useState<string[]>([]);
@@ -1479,6 +1504,7 @@ export function CustomerContractReceiptModal({
   onClose: () => void;
   receipt: any;
 }) {
+  useModalLock(isOpen, onClose);
   if (!isOpen || !receipt) return null;
 
   const handlePrint = () => {
@@ -1593,6 +1619,7 @@ export function CustomerWarrantyRequestModal({
   onSubmit: (description: string) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [desc, setDesc] = useState("");
 
   if (!isOpen || !request) return null;
@@ -1672,6 +1699,7 @@ export function EvidenceLightboxModal({
   images: { url: string; caption?: string; stage?: string }[];
   initialIndex?: number;
 }) {
+  useModalLock(isOpen, onClose);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   useEffect(() => {
@@ -1770,6 +1798,7 @@ export function RebookServiceModal({
   }) => void;
   isPending: boolean;
 }) {
+  useModalLock(isOpen, onClose);
   const [serviceType, setServiceType] = useState<"same_service" | "catalog_service">("same_service");
   const [selectedService, setSelectedService] = useState("");
   const [desc, setDesc] = useState("");
