@@ -1,3 +1,17 @@
+/**
+ * Integração ViaCEP + Geoapify
+ * Documentação: https://viacep.com.br/
+ * 
+ * Fluxo de Endereço Inteligente:
+ * 1. Validação de 8 dígitos do CEP brasileiro.
+ * 2. Consulta de logradouro, bairro, localidade e UF via ViaCEP.
+ * 3. Geocodificação automática das coordenadas reais (lat/lng) via Geoapify.
+ * 4. Fallback resiliente: se qualquer serviço externo falhar, não trava o formulário do usuário.
+ */
+
+import { geocodeAddress } from "./integrations/geoapify";
+import { canMakeApiCall, recordApiUsage } from "./integrations/usage-tracker";
+
 export interface CepResult {
   cep: string;
   street: string;
@@ -6,6 +20,7 @@ export interface CepResult {
   state: string;
   lat: number;
   lng: number;
+  confidence?: number;
   error?: string;
 }
 
@@ -24,11 +39,18 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   "brasilia": { lat: -15.7975, lng: -47.8919 },
   "queimados": { lat: -22.7161, lng: -43.5558 },
   "florianopolis": { lat: -27.5954, lng: -48.548 },
+  "salvador": { lat: -12.9777, lng: -38.5016 },
+  "fortaleza": { lat: -3.7319, lng: -38.5267 },
+  "recife": { lat: -8.0476, lng: -34.877 },
+  "goiania": { lat: -16.6869, lng: -49.2648 },
 };
 
 export async function lookupCep(rawCep: string): Promise<CepResult | null> {
   const clean = rawCep.replace(/\D/g, "");
   if (clean.length !== 8) return null;
+
+  const { allowed } = canMakeApiCall("viacep");
+  const startTime = Date.now();
 
   try {
     const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`, {
@@ -36,28 +58,94 @@ export async function lookupCep(rawCep: string): Promise<CepResult | null> {
       signal: AbortSignal.timeout(4000),
     });
 
-    if (!res.ok) return null;
+    const durationMs = Date.now() - startTime;
+
+    if (!res.ok) {
+      recordApiUsage({
+        service: "viacep",
+        action: "lookupCep",
+        success: false,
+        statusCode: res.status,
+        durationMs,
+        message: `HTTP ${res.status}`,
+      });
+      return null;
+    }
+
     const data = await res.json();
-    if (data.erro) return null;
+    if (data.erro) {
+      recordApiUsage({
+        service: "viacep",
+        action: "lookupCep",
+        success: false,
+        durationMs,
+        message: "CEP não encontrado na base ViaCEP",
+      });
+      return null;
+    }
 
-    const cityLower = (data.localidade || "sao paulo")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+    recordApiUsage({
+      service: "viacep",
+      action: "lookupCep",
+      success: true,
+      statusCode: 200,
+      durationMs,
+      creditsConsumed: 1,
+      message: `CEP ${clean} localizado: ${data.localidade || ""}/${data.uf || ""}`,
+    });
 
-    const coords = CITY_COORDS[cityLower] || { lat: -23.5505, lng: -46.6333 };
+    const street = data.logradouro || "";
+    const neighborhood = data.bairro || "";
+    const city = data.localidade || "São Paulo";
+    const state = data.uf || "SP";
+
+    // 1. Tenta geocodificar o endereço exato com Geoapify para obter lat/lng real
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let confidence: number | undefined = undefined;
+
+    const fullAddressQuery = `${street ? street + ", " : ""}${neighborhood ? neighborhood + ", " : ""}${city} - ${state}, Brasil`;
+    const geoResults = await geocodeAddress(fullAddressQuery, { countryCode: "br", limit: 1 });
+
+    if (geoResults.length > 0) {
+      lat = geoResults[0].lat;
+      lng = geoResults[0].lng;
+      confidence = geoResults[0].confidence;
+    }
+
+    // 2. Se Geoapify não retornar ou falhar, utiliza fallback da capital mais próxima
+    if (lat == null || lng == null) {
+      const cityLower = city
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const fallbackCoords = CITY_COORDS[cityLower] || { lat: -23.5505, lng: -46.6333 };
+      lat = fallbackCoords.lat;
+      lng = fallbackCoords.lng;
+    }
 
     return {
       cep: clean,
-      street: data.logradouro || "",
-      neighborhood: data.bairro || "",
-      city: data.localidade || "São Paulo",
-      state: data.uf || "SP",
-      lat: coords.lat,
-      lng: coords.lng,
+      street,
+      neighborhood,
+      city,
+      state,
+      lat,
+      lng,
+      confidence,
     };
-  } catch {
-    // Fallback gracioso se a API externa estiver fora do ar ou sem internet
+  } catch (err: any) {
+    const durationMs = Date.now() - startTime;
+    recordApiUsage({
+      service: "viacep",
+      action: "lookupCep",
+      success: false,
+      durationMs,
+      message: err?.message || "Falha ou timeout no ViaCEP",
+    });
+
+    // Fallback gracioso se a API externa estiver fora do ar
     return {
       cep: clean,
       street: "Endereço localizado",

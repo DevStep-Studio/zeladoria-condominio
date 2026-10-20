@@ -39,6 +39,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "resend": "^6.34.1",
     "server-only": "^0.0.1",
     "temporal-polyfill": "^1.0.3",
     "tsx": "^4.23.12"

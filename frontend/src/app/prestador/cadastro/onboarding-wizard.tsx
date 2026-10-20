@@ -10,6 +10,9 @@ import { lookupCep } from "@/lib/services/cep";
 import { OFFICIAL_CATEGORIES, type CatalogCategory, type CatalogServiceItem } from "@/lib/services/categories-catalog";
 import { ProviderCoverageMap } from "@/components/map/provider-coverage-map";
 import { CameraCaptureModal, type CaptureMode } from "@/components/camera/camera-capture-modal";
+import { lookupCompanyByCnpj, type CompanyDetails } from "@/lib/services/integrations/brasilapi";
+import { reverseGeocode } from "@/lib/services/integrations/geoapify";
+import { STANDARD_RADIUS_PRESETS_METERS, formatRadiusLabel } from "@/lib/services/geo";
 
 // Funções utilitárias de validação de CPF e CNPJ
 function isValidCpf(cpf: string): boolean {
@@ -124,6 +127,8 @@ export function OnboardingWizard({
   const [companyName, setCompanyName] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [selectedCondoId, setSelectedCondoId] = useState<number>(condos[0]?.id || 1);
+  const [isSearchingCnpj, setIsSearchingCnpj] = useState(false);
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
 
   // Tela 4 — Especialidades (Catálogo Oficial com busca)
   const [categorySearch, setCategorySearch] = useState("");
@@ -144,8 +149,10 @@ export function OnboardingWizard({
   const [city, setCity] = useState("São Paulo");
   const [state, setState] = useState("SP");
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -23.5855, lng: -46.6784 });
-  const [serviceRadiusKm, setServiceRadiusKm] = useState(15);
+  const [serviceRadiusMeters, setServiceRadiusMeters] = useState(15000); // 15.000 metros (padrão 15km)
+  const serviceRadiusKm = Math.round(serviceRadiusMeters / 1000);
   const [isSearchingCep, setIsSearchingCep] = useState(false);
+  const [isLocatingGps, setIsLocatingGps] = useState(false);
 
   // Tela 7 — Recebimentos
   const [payoutMethod, setPayoutMethod] = useState<"pix" | "bank">("pix");
@@ -165,6 +172,33 @@ export function OnboardingWizard({
   const [activeCameraModal, setActiveCameraModal] = useState<CaptureMode | null>(null);
   const [skipVerification, setSkipVerification] = useState(false);
 
+  const handleCnpjSearch = async () => {
+    const clean = cnpj.replace(/\D/g, "");
+    if (clean.length !== 14) {
+      setError("Informe os 14 dígitos do CNPJ para consulta.");
+      return;
+    }
+    setIsSearchingCnpj(true);
+    setError(null);
+    try {
+      const details = await lookupCompanyByCnpj(clean);
+      if (details) {
+        setCompanyDetails(details);
+        setCompanyName(details.nomeFantasia || details.razaoSocial);
+        if (details.endereco.logradouro) setStreet(details.endereco.logradouro);
+        if (details.endereco.numero && details.endereco.numero !== "S/N") setNumber(details.endereco.numero);
+        if (details.endereco.bairro) setNeighborhood(details.endereco.bairro);
+        if (details.endereco.municipio) setCity(details.endereco.municipio);
+        if (details.endereco.uf) setState(details.endereco.uf);
+        if (details.endereco.cep) setCep(maskCep(details.endereco.cep));
+      } else {
+        setError("Empresa não localizada na BrasilAPI. Preencha os campos cadastrais manualmente.");
+      }
+    } finally {
+      setIsSearchingCnpj(false);
+    }
+  };
+
   const handleCepSearch = async () => {
     if (cep.replace(/\D/g, "").length !== 8) return;
     setIsSearchingCep(true);
@@ -183,6 +217,40 @@ export function OnboardingWizard({
     } finally {
       setIsSearchingCep(false);
     }
+  };
+
+  const handleGpsLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setError("Geolocalização não suportada pelo seu navegador.");
+      return;
+    }
+    setIsLocatingGps(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const newCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(newCoords);
+        try {
+          const rev = await reverseGeocode(newCoords.lat, newCoords.lng);
+          if (rev) {
+            if (rev.street) setStreet(rev.street);
+            if (rev.neighborhood) setNeighborhood(rev.neighborhood);
+            if (rev.city) setCity(rev.city);
+            if (rev.state) setState(rev.state);
+            if (rev.postcode) setCep(maskCep(rev.postcode));
+          }
+        } catch {
+          // Mantém as coordenadas do GPS
+        } finally {
+          setIsLocatingGps(false);
+        }
+      },
+      () => {
+        setIsLocatingGps(false);
+        setError("Não foi possível obter a localização GPS. Permita o acesso ao GPS ou digite seu CEP.");
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
   };
 
   const toggleSpecialty = (catId: string) => {
@@ -702,12 +770,22 @@ export function OnboardingWizard({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">CNPJ da Empresa *</label>
-                  <input
-                    value={cnpj}
-                    onChange={(e) => setCnpj(maskCnpj(e.target.value))}
-                    placeholder="00.000.000/0001-00"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1355FF] bg-white"
-                  />
+                  <div className="flex gap-1.5">
+                    <input
+                      value={cnpj}
+                      onChange={(e) => setCnpj(maskCnpj(e.target.value))}
+                      placeholder="00.000.000/0001-00"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1355FF] bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCnpjSearch}
+                      disabled={isSearchingCnpj}
+                      className="px-3 h-9 rounded-lg bg-[#1355FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSearchingCnpj ? "Consultando..." : "Consultar"}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Razão Social / Nome da Empresa *</label>
@@ -719,6 +797,21 @@ export function OnboardingWizard({
                   />
                 </div>
               </div>
+
+              {companyDetails && (
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    <span>Dados Confirmados via BrasilAPI</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700">
+                    <strong>Situação:</strong> {companyDetails.situacaoCadastral} &bull; <strong>CNAE:</strong> {companyDetails.cnaePrincipal.descricao}
+                  </p>
+                  <p className="text-[10px] text-emerald-600">
+                    Os dados cadastrais e o endereço comercial foram sincronizados automaticamente.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -934,6 +1027,28 @@ export function OnboardingWizard({
             </p>
           </div>
 
+          {/* Botão de Localização Automática via GPS */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-100">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+                <Icon name="map-pin" size={14} />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-slate-800">Localização por GPS ou Endereço</p>
+                <p className="text-[11px] text-slate-500">Detecte automaticamente ou digite o CEP de sua base de atendimento.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleGpsLocation}
+              disabled={isLocatingGps}
+              className="px-3 py-1.5 rounded-lg bg-[#1355FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Icon name="navigation" size={13} />
+              <span>{isLocatingGps ? "Detectando..." : "Usar meu GPS"}</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">CEP Base *</label>
@@ -992,38 +1107,81 @@ export function OnboardingWizard({
             </div>
           </div>
 
-          {/* Slider de Raio em km (de 5 a 50 km conforme referência do vídeo) */}
-          <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+          {/* Configuração de Raio de Atendimento em Metros (PostGIS / Spatial) */}
+          <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
             <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-800">Raio de Cobertura de Atendimento</span>
-              <span className="text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-full font-mono">
-                {serviceRadiusKm} km ao redor
+              <span className="text-slate-800">Raio de Cobertura de Atendimento (em metros)</span>
+              <span className="text-[#1355FF] bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full font-mono font-bold">
+                {formatRadiusLabel(serviceRadiusMeters)}
               </span>
             </div>
-            <input
-              type="range"
-              min="5"
-              max="50"
-              step="1"
-              value={serviceRadiusKm}
-              onChange={(e) => setServiceRadiusKm(Number(e.target.value))}
-              className="w-full accent-[#1355FF] cursor-pointer"
-            />
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
-              <span>5 km</span>
-              <span>25 km</span>
-              <span>50 km</span>
+
+            {/* Presets Oficiais de Raio */}
+            <div className="flex flex-wrap gap-1.5">
+              {STANDARD_RADIUS_PRESETS_METERS.map((presetMeters) => (
+                <button
+                  key={presetMeters}
+                  type="button"
+                  onClick={() => setServiceRadiusMeters(presetMeters)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    serviceRadiusMeters === presetMeters
+                      ? "bg-[#1355FF] text-white shadow-xs"
+                      : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300"
+                  }`}
+                >
+                  {presetMeters >= 1000 ? `${presetMeters / 1000} km` : `${presetMeters} m`}
+                </button>
+              ))}
             </div>
+
+            {/* Slider e Entrada Numérica Validada */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
+              <div className="sm:col-span-3 space-y-1">
+                <input
+                  type="range"
+                  min="1000"
+                  max="100000"
+                  step="1000"
+                  value={serviceRadiusMeters}
+                  onChange={(e) => setServiceRadiusMeters(Number(e.target.value))}
+                  className="w-full accent-[#1355FF] cursor-pointer"
+                />
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+                  <span>1.000 m (1 km)</span>
+                  <span>50.000 m (50 km)</span>
+                  <span>100.000 m (100 km)</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Entrada em Metros</label>
+                <input
+                  type="number"
+                  min="500"
+                  max="150000"
+                  step="500"
+                  value={serviceRadiusMeters}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (!isNaN(val) && val >= 500 && val <= 150000) {
+                      setServiceRadiusMeters(val);
+                    }
+                  }}
+                  className="w-full h-8 rounded-lg border border-slate-200 px-2 text-xs font-mono outline-none focus:border-[#1355FF] bg-white"
+                />
+              </div>
+            </div>
+
             <p className="text-[11px] text-slate-500">
-              Você receberá oportunidades de condomínios situados a até {serviceRadiusKm} km de distância desta base.
+              O raio pertence a você. Moradores só visualizarão seus serviços caso o condomínio deles esteja dentro desta área ({serviceRadiusKm} km em linha reta).
             </p>
           </div>
 
-          {/* Mapa Leaflet Interativo com Marcador e Círculo */}
+          {/* Mapa Leaflet Interativo com Marcador, Círculo e Atribuição Geoapify */}
           <ProviderCoverageMap
             lat={coords.lat}
             lng={coords.lng}
-            radiusKm={serviceRadiusKm}
+            radiusMeters={serviceRadiusMeters}
             onLocationChange={(newCoords) => setCoords(newCoords)}
           />
         </div>

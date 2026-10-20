@@ -368,6 +368,13 @@ export function ServicosClient({
         if (filters.maxPrice < 50000 && v.startingPriceCents != null && v.startingPriceCents > filters.maxPrice) return false;
         if (filters.maxDistanceKm != null && v.distanceKm != null && v.distanceKm > filters.maxDistanceKm) return false;
 
+        // Regra do Marketplace (PostGIS / Spatial): O raio de atendimento pertence ao prestador.
+        // Se a distância do cliente for superior ao alcance definido pelo prestador, ele não atende esse local.
+        const providerCoverageRadiusKm = v.serviceRadiusKm ?? 15;
+        if (v.distanceKm != null && v.distanceKm > providerCoverageRadiusKm) {
+          return false;
+        }
+
         const mustBeAvailableNow = onlyAvailableNow || filters.availableNowOnly;
         if (mustBeAvailableNow && !v.isOnline && !v.availableNow) {
           return false;

@@ -1,28 +1,35 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Icon } from "@/components/icon";
+import { GEOAPIFY_ATTRIBUTION } from "@/lib/services/integrations/geoapify";
 
 interface ProviderCoverageMapProps {
   lat: number;
   lng: number;
-  radiusKm: number;
+  radiusKm?: number;
+  radiusMeters?: number;
   onLocationChange: (coords: { lat: number; lng: number }) => void;
   className?: string;
+  readOnly?: boolean;
 }
 
 export function ProviderCoverageMap({
   lat,
   lng,
-  radiusKm,
+  radiusKm = 15,
+  radiusMeters,
   onLocationChange,
   className = "h-72 w-full rounded-xl overflow-hidden border border-slate-200",
+  readOnly = false,
 }: ProviderCoverageMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const circleRef = useRef<any>(null);
   const onLocationChangeRef = useRef(onLocationChange);
+
+  // Calcula raio efetivo em metros
+  const effectiveRadiusMeters = radiusMeters ?? radiusKm * 1000;
 
   useEffect(() => {
     onLocationChangeRef.current = onLocationChange;
@@ -37,7 +44,7 @@ export function ProviderCoverageMap({
       const L = (await import("leaflet")).default;
       if (!isMounted || !mapContainerRef.current) return;
 
-      // Inject Leaflet CSS if not already present
+      // Injeta CSS do Leaflet se não estiver presente
       if (!document.getElementById("leaflet-css")) {
         const link = document.createElement("link");
         link.id = "leaflet-css";
@@ -55,20 +62,19 @@ export function ProviderCoverageMap({
 
         L.control.zoom({ position: "bottomright" }).addTo(map);
 
-        // OpenStreetMap Humanitarian (HOT) tiles com fallback automático para ESRI World Street Map
-        // 100% gratuito, sem necessidade de API key, sem marcas d'água e sem bloqueio 403
+        // OpenStreetMap com atribuição a Geoapify e OSM
         const tileLayer = L.tileLayer(
           "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
           {
             attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>',
+              '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> | Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a>',
             subdomains: ["a", "b"],
             maxZoom: 19,
           }
         );
 
         tileLayer.on("tileerror", (error: any) => {
-          // Fallback automático transparente para ESRI World Street Map se algum tile falhar
+          // Fallback automático para ESRI se houver erro de tile
           if (error?.tile && !error.tile.dataset?.fallback) {
             error.tile.dataset.fallback = "true";
             const coords = error.coords;
@@ -80,12 +86,19 @@ export function ProviderCoverageMap({
 
         tileLayer.addTo(map);
 
+        if (!readOnly) {
+          map.on("click", (e: any) => {
+            const { lat: clickLat, lng: clickLng } = e.latlng;
+            onLocationChangeRef.current({ lat: clickLat, lng: clickLng });
+          });
+        }
+
         mapInstanceRef.current = map;
       }
 
       const map = mapInstanceRef.current;
 
-      // Create Custom Pin Icon
+      // Pin customizado
       const customPin = L.divIcon({
         className: "custom-provider-pin",
         html: `
@@ -100,7 +113,7 @@ export function ProviderCoverageMap({
             justify-content: center;
             box-shadow: 0 4px 12px rgba(19, 85, 255, 0.4);
             border: 3px solid #FFFFFF;
-            cursor: grab;
+            cursor: ${readOnly ? "default" : "grab"};
             transition: transform 0.15s ease;
           ">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -113,29 +126,30 @@ export function ProviderCoverageMap({
         iconAnchor: [18, 18],
       });
 
-      // Update or create marker
+      // Atualiza marcador
       if (!markerRef.current) {
         const marker = L.marker([lat, lng], {
           icon: customPin,
-          draggable: true,
-          title: "Arraste para ajustar sua base de atendimento",
+          draggable: !readOnly,
+          title: "Base de atendimento do prestador",
         }).addTo(map);
 
-        marker.on("dragend", () => {
-          const newPos = marker.getLatLng();
-          onLocationChangeRef.current({ lat: newPos.lat, lng: newPos.lng });
-        });
+        if (!readOnly) {
+          marker.on("dragend", () => {
+            const newPos = marker.getLatLng();
+            onLocationChangeRef.current({ lat: newPos.lat, lng: newPos.lng });
+          });
+        }
 
         markerRef.current = marker;
       } else {
         markerRef.current.setLatLng([lat, lng]);
       }
 
-      // Update or create coverage circle
-      const radiusMeters = radiusKm * 1000;
+      // Atualiza círculo de cobertura em metros
       if (!circleRef.current) {
         const circle = L.circle([lat, lng], {
-          radius: radiusMeters,
+          radius: effectiveRadiusMeters,
           color: "#1355FF",
           weight: 2,
           opacity: 0.8,
@@ -146,10 +160,9 @@ export function ProviderCoverageMap({
         circleRef.current = circle;
       } else {
         circleRef.current.setLatLng([lat, lng]);
-        circleRef.current.setRadius(radiusMeters);
+        circleRef.current.setRadius(effectiveRadiusMeters);
       }
 
-      // Smooth pan to coordinates
       map.panTo([lat, lng]);
     }
 
@@ -158,14 +171,18 @@ export function ProviderCoverageMap({
     return () => {
       isMounted = false;
     };
-  }, [lat, lng, radiusKm]);
+  }, [lat, lng, effectiveRadiusMeters, readOnly]);
 
   return (
     <div className="relative">
       <div ref={mapContainerRef} className={className} />
       <div className="absolute top-2 left-2 z-[400] bg-white/95 backdrop-blur-xs border border-slate-200 shadow-xs px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-700 flex items-center gap-1.5 pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-[#1355FF] animate-pulse" />
-        <span>Arraste o pin no mapa para calibrar sua localização</span>
+        <span>{readOnly ? "Área de atendimento" : "Arraste o pin ou clique no mapa para calibrar"}</span>
+      </div>
+
+      <div className="absolute bottom-1 left-2 z-[400] pointer-events-none text-[9px] text-slate-500 bg-white/80 px-1.5 py-0.5 rounded">
+        {GEOAPIFY_ATTRIBUTION}
       </div>
     </div>
   );

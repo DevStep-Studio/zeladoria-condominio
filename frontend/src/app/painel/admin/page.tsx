@@ -68,7 +68,14 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/painel/admin/integracoes"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] border border-blue-200 bg-blue-50 text-[#1355FF] hover:bg-blue-100 text-xs font-bold transition-colors shadow-2xs"
+          >
+            <Icon name="settings" size={14} />
+            <span>APIs & Integrações</span>
+          </Link>
           <Link
             href="/painel/admin/zeladoria-pay"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-2xs"
