@@ -21,12 +21,17 @@ async function nextCode(table: "occurrence", condoId: number) {
 
 /* ------------------------------------------------------------ VISITANTES */
 
-export async function saveVisitorAction(formData: FormData) {
+export async function saveVisitorAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
+  const name = str(formData, "name");
+  if (!name) {
+    return { success: false, error: "O nome completo do visitante ou prestador é obrigatório." };
+  }
+
   const values = {
     condoId,
-    name: str(formData, "name"),
+    name,
     document: str(formData, "document") || null,
     docType: str(formData, "docType", "RG"),
     phone: str(formData, "phone") || null,
@@ -36,12 +41,13 @@ export async function saveVisitorAction(formData: FormData) {
     recurring: bool(formData, "recurring"),
     notes: str(formData, "notes") || null,
   };
-  if (!values.name) return;
+
   if (id) {
     await apiOperation("lib.actions.portaria.003", [values, id, condoId]);
   } else {
     await apiOperation("lib.actions.portaria.004", [values]);
   }
+
   await logAudit({
     session,
     condoId,
@@ -52,78 +58,100 @@ export async function saveVisitorAction(formData: FormData) {
     after: values,
   });
   revalidatePath("/painel/visitantes");
+  return { success: true, message: id ? "Visitante atualizado com sucesso." : "Visitante cadastrado com sucesso." };
 }
 
-export async function toggleBlockVisitorAction(formData: FormData) {
+export async function toggleBlockVisitorAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireRole(["superadmin", "sindico", "porteiro", "zelador"]);
   const id = num(formData, "id");
   const [visitor] = await apiOperation("lib.actions.portaria.005", [id]);
-  if (!visitor || visitor.condoId !== condoId) return;
+  if (!visitor || visitor.condoId !== condoId) {
+    return { success: false, error: "Visitante não encontrado neste condomínio." };
+  }
+
   const blocked = !visitor.blocked;
-  await apiOperation("lib.actions.portaria.006", [{ blocked, blockReason: blocked ? str(formData, "reason", "Bloqueio de segurança") : null }, id]);
+  const reason = blocked ? str(formData, "reason", "Bloqueio registrado pela administração") : null;
+  await apiOperation("lib.actions.portaria.006", [{ blocked, blockReason: reason }, id]);
+
   await logAudit({
     session,
     condoId,
     action: blocked ? "bloquear" : "desbloquear",
     entity: "visitante",
     entityId: id,
-    summary: `${blocked ? "Bloqueou" : "Liberou"} ${visitor.name}`,
+    summary: `${blocked ? "Bloqueou" : "Liberou"} ${visitor.name}${reason ? ` (${reason})` : ""}`,
     before: { blocked: visitor.blocked },
-    after: { blocked },
+    after: { blocked, blockReason: reason },
     critical: true,
   });
   revalidatePath("/painel/visitantes");
+  return {
+    success: true,
+    blocked,
+    message: blocked ? `Visitante ${visitor.name} bloqueado com sucesso.` : `Bloqueio de ${visitor.name} removido com sucesso.`,
+  };
 }
 
-export async function createVisitAction(formData: FormData) {
+export async function createVisitAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireCondo();
   let visitorId = num(formData, "visitorId");
   const name = str(formData, "name");
 
+  if (!visitorId && !name) {
+    return { success: false, error: "Informe o nome do visitante ou selecione um visitante já cadastrado." };
+  }
+
   if (!visitorId && name) {
     const [created] = await apiOperation("lib.actions.portaria.007", [{
-        condoId,
-        name,
-        document: str(formData, "document") || null,
-        docType: str(formData, "docType", "RG"),
-        phone: str(formData, "phone") || null,
-        kind: str(formData, "kind", "visitante"),
-        company: str(formData, "company") || null,
-        vehiclePlate: str(formData, "vehiclePlate").toUpperCase() || null,
-        recurring: bool(formData, "recurring"),
-      }]);
+      condoId,
+      name,
+      document: str(formData, "document") || null,
+      docType: str(formData, "docType", "RG"),
+      phone: str(formData, "phone") || null,
+      kind: str(formData, "kind", "visitante"),
+      company: str(formData, "company") || null,
+      vehiclePlate: str(formData, "vehiclePlate").toUpperCase() || null,
+      recurring: bool(formData, "recurring"),
+    }]);
     visitorId = created.id;
   }
-  if (!visitorId) return;
+  if (!visitorId) return { success: false, error: "Erro ao identificar o visitante." };
 
   const [visitor] = await apiOperation("lib.actions.portaria.008", [visitorId]);
-  if (!visitor || visitor.condoId !== condoId) return;
+  if (!visitor || visitor.condoId !== condoId) {
+    return { success: false, error: "O visitante selecionado não pertence a este condomínio." };
+  }
 
   const isResident = session.role === "morador";
   const unitId = isResident ? session.unitId : num(formData, "unitId") || session.unitId;
   const validFrom = maybeDate(formData, "validFrom") ?? new Date();
   const validUntil = maybeDate(formData, "validUntil") ?? new Date(Date.now() + 86400000);
+
+  if (validUntil <= validFrom) {
+    return { success: false, error: "A data e horário final deve ser posterior ao início da validade." };
+  }
+
   const autoAuthorize = isResident || session.role === "sindico" || session.role === "superadmin";
 
   const [visit] = await apiOperation("lib.actions.portaria.009", [{
-      condoId,
-      visitorId,
-      unitId: unitId ?? null,
-      hostUserId: isResident ? session.user.id : num(formData, "hostUserId") || null,
-      purpose: str(formData, "purpose") || null,
-      status: visitor.blocked ? "negado" : autoAuthorize ? "autorizado" : "aguardando",
-      deniedReason: visitor.blocked ? "Visitante consta na lista de bloqueio do condomínio." : null,
-      qrToken: token(16),
-      validFrom,
-      validUntil,
-      authorizedById: autoAuthorize && !visitor.blocked ? session.user.id : null,
-      authorizedAt: autoAuthorize && !visitor.blocked ? new Date() : null,
-      vehiclePlate: str(formData, "visitPlate").toUpperCase() || visitor.vehiclePlate,
-      notes: str(formData, "notes") || null,
-      createdById: session.user.id,
-    }]);
+    condoId,
+    visitorId,
+    unitId: unitId ?? null,
+    hostUserId: isResident ? session.user.id : num(formData, "hostUserId") || null,
+    purpose: str(formData, "purpose") || null,
+    status: visitor.blocked ? "negado" : autoAuthorize ? "autorizado" : "aguardando",
+    deniedReason: visitor.blocked ? (visitor.blockReason || "Visitante consta na lista de bloqueio do condomínio.") : null,
+    qrToken: token(16),
+    validFrom,
+    validUntil,
+    authorizedById: autoAuthorize && !visitor.blocked ? session.user.id : null,
+    authorizedAt: autoAuthorize && !visitor.blocked ? new Date() : null,
+    vehiclePlate: str(formData, "visitPlate").toUpperCase() || visitor.vehiclePlate,
+    notes: str(formData, "notes") || null,
+    createdById: session.user.id,
+  }]);
 
-  if (!autoAuthorize && unitId) {
+  if (!autoAuthorize && unitId && !visitor.blocked) {
     await notify(
       condoId,
       await unitResidents(condoId, unitId),
@@ -132,6 +160,7 @@ export async function createVisitAction(formData: FormData) {
       "/painel/visitantes",
     );
   }
+
   await logAudit({
     session,
     condoId,
@@ -143,24 +172,40 @@ export async function createVisitAction(formData: FormData) {
   });
   revalidatePath("/painel/visitantes");
   revalidatePath("/painel/portaria");
+  return {
+    success: true,
+    visit,
+    message: visitor.blocked
+      ? `Atenção: convite registrado como NEGADO pois ${visitor.name} consta na lista de bloqueio.`
+      : autoAuthorize
+      ? `Convite gerado com sucesso para ${visitor.name}!`
+      : `Solicitação registrada! Notificação enviada para autorização do morador.`,
+  };
 }
 
-export async function decideVisitAction(formData: FormData) {
+export async function decideVisitAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
   const decision = str(formData, "decision");
   const [visit] = await apiOperation("lib.actions.portaria.010", [id]);
-  if (!visit || visit.condoId !== condoId) return;
+  if (!visit || visit.condoId !== condoId) {
+    return { success: false, error: "Visita não encontrada neste condomínio." };
+  }
+
   const isHost = visit.hostUserId === session.user.id || (session.unitId && visit.unitId === session.unitId);
-  if (!isHost && !["superadmin", "sindico", "porteiro", "zelador"].includes(session.role)) return;
+  if (!isHost && !["superadmin", "sindico", "porteiro", "zelador"].includes(session.role)) {
+    return { success: false, error: "Você não possui permissão para autorizar ou negar esta visita." };
+  }
 
   const status = decision === "autorizar" ? "autorizado" : "negado";
+  const deniedReason = decision === "autorizar" ? null : str(formData, "reason", "Não autorizado pelo morador");
   await apiOperation("lib.actions.portaria.011", [{
-      status,
-      authorizedById: session.user.id,
-      authorizedAt: new Date(),
-      deniedReason: decision === "autorizar" ? null : str(formData, "reason", "Não autorizado pelo morador"),
-    }, id]);
+    status,
+    authorizedById: session.user.id,
+    authorizedAt: new Date(),
+    deniedReason,
+  }, id]);
+
   await logAudit({
     session,
     condoId,
@@ -169,24 +214,96 @@ export async function decideVisitAction(formData: FormData) {
     entityId: id,
     summary: `Visita ${status} por ${session.user.name}`,
     before: { status: visit.status },
-    after: { status },
+    after: { status, deniedReason },
     critical: true,
   });
   revalidatePath("/painel/visitantes");
   revalidatePath("/painel/portaria");
+  return { success: true, message: `Visita ${status} com sucesso!` };
 }
 
-export async function gateMoveAction(formData: FormData) {
+export async function revokeVisitAction(formData: FormData): Promise<any> {
+  const { session, condoId } = await requireCondo();
+  const id = num(formData, "id");
+  const [visit] = await apiOperation("lib.actions.portaria.010", [id]);
+  if (!visit || visit.condoId !== condoId) {
+    return { success: false, error: "Visita não encontrada neste condomínio." };
+  }
+
+  const isHost = visit.hostUserId === session.user.id || (session.unitId && visit.unitId === session.unitId);
+  if (!isHost && !["superadmin", "sindico", "porteiro", "zelador"].includes(session.role)) {
+    return { success: false, error: "Sem permissão para cancelar este convite." };
+  }
+
+  if (visit.status === "dentro") {
+    return { success: false, error: "Não é possível revogar o convite de um visitante que já está dentro do condomínio." };
+  }
+
+  await apiOperation("lib.actions.portaria.011", [{
+    status: "negado",
+    authorizedById: session.user.id,
+    authorizedAt: new Date(),
+    deniedReason: "Convite cancelado pelo anfitrião",
+  }, id]);
+
+  await logAudit({
+    session,
+    condoId,
+    action: "cancelar",
+    entity: "visita",
+    entityId: id,
+    summary: `Convite #${id} cancelado por ${session.user.name}`,
+    before: { status: visit.status },
+    after: { status: "negado" },
+    critical: true,
+  });
+  revalidatePath("/painel/visitantes");
+  return { success: true, message: "Convite cancelado com sucesso." };
+}
+
+export async function gateMoveAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireRole(GATE);
   const id = num(formData, "id");
   const move = str(formData, "move");
   const [visit] = await apiOperation("lib.actions.portaria.012", [id]);
-  if (!visit || visit.condoId !== condoId) return;
+  if (!visit || visit.condoId !== condoId) {
+    return { success: false, error: "Visita não encontrada neste condomínio." };
+  }
   const [visitor] = await apiOperation("lib.actions.portaria.013", [visit.visitorId]);
 
   if (move === "entrada") {
-    if (visit.status !== "autorizado") return;
-    await apiOperation("lib.actions.portaria.014", [{ status: "dentro", checkinAt: new Date(), checkinById: session.user.id }, id]);
+    // Validação de bloqueio do visitante
+    if (visitor?.blocked) {
+      return {
+        success: false,
+        error: `Acesso bloqueado: ${visitor.blockReason || "Visitante consta na lista de bloqueios administrativos."}`,
+      };
+    }
+
+    // Validação de concorrência e status
+    if (visit.status === "dentro") {
+      return { success: false, error: "Entrada duplicada: Este visitante já se encontra dentro do condomínio." };
+    }
+    if (visit.status === "finalizado") {
+      return { success: false, error: "Este ciclo de visita já foi finalizado. É necessário gerar uma nova autorização." };
+    }
+    if (visit.status === "negado") {
+      return { success: false, error: `Acesso negado: ${visit.deniedReason || "Autorização recusada."}` };
+    }
+    if (visit.status === "aguardando") {
+      return { success: false, error: "Visita pendente de autorização do morador ou da administração." };
+    }
+
+    // Validação temporal de validade
+    const now = new Date();
+    if (new Date(visit.validUntil) < now) {
+      return { success: false, error: `Convite expirado. O prazo de validade encerrou em ${dateTimeBR(visit.validUntil)}.` };
+    }
+    if (new Date(visit.validFrom) > now) {
+      return { success: false, error: `Convite futuro. Acesso liberado apenas a partir de ${dateTimeBR(visit.validFrom)}.` };
+    }
+
+    await apiOperation("lib.actions.portaria.014", [{ status: "dentro", checkinAt: now, checkinById: session.user.id }, id]);
     await notify(
       condoId,
       await unitResidents(condoId, visit.unitId),
@@ -194,21 +311,78 @@ export async function gateMoveAction(formData: FormData) {
       `${visitor?.name ?? "Visitante"} teve a entrada registrada pela portaria.`,
       "/painel/visitantes",
     );
+    await logAudit({
+      session,
+      condoId,
+      action: "checkin",
+      entity: "visita",
+      entityId: id,
+      summary: `Entrada de ${visitor?.name ?? "visitante"} confirmada pela portaria`,
+      critical: true,
+      origin: "portaria",
+    });
+    revalidatePath("/painel/visitantes");
+    revalidatePath("/painel/portaria");
+    return { success: true, message: `Entrada de ${visitor?.name ?? "visitante"} confirmada com sucesso!` };
   } else {
-    await apiOperation("lib.actions.portaria.015", [{ status: "finalizado", checkoutAt: new Date(), checkoutById: session.user.id }, id]);
+    // Saída
+    if (visit.status === "finalizado") {
+      return { success: false, error: "Saída duplicada: Este visitante já teve sua saída registrada anteriormente." };
+    }
+    if (visit.status !== "dentro") {
+      return { success: false, error: "Não é possível registrar saída sem uma entrada confirmada correspondente." };
+    }
+
+    const now = new Date();
+    await apiOperation("lib.actions.portaria.015", [{ status: "finalizado", checkoutAt: now, checkoutById: session.user.id }, id]);
+    await notify(
+      condoId,
+      await unitResidents(condoId, visit.unitId),
+      "Visitante saiu do condomínio",
+      `${visitor?.name ?? "Visitante"} teve a saída registrada pela portaria.`,
+      "/painel/visitantes",
+    );
+    await logAudit({
+      session,
+      condoId,
+      action: "checkout",
+      entity: "visita",
+      entityId: id,
+      summary: `Saída de ${visitor?.name ?? "visitante"} confirmada pela portaria`,
+      critical: true,
+      origin: "portaria",
+    });
+    revalidatePath("/painel/visitantes");
+    revalidatePath("/painel/portaria");
+    return { success: true, message: `Saída de ${visitor?.name ?? "visitante"} registrada com sucesso!` };
   }
-  await logAudit({
-    session,
-    condoId,
-    action: move === "entrada" ? "checkin" : "checkout",
-    entity: "visita",
-    entityId: id,
-    summary: `${move === "entrada" ? "Entrada" : "Saída"} de ${visitor?.name ?? "visitante"}`,
-    critical: true,
-    origin: "portaria",
+}
+
+export async function lookupVisitByQrOrTokenAction(tokenOrTerm: string): Promise<any> {
+  const { session, condoId } = await requireRole(GATE);
+  const clean = tokenOrTerm.trim();
+  if (!clean) return { success: false, error: "Informe o código QR, token, nome ou documento." };
+
+  // Remove prefixos de URL se colado link completo (ex: https://.../v/TOKEN)
+  const tokenClean = clean.includes("/v/") ? clean.split("/v/")[1].split("?")[0].trim() : clean;
+
+  const { rows } = await domainRequest<{ rows: any[] }>("/painel/visitantes", {
+    query: { condoId, role: session.role, status: "todos" },
   });
-  revalidatePath("/painel/visitantes");
-  revalidatePath("/painel/portaria");
+
+  const found = (rows ?? []).find(
+    (v) =>
+      v.qrToken === tokenClean ||
+      v.name?.toLowerCase().includes(tokenClean.toLowerCase()) ||
+      (v.document && v.document.includes(tokenClean)) ||
+      (v.plate && v.plate.toUpperCase().includes(tokenClean.toUpperCase()))
+  );
+
+  if (!found) {
+    return { success: false, error: "Nenhum convite ou visitante localizado com os dados informados neste condomínio." };
+  }
+
+  return { success: true, visit: found };
 }
 
 /* ------------------------------------------------------------ ENCOMENDAS */

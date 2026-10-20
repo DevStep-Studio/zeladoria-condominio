@@ -1,449 +1,61 @@
 import { domainRequest } from "@/lib/api/server";
-import Link from "next/link";
-
 import { requireCondo } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, statusTone, TableWrap } from "@/components/ui";
-import { dateTimeBR } from "@/lib/utils";
 import { peopleOptions, unitOptions } from "@/lib/queries";
-import { createVisitAction, decideVisitAction, gateMoveAction, saveVisitorAction, toggleBlockVisitorAction } from "@/lib/actions/portaria";
 import { qrDataUrl } from "@/lib/qr";
-import { Icon } from "@/components/icon";
+import { VisitantesClient, type VisitItem, type VisitorItem } from "./visitantes-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function VisitantesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function VisitantesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const { session, condoId } = await requireCondo();
   const { status } = await searchParams;
   const isResident = session.role === "morador";
   const isGate = GATE.includes(session.role);
 
+  // Consulta todas as visitas do escopo para termos filtragem instantânea no cliente
   const { rows, recurring, allVisitsInScope } = await domainRequest<{
-    rows: any[];
-    recurring: any[];
-    allVisitsInScope: any[];
-  }>("/painel/visitantes", { query: { condoId, role: session.role, status } });
-
-  const pendingForMe = rows.filter(
-    (r) => r.status === "aguardando" && (isResident ? true : ["sindico", "superadmin"].includes(session.role)),
-  );
+    rows: VisitItem[];
+    recurring: VisitorItem[];
+    allVisitsInScope: { id: number; status: string }[];
+  }>("/painel/visitantes", {
+    query: { condoId, role: session.role, status: "todos" },
+  });
 
   const unitList = await unitOptions(condoId);
   const hosts = await peopleOptions(condoId, ["morador", "conselho", "sindico"]);
 
-  const highlighted = rows.filter((r) => ["autorizado", "dentro", "aguardando"].includes(r.status)).slice(0, 4);
-  const qrCodes = new Map<number, string>();
-  for (const visit of highlighted) {
-    qrCodes.set(visit.id, await qrDataUrl(visit.qrToken, 132));
+  // Pré-gera os QR codes dos primeiros convites ativos para renderização ultrarrápida
+  const initialQrMap: Record<number, string> = {};
+  const activeVisits = (rows ?? []).filter((r) => ["autorizado", "dentro", "aguardando"].includes(r.status)).slice(0, 20);
+  for (const visit of activeVisits) {
+    if (visit.qrToken) {
+      try {
+        initialQrMap[visit.id] = await qrDataUrl(visit.qrToken, 200);
+      } catch {
+        // Fallback silently if generation fails on server
+      }
+    }
   }
 
-  const counts = {
-    todos: allVisitsInScope.length,
-    aguardando: allVisitsInScope.filter((v) => v.status === "aguardando").length,
-    autorizado: allVisitsInScope.filter((v) => v.status === "autorizado").length,
-    dentro: allVisitsInScope.filter((v) => v.status === "dentro").length,
-    finalizado: allVisitsInScope.filter((v) => v.status === "finalizado").length,
-    negado: allVisitsInScope.filter((v) => v.status === "negado").length,
-  };
-
-  const filters: { key: string; label: string; icon: any }[] = [
-    { key: "todos", label: "Todos", icon: "users" },
-    { key: "aguardando", label: "Aguardando", icon: "clock" },
-    { key: "autorizado", label: "Autorizados", icon: "check-circle" },
-    { key: "dentro", label: "No condomínio", icon: "shield" },
-    { key: "finalizado", label: "Finalizados", icon: "refresh" },
-    { key: "negado", label: "Negados", icon: "alert" },
-  ];
-
   return (
-    <>
-      <PageHeader
-        title="Visitantes e prestadores"
-        subtitle="Cadastro antecipado, convite com QR Code e validade, autorização do morador, registro de entrada/saída e lista de bloqueio."
-        actions={isGate ? <Link href="/painel/portaria" className="btn-dark btn-sm"><Icon name="shield" size={15} />Abrir painel da portaria</Link> : null}
-      />
-
-      {/* Filter Tabs Capsule - Minimalista e Fluido */}
-      <div className="mb-6 inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] no-print overflow-x-auto max-w-full">
-        {filters.map((f) => {
-          const isActive = (status ?? "todos") === f.key;
-          const count = counts[f.key as keyof typeof counts] ?? 0;
-
-          return (
-            <Link
-              key={f.key}
-              href={`/painel/visitantes?status=${f.key}`}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
-                isActive
-                  ? "bg-[#1355FF] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <Icon
-                name={f.icon}
-                size={14}
-                strokeWidth={2.2}
-                className={isActive ? "text-white" : "text-slate-400"}
-              />
-              <span>{f.label}</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
-                  isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {count}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          {pendingForMe.length > 0 ? (
-            <Card title="Autorizações pendentes" description="O morador ou a administração precisa liberar a entrada.">
-              <ul className="space-y-2">
-                {pendingForMe.map((v) => (
-                  <li key={v.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#f0dfbc] bg-[var(--color-warn-soft)] px-3 py-2  ">
-                    <div>
-                      <p className="font-semibold text-[var(--color-ink)]">{v.name}</p>
-                      <p className="text-xs text-[var(--color-muted)]">
-                        {v.company ? `${v.company} · ` : ""}{v.purpose ?? "sem finalidade informada"} · válido até {dateTimeBR(v.validUntil)}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <form action={decideVisitAction}>
-                        <input type="hidden" name="id" value={v.id} />
-                        <input type="hidden" name="decision" value="autorizar" />
-                        <button className="btn-success btn-sm">Autorizar</button>
-                      </form>
-                      <form action={decideVisitAction}>
-                        <input type="hidden" name="id" value={v.id} />
-                        <input type="hidden" name="decision" value="negar" />
-                        <button className="btn-danger btn-sm">Negar</button>
-                      </form>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ) : null}
-
-          <Card title="Histórico de visitas" description="Filtrado por unidade quando o acesso é de morador.">
-            {rows.length === 0 ? (
-              <EmptyState title="Nenhuma visita registrada" icon="user-check" />
-            ) : (
-              <>
-                {/* Mobile Cards View */}
-                <div className="md:hidden space-y-2.5">
-                  {rows.map((v) => (
-                    <div
-                      key={v.id}
-                      className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-slate-900 text-sm">{v.name}</p>
-                          <p className="text-[11px] text-slate-500">
-                            {v.kind}{v.company ? ` · ${v.company}` : ""}{v.document ? ` · ${v.document}` : ""}
-                          </p>
-                        </div>
-                        <Badge tone={statusTone(v.status)}>{v.status}</Badge>
-                      </div>
-
-                      <div className="text-xs text-slate-600 space-y-0.5">
-                        <p>
-                          <strong>Destino:</strong> {v.block ?? "—"} {v.unit ?? ""} {v.host ? `· Anfitrião: ${v.host}` : ""}
-                        </p>
-                        <p className="text-slate-500 text-[11px]">
-                          Válido até: {dateTimeBR(v.validUntil)}
-                        </p>
-                        {(v.checkinAt || v.checkoutAt) && (
-                          <p className="text-slate-500 text-[11px]">
-                            {v.checkinAt ? `Entrada: ${dateTimeBR(v.checkinAt)}` : ""}
-                            {v.checkoutAt ? ` · Saída: ${dateTimeBR(v.checkoutAt)}` : ""}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 no-print">
-                        <Link href={`/v/${v.qrToken}`} className="btn-ghost btn-sm" target="_blank">
-                          <Icon name="search" size={13} />
-                          <span>Ver QR Code</span>
-                        </Link>
-
-                        <div className="flex flex-wrap gap-1.5">
-                          {isGate && v.status === "autorizado" ? (
-                            <form action={gateMoveAction}>
-                              <input type="hidden" name="id" value={v.id} />
-                              <input type="hidden" name="move" value="entrada" />
-                              <button className="btn-success btn-sm">Entrada</button>
-                            </form>
-                          ) : null}
-                          {isGate && v.status === "dentro" ? (
-                            <form action={gateMoveAction}>
-                              <input type="hidden" name="id" value={v.id} />
-                              <input type="hidden" name="move" value="saida" />
-                              <button className="btn-dark btn-sm">Saída</button>
-                            </form>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <TableWrap>
-                    <thead>
-                      <tr>
-                        <th>Visitante</th>
-                        <th>Unidade</th>
-                        <th>Validade</th>
-                        <th>Entrada / saída</th>
-                        <th>Status</th>
-                        <th className="no-print">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((v) => (
-                        <tr key={v.id}>
-                          <td>
-                            <span className="font-semibold text-[var(--color-ink)]">{v.name}</span>
-                            <span className="block text-xs text-[var(--color-subtle)]">
-                              {v.kind}{v.company ? ` · ${v.company}` : ""}{v.document ? ` · ${v.document}` : ""}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap text-xs">
-                            {v.block ?? "—"} {v.unit ?? ""}
-                            <span className="block text-[var(--color-subtle)]">{v.host ?? "sem anfitrião"}</span>
-                          </td>
-                          <td className="whitespace-nowrap text-xs">{dateTimeBR(v.validUntil)}</td>
-                          <td className="whitespace-nowrap text-xs">
-                            {v.checkinAt ? dateTimeBR(v.checkinAt) : "—"}
-                            <span className="block text-[var(--color-subtle)]">{v.checkoutAt ? dateTimeBR(v.checkoutAt) : v.deniedReason ?? ""}</span>
-                          </td>
-                          <td>
-                            <Badge tone={statusTone(v.status)}>{v.status}</Badge>
-                          </td>
-                          <td className="no-print">
-                            <div className="flex flex-wrap gap-1.5">
-                              {isGate && v.status === "autorizado" ? (
-                                <form action={gateMoveAction}>
-                                  <input type="hidden" name="id" value={v.id} />
-                                  <input type="hidden" name="move" value="entrada" />
-                                  <button className="btn-success btn-sm">Entrada</button>
-                                </form>
-                              ) : null}
-                              {isGate && v.status === "dentro" ? (
-                                <form action={gateMoveAction}>
-                                  <input type="hidden" name="id" value={v.id} />
-                                  <input type="hidden" name="move" value="saida" />
-                                  <button className="btn-dark btn-sm">Saída</button>
-                                </form>
-                              ) : null}
-                              <Link href={`/v/${v.qrToken}`} className="btn-ghost btn-sm" target="_blank">
-                                QR
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </TableWrap>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {highlighted.length > 0 ? (
-            <Card title="Convites ativos com QR Code" description="Compartilhe o convite; a portaria valida o código na chegada.">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {highlighted.map((v) => (
-                  <div key={v.id} className="flex items-center gap-3 rounded-lg border border-[var(--color-line)] p-3 ">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={qrCodes.get(v.id)} alt={`QR Code de ${v.name}`} className="h-24 w-24 rounded-md border border-[var(--color-line)] " />
-                    <div className="min-w-0 text-xs">
-                      <p className="truncate font-semibold text-[var(--color-ink)]">{v.name}</p>
-                      <p className="text-[var(--color-muted)]">{v.block} {v.unit}</p>
-                      <p className="text-[var(--color-subtle)]">até {dateTimeBR(v.validUntil)}</p>
-                      <Link href={`/v/${v.qrToken}`} target="_blank" className="link">
-                        abrir convite
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ) : null}
-        </div>
-
-        <div className="space-y-4">
-          <Card title="Novo convite de visita">
-            <form action={createVisitAction} className="space-y-3">
-              <label className="block">
-                <span className="label">Visitante já cadastrado</span>
-                <select name="visitorId" className="input">
-                  <option value="">— novo cadastro —</option>
-                  {recurring.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}{v.company ? ` (${v.company})` : ""}{v.blocked ? " · BLOQUEADO" : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="label">Nome completo</span>
-                <input name="name" className="input" placeholder="Se for novo visitante" />
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block">
-                  <span className="label">Documento</span>
-                  <input name="document" className="input" />
-                </label>
-                <label className="block">
-                  <span className="label">Tipo</span>
-                  <select name="kind" className="input">
-                    <option value="visitante">Visitante</option>
-                    <option value="prestador">Prestador</option>
-                    <option value="entrega">Entrega</option>
-                  </select>
-                </label>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block">
-                  <span className="label">Empresa</span>
-                  <input name="company" className="input" />
-                </label>
-                <label className="block">
-                  <span className="label">Placa</span>
-                  <input name="visitPlate" className="input uppercase" />
-                </label>
-              </div>
-              {!isResident ? (
-                <>
-                  <label className="block">
-                    <span className="label">Unidade</span>
-                    <select name="unitId" className="input">
-                      <option value="">Selecione</option>
-                      {unitList.map((u) => (
-                        <option key={u.id} value={u.id}>{u.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="label">Anfitrião</span>
-                    <select name="hostUserId" className="input">
-                      <option value="">Selecione</option>
-                      {hosts.map((h) => (
-                        <option key={h.id} value={h.id}>{h.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                </>
-              ) : null}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block">
-                  <span className="label">Válido de</span>
-                  <input type="datetime-local" name="validFrom" className="input" />
-                </label>
-                <label className="block">
-                  <span className="label">Válido até</span>
-                  <input type="datetime-local" name="validUntil" className="input" />
-                </label>
-              </div>
-              <label className="block">
-                <span className="label">Finalidade</span>
-                <input name="purpose" className="input" placeholder="Visita social, serviço, entrega..." />
-              </label>
-              <label className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                <input type="checkbox" name="recurring" className="h-4 w-4" />
-                Prestador recorrente (fica na lista de autorizados)
-              </label>
-              <button className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all">
-                <Icon name="shield" size={15} />
-                <span>Gerar convite com QR Code</span>
-              </button>
-            </form>
-          </Card>
-
-          <Card title="Autorizados e bloqueados" description="Prestadores recorrentes e restrições de segurança.">
-            {recurring.length === 0 ? (
-              <EmptyState title="Nenhum cadastro recorrente" icon="refresh" />
-            ) : (
-              <ul className="space-y-2 text-xs">
-                {recurring.map((v) => (
-                  <li
-                    key={v.id}
-                    className={`rounded-lg border px-3 py-2 ${
-                      v.blocked
-                        ? "border-[#efc9c9] bg-[var(--color-danger-soft)] text-[var(--color-danger)]   "
-                        : "border-[var(--color-line)]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold">{v.name}</span>
-                      {isGate ? (
-                        <form action={toggleBlockVisitorAction}>
-                          <input type="hidden" name="id" value={v.id} />
-                          <input type="hidden" name="reason" value="Bloqueio registrado pela administração" />
-                          <button className={v.blocked ? "btn-success btn-sm" : "btn-danger btn-sm"}>
-                            {v.blocked ? "Liberar" : "Bloquear"}
-                          </button>
-                        </form>
-                      ) : null}
-                    </div>
-                    <p className="mt-0.5 opacity-80">
-                      {v.company ?? v.kind}{v.document ? ` · ${v.document}` : ""}
-                    </p>
-                    {v.blockReason ? <p className="mt-1 font-medium">{v.blockReason}</p> : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
-          {isGate ? (
-            <Panel summary="Cadastrar prestador recorrente">
-              <form action={saveVisitorAction} className="space-y-3">
-                <label className="block">
-                  <span className="label">Nome</span>
-                  <input name="name" className="input" required />
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <label className="block">
-                    <span className="label">Documento</span>
-                    <input name="document" className="input" />
-                  </label>
-                  <label className="block">
-                    <span className="label">Telefone</span>
-                    <input name="phone" className="input" />
-                  </label>
-                </div>
-                <label className="block">
-                  <span className="label">Empresa</span>
-                  <input name="company" className="input" />
-                </label>
-                <input type="hidden" name="kind" value="prestador" />
-                <input type="hidden" name="recurring" value="on" />
-                <label className="block">
-                  <span className="label">Observações de segurança</span>
-                  <textarea name="notes" rows={2} className="input" />
-                </label>
-                <button className="btn-primary w-full">Salvar cadastro</button>
-              </form>
-            </Panel>
-          ) : null}
-
-          <InfoNote>
-            Foto e documento são coletados conforme a política do condomínio e a LGPD. O morador é avisado automaticamente
-            quando a entrada é registrada.
-          </InfoNote>
-        </div>
-      </div>
-    </>
+    <VisitantesClient
+      initialRows={rows ?? []}
+      allVisitsInScope={allVisitsInScope ?? []}
+      recurring={recurring ?? []}
+      initialStatus={status || "todos"}
+      unitList={unitList ?? []}
+      hosts={hosts ?? []}
+      isGate={isGate}
+      isResident={isResident}
+      userRole={session.role}
+      currentUserId={session.user.id}
+      currentUnitId={session.unitId ?? null}
+      initialQrMap={initialQrMap}
+    />
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { Icon, isIconName, type IconName } from "@/components/icon";
