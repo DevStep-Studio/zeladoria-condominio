@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 
 import { BrandLogo } from "@/components/brand-logo";
-import { Icon } from "@/components/icon";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -59,78 +58,16 @@ export default async function LoginPage() {
         </footer>
       </section>
 
-      {/* RIGHT COLUMN: Luxury Condominium Visual with Padding and Rounded Corners */}
+      {/* RIGHT COLUMN: Condominium Visual with Blue Brand Treatment and Centered Logo */}
       <section className="hidden lg:flex lg:w-[52%] xl:w-[55%] h-full p-3 sm:p-4 lg:p-5 xl:p-6 shrink-0 select-none">
-        <div className="relative w-full h-full rounded-2xl lg:rounded-3xl xl:rounded-[32px] overflow-hidden shadow-sm group">
-          {/* Photographic Image of the Condominium */}
+        <div className="relative w-full h-full rounded-2xl lg:rounded-3xl xl:rounded-[32px] overflow-hidden shadow-sm group bg-[#1355FF]">
+          {/* Photographic Image of the Condominium with Blue Brand Overlay and Centered Logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/condominio-login.jpg"
-            alt="Fachada e área de lazer do Residencial Jardim Atlântico"
+            src="/condominio-login-azul.png"
+            alt="Zeladoria Condomínio"
             className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
-
-          {/* Subtle natural ambient overlay */}
-          <div className="absolute inset-0 bg-black/15 pointer-events-none" />
-
-          {/* FLOATING MARKER 1: Top-Left (Condominium Name & City) */}
-          <div className="absolute top-8 left-6 sm:left-8 z-20 flex flex-col items-start gap-1 group/m1 transition-transform duration-300 hover:scale-105 cursor-pointer">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-900/65 backdrop-blur-md text-white border border-white/20 shadow-xl">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-white shrink-0">
-                <Icon name="building" size={16} />
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Condomínio</p>
-                <h3 className="text-xs sm:text-sm font-black text-white tracking-tight leading-tight">
-                  Residencial Jardim Atlântico
-                </h3>
-              </div>
-            </div>
-            {/* Pin line and pulse dot */}
-            <div className="ml-7 flex flex-col items-center">
-              <div className="w-[1.5px] h-7 bg-white/80" />
-              <div className="relative flex h-3.5 w-3.5 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#1355FF]" />
-              </div>
-            </div>
-          </div>
-
-          {/* FLOATING MARKER 2: Middle-Right (Portaria & Zeladoria 24h) */}
-          <div className="absolute top-[44%] right-6 sm:right-8 z-20 flex flex-col items-end gap-1 group/m2 transition-transform duration-300 hover:scale-105 cursor-pointer">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900/65 backdrop-blur-md text-white border border-white/20 shadow-xl max-w-[260px]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/30 text-emerald-300 shrink-0">
-                <Icon name="shield" size={17} />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-black text-white">Portaria & Zeladoria</p>
-                <p className="text-[11px] text-slate-300 leading-tight mt-0.5">
-                  Acessos, encomendas e serviços 100% monitorados
-                </p>
-              </div>
-            </div>
-            {/* Pin line and pulse dot */}
-            <div className="mr-8 flex flex-col items-center">
-              <div className="w-[1.5px] h-8 bg-white/80" />
-              <div className="relative flex h-3.5 w-3.5 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-emerald-500" />
-              </div>
-            </div>
-          </div>
-
-          {/* FLOATING MARKER 3: Bottom Pathway (Acesso Seguro & Facial) */}
-          <div className="absolute bottom-8 left-[30%] sm:left-[35%] z-20 flex flex-col items-center gap-1 group/m3 transition-transform duration-300 hover:scale-105 cursor-pointer">
-            <div className="relative flex h-3.5 w-3.5 items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white shadow-md ring-2 ring-[#1355FF]" />
-            </div>
-            <div className="w-[1.5px] h-6 bg-white/80" />
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-slate-900 font-bold text-xs shadow-xl border border-slate-100">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Acesso Seguro Moradores</span>
-            </div>
-          </div>
         </div>
       </section>
     </main>
