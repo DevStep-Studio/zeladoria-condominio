@@ -247,7 +247,7 @@ final class UtilityController
         $data = $request->validate([
             'nome' => 'required|string|min:2|max:140',
             'condominio' => 'nullable|string|max:160',
-            'whatsapp' => 'required|string|min:10|max:30',
+            'whatsapp' => 'nullable|string|max:30',
             'email' => 'required|email|max:160',
             'assunto' => 'required|string|max:100',
             'mensagem' => 'nullable|string|max:3000',
@@ -255,11 +255,11 @@ final class UtilityController
 
         $subject = '[Comercial] ' . $data['assunto'] . (! empty($data['condominio']) ? ' - ' . $data['condominio'] : ' - ' . $data['nome']);
         $body = "Nome: {$data['nome']}\n"
-            . 'Condomínio/Empresa: ' . (! empty($data['condominio']) ? $data['condominio'] : 'Não informado') . "\n"
-            . "WhatsApp: {$data['whatsapp']}\n"
+            . (! empty($data['condominio']) ? 'Condomínio/Empresa: ' . $data['condominio'] . "\n" : '')
+            . (! empty($data['whatsapp']) ? 'WhatsApp: ' . $data['whatsapp'] . "\n" : '')
             . "E-mail: {$data['email']}\n"
-            . "Assunto: {$data['assunto']}\n\n"
-            . "Mensagem:\n" . (! empty($data['mensagem']) ? $data['mensagem'] : 'Sem mensagem adicional.');
+            . "Assunto: {$data['assunto']}\n"
+            . (! empty($data['mensagem']) ? "\nMensagem:\n" . $data['mensagem'] : '');
 
         $ticketId = DB::table('support_tickets')->insertGetId([
             'condo_id' => null,

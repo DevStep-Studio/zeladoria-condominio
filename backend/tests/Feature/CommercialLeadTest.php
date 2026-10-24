@@ -38,7 +38,7 @@ final class CommercialLeadTest extends TestCase
     {
         $this->service()->postJson('/api/v1/comercial/solicitacao', [])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['nome', 'whatsapp', 'email', 'assunto']);
+            ->assertJsonValidationErrors(['nome', 'email', 'assunto']);
     }
 
     public function test_commercial_lead_persists_in_support_tickets_and_audit_logs(): void

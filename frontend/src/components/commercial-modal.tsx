@@ -5,7 +5,6 @@ import { Icon } from "@/components/icon";
 import { PrivacyModal } from "@/components/privacy-modal";
 import {
   COMMERCIAL_SUBJECTS,
-  formatBrazilianPhone,
   getCommercialWhatsAppInfo,
   type CommercialSubject,
 } from "@/lib/commercial-utils";
@@ -18,11 +17,8 @@ interface CommercialModalProps {
 
 export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
   const [nome, setNome] = useState("");
-  const [condominio, setCondominio] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [assunto, setAssunto] = useState<CommercialSubject | "">("");
-  const [mensagem, setMensagem] = useState("");
   const [honeypot, setHoneypot] = useState("");
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -45,7 +41,6 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Foco inicial acessível
     const timer = setTimeout(() => {
       firstInputRef.current?.focus();
     }, 100);
@@ -70,7 +65,6 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
   }, [isOpen, showPrivacy]);
 
   const handleClose = () => {
-    // Reset de estados após fechar
     setFieldErrors({});
     setGeneralError(null);
     setWhatsappAlert(null);
@@ -78,30 +72,14 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
     onClose();
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatBrazilianPhone(e.target.value);
-    setWhatsapp(formatted);
-    if (fieldErrors.whatsapp) {
-      setFieldErrors((prev) => {
-        const next = { ...prev };
-        delete next.whatsapp;
-        return next;
-      });
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError(null);
     setFieldErrors({});
 
-    // Validações básicas no cliente para resposta instantânea
     const clientErrors: Record<string, string> = {};
     if (!nome.trim() || nome.trim().length < 2) {
       clientErrors.nome = "Informe seu nome completo.";
-    }
-    if (!whatsapp.trim() || whatsapp.replace(/\D/g, "").length < 10) {
-      clientErrors.whatsapp = "Informe um WhatsApp válido com DDD (ex: (11) 98765-4321).";
     }
     if (!email.trim() || !email.includes("@") || !email.includes(".")) {
       clientErrors.email = "Informe um endereço de e-mail válido.";
@@ -119,11 +97,8 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
       try {
         const result = await submitCommercialLeadAction({
           nome,
-          condominio,
-          whatsapp,
           email,
           assunto,
-          mensagem,
           empresa_website: honeypot,
         });
 
@@ -161,7 +136,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
         aria-modal="true"
         aria-labelledby="commercial-modal-title"
         aria-describedby="commercial-modal-desc"
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg:p-6 bg-slate-900/65 backdrop-blur-xs transition-opacity duration-300 font-sans antialiased"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/65 backdrop-blur-xs transition-opacity duration-300 font-sans antialiased"
         onClick={(e) => {
           if (e.target === e.currentTarget && !isPending) {
             handleClose();
@@ -170,7 +145,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
       >
         <div
           ref={modalContainerRef}
-          className="relative w-full max-w-[560px] max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-8 shadow-2xl border border-slate-100 flex flex-col focus:outline-none animate-in zoom-in-95 duration-200"
+          className="relative w-full max-w-[480px] max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-100 flex flex-col focus:outline-none animate-in zoom-in-95 duration-200"
         >
           {/* Botão de Fechar no canto superior */}
           <button
@@ -185,7 +160,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
 
           {/* ESTADO DE SUCESSO */}
           {isSuccess ? (
-            <div className="py-6 sm:py-8 text-center space-y-5 animate-in fade-in duration-200">
+            <div className="py-6 text-center space-y-5 animate-in fade-in duration-200">
               <div className="flex justify-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#1355FF] border border-blue-100 shadow-2xs">
                   <Icon name="check-circle" size={36} strokeWidth={2.2} />
@@ -196,32 +171,22 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">
                   Solicitação enviada com sucesso!
                 </h3>
-                <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
                   Recebemos sua solicitação! Nossa equipe entrará em contato pelos dados informados.
                 </p>
               </div>
 
               {/* Card Resumo do Envio */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-left text-xs space-y-2 text-slate-700">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-left text-xs space-y-2.5 text-slate-700">
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
                   <span className="text-slate-400 font-medium">Nome:</span>
                   <span className="font-bold text-slate-900">{nome}</span>
-                </div>
-                {condominio && (
-                  <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                    <span className="text-slate-400 font-medium">Condomínio:</span>
-                    <span className="font-bold text-slate-900">{condominio}</span>
-                  </div>
-                )}
-                <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                  <span className="text-slate-400 font-medium">WhatsApp:</span>
-                  <span className="font-bold text-slate-900 font-mono">{whatsapp}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
                   <span className="text-slate-400 font-medium">E-mail:</span>
                   <span className="font-bold text-slate-900 font-mono">{email}</span>
                 </div>
-                <div className="flex justify-between pt-1">
+                <div className="flex justify-between pt-0.5">
                   <span className="text-slate-400 font-medium">Assunto:</span>
                   <span className="font-bold text-[#1355FF]">{assunto}</span>
                 </div>
@@ -231,14 +196,14 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="w-full h-12 rounded-2xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-sm font-bold transition-all shadow-xs active:scale-[0.99] cursor-pointer"
+                  className="w-full h-13 rounded-2xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-sm font-bold transition-all shadow-xs active:scale-[0.99] cursor-pointer"
                 >
                   Concluir e voltar ao Login
                 </button>
               </div>
             </div>
           ) : (
-            /* FORMULÁRIO COMERCIAL */
+            /* FORMULÁRIO COMERCIAL REORGANIZADO */
             <div className="space-y-5">
               {/* Cabeçalho */}
               <div className="pr-8 space-y-1.5">
@@ -286,7 +251,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} noValidate className="space-y-3.5 pt-1">
+              <form onSubmit={handleSubmit} noValidate className="space-y-4 pt-1">
                 {/* Campo Honeypot invisível (anti-spam para bots) */}
                 <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", opacity: 0 }}>
                   <label htmlFor="empresa_website">Não preencha este campo</label>
@@ -301,7 +266,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
 
                 {/* 1. Nome Completo */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label
                     htmlFor="commercial-name"
                     className="block text-xs font-bold text-slate-700 tracking-tight"
@@ -335,7 +300,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                           });
                         }
                       }}
-                      className="h-12 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
+                      className="h-13 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
                     />
                   </div>
                   {fieldErrors.nome && (
@@ -345,116 +310,52 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                   )}
                 </div>
 
-                {/* 2. Nome do condomínio ou empresa */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="commercial-condo"
-                      className="block text-xs font-bold text-slate-700 tracking-tight"
-                    >
-                      Nome do condomínio ou empresa
-                    </label>
-                    <span className="text-[11px] text-slate-400">Opcional</span>
-                  </div>
-                  <div className="flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border border-transparent">
+                {/* 2. E-mail (Largura Completa) */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="commercial-email"
+                    className="block text-xs font-bold text-slate-700 tracking-tight"
+                  >
+                    E-mail <span className="text-red-500">*</span>
+                  </label>
+                  <div
+                    className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
+                      fieldErrors.email ? "border-red-400 bg-red-50/20" : "border-transparent"
+                    }`}
+                  >
                     <input
-                      id="commercial-condo"
-                      name="condominio"
-                      type="text"
-                      autoComplete="organization"
-                      placeholder="Ex: Condomínio Edifício Solar das Palmeiras"
-                      value={condominio}
-                      onChange={(e) => setCondominio(e.target.value)}
-                      className="h-12 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
+                      id="commercial-email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      aria-required="true"
+                      aria-invalid={!!fieldErrors.email}
+                      aria-describedby={fieldErrors.email ? "commercial-email-error" : undefined}
+                      placeholder="seu.email@exemplo.com.br"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email) {
+                          setFieldErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.email;
+                            return next;
+                          });
+                        }
+                      }}
+                      className="h-13 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
                     />
                   </div>
+                  {fieldErrors.email && (
+                    <p id="commercial-email-error" className="text-[11px] font-medium text-red-600 pl-1">
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
-                {/* Linha dupla: WhatsApp & E-mail */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* 3. WhatsApp para contato */}
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="commercial-whatsapp"
-                      className="block text-xs font-bold text-slate-700 tracking-tight"
-                    >
-                      WhatsApp para contato <span className="text-red-500">*</span>
-                    </label>
-                    <div
-                      className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
-                        fieldErrors.whatsapp ? "border-red-400 bg-red-50/20" : "border-transparent"
-                      }`}
-                    >
-                      <input
-                        id="commercial-whatsapp"
-                        name="whatsapp"
-                        type="tel"
-                        inputMode="tel"
-                        required
-                        autoComplete="tel"
-                        aria-required="true"
-                        aria-invalid={!!fieldErrors.whatsapp}
-                        aria-describedby={fieldErrors.whatsapp ? "commercial-whatsapp-error" : undefined}
-                        placeholder="(11) 98765-4321"
-                        value={whatsapp}
-                        onChange={handlePhoneChange}
-                        className="h-12 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
-                      />
-                    </div>
-                    {fieldErrors.whatsapp && (
-                      <p id="commercial-whatsapp-error" className="text-[11px] font-medium text-red-600 pl-1">
-                        {fieldErrors.whatsapp}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* 4. E-mail */}
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="commercial-email"
-                      className="block text-xs font-bold text-slate-700 tracking-tight"
-                    >
-                      E-mail <span className="text-red-500">*</span>
-                    </label>
-                    <div
-                      className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
-                        fieldErrors.email ? "border-red-400 bg-red-50/20" : "border-transparent"
-                      }`}
-                    >
-                      <input
-                        id="commercial-email"
-                        name="email"
-                        type="email"
-                        required
-                        autoComplete="email"
-                        aria-required="true"
-                        aria-invalid={!!fieldErrors.email}
-                        aria-describedby={fieldErrors.email ? "commercial-email-error" : undefined}
-                        placeholder="seu.email@exemplo.com.br"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (fieldErrors.email) {
-                            setFieldErrors((prev) => {
-                              const next = { ...prev };
-                              delete next.email;
-                              return next;
-                            });
-                          }
-                        }}
-                        className="h-12 w-full rounded-2xl bg-transparent px-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium"
-                      />
-                    </div>
-                    {fieldErrors.email && (
-                      <p id="commercial-email-error" className="text-[11px] font-medium text-red-600 pl-1">
-                        {fieldErrors.email}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* 5. Assunto */}
-                <div className="space-y-1">
+                {/* 3. Assunto (Largura Completa) */}
+                <div className="space-y-1.5">
                   <label
                     htmlFor="commercial-subject"
                     className="block text-xs font-bold text-slate-700 tracking-tight"
@@ -484,7 +385,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                           });
                         }
                       }}
-                      className="h-12 w-full appearance-none rounded-2xl bg-transparent pl-4 pr-10 text-xs sm:text-sm text-slate-900 outline-none font-medium cursor-pointer"
+                      className="h-13 w-full appearance-none rounded-2xl bg-transparent pl-4 pr-10 text-xs sm:text-sm text-slate-900 outline-none font-medium cursor-pointer"
                     >
                       <option value="" disabled className="text-slate-400">
                         Selecione o assunto do seu interesse
@@ -506,30 +407,6 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                       {fieldErrors.assunto}
                     </p>
                   )}
-                </div>
-
-                {/* 6. Mensagem */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="commercial-message"
-                      className="block text-xs font-bold text-slate-700 tracking-tight"
-                    >
-                      Mensagem
-                    </label>
-                    <span className="text-[11px] text-slate-400">Opcional</span>
-                  </div>
-                  <div className="flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border border-transparent">
-                    <textarea
-                      id="commercial-message"
-                      name="mensagem"
-                      rows={3}
-                      placeholder="Descreva detalhes ou necessidades específicas do seu condomínio..."
-                      value={mensagem}
-                      onChange={(e) => setMensagem(e.target.value)}
-                      className="w-full rounded-2xl bg-transparent p-4 text-xs sm:text-sm text-slate-900 outline-none placeholder:text-slate-400 font-medium resize-none leading-relaxed"
-                    />
-                  </div>
                 </div>
 
                 {/* Aviso de privacidade & link */}
@@ -591,12 +468,12 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </button>
 
                 {/* Opção Secundária: Conversar pelo WhatsApp */}
-                <div className="pt-1">
+                <div className="pt-0.5">
                   <button
                     type="button"
                     onClick={handleWhatsAppClick}
                     disabled={isPending}
-                    className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 text-xs sm:text-sm font-bold transition-all active:scale-[0.99] cursor-pointer"
+                    className="flex h-12 sm:h-13 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 text-xs sm:text-sm font-bold transition-all active:scale-[0.99] cursor-pointer"
                   >
                     {/* Ícone oficial SVG do WhatsApp */}
                     <svg

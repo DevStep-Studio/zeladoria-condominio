@@ -109,14 +109,12 @@ describe("FLUXO COMERCIAL & LOGIN PRIVADO — ZELADORIA CONDOMÍNIO", () => {
     it("deve reprovar quando campos obrigatórios estiverem ausentes", async () => {
       const result = await submitCommercialLeadAction({
         nome: "",
-        whatsapp: "",
         email: "",
         assunto: "",
       });
 
       assert.equal(result.success, false);
       assert.ok(result.errors?.nome, "Erro no nome obrigatório");
-      assert.ok(result.errors?.whatsapp, "Erro no WhatsApp obrigatório");
       assert.ok(result.errors?.email, "Erro no e-mail obrigatório");
       assert.ok(result.errors?.assunto, "Erro no assunto obrigatório");
     });

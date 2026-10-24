@@ -11,7 +11,7 @@ import {
 export interface CommercialLeadPayload {
   nome: string;
   condominio?: string;
-  whatsapp: string;
+  whatsapp?: string;
   email: string;
   assunto: string;
   mensagem?: string;
@@ -74,9 +74,7 @@ export async function submitCommercialLeadAction(
   }
 
   const whatsapp = (payload.whatsapp || "").trim();
-  if (!whatsapp) {
-    errors.whatsapp = "Informe um WhatsApp para contato.";
-  } else if (!validateBrazilianPhone(whatsapp)) {
+  if (whatsapp && !validateBrazilianPhone(whatsapp)) {
     errors.whatsapp = "Informe um telefone/WhatsApp brasileiro válido com DDD (ex: (11) 98765-4321).";
   }
 
@@ -108,7 +106,7 @@ export async function submitCommercialLeadAction(
   }
 
   // 3. Verificação de envios duplicados acidentais / anti-flood
-  const deduplicationKey = `${cleanPhoneDigits(whatsapp)}_${email}_${assunto}`;
+  const deduplicationKey = `${email}_${assunto}`;
   if (isRateLimited(deduplicationKey)) {
     return {
       success: true,
