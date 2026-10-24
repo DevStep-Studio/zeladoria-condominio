@@ -102,8 +102,8 @@ export async function requireProvider() {
 export async function requireCondo() {
   const session = await requireSession();
   if (session.role === "prestador") redirect("/prestador");
-  if (!session.condo) redirect("/login?erro=sem-condominio");
-  return { session, condo: session.condo, condoId: session.condo.id };
+  if (!session.condo && session.role !== "superadmin") redirect("/login?erro=sem-condominio");
+  return { session, condo: session.condo, condoId: session.condo?.id ?? 0 };
 }
 
 import { hasPermission, hasAnyPermission, type Permission } from "@/lib/permissions";

@@ -66,25 +66,25 @@ export default async function ChamadosPage({
   const activeView = view === "table" ? "table" : "cards";
   const search = q.trim();
 
-  const { rows, comments } = await domainRequest<{
+  const { rows = [], comments = [] } = await domainRequest<{
     rows: any[];
     comments: any[];
   }>("/painel/chamados", {
-    query: { condoId, role: session.role, s, q: search, p, c },
-  });
+    query: { condoId: condoId > 0 ? condoId : undefined, role: session.role, s, q: search, p, c },
+  }).catch(() => ({ rows: [], comments: [] }));
 
-  const staff = await peopleOptions(condoId, ["sindico", "zelador", "porteiro", "conselho"]);
-  const unitList = await unitOptions(condoId);
+  const staff = condoId > 0 ? await peopleOptions(condoId, ["sindico", "zelador", "porteiro", "conselho"]).catch(() => []) : [];
+  const unitList = condoId > 0 ? await unitOptions(condoId).catch(() => []) : [];
   const staffById = new Map(staff.map((person) => [person.id, person.name]));
   const commentsByTicket = new Map<number, typeof comments>();
-  for (const comment of comments) {
+  for (const comment of (comments ?? [])) {
     const list = commentsByTicket.get(comment.ticketId) ?? [];
     list.push(comment);
     commentsByTicket.set(comment.ticketId, list);
   }
 
   const now = new Date();
-  const ticketsWithMeta = rows.map((ticket) => {
+  const ticketsWithMeta = (rows ?? []).map((ticket) => {
     const visibleComments = (commentsByTicket.get(ticket.id) ?? []).filter((comment) => isStaff || !comment.internal);
     const last = visibleComments.at(-1);
     return {
@@ -123,7 +123,11 @@ export default async function ChamadosPage({
     <>
       <PageHeader
         title="Chamados"
-        subtitle="Acompanhe solicitações, prazos, responsáveis e interações com moradores em uma fila clara de atendimento."
+        subtitle={
+          session.role === "superadmin" && condoId <= 0
+            ? "Visão global de todos os chamados dos condomínios da plataforma Zeladoria."
+            : "Acompanhe solicitações, prazos, responsáveis e interações com moradores em uma fila clara de atendimento."
+        }
         actions={
           <details className="relative no-print">
             <summary className="btn-primary list-none">
@@ -146,62 +150,68 @@ export default async function ChamadosPage({
                 </a>
               </div>
 
-              <form action={createTicketAction} className="space-y-4">
-                <label className="block">
-                  <span className="label">Título</span>
-                  <input name="title" className="input" required placeholder="Ex.: Vazamento no hall do Bloco A" />
-                </label>
-                <label className="block">
-                  <span className="label">Descrição</span>
-                  <textarea name="description" rows={6} className="input" required placeholder="Informe local, impacto e qualquer detalhe importante." />
-                </label>
-                {session.role !== "morador" ? (
-                  <label className="block">
-                    <span className="label">Unidade</span>
-                    <select name="unitId" className="input">
-                      <option value="">Área comum</option>
-                      {unitList.map((unit) => (
-                        <option key={unit.id} value={unit.id}>
-                          {unit.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="label">Categoria</span>
-                    <select name="category" className="input">
-                      <option value="">Sugerida pela IA</option>
-                      {CATEGORIES.map((category) => (
-                        <option key={category} value={category}>
-                          {statusLabel(category)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="label">Prioridade</span>
-                    <select name="priority" className="input">
-                      <option value="">Sugerida pela IA</option>
-                      {PRIORITIES.map((priority) => (
-                        <option key={priority} value={priority}>
-                          {statusLabel(priority)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              {condoId <= 0 ? (
+                <div className="rounded-[10px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  Para abrir um novo chamado, selecione um condomínio específico no seletor de condomínios da barra de navegação.
                 </div>
-                <InfoNote icon="sparkles">
-                  A sugestão da IA aparece no chamado depois da abertura e pode ser revisada pela equipe administrativa.
-                </InfoNote>
-                <div className="sticky bottom-0 -mx-6 border-t border-[var(--color-line)] bg-white px-6 py-5 sm:-mx-8 sm:px-8">
-                  <button className="btn-primary w-full" type="submit">
-                    <Icon name="send" size={16} />
-                    Abrir chamado
-                  </button>
-                </div>
-              </form>
+              ) : (
+                <form action={createTicketAction} className="space-y-4">
+                  <label className="block">
+                    <span className="label">Título</span>
+                    <input name="title" className="input" required placeholder="Ex.: Vazamento no hall do Bloco A" />
+                  </label>
+                  <label className="block">
+                    <span className="label">Descrição</span>
+                    <textarea name="description" rows={6} className="input" required placeholder="Informe local, impacto e qualquer detalhe importante." />
+                  </label>
+                  {session.role !== "morador" ? (
+                    <label className="block">
+                      <span className="label">Unidade</span>
+                      <select name="unitId" className="input">
+                        <option value="">Área comum</option>
+                        {unitList.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="label">Categoria</span>
+                      <select name="category" className="input">
+                        <option value="">Sugerida pela IA</option>
+                        {CATEGORIES.map((category) => (
+                          <option key={category} value={category}>
+                            {statusLabel(category)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="label">Prioridade</span>
+                      <select name="priority" className="input">
+                        <option value="">Sugerida pela IA</option>
+                        {PRIORITIES.map((priority) => (
+                          <option key={priority} value={priority}>
+                            {statusLabel(priority)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <InfoNote icon="sparkles">
+                    A sugestão da IA aparece no chamado depois da abertura e pode ser revisada pela equipe administrativa.
+                  </InfoNote>
+                  <div className="sticky bottom-0 -mx-6 border-t border-[var(--color-line)] bg-white px-6 py-5 sm:-mx-8 sm:px-8">
+                    <button className="btn-primary w-full" type="submit">
+                      <Icon name="send" size={16} />
+                      Abrir chamado
+                    </button>
+                  </div>
+                </form>
+              )}
             </aside>
           </details>
         }
@@ -341,7 +351,10 @@ export default async function ChamadosPage({
                       {ticketsWithMeta.map((ticket) => (
                         <tr key={ticket.id}>
                           <td>
-                            <span className="block font-mono text-xs font-semibold text-[var(--color-muted)]">{ticket.code}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="block font-mono text-xs font-semibold text-[var(--color-muted)]">{ticket.code}</span>
+                              {ticket.condoName ? <Badge tone="blue">{ticket.condoName}</Badge> : null}
+                            </div>
                             <span className="block max-w-md truncate font-semibold text-[var(--color-ink)]">{ticket.title}</span>
                             <span className="block text-xs text-[var(--color-muted)]">{labelFor(ticket.category, CATEGORY_LABELS)}</span>
                           </td>
@@ -351,7 +364,15 @@ export default async function ChamadosPage({
                               <Badge tone={ticket.priority === "alta" ? "red" : ticket.priority === "media" ? "amber" : "neutral"}>{labelFor(ticket.priority, PRIORITY_LABELS)}</Badge>
                             </div>
                           </td>
-                          <td>{ticket.block || ticket.unit ? `${ticket.block ?? ""} ${ticket.unit ?? ""}` : "Área comum"}</td>
+                          <td>
+                            {ticket.condoName && !ticket.block && !ticket.unit ? (
+                              <span>{ticket.condoName} · Área comum</span>
+                            ) : ticket.block || ticket.unit ? (
+                              <span>{ticket.block ?? ""} {ticket.unit ?? ""}</span>
+                            ) : (
+                              "Área comum"
+                            )}
+                          </td>
                           <td>{ticket.assignedTo ?? "Sem responsável"}</td>
                           <td>{ticket.dueSummary}</td>
                           <td>{dateTimeBR(ticket.lastInteractionAt)}</td>
@@ -383,6 +404,7 @@ export default async function ChamadosPage({
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-[6px] border border-[#dce9b3] bg-[var(--color-primary-soft)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--color-primary-dark)]">{ticket.code}</span>
+                            {ticket.condoName ? <Badge tone="blue">{ticket.condoName}</Badge> : null}
                             <Badge tone={ticket.late ? "red" : statusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
                             <Badge tone={ticket.priority === "alta" ? "red" : ticket.priority === "media" ? "amber" : "neutral"}>{labelFor(ticket.priority, PRIORITY_LABELS)}</Badge>
                             <Badge tone="primary">{labelFor(ticket.category, CATEGORY_LABELS)}</Badge>

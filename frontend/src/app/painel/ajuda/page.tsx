@@ -1,35 +1,188 @@
 import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, statusTone } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, StatCard, statusTone } from "@/components/ui";
 import { dateTimeBR } from "@/lib/utils";
 import { answerSupportTicketAction, createSupportTicketAction, rateSupportAction } from "@/lib/actions/admin";
 import { rankByQuery } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
-export default async function AjudaPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function AjudaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
   const { session, condoId } = await requireCondo();
-  const { q } = await searchParams;
+  const { q, status = "todos" } = await searchParams;
   const isSupport = session.role === "superadmin";
 
-  const { articles, tickets } = await domainRequest<{
+  const { articles = [], tickets = [] } = await domainRequest<{
     articles: any[];
     tickets: any[];
-  }>("/painel/ajuda", { query: { condoId, role: session.role } });
-  const list = q ? rankByQuery(articles, ["title", "body", "tags", "category"], q) : articles;
+  }>("/painel/ajuda", { query: { condoId: condoId > 0 ? condoId : undefined, role: session.role } })
+    .catch(() => ({ articles: [], tickets: [] }));
 
-  const categories = [...new Set(articles.map((a) => a.category))];
+  const list = q ? rankByQuery(articles ?? [], ["title", "body", "tags", "category"], q) : (articles ?? []);
+  const categories = [...new Set((articles ?? []).map((a) => a.category))];
+
+  const totalTickets = (tickets ?? []).length;
+  const openTickets = (tickets ?? []).filter((t) => t.status === "aberto" || !t.answer).length;
+  const answeredTickets = (tickets ?? []).filter((t) => t.status === "respondido" || (t.answer && t.status !== "encerrado")).length;
+  const closedTickets = (tickets ?? []).filter((t) => t.status === "encerrado").length;
+
+  const filteredTickets = (tickets ?? []).filter((t) => {
+    if (status === "aberto") return t.status === "aberto" || !t.answer;
+    if (status === "respondido") return t.status === "respondido" || (t.answer && t.status !== "encerrado");
+    if (status === "encerrado") return t.status === "encerrado";
+    return true;
+  });
 
   return (
     <>
       <PageHeader
-        title="Central de ajuda"
-        subtitle="Base de conhecimento pesquisável, tutoriais por tela, vídeos de treinamento e abertura de suporte com histórico."
+        title={isSupport ? "Suporte & Atendimento da Plataforma" : "Central de ajuda"}
+        subtitle={
+          isSupport
+            ? "Fila global de chamados de suporte dos condomínios, acompanhamento de satisfação e resolução rápida de incidentes."
+            : "Base de conhecimento pesquisável, tutoriais por tela, vídeos de treinamento e abertura de suporte com histórico."
+        }
       />
+
+      {isSupport ? (
+        <section className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          <StatCard label="Total de chamados" value={totalTickets} icon="help" tone="blue" />
+          <StatCard
+            label="Aguardando resposta"
+            value={openTickets}
+            icon="alert"
+            hint={openTickets > 0 ? "Ação necessária" : "Fila zerada"}
+            tone={openTickets > 0 ? "yellow" : "blue"}
+          />
+          <StatCard label="Respondidos" value={answeredTickets} icon="message-square" tone="blue" />
+          <StatCard label="Encerrados" value={closedTickets} icon="check" tone="blue" />
+        </section>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          {isSupport ? (
+            <Card title="Fila de Atendimento do Suporte (Todos os Condomínios)">
+              <div className="mb-4 flex flex-wrap gap-2 border-b border-[var(--color-line)] pb-3">
+                {[
+                  { key: "todos", label: `Todos (${totalTickets})` },
+                  { key: "aberto", label: `Em aberto (${openTickets})` },
+                  { key: "respondido", label: `Respondidos (${answeredTickets})` },
+                  { key: "encerrado", label: `Encerrados (${closedTickets})` },
+                ].map((tab) => (
+                  <a
+                    key={tab.key}
+                    href={`/painel/ajuda?status=${tab.key}`}
+                    className={`tab ${status === tab.key ? "tab-active" : ""}`}
+                  >
+                    {tab.label}
+                  </a>
+                ))}
+              </div>
+
+              {filteredTickets.length === 0 ? (
+                <EmptyState title="Nenhum chamado nesta fila" description="Não há chamados correspondentes ao filtro selecionado." icon="help" />
+              ) : (
+                <ul className="space-y-3">
+                  {filteredTickets.map((t) => (
+                    <li key={t.id} className="rounded-lg border border-[var(--color-line)] p-4 transition-colors hover:border-[#dce9b3]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-[var(--color-ink)]">{t.subject}</p>
+                          {t.condoName ? <Badge tone="blue">{t.condoName}</Badge> : null}
+                          <Badge tone={t.priority === "alta" ? "red" : "zinc"}>{t.priority}</Badge>
+                        </div>
+                        <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+                      </div>
+
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink)]">{t.body}</p>
+
+                      <p className="mt-2 text-xs text-[var(--color-subtle)]">
+                        Autor: <strong>{t.author || "Usuário"}</strong> {t.authorEmail ? `(${t.authorEmail})` : ""} · {dateTimeBR(t.createdAt)} · categoria {t.category}
+                      </p>
+
+                      {t.answer ? (
+                        <div className="mt-3 rounded-lg border border-[#cdebd9] bg-[var(--color-success-soft)] p-3 text-xs text-[var(--color-success)]">
+                          <strong>Resposta do Suporte:</strong> {t.answer}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-3 flex flex-wrap gap-2 no-print">
+                        {!t.answer ? (
+                          <Panel summary="Responder chamado" tone="ghost">
+                            <form action={answerSupportTicketAction} className="mt-2 space-y-2">
+                              <input type="hidden" name="id" value={t.id} />
+                              <textarea
+                                name="answer"
+                                rows={3}
+                                className="input"
+                                placeholder="Escreva a resposta e orientações para o usuário..."
+                                required
+                              />
+                              <button className="btn-primary btn-sm">Enviar Resposta</button>
+                            </form>
+                          </Panel>
+                        ) : null}
+
+                        {t.satisfaction ? (
+                          <Badge tone="green">Avaliado pelo usuário: {t.satisfaction}/5 ★</Badge>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          ) : (
+            <Card title="Meus chamados de suporte">
+              {tickets.length === 0 ? (
+                <EmptyState title="Nenhum chamado aberto" icon="help" />
+              ) : (
+                <ul className="space-y-2">
+                  {tickets.map((t) => (
+                    <li key={t.id} className="rounded-lg border border-[var(--color-line)] p-3 ">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold text-[var(--color-ink)]">{t.subject}</p>
+                        <div className="flex items-center gap-1.5">
+                          <Badge tone={t.priority === "alta" ? "red" : "zinc"}>{t.priority}</Badge>
+                          <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-sm text-[var(--color-muted)]">{t.body}</p>
+                      <p className="text-xs text-[var(--color-subtle)]">
+                        {t.author} · {dateTimeBR(t.createdAt)} · categoria {t.category}
+                      </p>
+                      {t.answer ? (
+                        <p className="mt-2 rounded-lg border border-[#cdebd9] bg-[var(--color-success-soft)] p-2 text-xs text-[var(--color-success)]">
+                          <strong>Suporte:</strong> {t.answer}
+                        </p>
+                      ) : null}
+                      <div className="mt-2 flex flex-wrap gap-2 no-print">
+                        {t.answer && !t.satisfaction ? (
+                          <form action={rateSupportAction} className="flex items-center gap-2">
+                            <input type="hidden" name="id" value={t.id} />
+                            <select name="satisfaction" className="input py-1 text-xs">
+                              {[5, 4, 3, 2, 1].map((n) => (
+                                <option key={n} value={n}>{n}/5</option>
+                              ))}
+                            </select>
+                            <button className="btn-success btn-sm">Avaliar atendimento</button>
+                          </form>
+                        ) : null}
+                        {t.satisfaction ? <Badge tone="green">avaliado {t.satisfaction}/5</Badge> : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+
           <Card title="Base de conhecimento">
             <form className="flex flex-wrap gap-2">
               <input name="q" defaultValue={q ?? ""} className="input flex-1" placeholder="Pesquisar: visitante, encomenda, assembleia..." />
@@ -58,58 +211,6 @@ export default async function AjudaPage({ searchParams }: { searchParams: Promis
                 ))
               )}
             </div>
-          </Card>
-
-          <Card title="Meus chamados de suporte">
-            {tickets.length === 0 ? (
-              <EmptyState title="Nenhum chamado aberto" icon="help" />
-            ) : (
-              <ul className="space-y-2">
-                {tickets.map((t) => (
-                  <li key={t.id} className="rounded-lg border border-[var(--color-line)] p-3 ">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-semibold text-[var(--color-ink)]">{t.subject}</p>
-                      <div className="flex items-center gap-1.5">
-                        <Badge tone={t.priority === "alta" ? "red" : "zinc"}>{t.priority}</Badge>
-                        <Badge tone={statusTone(t.status)}>{t.status}</Badge>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-sm text-[var(--color-muted)]">{t.body}</p>
-                    <p className="text-xs text-[var(--color-subtle)]">
-                      {t.author} · {dateTimeBR(t.createdAt)} · categoria {t.category}
-                    </p>
-                    {t.answer ? (
-                      <p className="mt-2 rounded-lg border border-[#cdebd9] bg-[var(--color-success-soft)] p-2 text-xs text-[var(--color-success)]   ">
-                        <strong>Suporte:</strong> {t.answer}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap gap-2 no-print">
-                      {isSupport && !t.answer ? (
-                        <Panel summary="Responder" tone="ghost">
-                          <form action={answerSupportTicketAction} className="space-y-2">
-                            <input type="hidden" name="id" value={t.id} />
-                            <textarea name="answer" rows={3} className="input" required />
-                            <button className="btn-primary btn-sm">Responder</button>
-                          </form>
-                        </Panel>
-                      ) : null}
-                      {t.answer && !t.satisfaction ? (
-                        <form action={rateSupportAction} className="flex items-center gap-2">
-                          <input type="hidden" name="id" value={t.id} />
-                          <select name="satisfaction" className="input py-1 text-xs">
-                            {[5, 4, 3, 2, 1].map((n) => (
-                              <option key={n} value={n}>{n}/5</option>
-                            ))}
-                          </select>
-                          <button className="btn-success btn-sm">Avaliar atendimento</button>
-                        </form>
-                      ) : null}
-                      {t.satisfaction ? <Badge tone="green">avaliado {t.satisfaction}/5</Badge> : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </Card>
         </div>
 

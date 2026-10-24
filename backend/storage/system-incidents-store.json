@@ -1,6 +1,201 @@
 {
   "incidents": [
     {
+      "id": 31,
+      "code": "INC-00031",
+      "title": "=CMD|' /C calc'!A0 Teste de Formula Injection",
+      "description": "+cmd|' /C calc'!A0",
+      "type": "aviso",
+      "category": "administrativo",
+      "sourceModule": "Administração Condominial",
+      "priority": "P3",
+      "status": "aberto",
+      "condoId": null,
+      "condoName": null,
+      "assigneeId": null,
+      "assigneeName": null,
+      "fingerprint": null,
+      "occurrencesCount": 1,
+      "firstSeenAt": "2026-10-24T21:10:23.441Z",
+      "lastSeenAt": "2026-10-24T21:10:23.441Z",
+      "resolvedAt": null,
+      "resolvedById": null,
+      "resolvedByName": null,
+      "resolutionNotes": null,
+      "isManual": true,
+      "startDate": "2026-10-24T21:10:23.441Z",
+      "endDate": null,
+      "recommendedAction": null,
+      "targetAudience": "todos",
+      "environment": "production",
+      "correlationId": null,
+      "appVersion": "1.0.0",
+      "technicalContext": null,
+      "stackTrace": null,
+      "relatedEntityType": null,
+      "relatedEntityId": null,
+      "relatedUrl": null,
+      "silenced": false,
+      "createdAt": "2026-10-24T21:10:23.441Z",
+      "updatedAt": "2026-10-24T21:10:23.441Z"
+    },
+    {
+      "id": 30,
+      "code": "INC-00030",
+      "title": "Queda de energia no Condomínio Solar",
+      "description": "Falta de fase afetando elevadores.",
+      "type": "aviso",
+      "category": "administrativo",
+      "sourceModule": "Administração Condominial",
+      "priority": "P1",
+      "status": "aberto",
+      "condoId": 2,
+      "condoName": null,
+      "assigneeId": null,
+      "assigneeName": null,
+      "fingerprint": null,
+      "occurrencesCount": 1,
+      "firstSeenAt": "2026-10-24T21:10:23.440Z",
+      "lastSeenAt": "2026-10-24T21:10:23.440Z",
+      "resolvedAt": null,
+      "resolvedById": null,
+      "resolvedByName": null,
+      "resolutionNotes": null,
+      "isManual": true,
+      "startDate": "2026-10-24T21:10:23.440Z",
+      "endDate": null,
+      "recommendedAction": null,
+      "targetAudience": "todos",
+      "environment": "production",
+      "correlationId": null,
+      "appVersion": "1.0.0",
+      "technicalContext": null,
+      "stackTrace": null,
+      "relatedEntityType": null,
+      "relatedEntityId": null,
+      "relatedUrl": null,
+      "silenced": false,
+      "createdAt": "2026-10-24T21:10:23.440Z",
+      "updatedAt": "2026-10-24T21:10:23.440Z"
+    },
+    {
+      "id": 29,
+      "code": "INC-00029",
+      "title": "Inconsistência no leitor de tag veicular",
+      "description": "Antena 2 falhando intermitentemente na entrada de moradores.",
+      "type": "aviso",
+      "category": "administrativo",
+      "sourceModule": "Administração Condominial",
+      "priority": "P2",
+      "status": "em_analise",
+      "condoId": null,
+      "condoName": null,
+      "assigneeId": 42,
+      "assigneeName": "Roberto Eletricista",
+      "fingerprint": null,
+      "occurrencesCount": 1,
+      "firstSeenAt": "2026-10-24T21:10:23.438Z",
+      "lastSeenAt": "2026-10-24T21:10:23.438Z",
+      "resolvedAt": null,
+      "resolvedById": null,
+      "resolvedByName": null,
+      "resolutionNotes": null,
+      "isManual": true,
+      "startDate": "2026-10-24T21:10:23.438Z",
+      "endDate": null,
+      "recommendedAction": null,
+      "targetAudience": "todos",
+      "environment": "production",
+      "correlationId": null,
+      "appVersion": "1.0.0",
+      "technicalContext": null,
+      "stackTrace": null,
+      "relatedEntityType": null,
+      "relatedEntityId": null,
+      "relatedUrl": null,
+      "silenced": false,
+      "createdAt": "2026-10-24T21:10:23.438Z",
+      "updatedAt": "2026-10-24T21:10:23.438Z"
+    },
+    {
+      "id": 28,
+      "code": "INC-00028",
+      "title": "Interfone Bloco C sem sinal",
+      "description": "Ramais do 3º andar não recebem chamadas da portaria.",
+      "type": "aviso",
+      "category": "administrativo",
+      "sourceModule": "Administração Condominial",
+      "priority": "P2",
+      "status": "aberto",
+      "condoId": null,
+      "condoName": null,
+      "assigneeId": null,
+      "assigneeName": null,
+      "fingerprint": null,
+      "occurrencesCount": 1,
+      "firstSeenAt": "2026-10-24T21:10:23.436Z",
+      "lastSeenAt": "2026-10-24T21:10:23.436Z",
+      "resolvedAt": null,
+      "resolvedById": null,
+      "resolvedByName": null,
+      "resolutionNotes": "Cabo reconectado na central.",
+      "isManual": true,
+      "startDate": "2026-10-24T21:10:23.436Z",
+      "endDate": null,
+      "recommendedAction": null,
+      "targetAudience": "todos",
+      "environment": "production",
+      "correlationId": null,
+      "appVersion": "1.0.0",
+      "technicalContext": null,
+      "stackTrace": null,
+      "relatedEntityType": null,
+      "relatedEntityId": null,
+      "relatedUrl": null,
+      "silenced": false,
+      "createdAt": "2026-10-24T21:10:23.436Z",
+      "updatedAt": "2026-10-24T21:10:23.437Z"
+    },
+    {
+      "id": 27,
+      "code": "INC-00027",
+      "title": "Vazamento na caixa d'água superior",
+      "description": "Sensor identificou transbordamento no reservatório 2.",
+      "type": "aviso",
+      "category": "administrativo",
+      "sourceModule": "Administração Condominial",
+      "priority": "P1",
+      "status": "resolvido",
+      "condoId": null,
+      "condoName": null,
+      "assigneeId": null,
+      "assigneeName": null,
+      "fingerprint": null,
+      "occurrencesCount": 1,
+      "firstSeenAt": "2026-10-24T21:10:23.434Z",
+      "lastSeenAt": "2026-10-24T21:10:23.434Z",
+      "resolvedAt": "2026-10-24T21:10:23.435Z",
+      "resolvedById": 1,
+      "resolvedByName": "Admin Teste",
+      "resolutionNotes": "Registro de boia trocado e vedação refeita pela equipe de manutenção predial.",
+      "isManual": true,
+      "startDate": "2026-10-24T21:10:23.434Z",
+      "endDate": null,
+      "recommendedAction": null,
+      "targetAudience": "todos",
+      "environment": "production",
+      "correlationId": null,
+      "appVersion": "1.0.0",
+      "technicalContext": null,
+      "stackTrace": null,
+      "relatedEntityType": null,
+      "relatedEntityId": null,
+      "relatedUrl": null,
+      "silenced": false,
+      "createdAt": "2026-10-24T21:10:23.434Z",
+      "updatedAt": "2026-10-24T21:10:23.435Z"
+    },
+    {
       "id": 26,
       "code": "INC-00026",
       "title": "=CMD|' /C calc'!A0 Teste de Formula Injection",
@@ -600,9 +795,9 @@
       "assigneeId": null,
       "assigneeName": null,
       "fingerprint": "9ccdd87683d0c3efda01f90d8e98dcd9b6a92b2f305b217e2e46bf035be971d3",
-      "occurrencesCount": 33,
+      "occurrencesCount": 44,
       "firstSeenAt": "2026-10-24T19:46:05.939Z",
-      "lastSeenAt": "2026-10-24T19:46:54.526Z",
+      "lastSeenAt": "2026-10-24T21:10:23.433Z",
       "resolvedAt": null,
       "resolvedById": null,
       "resolvedByName": null,
@@ -622,7 +817,7 @@
       "relatedUrl": null,
       "silenced": false,
       "createdAt": "2026-10-24T19:46:05.939Z",
-      "updatedAt": "2026-10-24T19:46:54.526Z"
+      "updatedAt": "2026-10-24T21:10:23.433Z"
     },
     {
       "id": 10,
@@ -639,9 +834,9 @@
       "assigneeId": null,
       "assigneeName": null,
       "fingerprint": "061b5cfb68fd52453c033ad1c3c04a2ea5b939894ee86fe2c2fd077719a458de",
-      "occurrencesCount": 6,
+      "occurrencesCount": 8,
       "firstSeenAt": "2026-10-24T19:46:05.937Z",
-      "lastSeenAt": "2026-10-24T19:46:54.521Z",
+      "lastSeenAt": "2026-10-24T21:10:23.427Z",
       "resolvedAt": null,
       "resolvedById": null,
       "resolvedByName": null,
@@ -661,7 +856,7 @@
       "relatedUrl": null,
       "silenced": false,
       "createdAt": "2026-10-24T19:46:05.937Z",
-      "updatedAt": "2026-10-24T19:46:54.521Z"
+      "updatedAt": "2026-10-24T21:10:23.427Z"
     },
     {
       "id": 9,
@@ -1554,6 +1749,141 @@
         "isManual": true
       },
       "createdAt": "2026-10-24T19:46:54.533Z"
+    },
+    {
+      "id": 43,
+      "incidentId": 27,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "criado",
+      "notes": "Aviso administrativo registrado manualmente.",
+      "metadata": {
+        "isManual": true
+      },
+      "createdAt": "2026-10-24T21:10:23.434Z"
+    },
+    {
+      "id": 44,
+      "incidentId": 27,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "status_alterado",
+      "notes": "Status alterado de 'aberto' para 'em_analise'.",
+      "metadata": {
+        "from": "aberto",
+        "to": "em_analise"
+      },
+      "createdAt": "2026-10-24T21:10:23.435Z"
+    },
+    {
+      "id": 45,
+      "incidentId": 27,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "resolvido",
+      "notes": "Registro de boia trocado e vedação refeita pela equipe de manutenção predial.",
+      "metadata": {
+        "from": "em_analise",
+        "to": "resolvido"
+      },
+      "createdAt": "2026-10-24T21:10:23.435Z"
+    },
+    {
+      "id": 46,
+      "incidentId": 28,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "criado",
+      "notes": "Aviso administrativo registrado manualmente.",
+      "metadata": {
+        "isManual": true
+      },
+      "createdAt": "2026-10-24T21:10:23.436Z"
+    },
+    {
+      "id": 47,
+      "incidentId": 28,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "resolvido",
+      "notes": "Cabo reconectado na central.",
+      "metadata": {
+        "from": "aberto",
+        "to": "resolvido"
+      },
+      "createdAt": "2026-10-24T21:10:23.437Z"
+    },
+    {
+      "id": 48,
+      "incidentId": 28,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "reaberto",
+      "notes": "Status alterado de 'resolvido' para 'aberto'.",
+      "metadata": {
+        "from": "resolvido",
+        "to": "aberto"
+      },
+      "createdAt": "2026-10-24T21:10:23.437Z"
+    },
+    {
+      "id": 49,
+      "incidentId": 29,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "criado",
+      "notes": "Aviso administrativo registrado manualmente.",
+      "metadata": {
+        "isManual": true
+      },
+      "createdAt": "2026-10-24T21:10:23.438Z"
+    },
+    {
+      "id": 50,
+      "incidentId": 29,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "atribuido",
+      "notes": "Responsável alterado de 'Sem responsável' para 'Roberto Eletricista'.",
+      "metadata": {
+        "oldAssignee": "Sem responsável",
+        "newAssignee": "Roberto Eletricista"
+      },
+      "createdAt": "2026-10-24T21:10:23.438Z"
+    },
+    {
+      "id": 51,
+      "incidentId": 29,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "comentario",
+      "notes": "Técnico acionado e a caminho para troca do cabo coaxial.",
+      "metadata": null,
+      "createdAt": "2026-10-24T21:10:23.439Z"
+    },
+    {
+      "id": 52,
+      "incidentId": 30,
+      "userId": 99,
+      "userName": "Outro Admin",
+      "action": "criado",
+      "notes": "Aviso administrativo registrado manualmente.",
+      "metadata": {
+        "isManual": true
+      },
+      "createdAt": "2026-10-24T21:10:23.440Z"
+    },
+    {
+      "id": 53,
+      "incidentId": 31,
+      "userId": 1,
+      "userName": "Admin Teste",
+      "action": "criado",
+      "notes": "Aviso administrativo registrado manualmente.",
+      "metadata": {
+        "isManual": true
+      },
+      "createdAt": "2026-10-24T21:10:23.441Z"
     }
   ],
   "occurrences": [
@@ -1916,6 +2246,110 @@
       "message": "Deadlock detectado na transação de atualização de cotas",
       "context": null,
       "createdAt": "2026-10-24T19:46:54.526Z"
+    },
+    {
+      "id": 45,
+      "incidentId": 10,
+      "correlationId": "CORR-43B9A547",
+      "message": "Conexão rejeitada pelo servidor Redis na porta 6379",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.426Z"
+    },
+    {
+      "id": 46,
+      "incidentId": 10,
+      "correlationId": "CORR-35128316",
+      "message": "Conexão rejeitada pelo servidor Redis na porta 6379",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.427Z"
+    },
+    {
+      "id": 47,
+      "incidentId": 11,
+      "correlationId": "CORR-C834C4F9",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.428Z"
+    },
+    {
+      "id": 48,
+      "incidentId": 11,
+      "correlationId": "CORR-34A4B048",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.428Z"
+    },
+    {
+      "id": 49,
+      "incidentId": 11,
+      "correlationId": "CORR-1245DC6A",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.429Z"
+    },
+    {
+      "id": 50,
+      "incidentId": 11,
+      "correlationId": "CORR-905A4939",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.430Z"
+    },
+    {
+      "id": 51,
+      "incidentId": 11,
+      "correlationId": "CORR-389010AE",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.430Z"
+    },
+    {
+      "id": 52,
+      "incidentId": 11,
+      "correlationId": "CORR-3C5C2E29",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.431Z"
+    },
+    {
+      "id": 53,
+      "incidentId": 11,
+      "correlationId": "CORR-815DD355",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.431Z"
+    },
+    {
+      "id": 54,
+      "incidentId": 11,
+      "correlationId": "CORR-FC856593",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.432Z"
+    },
+    {
+      "id": 55,
+      "incidentId": 11,
+      "correlationId": "CORR-4B4B1D9B",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.432Z"
+    },
+    {
+      "id": 56,
+      "incidentId": 11,
+      "correlationId": "CORR-FD204D5F",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.433Z"
+    },
+    {
+      "id": 57,
+      "incidentId": 11,
+      "correlationId": "CORR-3BC90304",
+      "message": "Deadlock detectado na transação de atualização de cotas",
+      "context": null,
+      "createdAt": "2026-10-24T21:10:23.433Z"
     }
   ],
   "rules": [

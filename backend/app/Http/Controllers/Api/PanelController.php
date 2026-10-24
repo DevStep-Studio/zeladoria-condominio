@@ -6,6 +6,7 @@ use App\Services\OperationService;
 use App\Services\SessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 final class PanelController
 {
@@ -217,12 +218,41 @@ final class PanelController
     public function ajuda(Request $request): JsonResponse
     {
         $ctx = $this->context($request);
-        $condoId = $ctx['condo']['id'] ?? null;
-        $isSupport = $ctx['user']['isSuperAdmin'] || $ctx['role'] === 'superadmin';
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
+        $isSupport = ! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin';
+
+        if ($isSupport) {
+            $tickets = DB::table('support_tickets as st')
+                ->leftJoin('users as u', 'u.id', '=', 'st.user_id')
+                ->leftJoin('condominiums as c', 'c.id', '=', 'st.condo_id')
+                ->select([
+                    'st.id',
+                    'st.subject',
+                    'st.body',
+                    'st.category',
+                    'st.priority',
+                    'st.status',
+                    'st.answer',
+                    'st.satisfaction',
+                    'st.created_at as createdAt',
+                    'u.name as author',
+                    'u.email as authorEmail',
+                    'c.name as condoName',
+                    'st.condo_id as condoId',
+                ])
+                ->orderByDesc('st.created_at')
+                ->get()
+                ->map(fn ($t) => (array) $t)
+                ->all();
+        } else {
+            $tickets = $condoId
+                ? $this->operations->execute('app.painel.ajuda.page.002', [false, $condoId, $condoId, $condoId])
+                : [];
+        }
 
         return response()->json(['data' => [
             'articles' => $this->operations->execute('app.painel.ajuda.page.001', []),
-            'tickets' => $this->operations->execute('app.painel.ajuda.page.002', [$isSupport, $condoId, $condoId, $condoId]),
+            'tickets' => $tickets,
         ]]);
     }
 
@@ -407,7 +437,13 @@ final class PanelController
     public function chamados(Request $request): JsonResponse
     {
         $ctx = $this->context($request);
-        $condoId = $this->condoId($ctx);
+        $isSuperAdmin = ($ctx['role'] === 'superadmin') || ! empty($ctx['user']['isSuperAdmin']);
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
+
+        if (! $condoId && ! $isSuperAdmin) {
+            abort(403);
+        }
+
         $statuses = ['aberto', 'em_andamento', 'aguardando_morador', 'concluido'];
         $priorities = ['baixa', 'media', 'alta'];
         $categories = ['manutencao', 'seguranca', 'convivencia', 'limpeza', 'administrativo'];
@@ -417,22 +453,77 @@ final class PanelController
         $search = trim((string) $request->query('q', ''));
         $activeStatus = $s && in_array($s, $statuses, true) ? $s : 'todos';
 
-        $rows = $this->operations->execute('app.painel.chamados.page.001', [
-            $condoId,
-            $ctx['role'] === 'morador',
-            $request->user()->id,
-            $activeStatus !== 'todos',
-            $s && in_array($s, $statuses, true),
-            $s,
-            in_array($p, $priorities, true),
-            $p,
-            in_array($c, $categories, true),
-            $c,
-            $search,
-            "%{$search}%",
-            "%{$search}%",
-            "%{$search}%",
-        ]);
+        if (! $condoId && $isSuperAdmin) {
+            $query = DB::table('tickets as t')
+                ->leftJoin('users as u', 'u.id', '=', 't.opened_by_id')
+                ->leftJoin('units as un', 'un.id', '=', 't.unit_id')
+                ->leftJoin('blocks as b', 'b.id', '=', 'un.block_id')
+                ->leftJoin('condominiums as c_condo', 'c_condo.id', '=', 't.condo_id')
+                ->select([
+                    't.id',
+                    't.code',
+                    't.title',
+                    't.description',
+                    't.category',
+                    't.priority',
+                    't.status',
+                    't.ai_priority as aiPriority',
+                    't.ai_summary as aiSummary',
+                    't.due_at as dueAt',
+                    't.created_at as createdAt',
+                    't.rating',
+                    't.assigned_to_id as assignedToId',
+                    't.condo_id as condoId',
+                    'c_condo.name as condoName',
+                    'u.name as openedBy',
+                    'un.number as unit',
+                    'b.name as block',
+                ]);
+
+            if ($activeStatus !== 'todos') {
+                $query->where('t.status', $activeStatus);
+            }
+            if ($p && in_array($p, $priorities, true)) {
+                $query->where('t.priority', $p);
+            }
+            if ($c && in_array($c, $categories, true)) {
+                $query->where('t.category', $c);
+            }
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('t.title', 'like', "%{$search}%")
+                        ->orWhere('t.code', 'like', "%{$search}%")
+                        ->orWhere('t.description', 'like', "%{$search}%");
+                });
+            }
+            $rows = $query->orderByDesc('t.created_at')->get()->map(fn ($r) => (array) $r)->all();
+        } else {
+            $rows = $this->operations->execute('app.painel.chamados.page.001', [
+                $condoId,
+                $ctx['role'] === 'morador',
+                $request->user()->id,
+                $activeStatus !== 'todos',
+                $s && in_array($s, $statuses, true),
+                $s,
+                in_array($p, $priorities, true),
+                $p,
+                in_array($c, $categories, true),
+                $c,
+                $search,
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+            ]);
+
+            if ($isSuperAdmin && $condoId && ! empty($ctx['condo']['name'])) {
+                foreach ($rows as &$r) {
+                    if (empty($r['condoName'])) {
+                        $r['condoName'] = $ctx['condo']['name'];
+                    }
+                }
+                unset($r);
+            }
+        }
         $ids = array_column($rows, 'id');
 
         return response()->json(['data' => [

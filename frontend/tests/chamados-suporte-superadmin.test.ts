@@ -1,0 +1,43 @@
+import test, { describe } from "node:test";
+import assert from "node:assert/strict";
+import { getNavigationGroups } from "../src/lib/navigation";
+import { hasPermission } from "../src/lib/permissions";
+
+describe("Abas de Operação para Super Admin — Chamados e Suporte", () => {
+  test("Superadmin possui itens de Operação: Chamados e Suporte no menu lateral", () => {
+    const groups = getNavigationGroups("superadmin");
+    const operacaoGroup = groups.find((g) => g.id === "operacao" || g.title.toLowerCase() === "operação");
+
+    assert.ok(operacaoGroup, "Grupo Operação deve existir na navegação do Superadmin");
+    const hrefs = operacaoGroup.items.map((i) => i.href);
+    const labels = operacaoGroup.items.map((i) => i.label.toLowerCase());
+
+    assert.ok(hrefs.includes("/painel/chamados"), "Deve conter rota /painel/chamados");
+    assert.ok(labels.includes("chamados"), "Deve conter item Chamados");
+
+    assert.ok(hrefs.includes("/painel/ajuda"), "Deve conter rota /painel/ajuda");
+    assert.ok(labels.includes("suporte"), "Deve conter item Suporte");
+  });
+
+  test("Itens de Operação respeitam controle de permissões do Superadmin", () => {
+    const groups = getNavigationGroups("superadmin");
+    const operacaoGroup = groups.find((g) => g.id === "operacao");
+    assert.ok(operacaoGroup);
+
+    for (const item of operacaoGroup.items) {
+      if (item.permission) {
+        assert.equal(
+          hasPermission("superadmin", item.permission),
+          true,
+          `Superadmin deve ter permissão para ${item.label} (${item.permission})`
+        );
+      }
+    }
+  });
+
+  test("Morador possui rota de ajuda e suporte", () => {
+    const moradorGroups = getNavigationGroups("morador");
+    const moradorHrefs = moradorGroups.flatMap((g) => g.items.map((i) => i.href));
+    assert.ok(moradorHrefs.includes("/painel/ajuda"), "Morador deve ter acesso a ajuda/suporte");
+  });
+});

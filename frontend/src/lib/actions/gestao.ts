@@ -82,7 +82,8 @@ export async function updateTicketAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
   const [ticket] = await apiOperation("lib.actions.gestao.007", [id]);
-  if (!ticket || ticket.condoId !== condoId) return;
+  if (!ticket || (session.role !== "superadmin" && ticket.condoId !== condoId)) return;
+  const targetCondoId = ticket.condoId ?? condoId;
   const status = str(formData, "status", ticket.status);
   const values: Partial<Partial<DomainModels["tickets"]>> = {
     status,
@@ -91,11 +92,11 @@ export async function updateTicketAction(formData: FormData) {
     closedAt: status === "concluido" ? new Date() : null,
   };
   await apiOperation("lib.actions.gestao.008", [values, id]);
-  if (ticket.openedById) {
-    await notify(condoId, [ticket.openedById], `Chamado ${ticket.code} atualizado`, `Status: ${status}`, "/painel/chamados");
+  if (ticket.openedById && targetCondoId > 0) {
+    await notify(targetCondoId, [ticket.openedById], `Chamado ${ticket.code} atualizado`, `Status: ${status}`, "/painel/chamados");
   }
   await logAudit({
-    session, condoId, action: "atualizar", entity: "chamado", entityId: id,
+    session, condoId: targetCondoId > 0 ? targetCondoId : null, action: "atualizar", entity: "chamado", entityId: id,
     summary: `Alterou ${ticket.code} para ${status}`, before: { status: ticket.status }, after: { status },
   });
   revalidatePath("/painel/chamados");
@@ -107,7 +108,7 @@ export async function commentTicketAction(formData: FormData) {
   const body = str(formData, "body");
   if (!ticketId || !body) return;
   await apiOperation("lib.actions.gestao.009", [{ ticketId, userId: session.user.id, body, internal: bool(formData, "internal") }]);
-  await logAudit({ session, condoId, action: "comentar", entity: "chamado", entityId: ticketId, summary: summarize(body, 120) });
+  await logAudit({ session, condoId: condoId > 0 ? condoId : null, action: "comentar", entity: "chamado", entityId: ticketId, summary: summarize(body, 120) });
   revalidatePath("/painel/chamados");
 }
 
