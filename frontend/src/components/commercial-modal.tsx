@@ -266,12 +266,9 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
 
                 {/* 1. Nome Completo */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="commercial-name"
-                    className="block text-xs font-bold text-slate-700 tracking-tight"
-                  >
-                    Nome completo <span className="text-red-500">*</span>
+                <div className="space-y-1">
+                  <label htmlFor="commercial-name" className="sr-only">
+                    Nome completo
                   </label>
                   <div
                     className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
@@ -286,9 +283,10 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                       required
                       autoComplete="name"
                       aria-required="true"
+                      aria-label="Nome completo"
                       aria-invalid={!!fieldErrors.nome}
                       aria-describedby={fieldErrors.nome ? "commercial-name-error" : undefined}
-                      placeholder="Ex: Roberto Silva"
+                      placeholder="Nome completo"
                       value={nome}
                       onChange={(e) => {
                         setNome(e.target.value);
@@ -311,12 +309,9 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
 
                 {/* 2. E-mail (Largura Completa) */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="commercial-email"
-                    className="block text-xs font-bold text-slate-700 tracking-tight"
-                  >
-                    E-mail <span className="text-red-500">*</span>
+                <div className="space-y-1">
+                  <label htmlFor="commercial-email" className="sr-only">
+                    E-mail
                   </label>
                   <div
                     className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
@@ -330,6 +325,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                       required
                       autoComplete="email"
                       aria-required="true"
+                      aria-label="E-mail"
                       aria-invalid={!!fieldErrors.email}
                       aria-describedby={fieldErrors.email ? "commercial-email-error" : undefined}
                       placeholder="seu.email@exemplo.com.br"
@@ -355,12 +351,9 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
 
                 {/* 3. Assunto (Largura Completa) */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="commercial-subject"
-                    className="block text-xs font-bold text-slate-700 tracking-tight"
-                  >
-                    Assunto <span className="text-red-500">*</span>
+                <div className="space-y-1">
+                  <label htmlFor="commercial-subject" className="sr-only">
+                    Assunto
                   </label>
                   <div
                     className={`relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
@@ -372,6 +365,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                       name="assunto"
                       required
                       aria-required="true"
+                      aria-label="Assunto de interesse"
                       aria-invalid={!!fieldErrors.assunto}
                       aria-describedby={fieldErrors.assunto ? "commercial-subject-error" : undefined}
                       value={assunto}
