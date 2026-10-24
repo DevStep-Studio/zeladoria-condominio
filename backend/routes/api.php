@@ -26,6 +26,7 @@ Route::prefix('v1')->middleware(RequireFrontendService::class)->group(function (
     Route::get('/modelos/{type}', [UtilityController::class, 'template'])->name('api.modelos');
     Route::post('/auditoria', [UtilityController::class, 'audit'])->name('api.auditoria');
     Route::post('/notificacoes/disparar', [UtilityController::class, 'notify'])->name('api.notificacoes.disparar');
+    Route::post('/comercial/solicitacao', [UtilityController::class, 'commercialLead'])->middleware('throttle:10,1')->name('api.comercial.solicitacao');
     Route::get('/prestadores', [MarketplaceProviderController::class, 'index'])->name('api.prestadores.index');
     Route::post('/prestadores/cadastro', [ProviderRegistrationController::class, 'store'])->middleware('throttle:10,1')->name('api.prestadores.store');
     Route::get('/prestadores/{slug}', [MarketplaceProviderController::class, 'show'])->name('api.prestadores.show');

@@ -241,4 +241,60 @@ final class UtilityController
             'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
         ]);
     }
+
+    public function commercialLead(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'nome' => 'required|string|min:2|max:140',
+            'condominio' => 'nullable|string|max:160',
+            'whatsapp' => 'required|string|min:10|max:30',
+            'email' => 'required|email|max:160',
+            'assunto' => 'required|string|max:100',
+            'mensagem' => 'nullable|string|max:3000',
+        ]);
+
+        $subject = '[Comercial] ' . $data['assunto'] . (! empty($data['condominio']) ? ' - ' . $data['condominio'] : ' - ' . $data['nome']);
+        $body = "Nome: {$data['nome']}\n"
+            . 'Condomínio/Empresa: ' . (! empty($data['condominio']) ? $data['condominio'] : 'Não informado') . "\n"
+            . "WhatsApp: {$data['whatsapp']}\n"
+            . "E-mail: {$data['email']}\n"
+            . "Assunto: {$data['assunto']}\n\n"
+            . "Mensagem:\n" . (! empty($data['mensagem']) ? $data['mensagem'] : 'Sem mensagem adicional.');
+
+        $ticketId = DB::table('support_tickets')->insertGetId([
+            'condo_id' => null,
+            'user_id' => null,
+            'subject' => mb_substr($subject, 0, 200),
+            'body' => $body,
+            'category' => 'comercial',
+            'priority' => 'alta',
+            'status' => 'aberto',
+            'answer' => null,
+            'satisfaction' => null,
+            'created_at' => now(),
+        ]);
+
+        DB::table('audit_logs')->insert([
+            'condo_id' => null,
+            'user_id' => null,
+            'user_name' => mb_substr($data['nome'], 0, 140),
+            'action' => 'solicitacao_comercial',
+            'entity' => 'lead_comercial',
+            'entity_id' => (string) $ticketId,
+            'summary' => mb_substr("Solicitação comercial: {$data['assunto']} ({$data['nome']})", 0, 240),
+            'origin' => 'site_publico',
+            'critical' => false,
+            'ip' => mb_substr((string) $request->ip(), 0, 60),
+            'user_agent' => mb_substr((string) $request->userAgent(), 0, 240),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'data' => [
+                'success' => true,
+                'ticketId' => $ticketId,
+                'message' => 'Recebemos sua solicitação! Nossa equipe entrará em contato pelos dados informados.',
+            ],
+        ], 201);
+    }
 }

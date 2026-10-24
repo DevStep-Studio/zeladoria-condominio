@@ -4,11 +4,13 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { loginAction } from "@/lib/actions/session";
 import { Icon } from "@/components/icon";
+import { CommercialModal } from "@/components/commercial-modal";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isCommercialModalOpen, setIsCommercialModalOpen] = useState(false);
   const [error, formAction, pending] = useActionState(loginAction, null);
 
   return (
@@ -83,7 +85,7 @@ export function LoginForm() {
           </div>
         ) : null}
 
-        {/* Botão de Entrar (Pill minimalista sem gradiente) */}
+        {/* Botão Principal de Entrar (Pill azul #1355FF sólido) */}
         <button
           type="submit"
           disabled={pending}
@@ -127,7 +129,35 @@ export function LoginForm() {
         </button>
       </form>
 
+      {/* Composição Comercial: Espaçamento de 14px em relação ao botão Entrar */}
+      <div className="pt-3.5 space-y-3">
+        {/* Texto auxiliar */}
+        <p className="text-center text-xs text-slate-500 font-normal leading-relaxed">
+          Ainda não tem acesso? Conheça nossas soluções para o seu condomínio.
+        </p>
 
+        {/* Novo botão: Fale conosco → (Secundário Outline: fundo branco, borda #1355FF, texto #1355FF) */}
+        <button
+          type="button"
+          onClick={() => setIsCommercialModalOpen(true)}
+          className="group relative flex h-13 sm:h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white border border-[#1355FF] hover:bg-[#1355FF]/5 active:bg-[#1355FF]/10 px-6 text-sm sm:text-base font-semibold text-[#1355FF] shadow-xs transition-all duration-200 active:scale-[0.99] cursor-pointer"
+        >
+          <span>Fale conosco</span>
+          <Icon
+            name="arrow-right"
+            size={16}
+            strokeWidth={2.5}
+            className="transition-transform duration-200 group-hover:translate-x-1"
+          />
+        </button>
+      </div>
+
+      {/* Modal de Contato Comercial */}
+      <CommercialModal
+        isOpen={isCommercialModalOpen}
+        onClose={() => setIsCommercialModalOpen(false)}
+      />
     </div>
   );
 }
+

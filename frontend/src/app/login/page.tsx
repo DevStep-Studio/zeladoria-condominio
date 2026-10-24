@@ -47,13 +47,13 @@ export default async function LoginPage() {
         <footer className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
           <span>© 2026 Zeladoria Cidades</span>
           <div className="flex items-center gap-3">
-            <a href="#" className="hover:text-[#1355FF] transition-colors">
+            <Link href="/termos" className="hover:text-[#1355FF] transition-colors">
               Termos
-            </a>
+            </Link>
             <span>·</span>
-            <a href="#" className="hover:text-[#1355FF] transition-colors">
+            <Link href="/privacidade" className="hover:text-[#1355FF] transition-colors">
               Privacidade
-            </a>
+            </Link>
           </div>
         </footer>
       </section>
