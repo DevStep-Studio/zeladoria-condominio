@@ -119,6 +119,7 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
     id: "administracao",
     title: "Administração",
     items: [
+      { id: "avisos_erros", label: "Avisos e erros", href: "/painel/sistema/avisos-erros", icon: "alert-triangle" },
       { id: "configuracoes", label: "Configurações do condomínio", href: "/painel/configuracoes", icon: "settings", permission: "condominium.settings.manage" },
       { id: "usuarios_acessos", label: "Usuários e acessos", href: "/painel/moradores?tab=acessos", icon: "lock", permission: "user.manage" },
       { id: "auditoria", label: "Auditoria", href: "/painel/auditoria", icon: "activity", permission: "audit.view" },
@@ -241,6 +242,7 @@ export const ADMIN_NAVIGATION: NavGroup[] = [
     title: "Sistema",
     items: [
       { id: "notificacoes", label: "Notificações", href: "/painel/notificacoes", icon: "bell" },
+      { id: "avisos_erros", label: "Avisos e erros", href: "/painel/sistema/avisos-erros", icon: "alert-triangle" },
       { id: "configuracoes", label: "Configurações", href: "/painel/configuracoes", icon: "settings" },
       { id: "permissoes", label: "Permissões", href: "/painel/admin/permissoes", icon: "key", permission: "platform.admin" },
       { id: "auditoria", label: "Auditoria", href: "/painel/auditoria", icon: "activity", permission: "audit.view" },
@@ -324,7 +326,7 @@ const CONSELHO_NAVIGATION: NavGroup[] = [
  * Retorna os grupos de navegação filtrados para o papel atual.
  * Grupos com zero itens autorizados são omitidos automaticamente.
  */
-export function getNavigationGroups(role: Role, unreadAnnouncements = 0): NavGroup[] {
+export function getNavigationGroups(role: Role, unreadAnnouncements = 0, criticalIncidentsCount = 0): NavGroup[] {
   let baseGroups: NavGroup[];
 
   switch (role) {
@@ -360,9 +362,16 @@ export function getNavigationGroups(role: Role, unreadAnnouncements = 0): NavGro
     for (const item of group.items) {
       const allowed = item.permission ? hasPermission(role, item.permission) : true;
       if (allowed) {
+        let badge: number | undefined = undefined;
+        if (item.id === "comunicados" && unreadAnnouncements > 0) {
+          badge = unreadAnnouncements;
+        } else if (item.id === "avisos_erros" && criticalIncidentsCount > 0) {
+          badge = criticalIncidentsCount;
+        }
+
         authorizedItems.push({
           ...item,
-          badge: item.id === "comunicados" && unreadAnnouncements > 0 ? unreadAnnouncements : undefined,
+          badge,
         });
       }
     }

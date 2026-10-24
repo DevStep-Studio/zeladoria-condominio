@@ -33,9 +33,27 @@ final class CondoController
         $unreadRow = $this->operations->execute('app.painel.layout.001', [$request->user()->id])[0] ?? ['count' => 0];
         $annRow = $this->operations->execute('app.painel.layout.002', [$condoId])[0] ?? ['annCount' => 0];
 
+        $criticalIncidentsCount = 0;
+        try {
+            $incidentQuery = DB::table('system_incidents')
+                ->where('priority', 'P0')
+                ->whereIn('status', ['aberto', 'reconhecido', 'em_analise']);
+            if (! (($ctx['user']['isSuperAdmin'] ?? false) || ($ctx['role'] ?? '') === 'superadmin')) {
+                if ($condoId) {
+                    $incidentQuery->where(function ($q) use ($condoId) {
+                        $q->where('condo_id', $condoId)->orWhereNull('condo_id');
+                    });
+                }
+            }
+            $criticalIncidentsCount = (int) $incidentQuery->count();
+        } catch (\Throwable) {
+            $criticalIncidentsCount = 0;
+        }
+
         return response()->json(['data' => [
             'unread' => (int) ($unreadRow['count'] ?? 0),
             'annCount' => (int) ($annRow['annCount'] ?? 0),
+            'criticalIncidentsCount' => $criticalIncidentsCount,
         ]]);
     }
 

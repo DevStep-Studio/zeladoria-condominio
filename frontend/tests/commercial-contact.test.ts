@@ -75,6 +75,13 @@ describe("FLUXO COMERCIAL & LOGIN PRIVADO — ZELADORIA CONDOMÍNIO", () => {
       );
     });
 
+    it("deve conter o número oficial padrão (17) 98126-2803", () => {
+      const defaultInfo = getCommercialWhatsAppInfo();
+      assert.equal(defaultInfo.configured, true);
+      assert.ok(defaultInfo.url.includes("5517981262803"));
+      assert.equal(defaultInfo.phone, "(17) 98126-2803");
+    });
+
     it("deve gerar link oficial do WhatsApp quando número for configurado", () => {
       const info = getCommercialWhatsAppInfo("11987654321");
       assert.equal(info.configured, true);
@@ -82,7 +89,7 @@ describe("FLUXO COMERCIAL & LOGIN PRIVADO — ZELADORIA CONDOMÍNIO", () => {
       assert.ok(info.url.includes(encodeURIComponent(OFFICIAL_COMMERCIAL_MESSAGE)));
     });
 
-    it("deve sinalizar canal não configurado sem inventar dados quando variável estiver ausente", () => {
+    it("deve sinalizar canal não configurado quando número for vazio explicitamente", () => {
       const info = getCommercialWhatsAppInfo("");
       assert.equal(info.configured, false);
       assert.equal(info.url, "");

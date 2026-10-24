@@ -117,6 +117,11 @@ export type Permission =
   | "settings.manage"
   | "condominium.settings.manage"
 
+  // Central de Avisos e Erros
+  | "system.incidents.view"
+  | "system.incidents.manage"
+  | "system.rules.manage"
+
   // Plataforma Admin (Superadmin)
   | "platform.admin"
   | "platform.condos.manage"
@@ -223,6 +228,8 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "audit.view",
   "settings.manage",
   "condominium.settings.manage",
+  "system.incidents.view",
+  "system.incidents.manage",
 ];
 
 const CONSELHO_PERMISSIONS: Permission[] = [
@@ -321,6 +328,7 @@ export const ROLE_PERMISSIONS_MAP: Record<Role, Set<Permission>> = {
     "platform.marketplace.manage",
     "platform.finance.manage",
     "platform.audit.view",
+    "system.rules.manage",
   ]),
   sindico: new Set(SINDICO_PERMISSIONS),
   conselho: new Set(CONSELHO_PERMISSIONS),

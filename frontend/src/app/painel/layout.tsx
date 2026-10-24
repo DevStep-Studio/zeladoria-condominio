@@ -14,9 +14,9 @@ export default async function PainelLayout({ children }: { children: ReactNode }
   const { session } = await requireCondo();
   const condoId = session.condo?.id ?? 0;
 
-  const { unread, annCount } = await domainRequest<{ unread: number; annCount: number }>(`/painel/layout?condoId=${condoId}`);
+  const { unread, annCount, criticalIncidentsCount } = await domainRequest<{ unread: number; annCount: number; criticalIncidentsCount?: number }>(`/painel/layout?condoId=${condoId}`);
 
-  const navigationGroups = getNavigationGroups(session.role, Number(annCount ?? 0));
+  const navigationGroups = getNavigationGroups(session.role, Number(annCount ?? 0), Number(criticalIncidentsCount ?? 0));
   const mobileNav = getMobileNavItems(session.role);
   const activeMembership = session.memberships.find((m) => m.condoId === condoId);
 

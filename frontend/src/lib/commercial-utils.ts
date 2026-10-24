@@ -70,6 +70,8 @@ export function validateEmail(email: string): boolean {
   return regex.test(trimmed);
 }
 
+export const OFFICIAL_COMMERCIAL_WHATSAPP = "(17) 98126-2803";
+
 /**
  * Retorna as informações do canal oficial de WhatsApp comercial configurado
  */
@@ -82,8 +84,8 @@ export function getCommercialWhatsAppInfo(customPhone?: string): {
   const envPhone =
     process.env.NEXT_PUBLIC_COMMERCIAL_WHATSAPP ||
     process.env.NEXT_PUBLIC_WHATSAPP_COMERCIAL ||
-    "";
-  const rawPhone = (customPhone || envPhone).trim();
+    OFFICIAL_COMMERCIAL_WHATSAPP;
+  const rawPhone = (customPhone !== undefined ? customPhone : envPhone).trim();
   const digits = cleanPhoneDigits(rawPhone);
 
   const configured = digits.length >= 10;

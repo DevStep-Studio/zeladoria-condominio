@@ -63,16 +63,45 @@ final class UtilityController
         }
         $staff = ['superadmin', 'sindico', 'conselho', 'zelador'];
         $allowed = match ($entity) {
-            'financeiro' => ['superadmin', 'sindico', 'conselho'], 'auditoria' => ['superadmin', 'sindico'], 'visitantes', 'encomendas' => [...$staff, 'porteiro'], default => $staff
+            'financeiro' => ['superadmin', 'sindico', 'conselho'], 'auditoria' => ['superadmin', 'sindico'], 'avisos-erros' => ['superadmin', 'sindico', 'conselho', 'zelador'], 'visitantes', 'encomendas' => [...$staff, 'porteiro'], default => $staff
         };
         abort_unless(in_array($session['role'], $allowed, true), 403);
-        $ids = ['moradores' => '001', 'ocorrencias' => '002', 'visitantes' => '003', 'encomendas' => '004', 'financeiro' => '005', 'contratos' => '007', 'auditoria' => '008'];
-        abort_unless(isset($ids[$entity]), 404);
-        $rows = $operations->execute('app.api.export.-entity-.route.'.$ids[$entity], [$condoId]);
-        if ($entity === 'financeiro') {
-            $charges = $operations->execute('app.api.export.-entity-.route.006', [$condoId]);
-            foreach ($charges as $c) {
-                $rows[] = ['tipo' => 'cobranca', 'descricao' => 'Unidade '.$c['unidade'], 'categoria' => 'taxa_condominial', 'centro_custo' => '-', 'valor' => $c['valor'], 'vencimento' => $c['vencimento'], 'pagamento' => '', 'status' => $c['status']];
+
+        if ($entity === 'avisos-erros') {
+            $query = DB::table('system_incidents');
+            if ($session['role'] !== 'superadmin') {
+                $query->where(function ($q) use ($condoId) {
+                    $q->where('condo_id', $condoId)->orWhereNull('condo_id');
+                });
+            }
+            $incidents = $query->orderByDesc('last_seen_at')->get();
+            $rows = [];
+            foreach ($incidents as $inc) {
+                $rows[] = [
+                    'id' => $inc->code,
+                    'tipo' => $inc->type,
+                    'prioridade' => $inc->priority,
+                    'status' => $inc->status,
+                    'titulo' => $inc->title,
+                    'modulo' => $inc->source_module,
+                    'responsavel' => $inc->assignee_name ?: 'Sem responsável',
+                    'ocorrencias' => $inc->occurrences_count,
+                    'primeira_ocorrencia' => $inc->first_seen_at,
+                    'ultima_ocorrencia' => $inc->last_seen_at,
+                    'resolvido_em' => $inc->resolved_at ?: '-',
+                    'resolvido_por' => $inc->resolved_by_name ?: '-',
+                    'solucao' => $inc->resolution_notes ?: '-',
+                ];
+            }
+        } else {
+            $ids = ['moradores' => '001', 'ocorrencias' => '002', 'visitantes' => '003', 'encomendas' => '004', 'financeiro' => '005', 'contratos' => '007', 'auditoria' => '008'];
+            abort_unless(isset($ids[$entity]), 404);
+            $rows = $operations->execute('app.api.export.-entity-.route.'.$ids[$entity], [$condoId]);
+            if ($entity === 'financeiro') {
+                $charges = $operations->execute('app.api.export.-entity-.route.006', [$condoId]);
+                foreach ($charges as $c) {
+                    $rows[] = ['tipo' => 'cobranca', 'descricao' => 'Unidade '.$c['unidade'], 'categoria' => 'taxa_condominial', 'centro_custo' => '-', 'valor' => $c['valor'], 'vencimento' => $c['vencimento'], 'pagamento' => '', 'status' => $c['status']];
+                }
             }
         }
         $stream = fopen('php://temp', 'r+');

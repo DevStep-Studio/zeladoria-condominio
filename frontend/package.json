@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/fase1-fundacao.test.ts tests/fase2-prestador.test.ts tests/fase3-solicitacoes.test.ts tests/fase4-execucao.test.ts tests/fase5-financeiro.test.ts tests/fase6-comunicacao.test.ts tests/roadmap-evolucao.test.ts tests/marketplace.test.ts tests/zeladoria-pay.test.ts tests/navigation-rbac.test.ts tests/api-boundary.test.ts",
     "test:commercial": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/commercial-contact.test.ts",
+    "test:avisos-erros": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/avisos-erros.test.ts",
     "test:pay": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/zeladoria-pay.test.ts",
     "test:integration": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/functional.test.ts",
     "test:marketplace": "tsx --conditions=react-server --import ./tests/setup.ts --test tests/marketplace.test.ts",
