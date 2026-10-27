@@ -21,7 +21,7 @@ export default async function FinanceiroPage() {
 
   return (
     <FinanceiroClient
-      condoName={condo.name}
+      condoName={condo?.name ?? "Condomínio"}
       transactions={txRows.map((t) => ({
         ...t,
         kind: (t.kind === "receita" ? "receita" : "despesa") as "receita" | "despesa",

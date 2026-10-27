@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
@@ -22,7 +23,14 @@ const STEPS = [
 ];
 
 export default async function ImplantacaoPage() {
-  const { condo, condoId } = await requireRole(["superadmin", "sindico"]);
+  const { session, condo, condoId } = await requireRole(["superadmin", "sindico"]);
+
+  if (!condo) {
+    if (session.role === "superadmin") {
+      redirect("/painel/admin/condominios");
+    }
+    redirect("/login?erro=sem-condominio");
+  }
 
   const {
     blockCount,

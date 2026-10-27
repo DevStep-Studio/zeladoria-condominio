@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { requireRole } from "@/lib/auth";
 import { Badge, Card, Field, PageHeader } from "@/components/ui";
@@ -9,6 +10,13 @@ export const dynamic = "force-dynamic";
 
 export default async function ConfiguracoesPage() {
   const { session, condo } = await requireRole(["superadmin", "sindico"]);
+
+  if (!condo) {
+    if (session.role === "superadmin") {
+      redirect("/painel/admin/condominios");
+    }
+    redirect("/login?erro=sem-condominio");
+  }
 
   const sections: { href: string; title: string; desc: string; icon: IconName; badge?: string }[] = [
     { href: "/painel/moradores", title: "Moradores e unidades", desc: "Cadastros, convites e importação.", icon: "users" },
