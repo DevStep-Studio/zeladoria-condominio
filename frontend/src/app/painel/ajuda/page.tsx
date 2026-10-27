@@ -14,24 +14,37 @@ export default async function AjudaPage({
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
   const { session, condoId } = await requireCondo();
-  const { q, status = "todos" } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const { q, status = "todos" } = params;
   const isSupport = session.role === "superadmin";
 
-  const { articles = [], tickets = [] } = await domainRequest<{
-    articles: any[];
-    tickets: any[];
+  const res = await domainRequest<{
+    articles?: any[];
+    tickets?: any[];
   }>("/painel/ajuda", { query: { condoId: condoId > 0 ? condoId : undefined, role: session.role } })
     .catch(() => ({ articles: [], tickets: [] }));
 
-  const list = q ? rankByQuery(articles ?? [], ["title", "body", "tags", "category"], q) : (articles ?? []);
-  const categories = [...new Set((articles ?? []).map((a) => a.category))];
+  const rawArticles = Array.isArray(res?.articles) ? res.articles : [];
+  const rawTickets = Array.isArray(res?.tickets) ? res.tickets : [];
 
-  const totalTickets = (tickets ?? []).length;
-  const openTickets = (tickets ?? []).filter((t) => t.status === "aberto" || !t.answer).length;
-  const answeredTickets = (tickets ?? []).filter((t) => t.status === "respondido" || (t.answer && t.status !== "encerrado")).length;
-  const closedTickets = (tickets ?? []).filter((t) => t.status === "encerrado").length;
+  const list = q ? rankByQuery(rawArticles, ["title", "body", "tags", "category"], q) : rawArticles;
+  const categories = [...new Set(rawArticles.map((a) => a?.category).filter(Boolean))];
 
-  const filteredTickets = (tickets ?? []).filter((t) => {
+  const tickets = rawTickets.map((t) => ({
+    ...t,
+    id: t.id ?? Math.random(),
+    status: t.status ?? "aberto",
+    priority: t.priority ?? "normal",
+    category: t.category ?? "geral",
+    createdAt: t.createdAt ?? t.created_at,
+  }));
+
+  const totalTickets = tickets.length;
+  const openTickets = tickets.filter((t) => t.status === "aberto" || !t.answer).length;
+  const answeredTickets = tickets.filter((t) => t.status === "respondido" || (t.answer && t.status !== "encerrado")).length;
+  const closedTickets = tickets.filter((t) => t.status === "encerrado").length;
+
+  const filteredTickets = tickets.filter((t) => {
     if (status === "aberto") return t.status === "aberto" || !t.answer;
     if (status === "respondido") return t.status === "respondido" || (t.answer && t.status !== "encerrado");
     if (status === "encerrado") return t.status === "encerrado";
@@ -59,7 +72,7 @@ export default async function AjudaPage({
             hint={openTickets > 0 ? "Ação necessária" : "Fila zerada"}
             tone={openTickets > 0 ? "yellow" : "blue"}
           />
-          <StatCard label="Respondidos" value={answeredTickets} icon="message-square" tone="blue" />
+          <StatCard label="Respondidos" value={answeredTickets} icon="mail" tone="blue" />
           <StatCard label="Encerrados" value={closedTickets} icon="check" tone="blue" />
         </section>
       ) : null}
@@ -155,7 +168,7 @@ export default async function AjudaPage({
                       </div>
                       <p className="mt-1 text-sm text-[var(--color-muted)]">{t.body}</p>
                       <p className="text-xs text-[var(--color-subtle)]">
-                        {t.author} · {dateTimeBR(t.createdAt)} · categoria {t.category}
+                        {t.author || "Usuário"} · {dateTimeBR(t.createdAt)} · categoria {t.category}
                       </p>
                       {t.answer ? (
                         <p className="mt-2 rounded-lg border border-[#cdebd9] bg-[var(--color-success-soft)] p-2 text-xs text-[var(--color-success)]">

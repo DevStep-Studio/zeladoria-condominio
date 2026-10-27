@@ -2,8 +2,15 @@ import { domainRequest } from "@/lib/api/server";
 import Link from "next/link";
 
 import { requireSession } from "@/lib/auth";
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import { dateTimeBR, money } from "@/lib/utils";
+import {
+  CATEGORY_LABELS,
+  SUBCATEGORIES_BY_CATEGORY,
+  categoryLabel,
+  getCategorySubcategories,
+  normalizeServiceCategory,
+} from "@/lib/services/providers-data";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +19,41 @@ export const metadata = {
   description: "Aprovações, categorias, serviços, avaliações e publicidade do marketplace.",
 };
 
+function safeCategoryIcon(key: string): IconName {
+  const iconMap: Record<string, IconName> = {
+    eletrica: "zap",
+    hidraulica: "wrench",
+    climatizacao: "sun",
+    pintura: "pencil",
+    marcenaria: "wrench",
+    carpintaria: "wrench",
+    seguranca: "shield",
+    limpeza: "sparkles",
+    jardinagem: "sparkles",
+    elevadores: "building",
+    portoes: "shield",
+    servicos: "briefcase",
+  };
+  return iconMap[key] ?? "briefcase";
+}
+
 export default async function AdminMarketplacePage({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
   await requireSession();
-  const { tab = "prestadores" } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const { tab = "prestadores" } = params;
 
-  const { allVendors, reviewsList } = await domainRequest<{
-    allVendors: any[];
-    reviewsList: any[];
-  }>("/painel/admin/marketplace");
+  const res = await domainRequest<{
+    allVendors?: any[];
+    reviewsList?: any[];
+  }>("/painel/admin/marketplace").catch(() => ({ allVendors: [], reviewsList: [] }));
+
+  const allVendors = Array.isArray(res?.allVendors) ? res.allVendors : [];
+  const reviewsList = Array.isArray(res?.reviewsList) ? res.reviewsList : [];
+
   const servicesList = allVendors.flatMap((v) =>
     (v.services ?? []).map((s: any) => ({
       id: `${v.id}-${s.id}`,
@@ -37,9 +67,43 @@ export default async function AdminMarketplacePage({
 
   const pendingApprovals = allVendors.filter((v) => !v.active);
 
+  // Mapeamento e agregação de categorias
+  const categoriesMap = new Map<string, { label: string; count: number; subcategories: string[] }>();
+  for (const [key, label] of Object.entries(CATEGORY_LABELS)) {
+    categoriesMap.set(key, {
+      label,
+      count: 0,
+      subcategories: SUBCATEGORIES_BY_CATEGORY[key] ?? [],
+    });
+  }
+
+  for (const v of allVendors) {
+    const rawCat = v.category || "servicos";
+    const norm = normalizeServiceCategory(rawCat);
+    const existing = categoriesMap.get(norm);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      categoriesMap.set(norm, {
+        label: categoryLabel(norm),
+        count: 1,
+        subcategories: getCategorySubcategories(norm),
+      });
+    }
+  }
+
+  const categoriesList = Array.from(categoriesMap.entries()).map(([key, data]) => ({
+    key,
+    label: data.label,
+    count: data.count,
+    subcategories: data.subcategories,
+    icon: safeCategoryIcon(key),
+  }));
+
   const tabs = [
     { id: "prestadores", label: "Prestadores", count: allVendors.length },
     { id: "aprovacoes", label: "Aprovações", count: pendingApprovals.length },
+    { id: "categorias", label: "Categorias", count: categoriesList.length },
     { id: "servicos", label: "Serviços", count: servicesList.length },
     { id: "avaliacoes", label: "Avaliações", count: reviewsList.length },
     { id: "patrocinados", label: "Patrocinados / Destaques" },
@@ -183,6 +247,85 @@ export default async function AdminMarketplacePage({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {tab === "categorias" && (
+        <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+          <div className="p-4 bg-slate-50/60 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Catálogo de Categorias & Especialidades</h2>
+              <p className="text-xs text-slate-500">
+                Segmentação de serviços disponíveis para contratação pelos condomínios e moradores.
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#1355FF] text-xs font-bold w-fit">
+              <Icon name="grid" size={13} />
+              <span>{categoriesList.length} categorias ativas</span>
+            </span>
+          </div>
+
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th className="py-3 px-4">Categoria</th>
+                <th className="py-3 px-4">Profissionais</th>
+                <th className="py-3 px-4">Especialidades & Subcategorias</th>
+                <th className="py-3 px-4 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {categoriesList.map((cat) => (
+                <tr key={cat.key} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#1355FF]">
+                        <Icon name={cat.icon} size={15} />
+                      </span>
+                      <div>
+                        <p className="font-bold text-slate-900">{cat.label}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">id: {cat.key}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        cat.count > 0 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {cat.count} {cat.count === 1 ? "prestador" : "prestadores"}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 max-w-md">
+                    <div className="flex flex-wrap gap-1">
+                      {cat.subcategories.length > 0 ? (
+                        cat.subcategories.map((sub) => (
+                          <span
+                            key={sub}
+                            className="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium"
+                          >
+                            {sub}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">Especialidades gerais</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <Link
+                      href="/painel/admin/marketplace?tab=prestadores"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#1355FF] hover:underline"
+                    >
+                      <span>Ver prestadores</span>
+                      <Icon name="arrow-right" size={12} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

@@ -40,4 +40,13 @@ describe("Abas de Operação para Super Admin — Chamados e Suporte", () => {
     const moradorHrefs = moradorGroups.flatMap((g) => g.items.map((i) => i.href));
     assert.ok(moradorHrefs.includes("/painel/ajuda"), "Morador deve ter acesso a ajuda/suporte");
   });
+
+  test("Superadmin possui Marketplace como item direto de navegação (sem subitens)", () => {
+    const groups = getNavigationGroups("superadmin");
+    const marketplace = groups.find((g) => g.id === "marketplace");
+
+    assert.ok(marketplace, "Item Marketplace deve existir na navegação do Superadmin");
+    assert.equal(marketplace.href, "/painel/admin/marketplace", "Marketplace deve possuir href direto");
+    assert.equal(marketplace.items.length, 0, "Marketplace não deve ter subitens no menu lateral");
+  });
 });

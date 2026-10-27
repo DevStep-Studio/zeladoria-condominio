@@ -4,31 +4,37 @@ export function money(cents: number | null | undefined) {
   return ((cents ?? 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export function dateBR(value: Date | string | null | undefined) {
+export function dateBR(value: Date | string | null | undefined | unknown) {
   if (!value) return "—";
   let d: Date;
   if (value instanceof Date) {
     d = value;
+  } else if (typeof value === "object" && value !== null && "$date" in value && typeof (value as any).$date === "string") {
+    d = new Date((value as any).$date);
   } else if (typeof value === "string") {
-    d = value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`);
+    const clean = value.includes("T") ? value : value.includes(" ") ? value.replace(" ", "T") : `${value}T12:00:00`;
+    d = new Date(clean);
   } else {
     d = new Date(value as any);
   }
-  if (Number.isNaN(d.getTime())) return String(value);
+  if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("pt-BR");
 }
 
-export function dateTimeBR(value: Date | string | null | undefined) {
+export function dateTimeBR(value: Date | string | null | undefined | unknown) {
   if (!value) return "—";
   let d: Date;
   if (value instanceof Date) {
     d = value;
+  } else if (typeof value === "object" && value !== null && "$date" in value && typeof (value as any).$date === "string") {
+    d = new Date((value as any).$date);
   } else if (typeof value === "string") {
-    d = new Date(value);
+    const clean = value.includes("T") ? value : value.includes(" ") ? value.replace(" ", "T") : value;
+    d = new Date(clean);
   } else {
     d = new Date(value as any);
   }
-  if (Number.isNaN(d.getTime())) return String(value);
+  if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 

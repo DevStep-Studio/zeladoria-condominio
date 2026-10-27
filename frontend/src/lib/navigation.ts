@@ -14,6 +14,10 @@ export type NavItem = {
 export type NavGroup = {
   id: string;
   title: string;
+  href?: string;
+  icon?: IconName;
+  permission?: Permission;
+  badge?: number;
   items: NavItem[];
 };
 
@@ -205,15 +209,10 @@ export const ADMIN_NAVIGATION: NavGroup[] = [
   {
     id: "marketplace",
     title: "Marketplace",
-    items: [
-      { id: "marketplace_prestadores", label: "Prestadores", href: "/painel/admin/marketplace?tab=prestadores", icon: "briefcase", permission: "platform.marketplace.manage" },
-      { id: "aprovacoes", label: "Aprovações", href: "/painel/admin/marketplace?tab=aprovacoes", icon: "check-circle", permission: "platform.marketplace.manage" },
-      { id: "categorias", label: "Categorias", href: "/painel/admin/marketplace?tab=categorias", icon: "pin", permission: "platform.marketplace.manage" },
-      { id: "servicos", label: "Serviços", href: "/painel/admin/marketplace?tab=servicos", icon: "wrench", permission: "platform.marketplace.manage" },
-      { id: "avaliacoes", label: "Avaliações", href: "/painel/admin/marketplace?tab=avaliacoes", icon: "star", permission: "platform.marketplace.manage" },
-      { id: "patrocinados", label: "Patrocinados", href: "/painel/admin/marketplace?tab=patrocinados", icon: "sparkles", permission: "platform.marketplace.manage" },
-      { id: "planos_destaque", label: "Planos de destaque", href: "/painel/admin/marketplace/destaques", icon: "zap", permission: "platform.marketplace.manage" },
-    ],
+    href: "/painel/admin/marketplace",
+    icon: "briefcase",
+    permission: "platform.marketplace.manage",
+    items: [],
   },
   {
     id: "zeladoria_pay",
@@ -357,6 +356,22 @@ export function getNavigationGroups(role: Role, unreadAnnouncements = 0, critica
   const resolved: NavGroup[] = [];
 
   for (const group of baseGroups) {
+    if (group.href) {
+      const allowed = group.permission ? hasPermission(role, group.permission) : true;
+      if (allowed) {
+        resolved.push({
+          id: group.id,
+          title: group.title,
+          href: group.href,
+          icon: group.icon,
+          permission: group.permission,
+          badge: group.badge,
+          items: [],
+        });
+      }
+      continue;
+    }
+
     const authorizedItems: NavItem[] = [];
 
     for (const item of group.items) {

@@ -380,6 +380,39 @@ export function Shell({
 
         {/* Navigation Groups (Filtered by Permissions) */}
         {navigationGroups.map((group) => {
+          if (group.href) {
+            const active = isRouteActive(group.href);
+
+            return (
+              <div key={group.id} className="pt-1.5">
+                <Link
+                  href={group.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
+                    active
+                      ? "bg-blue-50 text-[#1355FF] font-semibold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
+                  } ${collapsed ? "justify-center px-2" : ""}`}
+                  title={collapsed ? group.title : undefined}
+                >
+                  <Icon
+                    name={group.icon ?? "briefcase"}
+                    size={15}
+                    strokeWidth={active ? 2 : 1.75}
+                    className={active ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
+                  />
+                  {!collapsed && <span className="truncate flex-1">{group.title}</span>}
+
+                  {collapsed && (
+                    <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
+                      {group.title}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            );
+          }
+
           const isExpanded = expandedGroups[group.id] ?? true;
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
 

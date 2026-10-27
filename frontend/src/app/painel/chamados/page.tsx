@@ -22,14 +22,22 @@ const PRIORITIES = ["baixa", "media", "alta"];
 const CATEGORIES = ["manutencao", "seguranca", "convivencia", "limpeza", "administrativo"];
 const STATUS_LABELS: Record<string, string> = {
   aberto: "Aberto",
+  solicitado: "Solicitado",
   em_andamento: "Em andamento",
   aguardando_morador: "Aguardando morador",
+  em_analise: "Em análise",
+  agendado: "Agendado",
+  aprovado: "Aprovado",
   concluido: "Concluído",
+  cancelado: "Cancelado",
+  fechado: "Fechado",
 };
 const PRIORITY_LABELS: Record<string, string> = {
   baixa: "Baixa",
+  normal: "Normal",
   media: "Média",
   alta: "Alta",
+  urgente: "Urgente",
 };
 const CATEGORY_LABELS: Record<string, string> = {
   manutencao: "Manutenção",
@@ -37,17 +45,43 @@ const CATEGORY_LABELS: Record<string, string> = {
   convivencia: "Convivência",
   limpeza: "Limpeza",
   administrativo: "Administrativo",
+  hidraulica: "Hidráulica",
+  eletrica: "Elétrica",
+  pintura: "Pintura",
+  jardinagem: "Jardinagem",
+  climatizacao: "Climatização",
+  civil: "Construção Civil",
 };
 
-function labelFor(value: string, labels: Record<string, string>) {
-  return labels[value] ?? statusLabel(value);
+function safeStatusTone(status: unknown): "green" | "yellow" | "red" | "primary" | "neutral" {
+  if (!status || typeof status !== "string") return "neutral";
+  return statusTone(status) as any;
 }
 
-function dueSummary(dueAt: Date | string | null | undefined, status: string, now: Date) {
-  if (status === "concluido") return "Concluído";
-  if (!dueAt) return "Sem prazo";
-  const due = typeof dueAt === "string" ? new Date(dueAt) : dueAt;
-  if (Number.isNaN(due.getTime())) return "Sem prazo";
+function labelFor(value: unknown, labels: Record<string, string>) {
+  if (!value || typeof value !== "string") return "—";
+  return labels[value.toLowerCase()] ?? statusLabel(value);
+}
+
+function parseSafeDate(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value === "object" && value !== null && "$date" in value && typeof (value as any).$date === "string") {
+    const d = new Date((value as any).$date);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof value === "string") {
+    const clean = value.includes("T") ? value : value.includes(" ") ? value.replace(" ", "T") : `${value}T12:00:00`;
+    const d = new Date(clean);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
+function dueSummary(dueAt: unknown, status: string, now: Date) {
+  if (status === "concluido" || status === "fechado") return "Concluído";
+  const due = parseSafeDate(dueAt);
+  if (!due) return "Sem prazo";
   const days = Math.ceil((due.getTime() - now.getTime()) / 86400000);
   if (days < 0) return `${Math.abs(days)} dia${Math.abs(days) === 1 ? "" : "s"} em atraso`;
   if (days === 0) return "Vence hoje";
@@ -60,62 +94,99 @@ export default async function ChamadosPage({
   searchParams: Promise<{ s?: string; q?: string; p?: string; c?: string; view?: string }>;
 }) {
   const { session, condoId } = await requireCondo();
-  const { s, q = "", p = "", c = "", view = "cards" } = await searchParams;
+  const params = (await searchParams) ?? {};
+  const { s, q = "", p = "", c = "", view = "cards" } = params;
   const isStaff = ALL_STAFF.includes(session.role);
   const activeStatus = s && STATUS.includes(s) ? s : "todos";
   const activeView = view === "table" ? "table" : "cards";
   const search = q.trim();
 
-  const { rows = [], comments = [] } = await domainRequest<{
-    rows: any[];
-    comments: any[];
+  const res = await domainRequest<{
+    rows?: any[];
+    comments?: any[];
   }>("/painel/chamados", {
     query: { condoId: condoId > 0 ? condoId : undefined, role: session.role, s, q: search, p, c },
   }).catch(() => ({ rows: [], comments: [] }));
 
+  const rows = Array.isArray(res?.rows) ? res.rows : [];
+  const comments = Array.isArray(res?.comments) ? res.comments : [];
+
   const staff = condoId > 0 ? await peopleOptions(condoId, ["sindico", "zelador", "porteiro", "conselho"]).catch(() => []) : [];
+  const staffList = Array.isArray(staff) ? staff : [];
   const unitList = condoId > 0 ? await unitOptions(condoId).catch(() => []) : [];
-  const staffById = new Map(staff.map((person) => [person.id, person.name]));
-  const commentsByTicket = new Map<number, typeof comments>();
-  for (const comment of (comments ?? [])) {
-    const list = commentsByTicket.get(comment.ticketId) ?? [];
+  const units = Array.isArray(unitList) ? unitList : [];
+  const staffById = new Map(staffList.map((person) => [person.id, person.name]));
+  const commentsByTicket = new Map<number, any[]>();
+  for (const comment of comments) {
+    if (!comment || typeof comment !== "object") continue;
+    const ticketId = Number(comment.ticketId ?? comment.ticket_id);
+    if (!ticketId) continue;
+    const list = commentsByTicket.get(ticketId) ?? [];
     list.push(comment);
-    commentsByTicket.set(comment.ticketId, list);
+    commentsByTicket.set(ticketId, list);
   }
 
   const now = new Date();
-  const ticketsWithMeta = (rows ?? []).map((ticket) => {
-    const visibleComments = (commentsByTicket.get(ticket.id) ?? []).filter((comment) => isStaff || !comment.internal);
-    const last = visibleComments.at(-1);
-    return {
-      ...ticket,
-      visibleComments,
-      lastInteractionAt: last?.createdAt ?? ticket.createdAt,
-      lastInteraction: last?.body ?? ticket.description,
-      assignedTo: ticket.assignedToId ? (staffById.get(ticket.assignedToId) ?? "Responsável definido") : null,
-      late: Boolean(ticket.dueAt && new Date(ticket.dueAt) < now && ticket.status !== "concluido"),
-      dueSummary: dueSummary(ticket.dueAt, ticket.status, now),
-    };
-  });
+  const ticketsWithMeta = rows
+    .filter((ticket): ticket is Record<string, any> => Boolean(ticket && typeof ticket === "object"))
+    .map((ticket) => {
+      const ticketId = Number(ticket.id);
+      const rawDueAt = ticket.dueAt ?? ticket.due_at;
+      const dueAtDate = parseSafeDate(rawDueAt);
+      const status = String(ticket.status ?? "aberto").toLowerCase();
+      const visibleComments = (commentsByTicket.get(ticketId) ?? []).filter((comment) => isStaff || !comment.internal);
+      const last = visibleComments.at(-1);
+      const assignedId = ticket.assignedToId ?? ticket.assigned_to_id;
+      const assignedName = assignedId ? (staffById.get(Number(assignedId)) ?? "Responsável definido") : null;
+      const isLate = Boolean(dueAtDate && dueAtDate < now && status !== "concluido" && status !== "fechado");
+      const createdAtRaw = ticket.createdAt ?? ticket.created_at;
 
-  const open = ticketsWithMeta.filter((ticket) => ticket.status !== "concluido").length;
+      return {
+        ...ticket,
+        id: ticketId,
+        code: ticket.code ?? `CH-${ticketId}`,
+        title: ticket.title ?? "Sem título",
+        description: ticket.description ?? "",
+        category: ticket.category ?? "manutencao",
+        priority: ticket.priority ?? "media",
+        status,
+        dueAt: rawDueAt,
+        createdAt: createdAtRaw,
+        visibleComments,
+        lastInteractionAt: last?.createdAt ?? last?.created_at ?? createdAtRaw,
+        lastInteraction: last?.body ?? ticket.description ?? "Sem descrição",
+        assignedTo: assignedName,
+        assignedToId: assignedId,
+        openedBy: ticket.openedBy ?? ticket.opened_by ?? "—",
+        late: isLate,
+        dueSummary: dueSummary(rawDueAt, status, now),
+        rating: typeof ticket.rating === "number" ? ticket.rating : ticket.rating ? Number(ticket.rating) : null,
+        condoName: (ticket.condoName ?? ticket.condo_name ?? null) as string | null,
+        block: (ticket.block ?? null) as string | null,
+        unit: (ticket.unit ?? null) as string | null,
+        aiSummary: (ticket.aiSummary ?? ticket.ai_summary ?? null) as string | null,
+        aiPriority: (ticket.aiPriority ?? ticket.ai_priority ?? null) as string | null,
+      };
+    });
+
+  const open = ticketsWithMeta.filter((ticket) => ticket.status !== "concluido" && ticket.status !== "fechado").length;
   const late = ticketsWithMeta.filter((ticket) => ticket.late).length;
-  const rated = ticketsWithMeta.filter((ticket) => ticket.rating);
+  const rated = ticketsWithMeta.filter((ticket) => typeof ticket.rating === "number" && !Number.isNaN(ticket.rating) && ticket.rating > 0);
   const satisfaction = rated.length ? (rated.reduce((acc, ticket) => acc + (ticket.rating ?? 0), 0) / rated.length).toFixed(1) : "—";
 
   const hrefFor = (next: { s?: string; q?: string; p?: string; c?: string; view?: string }) => {
-    const params = new URLSearchParams();
+    const pms = new URLSearchParams();
     const nextStatus = next.s ?? activeStatus;
     const nextSearch = next.q ?? search;
     const nextPriority = next.p ?? p;
     const nextCategory = next.c ?? c;
     const nextView = next.view ?? activeView;
-    if (nextStatus !== "todos") params.set("s", nextStatus);
-    if (nextSearch) params.set("q", nextSearch);
-    if (nextPriority) params.set("p", nextPriority);
-    if (nextCategory) params.set("c", nextCategory);
-    if (nextView !== "cards") params.set("view", nextView);
-    const suffix = params.toString();
+    if (nextStatus !== "todos") pms.set("s", nextStatus);
+    if (nextSearch) pms.set("q", nextSearch);
+    if (nextPriority) pms.set("p", nextPriority);
+    if (nextCategory) pms.set("c", nextCategory);
+    if (nextView !== "cards") pms.set("view", nextView);
+    const suffix = pms.toString();
     return `/painel/chamados${suffix ? `?${suffix}` : ""}`;
   };
 
@@ -169,7 +240,7 @@ export default async function ChamadosPage({
                       <span className="label">Unidade</span>
                       <select name="unitId" className="input">
                         <option value="">Área comum</option>
-                        {unitList.map((unit) => (
+                        {units.map((unit) => (
                           <option key={unit.id} value={unit.id}>
                             {unit.label}
                           </option>
@@ -184,7 +255,7 @@ export default async function ChamadosPage({
                         <option value="">Sugerida pela IA</option>
                         {CATEGORIES.map((category) => (
                           <option key={category} value={category}>
-                            {statusLabel(category)}
+                            {labelFor(category, CATEGORY_LABELS)}
                           </option>
                         ))}
                       </select>
@@ -195,7 +266,7 @@ export default async function ChamadosPage({
                         <option value="">Sugerida pela IA</option>
                         {PRIORITIES.map((priority) => (
                           <option key={priority} value={priority}>
-                            {statusLabel(priority)}
+                            {labelFor(priority, PRIORITY_LABELS)}
                           </option>
                         ))}
                       </select>
@@ -277,7 +348,7 @@ export default async function ChamadosPage({
                     <option value="">Todas</option>
                     {PRIORITIES.map((priority) => (
                       <option key={priority} value={priority}>
-                        {statusLabel(priority)}
+                        {labelFor(priority, PRIORITY_LABELS)}
                       </option>
                     ))}
                   </select>
@@ -288,7 +359,7 @@ export default async function ChamadosPage({
                     <option value="">Todas</option>
                     {CATEGORIES.map((category) => (
                       <option key={category} value={category}>
-                        {statusLabel(category)}
+                        {labelFor(category, CATEGORY_LABELS)}
                       </option>
                     ))}
                   </select>
@@ -360,7 +431,7 @@ export default async function ChamadosPage({
                           </td>
                           <td>
                             <div className="flex flex-wrap gap-1.5">
-                              <Badge tone={ticket.late ? "red" : statusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
+                              <Badge tone={ticket.late ? "red" : safeStatusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
                               <Badge tone={ticket.priority === "alta" ? "red" : ticket.priority === "media" ? "amber" : "neutral"}>{labelFor(ticket.priority, PRIORITY_LABELS)}</Badge>
                             </div>
                           </td>
@@ -405,7 +476,7 @@ export default async function ChamadosPage({
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-[6px] border border-[#dce9b3] bg-[var(--color-primary-soft)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--color-primary-dark)]">{ticket.code}</span>
                             {ticket.condoName ? <Badge tone="blue">{ticket.condoName}</Badge> : null}
-                            <Badge tone={ticket.late ? "red" : statusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
+                            <Badge tone={ticket.late ? "red" : safeStatusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
                             <Badge tone={ticket.priority === "alta" ? "red" : ticket.priority === "media" ? "amber" : "neutral"}>{labelFor(ticket.priority, PRIORITY_LABELS)}</Badge>
                             <Badge tone="primary">{labelFor(ticket.category, CATEGORY_LABELS)}</Badge>
                           </div>
@@ -510,7 +581,7 @@ export default async function ChamadosPage({
                                 <li key={comment.id} className="rounded-[8px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-4 text-sm">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <span className="font-semibold text-[var(--color-ink)]">{comment.author ?? "Usuário"}</span>
-                                    <span className="text-xs text-[var(--color-muted)]">{dateTimeBR(comment.createdAt)}</span>
+                                    <span className="text-xs text-[var(--color-muted)]">{dateTimeBR(comment.createdAt ?? comment.created_at)}</span>
                                     {comment.internal ? <Badge tone="primary">interno</Badge> : null}
                                   </div>
                                   <p className="mt-1 text-[var(--color-muted)]">{comment.body}</p>
@@ -546,9 +617,14 @@ export default async function ChamadosPage({
                               <label className="block">
                                 <span className="label">Status</span>
                                 <select name="status" className="input" defaultValue={ticket.status}>
+                                  {!STATUS.includes(ticket.status) && (
+                                    <option value={ticket.status}>
+                                      {labelFor(ticket.status, STATUS_LABELS)}
+                                    </option>
+                                  )}
                                   {STATUS.map((status) => (
                                     <option key={status} value={status}>
-                                      {statusLabel(status)}
+                                      {labelFor(status, STATUS_LABELS)}
                                     </option>
                                   ))}
                                 </select>
@@ -556,9 +632,14 @@ export default async function ChamadosPage({
                               <label className="block">
                                 <span className="label">Prioridade</span>
                                 <select name="priority" className="input" defaultValue={ticket.priority}>
+                                  {!PRIORITIES.includes(ticket.priority) && (
+                                    <option value={ticket.priority}>
+                                      {labelFor(ticket.priority, PRIORITY_LABELS)}
+                                    </option>
+                                  )}
                                   {PRIORITIES.map((priority) => (
                                     <option key={priority} value={priority}>
-                                      {statusLabel(priority)}
+                                      {labelFor(priority, PRIORITY_LABELS)}
                                     </option>
                                   ))}
                                 </select>
@@ -567,7 +648,7 @@ export default async function ChamadosPage({
                                 <span className="label">Responsável</span>
                                 <select name="assignedToId" className="input" defaultValue={ticket.assignedToId ?? ""}>
                                   <option value="">Sem responsável</option>
-                                  {staff.map((person) => (
+                                  {staffList.map((person) => (
                                     <option key={person.id} value={person.id}>
                                       {person.name}
                                     </option>

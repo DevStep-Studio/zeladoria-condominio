@@ -141,17 +141,19 @@ export function Badge({ children, tone = "neutral" }: { children: ReactNode; ton
   return <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4 ${TONES[tone] ?? TONES.neutral}`}>{children}</span>;
 }
 
-export function statusTone(status: string) {
+export function statusTone(status?: string | null) {
+  if (!status || typeof status !== "string") return "neutral";
   const s = status.toLowerCase().replace(/_/g, " ");
   if (["autorizado", "aprovada", "aprovado", "entregue", "concluida", "concluido", "pago", "paga", "ativo", "vigente", "operacional", "retirado", "finalizado", "fechado", "devolvido", "presente"].includes(s))
     return "green";
-  if (["pendente", "aguardando", "programada", "aberta", "aberto", "convocada", "em andamento", "guardado", "em análise", "convidado"].includes(s)) return "yellow";
+  if (["pendente", "aguardando", "programada", "aberta", "aberto", "convocada", "em andamento", "guardado", "em análise", "em analise", "solicitado", "agendado", "convidado"].includes(s)) return "yellow";
   if (["negado", "bloqueado", "vencido", "vencida", "atrasado", "cancelado", "rejeitada", "rejeitado", "inativo", "falha", "descartado"].includes(s)) return "red";
   if (["dentro", "em visita"].includes(s)) return "primary";
   return "neutral";
 }
 
-export function statusLabel(status: string) {
+export function statusLabel(status?: string | null) {
+  if (!status || typeof status !== "string") return "";
   return status.replace(/_/g, " ");
 }
 

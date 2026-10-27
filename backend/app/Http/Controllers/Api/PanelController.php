@@ -221,37 +221,85 @@ final class PanelController
         $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
         $isSupport = ! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin';
 
-        if ($isSupport) {
-            $tickets = DB::table('support_tickets as st')
-                ->leftJoin('users as u', 'u.id', '=', 'st.user_id')
-                ->leftJoin('condominiums as c', 'c.id', '=', 'st.condo_id')
+        $tickets = [];
+        try {
+            if ($isSupport) {
+                $tickets = DB::table('support_tickets as st')
+                    ->leftJoin('users as u', 'u.id', '=', 'st.user_id')
+                    ->leftJoin('condominiums as c', 'c.id', '=', 'st.condo_id')
+                    ->select([
+                        'st.id',
+                        'st.subject',
+                        'st.body',
+                        'st.category',
+                        'st.priority',
+                        'st.status',
+                        'st.answer',
+                        'st.satisfaction',
+                        'st.created_at as createdAt',
+                        'u.name as author',
+                        'u.email as authorEmail',
+                        'c.name as condoName',
+                        'st.condo_id as condoId',
+                    ])
+                    ->orderByDesc('st.created_at')
+                    ->get()
+                    ->map(fn ($t) => (array) $t)
+                    ->all();
+            } else {
+                $query = DB::table('support_tickets as st')
+                    ->leftJoin('users as u', 'u.id', '=', 'st.user_id')
+                    ->leftJoin('condominiums as c', 'c.id', '=', 'st.condo_id')
+                    ->select([
+                        'st.id',
+                        'st.subject',
+                        'st.body',
+                        'st.category',
+                        'st.priority',
+                        'st.status',
+                        'st.answer',
+                        'st.satisfaction',
+                        'st.created_at as createdAt',
+                        'u.name as author',
+                        'u.email as authorEmail',
+                        'c.name as condoName',
+                        'st.condo_id as condoId',
+                    ]);
+
+                if ($ctx['role'] === 'morador') {
+                    $query->where('st.user_id', $request->user()->id);
+                } elseif ($condoId) {
+                    $query->where('st.condo_id', $condoId);
+                }
+
+                $tickets = $query->orderByDesc('st.created_at')->get()->map(fn ($t) => (array) $t)->all();
+            }
+        } catch (\Throwable $e) {
+            $tickets = [];
+        }
+
+        $articles = [];
+        try {
+            $articles = DB::table('help_articles')
                 ->select([
-                    'st.id',
-                    'st.subject',
-                    'st.body',
-                    'st.category',
-                    'st.priority',
-                    'st.status',
-                    'st.answer',
-                    'st.satisfaction',
-                    'st.created_at as createdAt',
-                    'u.name as author',
-                    'u.email as authorEmail',
-                    'c.name as condoName',
-                    'st.condo_id as condoId',
+                    'id',
+                    'slug',
+                    'title',
+                    'category',
+                    'body',
+                    'tags',
+                    'video_url as videoUrl',
                 ])
-                ->orderByDesc('st.created_at')
+                ->orderBy('title')
                 ->get()
-                ->map(fn ($t) => (array) $t)
+                ->map(fn ($a) => (array) $a)
                 ->all();
-        } else {
-            $tickets = $condoId
-                ? $this->operations->execute('app.painel.ajuda.page.002', [false, $condoId, $condoId, $condoId])
-                : [];
+        } catch (\Throwable $e) {
+            $articles = [];
         }
 
         return response()->json(['data' => [
-            'articles' => $this->operations->execute('app.painel.ajuda.page.001', []),
+            'articles' => $articles,
             'tickets' => $tickets,
         ]]);
     }
@@ -438,7 +486,10 @@ final class PanelController
     {
         $ctx = $this->context($request);
         $isSuperAdmin = ($ctx['role'] === 'superadmin') || ! empty($ctx['user']['isSuperAdmin']);
-        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
+        $hasExplicitCondo = $request->has('condoId') && $request->integer('condoId') > 0;
+        $condoId = $hasExplicitCondo
+            ? $request->integer('condoId')
+            : ($isSuperAdmin ? null : ($ctx['condo']['id'] ?? null));
 
         if (! $condoId && ! $isSuperAdmin) {
             abort(403);
@@ -498,22 +549,72 @@ final class PanelController
             }
             $rows = $query->orderByDesc('t.created_at')->get()->map(fn ($r) => (array) $r)->all();
         } else {
-            $rows = $this->operations->execute('app.painel.chamados.page.001', [
-                $condoId,
-                $ctx['role'] === 'morador',
-                $request->user()->id,
-                $activeStatus !== 'todos',
-                $s && in_array($s, $statuses, true),
-                $s,
-                in_array($p, $priorities, true),
-                $p,
-                in_array($c, $categories, true),
-                $c,
-                $search,
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-            ]);
+            try {
+                $rows = $this->operations->execute('app.painel.chamados.page.001', [
+                    $condoId,
+                    $ctx['role'] === 'morador',
+                    $request->user()->id,
+                    $activeStatus !== 'todos',
+                    $s && in_array($s, $statuses, true),
+                    $s,
+                    in_array($p, $priorities, true),
+                    $p,
+                    in_array($c, $categories, true),
+                    $c,
+                    $search,
+                    "%{$search}%",
+                    "%{$search}%",
+                    "%{$search}%",
+                ]);
+            } catch (\Throwable $e) {
+                $query = DB::table('tickets as t')
+                    ->leftJoin('users as u', 'u.id', '=', 't.opened_by_id')
+                    ->leftJoin('units as un', 'un.id', '=', 't.unit_id')
+                    ->leftJoin('blocks as b', 'b.id', '=', 'un.block_id')
+                    ->leftJoin('condominiums as c_condo', 'c_condo.id', '=', 't.condo_id')
+                    ->where('t.condo_id', $condoId)
+                    ->select([
+                        't.id',
+                        't.code',
+                        't.title',
+                        't.description',
+                        't.category',
+                        't.priority',
+                        't.status',
+                        't.ai_priority as aiPriority',
+                        't.ai_summary as aiSummary',
+                        't.due_at as dueAt',
+                        't.created_at as createdAt',
+                        't.rating',
+                        't.assigned_to_id as assignedToId',
+                        't.condo_id as condoId',
+                        'c_condo.name as condoName',
+                        'u.name as openedBy',
+                        'un.number as unit',
+                        'b.name as block',
+                    ]);
+
+                if ($ctx['role'] === 'morador') {
+                    $query->where('t.opened_by_id', $request->user()->id);
+                }
+                if ($activeStatus !== 'todos') {
+                    $query->where('t.status', $activeStatus);
+                }
+                if ($p && in_array($p, $priorities, true)) {
+                    $query->where('t.priority', $p);
+                }
+                if ($c && in_array($c, $categories, true)) {
+                    $query->where('t.category', $c);
+                }
+                if ($search !== '') {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('t.title', 'like', "%{$search}%")
+                            ->orWhere('t.code', 'like', "%{$search}%")
+                            ->orWhere('t.description', 'like', "%{$search}%");
+                    });
+                }
+                $rows = $query->orderByDesc('t.created_at')->get()->map(fn ($r) => (array) $r)->all();
+            }
 
             if ($isSuperAdmin && $condoId && ! empty($ctx['condo']['name'])) {
                 foreach ($rows as &$r) {
@@ -526,9 +627,36 @@ final class PanelController
         }
         $ids = array_column($rows, 'id');
 
+        $comments = [];
+        if ($ids) {
+            try {
+                $comments = $this->operations->execute('app.painel.chamados.page.002', [$ids]);
+            } catch (\Throwable $e) {
+                try {
+                    $comments = DB::table('ticket_comments as tc')
+                        ->leftJoin('users as u', 'u.id', '=', 'tc.user_id')
+                        ->whereIn('tc.ticket_id', $ids)
+                        ->select([
+                            'tc.id',
+                            'tc.ticket_id as ticketId',
+                            'tc.body',
+                            'tc.internal',
+                            'tc.created_at as createdAt',
+                            'u.name as author',
+                        ])
+                        ->orderBy('tc.created_at', 'asc')
+                        ->get()
+                        ->map(fn ($r) => (array) $r)
+                        ->all();
+                } catch (\Throwable $e2) {
+                    $comments = [];
+                }
+            }
+        }
+
         return response()->json(['data' => [
             'rows' => $rows,
-            'comments' => $ids ? $this->operations->execute('app.painel.chamados.page.002', [$ids]) : [],
+            'comments' => $comments,
         ]]);
     }
 
