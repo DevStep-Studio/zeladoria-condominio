@@ -137,7 +137,7 @@ export default async function AdminMarketplacePage({
             <span>Planos de Destaque</span>
           </Link>
           <Link
-            href="/painel/admin/marketplace/taxas"
+            href="/painel/admin/zeladoria-pay?tab=comissoes"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-blue-50 text-[#1355FF] border border-blue-200/80 text-xs font-bold hover:bg-blue-100/70 transition-colors"
           >
             <Icon name="chart" size={13} />

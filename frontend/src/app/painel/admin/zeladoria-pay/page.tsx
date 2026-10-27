@@ -11,28 +11,71 @@ export const metadata = {
   description: "Controle de GMV, comissões, vistorias pagas, repasses, contestações e split financeiro.",
 };
 
-export default async function AdminZeladoriaPayPage() {
+export default async function AdminZeladoriaPayPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tab?: string }>;
+}) {
   const { condoId } = await requireRole(["sindico", "superadmin"]);
+  const params = (await searchParams) ?? {};
 
-  const settings = await getMarketplaceSettings(condoId);
+  let settings: any = {
+    commissionPercent: 10,
+    slotHoldMinutes: 10,
+    inspectionFeeMaxCents: 15000,
+    disputeWindowHours: 48,
+    autoReleaseHours: 72,
+  };
+  try {
+    settings = await getMarketplaceSettings(condoId);
+  } catch (err) {
+    console.error("[Zeladoria Pay] Erro ao carregar settings:", err);
+  }
 
-  const { orders, disputes, allPayouts, recipients, paidInspections } = await domainRequest<{
+  let data: {
     orders: any[];
     disputes: any[];
     allPayouts: any[];
     recipients: any[];
     paidInspections: any[];
-  }>("/painel/admin/zeladoria-pay", { query: { condoId } });
+  } = {
+    orders: [],
+    disputes: [],
+    allPayouts: [],
+    recipients: [],
+    paidInspections: [],
+  };
+  try {
+    const res = await domainRequest<{
+      orders?: any[];
+      disputes?: any[];
+      allPayouts?: any[];
+      recipients?: any[];
+      paidInspections?: any[];
+    }>("/painel/admin/zeladoria-pay", { query: { condoId: condoId > 0 ? condoId : undefined } });
+    if (res) {
+      data = {
+        orders: Array.isArray(res.orders) ? res.orders : [],
+        disputes: Array.isArray(res.disputes) ? res.disputes : [],
+        allPayouts: Array.isArray(res.allPayouts) ? res.allPayouts : [],
+        recipients: Array.isArray(res.recipients) ? res.recipients : [],
+        paidInspections: Array.isArray(res.paidInspections) ? res.paidInspections : [],
+      };
+    }
+  } catch (err) {
+    console.error("[Zeladoria Pay] Erro ao carregar dados do backend:", err);
+  }
 
   return (
     <ZeladoriaPayAdminClient
       condoId={condoId}
       settings={settings}
-      orders={orders}
-      disputes={disputes}
-      payouts={allPayouts}
-      recipients={recipients}
-      paidInspections={paidInspections}
+      orders={data.orders}
+      disputes={data.disputes}
+      payouts={data.allPayouts}
+      recipients={data.recipients}
+      paidInspections={data.paidInspections}
+      initialTab={params.tab}
     />
   );
 }

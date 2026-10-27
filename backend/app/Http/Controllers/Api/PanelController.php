@@ -449,16 +449,26 @@ final class PanelController
 
     public function adminZeladoriaPay(Request $request): JsonResponse
     {
-        $ctx = $this->context($request);
-        $condoId = $this->condoId($ctx);
+        try {
+            $ctx = $this->context($request);
+            $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: 0);
 
-        return response()->json(['data' => [
-            'orders' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.001', [$condoId]),
-            'disputes' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.002', []),
-            'allPayouts' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.003', [$condoId]),
-            'recipients' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.004', []),
-            'paidInspections' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.005', []),
-        ]]);
+            return response()->json(['data' => [
+                'orders' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.001', [$condoId]),
+                'disputes' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.002', []),
+                'allPayouts' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.003', [$condoId]),
+                'recipients' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.004', []),
+                'paidInspections' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.005', []),
+            ]]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [
+                'orders' => [],
+                'disputes' => [],
+                'allPayouts' => [],
+                'recipients' => [],
+                'paidInspections' => [],
+            ]]);
+        }
     }
 
     public function encomendas(Request $request): JsonResponse

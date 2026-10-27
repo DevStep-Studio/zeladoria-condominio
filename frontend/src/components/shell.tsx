@@ -289,12 +289,34 @@ export function Shell({
       if (pathname !== targetPath) return false;
       const targetParams = new URLSearchParams(targetQuery);
       for (const [k, v] of targetParams.entries()) {
-        if (searchParams.get(k) !== v) return false;
+        const actual = searchParams.get(k);
+        if (k === "tab") {
+          const norm = (t?: string | null) => {
+            if (!t) return "";
+            if (t === "onboarding" || t === "recipients") return "prestadores";
+            if (t === "taxas" || t === "commissions") return "comissoes";
+            if (t === "payments") return "pagamentos";
+            if (t === "inspections") return "vistorias";
+            if (t === "payouts" || t === "split") return "repasses";
+            if (t === "refunds" || t === "estornos") return "reembolsos";
+            if (t === "disputes") return "contestacoes";
+            if (t === "settings") return "configuracoes";
+            if (t === "simulator") return "simulador";
+            return t;
+          };
+          if (norm(actual) !== norm(v)) return false;
+        } else if (actual !== v) {
+          return false;
+        }
       }
       return true;
     }
     if (targetPath === "/painel/servicos" && pathname === "/painel/servicos") {
       return !searchParams.get("tab") && !searchParams.get("aba");
+    }
+    if (targetPath === "/painel/admin/zeladoria-pay" && pathname === "/painel/admin/zeladoria-pay") {
+      const currentTab = searchParams.get("tab");
+      return !currentTab || currentTab === "visao-geral" || currentTab === "overview";
     }
     return pathname.startsWith(targetPath);
   };

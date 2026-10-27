@@ -1,12 +1,41 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/icon";
 import {
   adminUpdateMarketplaceSettingsAction,
   adminResolveDisputeAction,
 } from "@/lib/actions/zeladoria-pay";
+
+export type ZeladoriaPayTabKey =
+  | "overview"
+  | "payments"
+  | "inspections"
+  | "payouts"
+  | "commissions"
+  | "refunds"
+  | "disputes"
+  | "recipients"
+  | "settings"
+  | "simulator";
+
+export function normalizeTab(tabParam?: string | null): ZeladoriaPayTabKey {
+  if (!tabParam) return "overview";
+  const t = tabParam.toLowerCase().trim();
+  if (["visao-geral", "visao_geral", "overview"].includes(t)) return "overview";
+  if (["pagamentos", "payments", "ordens"].includes(t)) return "payments";
+  if (["vistorias", "vistorias-pagas", "inspections"].includes(t)) return "inspections";
+  if (["repasses", "split", "payouts"].includes(t)) return "payouts";
+  if (["comissoes", "comissao", "commissions", "taxas"].includes(t)) return "commissions";
+  if (["reembolsos", "reembolso", "refunds", "estornos"].includes(t)) return "refunds";
+  if (["contestacoes", "contestacao", "disputes", "disputas"].includes(t)) return "disputes";
+  if (["prestadores", "prestadores-financeiros", "onboarding", "recipients", "contas"].includes(t)) return "recipients";
+  if (["configuracoes", "settings", "flags", "regras"].includes(t)) return "settings";
+  if (["simulador", "simulator"].includes(t)) return "simulator";
+  return "overview";
+}
 
 export function ZeladoriaPayAdminClient({
   condoId,
@@ -16,6 +45,7 @@ export function ZeladoriaPayAdminClient({
   payouts = [],
   recipients = [],
   paidInspections = [],
+  initialTab,
 }: {
   condoId: number;
   settings: any;
@@ -24,10 +54,16 @@ export function ZeladoriaPayAdminClient({
   payouts: any[];
   recipients: any[];
   paidInspections: any[];
+  initialTab?: string;
 }) {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "payments" | "inspections" | "payouts" | "disputes" | "recipients" | "settings" | "simulator"
-  >("overview");
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") || initialTab;
+  const currentTab = normalizeTab(tabFromUrl);
+  const [activeTab, setActiveTab] = useState<ZeladoriaPayTabKey>(currentTab);
+
+  useEffect(() => {
+    setActiveTab(currentTab);
+  }, [currentTab]);
 
   // Form states para configurações
   const [commission, setCommission] = useState(settings.commissionPercent);
@@ -70,6 +106,43 @@ export function ZeladoriaPayAdminClient({
   const totalRefundedCents = orders
     .filter((o) => o.status === "refunded")
     .reduce((acc, o) => acc + (o.amountGrossCents || 0), 0);
+
+  // Listas especializadas para Comissões e Reembolsos
+  const commissionOrders = orders.filter(
+    (o) => (o.platformFeeCents || 0) > 0 || ["paid", "retained", "released"].includes(o.status)
+  );
+
+  const refundedOrders = orders.filter(
+    (o) => o.status === "refunded" || o.status === "estornado" || (o.refundedAmountCents && o.refundedAmountCents > 0)
+  );
+
+  const totalCommissionsCents = commissionOrders.reduce(
+    (acc, o) => acc + (o.platformFeeCents || 0),
+    0
+  );
+
+  const totalCommissionsGrossCents = commissionOrders.reduce(
+    (acc, o) => acc + (o.amountGrossCents || 0),
+    0
+  );
+
+  const totalRefundedSumCents = refundedOrders.reduce(
+    (acc, o) => acc + (o.refundedAmountCents || o.amountGrossCents || 0),
+    0
+  );
+
+  const navTabs = [
+    { id: "overview", label: "Visão Geral", href: "/painel/admin/zeladoria-pay" },
+    { id: "payments", label: `Pagamentos (${orders.length})`, href: "/painel/admin/zeladoria-pay?tab=pagamentos" },
+    { id: "inspections", label: `Vistorias Pagas (${paidInspections.length})`, href: "/painel/admin/zeladoria-pay?tab=vistorias" },
+    { id: "payouts", label: `Repasses / Split (${payouts.length})`, href: "/painel/admin/zeladoria-pay?tab=repasses" },
+    { id: "commissions", label: `Comissões (${commissionOrders.length})`, href: "/painel/admin/zeladoria-pay?tab=comissoes" },
+    { id: "refunds", label: `Reembolsos (${refundedOrders.length})`, href: "/painel/admin/zeladoria-pay?tab=reembolsos" },
+    { id: "disputes", label: `Contestações (${disputes.filter((d) => d.status === "aberta").length})`, href: "/painel/admin/zeladoria-pay?tab=contestacoes" },
+    { id: "recipients", label: `Prestadores Financeiros (${recipients.length})`, href: "/painel/admin/zeladoria-pay?tab=prestadores" },
+    { id: "settings", label: "Configurações & Flags", href: "/painel/admin/zeladoria-pay?tab=configuracoes" },
+    { id: "simulator", label: "Simulador Financeiro", href: "/painel/admin/zeladoria-pay?tab=simulador" },
+  ];
 
   // Cálculos do simulador
   const simPlatformFee = (simServiceVal * simCommissionPercent) / 100;
@@ -161,78 +234,20 @@ export function ZeladoriaPayAdminClient({
 
       {/* Tabs */}
       <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pb-2 text-xs font-bold text-slate-600">
-        <button
-          type="button"
-          onClick={() => setActiveTab("overview")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "overview" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Visão Geral
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("payments")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "payments" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Pagamentos ({orders.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("inspections")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "inspections" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Vistorias Pagas ({paidInspections.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("payouts")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "payouts" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Repasses / Split ({payouts.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("disputes")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "disputes" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Contestações ({disputes.filter((d) => d.status === "aberta").length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("recipients")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "recipients" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Prestadores Financeiros ({recipients.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("settings")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "settings" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Configurações & Flags
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("simulator")}
-          className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-            activeTab === "simulator" ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100"
-          }`}
-        >
-          Simulador Financeiro
-        </button>
+        {navTabs.map((t) => {
+          const isActive = activeTab === t.id;
+          return (
+            <Link
+              key={t.id}
+              href={t.href}
+              className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
+                isActive ? "bg-[#1355FF] text-white shadow-xs" : "hover:bg-slate-100 text-slate-600"
+              }`}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
       </div>
 
       {/* TAB 1: VISÃO GERAL (DASHBOARD REAL - Cláusula 56) */}
@@ -493,6 +508,298 @@ export function ZeladoriaPayAdminClient({
                         </td>
                         <td className="py-2.5 text-slate-500">
                           {p.paidAt ? new Date(p.paidAt).toLocaleDateString("pt-BR") : "Aguardando confirmação"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: COMISSÕES */}
+      {activeTab === "commissions" && (
+        <div className="space-y-6">
+          {/* Header e KPIs de Comissões */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-blue-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-[#1355FF] uppercase tracking-wider block">
+                Receita Total de Comissões
+              </span>
+              <div className="text-2xl font-black text-[#1355FF]">
+                R$ {(totalCommissionsCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Retenções efetivadas pela plataforma
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Volume Intermediado (GMV)
+              </span>
+              <div className="text-2xl font-black text-slate-900">
+                R$ {(totalCommissionsGrossCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Base bruta transacionada
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Alíquota Configurada
+              </span>
+              <div className="text-2xl font-black text-slate-900">
+                {settings.commissionPercent}%
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Retenção padrão sobre contratos
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-emerald-200/80 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+                Transações Comissionadas
+              </span>
+              <div className="text-2xl font-black text-emerald-700">
+                {commissionOrders.length}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {commissionOrders.length === 1 ? "1 pedido comissionado" : `${commissionOrders.length} pedidos comissionados`}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-sm font-black text-slate-900">
+                  Extrato de Comissões e Retenções
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Transações com cobrança de taxa de intermediação para a Zeladoria Condomínio.
+                </p>
+              </div>
+              <Link
+                href="/painel/admin/zeladoria-pay?tab=configuracoes"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs w-fit"
+              >
+                <Icon name="settings" size={13} />
+                <span>Ajustar Taxa ({settings.commissionPercent}%)</span>
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
+                    <th className="py-2.5">Código</th>
+                    <th className="py-2.5">Finalidade</th>
+                    <th className="py-2.5">Prestador</th>
+                    <th className="py-2.5">GMV Bruto</th>
+                    <th className="py-2.5">Alíquota</th>
+                    <th className="py-2.5">Comissão Zeladoria</th>
+                    <th className="py-2.5">Líquido Prestador</th>
+                    <th className="py-2.5">Método</th>
+                    <th className="py-2.5">Status Retenção</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {commissionOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <span className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <Icon name="chart" size={18} />
+                          </span>
+                          <span className="font-medium">Nenhuma comissão retida até o momento.</span>
+                          <span className="text-[11px] text-slate-400">
+                            As comissões aparecem automaticamente quando serviços ou vistorias são pagos.
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    commissionOrders.map((o) => (
+                      <tr key={o.id} className="hover:bg-slate-50/80">
+                        <td className="py-2.5 font-mono font-bold text-slate-900">{o.code}</td>
+                        <td className="py-2.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                              o.purpose === "vistoria"
+                                ? "bg-amber-100 text-amber-900"
+                                : "bg-blue-100 text-blue-900"
+                            }`}
+                          >
+                            {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 font-medium">{o.vendorName || "Prestador"}</td>
+                        <td className="py-2.5 font-bold text-slate-900">
+                          R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 font-mono text-slate-500">
+                          {o.commissionPercent ?? settings.commissionPercent}%
+                        </td>
+                        <td className="py-2.5 font-black text-[#1355FF]">
+                          R$ {((o.platformFeeCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 font-bold text-emerald-700">
+                          R$ {((o.netVendorCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 font-bold">{o.billingType}</td>
+                        <td className="py-2.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              o.status === "released" || o.status === "paid"
+                                ? "bg-emerald-100 text-emerald-900"
+                                : o.status === "retained"
+                                ? "bg-blue-100 text-blue-900"
+                                : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {o.status === "released" ? "Liquidada" : o.status === "retained" ? "Retida (Protege)" : o.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: REEMBOLSOS */}
+      {activeTab === "refunds" && (
+        <div className="space-y-6">
+          {/* Header e KPIs de Reembolsos */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-rose-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">
+                Total Estornado / Devolvido
+              </span>
+              <div className="text-2xl font-black text-rose-700">
+                R$ {(totalRefundedSumCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Valores estornados a condôminos
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Transações Estornadas
+              </span>
+              <div className="text-2xl font-black text-slate-900">
+                {refundedOrders.length}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {refundedOrders.length === 1 ? "1 caso de estorno" : `${refundedOrders.length} casos de estorno`}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Contestações Resolvidas
+              </span>
+              <div className="text-2xl font-black text-slate-900">
+                {disputes.filter((d) => d.status === "resolvida").length}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Mediações concluídas com sucesso
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-blue-200/80 shadow-xs space-y-1">
+              <span className="text-[10px] font-bold text-[#1355FF] uppercase tracking-wider block">
+                Cobertura Zeladoria Protege
+              </span>
+              <div className="text-2xl font-black text-[#1355FF]">
+                100%
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Garantia contra serviços não executados
+              </p>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-sm font-black text-slate-900">
+                  Histórico de Estornos & Devoluções
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Cancelamentos e reembolsos processados via Pix ou estorno no cartão de crédito.
+                </p>
+              </div>
+              <Link
+                href="/painel/admin/zeladoria-pay?tab=contestacoes"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs w-fit"
+              >
+                <Icon name="alert" size={13} />
+                <span>Ver Contestações ({disputes.filter((d) => d.status === "aberta").length})</span>
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400">
+                    <th className="py-2.5">Código</th>
+                    <th className="py-2.5">Finalidade</th>
+                    <th className="py-2.5">Prestador</th>
+                    <th className="py-2.5">Valor Estornado</th>
+                    <th className="py-2.5">Motivo / Origem</th>
+                    <th className="py-2.5">Método</th>
+                    <th className="py-2.5">Status</th>
+                    <th className="py-2.5">Data Estorno</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {refundedOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <span className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <Icon name="x-circle" size={18} />
+                          </span>
+                          <span className="font-medium">Nenhum reembolso ou estorno registrado no momento.</span>
+                          <span className="text-[11px] text-slate-400">
+                            Os pagamentos permanecem sob retenção do Zeladoria Protege e são estornados em caso de cancelamento.
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    refundedOrders.map((o) => (
+                      <tr key={o.id} className="hover:bg-slate-50/80">
+                        <td className="py-2.5 font-mono font-bold text-slate-900">{o.code}</td>
+                        <td className="py-2.5">
+                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-800">
+                            {o.purpose === "vistoria" ? "Vistoria" : "Serviço"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 font-medium">{o.vendorName || "Prestador"}</td>
+                        <td className="py-2.5 font-bold text-rose-700">
+                          R$ {((o.amountGrossCents || 0) / 100).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 text-slate-600">
+                          {o.refundReason || "Cancelamento / Mediação"}
+                        </td>
+                        <td className="py-2.5 font-bold">{o.billingType}</td>
+                        <td className="py-2.5">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900">
+                            Estornado
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-slate-500 font-mono">
+                          {o.refundedAt ? new Date(o.refundedAt).toLocaleDateString("pt-BR") : "Concluído"}
                         </td>
                       </tr>
                     ))
