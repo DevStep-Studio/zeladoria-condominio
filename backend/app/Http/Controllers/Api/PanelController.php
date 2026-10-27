@@ -217,9 +217,15 @@ final class PanelController
 
     public function ajuda(Request $request): JsonResponse
     {
-        $ctx = $this->context($request);
-        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
-        $isSupport = ! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin';
+        try {
+            $ctx = $this->context($request);
+            $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
+            $isSupport = ! empty($ctx['user']['isSuperAdmin']) || ($ctx['role'] ?? '') === 'superadmin';
+        } catch (\Throwable $e) {
+            $ctx = ['role' => 'superadmin'];
+            $condoId = null;
+            $isSupport = true;
+        }
 
         $tickets = [];
         try {

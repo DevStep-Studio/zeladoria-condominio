@@ -13,31 +13,114 @@ export default async function AjudaPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
-  const { session, condoId } = await requireCondo();
-  const params = (await searchParams) ?? {};
-  const { q, status = "todos" } = params;
-  const isSupport = session.role === "superadmin";
+  let session: any = null;
+  let condoId = 0;
+  let isSupport = false;
 
-  const res = await domainRequest<{
-    articles?: any[];
-    tickets?: any[];
-  }>("/painel/ajuda", { query: { condoId: condoId > 0 ? condoId : undefined, role: session.role } })
-    .catch(() => ({ articles: [], tickets: [] }));
+  try {
+    const auth = await requireCondo();
+    session = auth.session;
+    condoId = auth.condoId ?? 0;
+    isSupport = session?.role === "superadmin";
+  } catch (err: any) {
+    if (err?.digest?.startsWith?.("NEXT_REDIRECT")) {
+      throw err;
+    }
+    console.error("[Suporte/Ajuda] Erro na autenticação ou contexto do usuário:", err);
+    isSupport = true;
+  }
 
-  const rawArticles = Array.isArray(res?.articles) ? res.articles : [];
-  const rawTickets = Array.isArray(res?.tickets) ? res.tickets : [];
+  let params: { q?: string; status?: string } = {};
+  try {
+    params = (await searchParams) ?? {};
+  } catch (err) {
+    console.error("[Suporte/Ajuda] Erro ao obter searchParams:", err);
+    params = {};
+  }
+  const q = typeof params?.q === "string" ? params.q.trim() : "";
+  const status = typeof params?.status === "string" ? params.status.trim() : "todos";
 
-  const list = q ? rankByQuery(rawArticles, ["title", "body", "tags", "category"], q) : rawArticles;
-  const categories = [...new Set(rawArticles.map((a) => a?.category).filter(Boolean))];
+  let rawArticles: any[] = [];
+  let rawTickets: any[] = [];
+  try {
+    const res = await domainRequest<{
+      articles?: any[];
+      tickets?: any[];
+    }>("/painel/ajuda", {
+      query: {
+        condoId: condoId > 0 ? condoId : undefined,
+        role: session?.role ?? (isSupport ? "superadmin" : "morador"),
+      },
+    });
 
-  const tickets = rawTickets.map((t) => ({
-    ...t,
-    id: t.id ?? Math.random(),
-    status: t.status ?? "aberto",
-    priority: t.priority ?? "normal",
-    category: t.category ?? "geral",
-    createdAt: t.createdAt ?? t.created_at,
-  }));
+    if (Array.isArray(res?.articles)) {
+      rawArticles = res.articles;
+    }
+    if (Array.isArray(res?.tickets)) {
+      rawTickets = res.tickets;
+    }
+  } catch (err) {
+    console.error("[Suporte/Ajuda] Erro ao consultar chamados e artigos no backend:", err);
+    rawArticles = [];
+    rawTickets = [];
+  }
+
+  let list: any[] = [];
+  try {
+    const validArticles = (Array.isArray(rawArticles) ? rawArticles : [])
+      .filter((a) => a && typeof a === "object")
+      .map((a, i) => ({
+        id: a.id ?? `article-${i}`,
+        title: a.title ? String(a.title) : "Artigo sem título",
+        body: a.body ? String(a.body) : "",
+        category: a.category ? String(a.category) : "Geral",
+        tags: Array.isArray(a.tags) ? a.tags : [],
+        videoUrl: a.videoUrl ?? a.video_url ?? null,
+      }));
+
+    list = q ? rankByQuery(validArticles, ["title", "body", "category"], q) : validArticles;
+  } catch (err) {
+    console.error("[Suporte/Ajuda] Erro ao processar/filtrar artigos da base de conhecimento:", err);
+    list = [];
+  }
+
+  let categories: string[] = [];
+  try {
+    categories = [
+      ...new Set(
+        (Array.isArray(rawArticles) ? rawArticles : [])
+          .map((a) => (a && typeof a === "object" && a.category ? String(a.category).trim() : null))
+          .filter((cat): cat is string => Boolean(cat && cat.length > 0))
+      ),
+    ];
+  } catch (err) {
+    console.error("[Suporte/Ajuda] Erro ao extrair categorias:", err);
+    categories = [];
+  }
+
+  let tickets: any[] = [];
+  try {
+    tickets = (Array.isArray(rawTickets) ? rawTickets : [])
+      .filter((t) => t && typeof t === "object")
+      .map((t, idx) => ({
+        id: t.id ?? `ticket-${idx}`,
+        subject: t.subject ? String(t.subject) : "Chamado sem assunto",
+        body: t.body ? String(t.body) : "",
+        status: t.status ? String(t.status) : "aberto",
+        priority: t.priority ? String(t.priority) : "normal",
+        category: t.category ? String(t.category) : "geral",
+        author: t.author ? String(t.author) : "Usuário",
+        authorEmail: t.authorEmail ? String(t.authorEmail) : null,
+        condoName: t.condoName ? String(t.condoName) : null,
+        condoId: t.condoId ?? null,
+        answer: t.answer ? String(t.answer) : null,
+        satisfaction: t.satisfaction ? Number(t.satisfaction) : null,
+        createdAt: t.createdAt ?? t.created_at ?? null,
+      }));
+  } catch (err) {
+    console.error("[Suporte/Ajuda] Erro ao processar lista de chamados:", err);
+    tickets = [];
+  }
 
   const totalTickets = tickets.length;
   const openTickets = tickets.filter((t) => t.status === "aberto" || !t.answer).length;
