@@ -13,18 +13,25 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 
 final class SystemAlertController
 {
     public function __construct(private SessionService $sessions) {}
 
-    private function context(Request $request): array
+    private function context(Request $request, ?array $roles = null): array
     {
-        return $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
+        $ctx = $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
+        if ($roles !== null) {
+            $isSuperAdmin = ($ctx['user']['isSuperAdmin'] ?? false) || ($ctx['role'] ?? '') === 'superadmin';
+            if (! $isSuperAdmin) {
+                abort_unless(in_array($ctx['role'] ?? '', $roles, true), 403, 'Perfil não autorizado.');
+            }
+        }
+
+        return $ctx;
     }
 
-    private function isPlatformAdmin(array $ctx): boolean
+    private function isPlatformAdmin(array $ctx): bool
     {
         return ($ctx['user']['isSuperAdmin'] ?? false) || ($ctx['role'] ?? '') === 'superadmin';
     }
@@ -35,10 +42,12 @@ final class SystemAlertController
             if ($requestedCondoId) {
                 $query->where('condo_id', $requestedCondoId);
             }
+
             return $query;
         }
 
         $condoId = $ctx['condo']['id'] ?? abort(403, 'Acesso restrito ao condomínio ativo.');
+
         return $query->where(function ($q) use ($condoId) {
             $q->where('condo_id', $condoId)->orWhereNull('condo_id');
         });
@@ -154,13 +163,13 @@ final class SystemAlertController
             $query->where('created_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->where('created_at', '<=', $endDate . ' 23:59:59');
+            $query->where('created_at', '<=', $endDate.' 23:59:59');
         }
 
         // Ordering: if visao-geral and default sort, prioritize severity: P0 > P1 > P2 > P3
         if ($tab === 'visao-geral' && $sortBy === 'last_seen_at') {
             $query->orderByRaw("CASE priority WHEN 'P0' THEN 1 WHEN 'P1' THEN 2 WHEN 'P2' THEN 3 WHEN 'P3' THEN 4 ELSE 5 END ASC")
-                  ->orderByDesc('last_seen_at');
+                ->orderByDesc('last_seen_at');
         } else {
             $validSortColumns = ['code', 'title', 'type', 'source_module', 'priority', 'status', 'assignee_name', 'last_seen_at', 'created_at', 'occurrences_count'];
             $sortColumn = in_array($sortBy, $validSortColumns, true) ? $sortBy : 'last_seen_at';
@@ -180,6 +189,7 @@ final class SystemAlertController
                     unset($item['technical_context']['debug']);
                 }
             }
+
             return $item;
         });
 
@@ -250,7 +260,7 @@ final class SystemAlertController
             $condoName = $c ? $c->name : null;
         }
 
-        $code = 'INC-' . str_pad((string) (SystemIncident::max('id') + 1), 5, '0', STR_PAD_LEFT);
+        $code = 'INC-'.str_pad((string) (SystemIncident::max('id') + 1), 5, '0', STR_PAD_LEFT);
 
         $incident = SystemIncident::create([
             'code' => $code,
@@ -291,7 +301,7 @@ final class SystemAlertController
             DB::table('notifications')->insert([
                 'condo_id' => $condoId,
                 'user_id' => $request->user()->id,
-                'title' => 'Aviso Administrativo: ' . $validated['title'],
+                'title' => 'Aviso Administrativo: '.$validated['title'],
                 'body' => mb_substr($validated['description'], 0, 180),
                 'channel' => 'painel',
                 'link' => '/painel/sistema/avisos-erros',
@@ -410,7 +420,7 @@ final class SystemAlertController
             'user_id' => $request->user()->id,
             'user_name' => $request->user()->name,
             'action' => 'prioridade_alterada',
-            'notes' => "Prioridade alterada de '{$oldPriority}' para '{$newPriority}'." . (! empty($validated['reason']) ? " Motivo: {$validated['reason']}" : ''),
+            'notes' => "Prioridade alterada de '{$oldPriority}' para '{$newPriority}'.".(! empty($validated['reason']) ? " Motivo: {$validated['reason']}" : ''),
             'metadata' => ['from' => $oldPriority, 'to' => $newPriority],
             'created_at' => now(),
         ]);
@@ -457,7 +467,7 @@ final class SystemAlertController
         $errorType = $validated['error_type'] ?: 'UnhandledException';
         $sourceModule = $validated['source_module'] ?: 'Backend API';
         $environment = $validated['environment'] ?: 'production';
-        $correlationId = $validated['correlation_id'] ?: ('CORR-' . bin2hex(random_bytes(8)));
+        $correlationId = $validated['correlation_id'] ?: ('CORR-'.bin2hex(random_bytes(8)));
 
         // Deterministic fingerprint for intelligent grouping
         $normalizedMsg = preg_replace('/[0-9a-f]{8}-[0-9a-f]{4}/i', '<UUID>', $message);
@@ -505,10 +515,10 @@ final class SystemAlertController
         }
 
         // New Incident
-        $code = 'INC-' . str_pad((string) (SystemIncident::max('id') + 1), 5, '0', STR_PAD_LEFT);
+        $code = 'INC-'.str_pad((string) (SystemIncident::max('id') + 1), 5, '0', STR_PAD_LEFT);
         $incident = SystemIncident::create([
             'code' => $code,
-            'title' => "[{$errorType}] " . mb_substr($message, 0, 120),
+            'title' => "[{$errorType}] ".mb_substr($message, 0, 120),
             'description' => $message,
             'type' => 'erro',
             'category' => 'tecnico',
@@ -553,6 +563,7 @@ final class SystemAlertController
     {
         $this->context($request);
         $rules = MonitoringRule::orderBy('id')->get();
+
         return response()->json(['data' => $rules]);
     }
 
@@ -569,6 +580,7 @@ final class SystemAlertController
         ]);
 
         $rule->update($validated);
+
         return response()->json(['data' => $rule]);
     }
 }

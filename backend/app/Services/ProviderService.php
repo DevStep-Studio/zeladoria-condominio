@@ -50,7 +50,7 @@ final class ProviderService
         $q = $this->requests($vendor)->join('users as u', 'u.id', '=', 'r.customer_id')->leftJoin('condominiums as c', 'c.id', '=', 'r.condo_id')
             ->select('r.*', 'u.name as customerName', 'u.phone as customerPhone', 'c.name as condoName')->orderByDesc('r.created_at')->orderByDesc('r.id');
         if ($agenda) {
-            $q->where('r.vendor_id', $vendor->id)->whereIn('r.status', ['aceito', 'orcamento_aprovado', 'a_caminho', 'chegou', 'em_atendimento'])->whereNotNull('r.scheduled_date');
+            $q->where('r.vendor_id', $vendor->id)->whereIn('r.status', ['SERVICO_PAGO_LIBERADO', 'aceito', 'orcamento_aprovado', 'a_caminho', 'chegou', 'em_atendimento'])->whereNotNull('r.scheduled_date');
         }
         if ($limit) {
             $q->limit($limit);
@@ -59,6 +59,8 @@ final class ProviderService
         foreach ($rows as &$row) {
             if ($row['vendorId'] !== $vendor->id) {
                 $row['customerPhone'] = null;
+                $row['customerName'] = 'Morador';
+                $row['location'] = 'Unidade no Condomínio';
             }
         }
 

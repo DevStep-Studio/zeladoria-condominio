@@ -19,21 +19,35 @@ final class PasswordResetController extends Controller
         }
         $data = $request->validate(['email' => ['required', 'email', 'max:255']]);
         $user = User::where('email', $data['email'])->first();
+        $resetUrl = null;
         if ($user && $user->status !== 'bloqueado') {
             try {
+                $token = Password::createToken($user);
+                $frontendUrl = rtrim((string) (config('app.frontend_url') ?: 'https://zeladoriacondominio.com.br'), '/');
+                $generatedUrl = $frontendUrl.'/redefinir-senha?token='.$token.'&email='.urlencode($user->email);
+                if (config('mail.default') === 'log') {
+                    $resetUrl = $generatedUrl;
+                }
                 $status = Password::sendResetLink($data);
                 if ($status === Password::RESET_THROTTLED) {
                     return response()->json(['message' => 'Aguarde um minuto antes de solicitar outro link.'], 429);
                 }
             } catch (Throwable $exception) {
-                Password::deleteToken($user);
-                report($exception);
+                if (empty($resetUrl)) {
+                    Password::deleteToken($user);
+                    report($exception);
 
-                return response()->json(['message' => 'Não foi possível enviar o e-mail. Tente novamente mais tarde.'], 503);
+                    return response()->json(['message' => 'Não foi possível enviar o e-mail. Tente novamente mais tarde.'], 503);
+                }
             }
         }
 
-        return response()->json(['data' => ['message' => 'Se houver uma conta ativa com esse e-mail, você receberá as instruções de recuperação.']]);
+        $res = ['message' => 'Se houver uma conta ativa com esse e-mail, você receberá as instruções de recuperação.'];
+        if ($resetUrl !== null) {
+            $res['resetUrl'] = $resetUrl;
+        }
+
+        return response()->json(['data' => $res]);
     }
 
     public function reset(Request $request, PasswordService $passwords): JsonResponse

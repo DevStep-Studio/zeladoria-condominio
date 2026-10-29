@@ -23,7 +23,7 @@ final class ProviderRegistrationController
             $found = User::where('email', $email)->first();
             if ($found) {
                 $pwd = (string) $request->input('password');
-                if ($pwd && $passwords->check($pwd, $found->password_hash)) {
+                if ($pwd && $passwords->verify($pwd, $found->password_hash)) {
                     $existingUser = $found;
                 } else {
                     abort(422, 'Já existe uma conta com este e-mail no Zeladoria. Digite a senha correta da sua conta para ativar o perfil profissional.');

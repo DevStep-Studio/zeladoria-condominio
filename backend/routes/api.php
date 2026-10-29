@@ -31,10 +31,10 @@ Route::prefix('v1')->middleware(RequireFrontendService::class)->group(function (
     Route::get('/prestadores', [MarketplaceProviderController::class, 'index'])->name('api.prestadores.index');
     Route::post('/prestadores/cadastro', [ProviderRegistrationController::class, 'store'])->middleware('throttle:10,1')->name('api.prestadores.store');
     Route::get('/prestadores/{slug}', [MarketplaceProviderController::class, 'show'])->name('api.prestadores.show');
-    Route::post('/prestador/login', [AuthController::class, 'login'])->name('api.prestador.login');
+    Route::post('/prestador/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('api.prestador.login');
     Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgot'])->middleware('throttle:10,1');
     Route::post('/auth/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:10,1');
-    Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::post('/auth/sessions', [AuthController::class, 'create']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('prestador')->name('api.prestador.')->group(function () {

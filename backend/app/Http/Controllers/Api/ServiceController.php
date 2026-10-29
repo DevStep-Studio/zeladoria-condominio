@@ -203,6 +203,8 @@ final class ServiceController
         $ctx = $this->context($request);
         $q = DB::table('service_quotes')->where('id', $quote)->first();
         if ($q) {
+            $req = DB::table('service_requests')->where('id', $q->request_id)->where('condo_id', $ctx['condo']['id'])->first() ?? abort(404, 'Chamado não encontrado.');
+            abort_unless($req->customer_id === $request->user()->id || in_array($ctx['role'], ['superadmin', 'sindico'], true), 403, 'Apenas o solicitante pode aprovar orçamentos.');
             $vendor = DB::table('vendors')->where('id', $q->vendor_id)->first();
             if ($vendor?->user_id) {
                 DB::table('notifications')->insert([

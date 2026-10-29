@@ -72,7 +72,15 @@ final class ProviderRequestController
             $row = $this->providers->ownedRequest($v, $service, true);
             // Only the customer may confirm completion and unlock a payout.
             $next = in_array($data['status'], ['concluido', 'conclusao_solicitada'], true) ? 'prestador_concluiu' : $data['status'];
-            $transitions = ['aceito' => ['a_caminho', 'cancelado'], 'orcamento_aprovado' => ['a_caminho', 'cancelado'], 'a_caminho' => ['chegou', 'cancelado'], 'chegou' => ['em_atendimento', 'cancelado'], 'em_atendimento' => ['prestador_concluiu', 'cancelado'], 'correcao_solicitada' => ['em_atendimento', 'prestador_concluiu', 'cancelado']];
+            $transitions = [
+                'aceito' => ['a_caminho', 'cancelado'],
+                'orcamento_aprovado' => ['a_caminho', 'cancelado'],
+                'SERVICO_PAGO_LIBERADO' => ['a_caminho', 'cancelado'],
+                'a_caminho' => ['chegou', 'cancelado'],
+                'chegou' => ['em_atendimento', 'cancelado'],
+                'em_atendimento' => ['prestador_concluiu', 'cancelado'],
+                'correcao_solicitada' => ['em_atendimento', 'prestador_concluiu', 'cancelado'],
+            ];
             abort_unless(in_array($next, $transitions[$row->status] ?? [], true), 409, 'Transição de atendimento inválida.');
             $values = ['status' => $next, 'updated_at' => now()];
             if ($next === 'chegou') {
@@ -108,7 +116,7 @@ final class ProviderRequestController
 
         return DB::transaction(function () use ($v, $service, $data) {
             $row = $this->providers->ownedRequest($v, $service, true);
-            abort_unless(in_array($row->status, ['aceito', 'a_caminho', 'chegou', 'em_atendimento', 'correcao_solicitada'], true), 409, 'Atendimento não está em execução.');
+            abort_unless(in_array($row->status, ['SERVICO_PAGO_LIBERADO', 'orcamento_aprovado', 'aceito', 'a_caminho', 'chegou', 'em_atendimento', 'correcao_solicitada'], true), 409, 'Atendimento não está em execução.');
             $values = ['updated_at' => now()];
             foreach (['checklist' => 'checklist', 'materialsUsed' => 'materials_used', 'executionNotes' => 'execution_notes'] as $key => $column) {
                 if (array_key_exists($key, $data)) {

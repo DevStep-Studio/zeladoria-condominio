@@ -23,6 +23,9 @@ final class OperationService
 
     public function execute(string $name, array $parameters): mixed
     {
+        if (! app()->environment('testing') && str_starts_with($name, 'tests.')) {
+            abort(403, 'Operações de teste não são permitidas neste ambiente.');
+        }
         $op = $this->operations[$name] ?? abort(404, 'Operação não encontrada.');
         if (count($parameters) !== $op['parameters']) {
             throw ValidationException::withMessages(['parameters' => 'Parâmetros inválidos para esta operação.']);

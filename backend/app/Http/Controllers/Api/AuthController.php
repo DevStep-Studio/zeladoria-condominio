@@ -26,6 +26,10 @@ final class AuthController
             RateLimiter::hit($key, 60);
             abort(401, 'Credenciais inválidas.');
         }
+        if ($user->status === 'convidado') {
+            RateLimiter::hit($key, 60);
+            abort(403, 'Conta aguardando ativação. Utilize o link enviado por e-mail ou redefina sua senha.');
+        }
         RateLimiter::clear($key);
         $user->last_login_at = now();
         $user->first_access_at ??= now();
@@ -152,7 +156,11 @@ final class AuthController
 
     public function markAllNotificationsRead(Request $request): mixed
     {
-        DB::table('notifications')->where('user_id', $request->user()->id)->whereNull('read_at')->update(['read_at' => now()]);
+        $query = DB::table('notifications')->where('user_id', $request->user()->id)->whereNull('read_at');
+        if ($request->filled('condoId')) {
+            $query->where('condo_id', $request->integer('condoId'));
+        }
+        $query->update(['read_at' => now()]);
 
         return response()->json(['data' => ['success' => true]]);
     }

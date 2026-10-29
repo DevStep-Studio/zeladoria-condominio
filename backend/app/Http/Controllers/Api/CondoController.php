@@ -59,7 +59,7 @@ final class CondoController
 
     public function storeAgenda(Request $request): JsonResponse
     {
-        $ctx = $this->context($request, ['superadmin', 'sindico', 'conselho', 'zelador', 'porteiro', 'morador']);
+        $ctx = $this->context($request, ['superadmin', 'sindico', 'zelador']);
         $data = $request->validate([
             'title' => 'required|string|max:200',
             'date' => 'required|string|max:20',
@@ -434,9 +434,19 @@ final class CondoController
 
     public function paymentOrderByCode(Request $request, string $code): JsonResponse
     {
-        $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
+        $ctx = $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
         $rows = $this->operations->execute('lib.actions.zeladoria-pay.001', [$code]);
         $order = $rows[0] ?? abort(404, 'Ordem de pagamento não encontrada.');
+
+        $isSuperAdmin = ! empty($ctx['user']['isSuperAdmin']) || ($ctx['role'] ?? '') === 'superadmin';
+        $isSindico = ($ctx['role'] ?? '') === 'sindico' && ($ctx['condo']['id'] ?? 0) === ($order['condoId'] ?? 0);
+        $isCustomer = ($order['customerId'] ?? 0) === $request->user()->id;
+        $isVendor = false;
+        if (! empty($order['vendorId'])) {
+            $isVendor = DB::table('vendors')->where('id', $order['vendorId'])->where('user_id', $request->user()->id)->exists();
+        }
+
+        abort_unless($isSuperAdmin || $isSindico || $isCustomer || $isVendor, 403, 'Acesso não autorizado a esta ordem de pagamento.');
 
         return response()->json(['data' => $order]);
     }

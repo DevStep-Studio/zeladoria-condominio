@@ -22,6 +22,11 @@ final class PanelController
         return $ctx['condo']['id'] ?? abort(403);
     }
 
+    private function requireSuperAdmin(array $ctx): void
+    {
+        abort_unless(! empty($ctx['user']['isSuperAdmin']) || ($ctx['role'] ?? '') === 'superadmin', 403, 'Acesso restrito ao administrador da plataforma.');
+    }
+
     public function achados(Request $request): JsonResponse
     {
         $condoId = $this->condoId($this->context($request));
@@ -54,7 +59,6 @@ final class PanelController
     {
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
-        $this->operations->execute('app.painel.notificacoes.page.001', [['readAt' => ['$date' => now()->toIso8601String()]], $request->user()->id]);
 
         return response()->json(['data' => $this->operations->execute('app.painel.notificacoes.page.002', [$request->user()->id, $condoId])]);
     }
@@ -104,7 +108,9 @@ final class PanelController
 
     public function fornecedores(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador'], true), 403, 'Acesso restrito à gestão.');
+        $condoId = $this->condoId($ctx);
 
         return response()->json(['data' => [
             'vendorRows' => $this->operations->execute('app.painel.fornecedores.page.001', [$condoId]),
@@ -114,7 +120,9 @@ final class PanelController
 
     public function financeiro(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador', 'porteiro'], true), 403, 'Acesso restrito à gestão financeira.');
+        $condoId = $this->condoId($ctx);
 
         return response()->json(['data' => [
             'txRows' => $this->operations->execute('app.painel.financeiro.page.001', [$condoId]),
@@ -126,7 +134,9 @@ final class PanelController
 
     public function manutencao(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador'], true), 403, 'Acesso restrito à manutenção.');
+        $condoId = $this->condoId($ctx);
 
         return response()->json(['data' => [
             'assetRows' => $this->operations->execute('app.painel.manutencao.page.001', [$condoId]),
@@ -138,7 +148,9 @@ final class PanelController
 
     public function moradores(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador', 'porteiro'], true), 403, 'Acesso restrito à gestão.');
+        $condoId = $this->condoId($ctx);
 
         return response()->json(['data' => [
             'people' => $this->operations->execute('app.painel.moradores.page.001', [$condoId]),
@@ -166,9 +178,21 @@ final class PanelController
         $condoId = $this->condoId($ctx);
         $canManage = in_array($ctx['role'], ['superadmin', 'sindico', 'conselho', 'zelador', 'porteiro'], true);
 
+        $commentsQuery = DB::table('occurrence_comments as oc')
+            ->join('occurrences as o', 'o.id', '=', 'oc.occurrence_id')
+            ->where('o.condo_id', $condoId);
+        if ($ctx['role'] === 'morador') {
+            $commentsQuery->where('oc.internal', false)
+                ->where(function ($q) use ($request) {
+                    $q->where('o.visibility', 'publica')
+                        ->orWhere('o.reported_by_id', $request->user()->id);
+                });
+        }
+        $comments = $commentsQuery->select('oc.*')->get()->map(fn ($c) => (array) $c)->all();
+
         return response()->json(['data' => [
             'occurrenceRows' => $this->operations->execute('app.painel.ocorrencias.page.001', [$condoId]),
-            'comments' => $this->operations->execute('app.painel.ocorrencias.page.002', []),
+            'comments' => $comments,
             'staffMembers' => $canManage ? $this->operations->execute('app.painel.ocorrencias.page.003', [$condoId, ['sindico', 'superadmin', 'zelador', 'porteiro', 'conselho']]) : [],
         ]]);
     }
@@ -217,15 +241,9 @@ final class PanelController
 
     public function ajuda(Request $request): JsonResponse
     {
-        try {
-            $ctx = $this->context($request);
-            $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
-            $isSupport = ! empty($ctx['user']['isSuperAdmin']) || ($ctx['role'] ?? '') === 'superadmin';
-        } catch (\Throwable $e) {
-            $ctx = ['role' => 'superadmin'];
-            $condoId = null;
-            $isSupport = true;
-        }
+        $ctx = $this->context($request);
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: null);
+        $isSupport = ! empty($ctx['user']['isSuperAdmin']) || ($ctx['role'] ?? '') === 'superadmin';
 
         $tickets = [];
         try {
@@ -312,7 +330,9 @@ final class PanelController
 
     public function auditoria(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador', 'porteiro'], true), 403, 'Acesso restrito à auditoria.');
+        $condoId = $this->condoId($ctx);
         $q = $request->query('q');
         $f = $request->query('f');
 
@@ -326,18 +346,22 @@ final class PanelController
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
         $v = $request->query('v');
-        $allowed = $ctx['role'] === 'porteiro' || $ctx['role'] === 'zelador'
-            ? ['publica', 'administrativa']
-            : ['publica', 'administrativa', 'sigilosa'];
+        $allowed = match ($ctx['role']) {
+            'superadmin', 'sindico' => ['publica', 'administrativa', 'sigilosa'],
+            'porteiro', 'zelador', 'conselho' => ['publica', 'administrativa'],
+            default => ['publica'],
+        };
 
         return response()->json(['data' => $this->operations->execute('app.painel.livro.page.001', [
-            $condoId, $v && in_array($v, $allowed, true), [$v], $ctx['role'] === 'porteiro' || $ctx['role'] === 'zelador', ['publica', 'administrativa'], ['publica', 'administrativa', 'sigilosa'],
+            $condoId, $v && in_array($v, $allowed, true), [$v], in_array($ctx['role'], ['porteiro', 'zelador', 'conselho'], true), ['publica', 'administrativa'], $allowed,
         ])]);
     }
 
     public function relatorios(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        abort_if(in_array($ctx['role'], ['morador', 'porteiro'], true), 403, 'Acesso restrito aos relatórios.');
+        $condoId = $this->condoId($ctx);
         $today = $request->query('today', now('America/Sao_Paulo')->format('Y-m-d'));
         $expiringUntil = $request->query('expiringUntil', now('America/Sao_Paulo')->addDays(45)->format('Y-m-d'));
 
@@ -351,7 +375,8 @@ final class PanelController
 
     public function adocao(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => [
             'condos' => $this->operations->execute('app.painel.adocao.page.001', []),
@@ -365,7 +390,8 @@ final class PanelController
 
     public function admin(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => [
             'totalCondos' => $this->operations->execute('app.painel.admin.page.001', [])[0]['totalCondos'] ?? 0,
@@ -382,14 +408,16 @@ final class PanelController
 
     public function adminAdministradores(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => $this->operations->execute('app.painel.admin.administradores.page.001', [])]);
     }
 
     public function adminCondominios(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => [
             'condosList' => $this->operations->execute('app.painel.admin.condominios.page.001', []),
@@ -399,7 +427,8 @@ final class PanelController
 
     public function adminMarketplace(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => [
             'allVendors' => $this->operations->execute('app.painel.admin.marketplace.page.001', []),
@@ -410,7 +439,8 @@ final class PanelController
     public function adminMarketplaceDestaques(Request $request): JsonResponse
     {
         $ctx = $this->context($request);
-        $condoId = $this->condoId($ctx);
+        $this->requireSuperAdmin($ctx);
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: 0);
 
         return response()->json(['data' => [
             'plans' => $this->operations->execute('app.painel.admin.marketplace.destaques.page.001', []),
@@ -421,54 +451,49 @@ final class PanelController
     public function adminMarketplaceTaxas(Request $request): JsonResponse
     {
         $ctx = $this->context($request);
-        $condoId = $this->condoId($ctx);
+        $this->requireSuperAdmin($ctx);
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: 0);
 
         return response()->json(['data' => $this->operations->execute('app.painel.admin.marketplace.taxas.page.001', [$condoId])]);
     }
 
     public function adminPrestadores(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => $this->operations->execute('app.painel.admin.prestadores.page.001', [])]);
     }
 
     public function adminSindicos(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => $this->operations->execute('app.painel.admin.sindicos.page.001', [])]);
     }
 
     public function adminUsuarios(Request $request): JsonResponse
     {
-        $this->context($request);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
 
         return response()->json(['data' => $this->operations->execute('app.painel.admin.usuarios.page.001', [])]);
     }
 
     public function adminZeladoriaPay(Request $request): JsonResponse
     {
-        try {
-            $ctx = $this->context($request);
-            $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: 0);
+        $ctx = $this->context($request);
+        $this->requireSuperAdmin($ctx);
+        $condoId = $ctx['condo']['id'] ?? ($request->integer('condoId') ?: 0);
 
-            return response()->json(['data' => [
-                'orders' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.001', [$condoId]),
-                'disputes' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.002', []),
-                'allPayouts' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.003', [$condoId]),
-                'recipients' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.004', []),
-                'paidInspections' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.005', []),
-            ]]);
-        } catch (\Throwable $e) {
-            return response()->json(['data' => [
-                'orders' => [],
-                'disputes' => [],
-                'allPayouts' => [],
-                'recipients' => [],
-                'paidInspections' => [],
-            ]]);
-        }
+        return response()->json(['data' => [
+            'orders' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.001', [$condoId]),
+            'disputes' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.002', []),
+            'allPayouts' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.003', [$condoId]),
+            'recipients' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.004', []),
+            'paidInspections' => $this->operations->execute('app.painel.admin.zeladoria-pay.page.005', []),
+        ]]);
     }
 
     public function encomendas(Request $request): JsonResponse
@@ -502,10 +527,9 @@ final class PanelController
     {
         $ctx = $this->context($request);
         $isSuperAdmin = ($ctx['role'] === 'superadmin') || ! empty($ctx['user']['isSuperAdmin']);
-        $hasExplicitCondo = $request->has('condoId') && $request->integer('condoId') > 0;
-        $condoId = $hasExplicitCondo
-            ? $request->integer('condoId')
-            : ($isSuperAdmin ? null : ($ctx['condo']['id'] ?? null));
+        $condoId = $isSuperAdmin
+            ? ($request->integer('condoId') ?: null)
+            : ($ctx['condo']['id'] ?? abort(403, 'Acesso restrito ao condomínio ativo.'));
 
         if (! $condoId && ! $isSuperAdmin) {
             abort(403);
