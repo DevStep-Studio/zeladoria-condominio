@@ -10,25 +10,18 @@ import type { Role } from "@/lib/auth";
 export type ShellCondo = { id: number; name: string };
 
 import type { NavGroup, NavItem } from "@/lib/navigation";
+import {
+  markNotificationReadAction,
+  markAllNotificationsReadAction,
+} from "@/lib/actions/notificacoes";
 
-type SearchResultItem = {
+export type SearchResultItem = {
   title: string;
   subtitle: string;
-  category: "Ocorrências" | "Reservas" | "Prestadores";
+  category: string;
   href: string;
+  icon?: IconName;
 };
-
-const MOCK_SEARCHABLE_ITEMS: SearchResultItem[] = [
-  { title: "Lâmpada corredor Torre A", subtitle: "OC-00001 · Elétrica · Aberto", category: "Ocorrências", href: "/painel/ocorrencias" },
-  { title: "Vazamento subsolo -1", subtitle: "OC-00004 · Hidráulica · Em execução", category: "Ocorrências", href: "/painel/ocorrencias" },
-  { title: "Ruído excessivo salão", subtitle: "OC-00002 · Convivência · Aberto", category: "Ocorrências", href: "/painel/ocorrencias" },
-  { title: "Salão de Festas", subtitle: "Capacidade: 80 pessoas · R$ 200", category: "Reservas", href: "/painel/reservas" },
-  { title: "Churrasqueira Gourmet", subtitle: "Capacidade: 20 pessoas · R$ 80", category: "Reservas", href: "/painel/reservas" },
-  { title: "Espaço Gourmet", subtitle: "Capacidade: 40 pessoas · R$ 150", category: "Reservas", href: "/painel/reservas" },
-  { title: "Carlos Eduardo Silva", subtitle: "Volt & Luz Soluções Elétricas · 4.9 estrelas", category: "Prestadores", href: "/painel/servicos" },
-  { title: "AquaFix Manutenções", subtitle: "Engenharia Hidráulica · 4.8 estrelas", category: "Prestadores", href: "/painel/servicos" },
-  { title: "Roberto Marcenaria", subtitle: "Arte em Madeira · 5.0 estrelas", category: "Prestadores", href: "/painel/servicos" },
-];
 
 type NotificationItem = {
   id: number;
@@ -39,45 +32,6 @@ type NotificationItem = {
   href: string;
   icon: IconName;
 };
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 1,
-    title: "Nova ocorrência registrada",
-    description: "OC-00001: Lâmpada queimada Torre A",
-    time: "Há 15 min",
-    read: false,
-    href: "/painel/ocorrencias",
-    icon: "clipboard",
-  },
-  {
-    id: 2,
-    title: "Reserva confirmada",
-    description: "Salão de Festas agendado para amanhã às 18h",
-    time: "Há 1 hora",
-    read: false,
-    href: "/painel/reservas",
-    icon: "calendar",
-  },
-  {
-    id: 3,
-    title: "Encomenda na portaria",
-    description: "Pacote recebido da Amazon (Código #9842)",
-    time: "Há 3 horas",
-    read: false,
-    href: "/painel/encomendas",
-    icon: "package",
-  },
-  {
-    id: 4,
-    title: "Edital de Assembleia",
-    description: "Convocação para Assembleia Geral Ordinária",
-    time: "Ontem",
-    read: true,
-    href: "/painel/assembleias",
-    icon: "scale",
-  },
-];
 
 export function Shell({
   navigationGroups = [],
@@ -221,19 +175,36 @@ export function Shell({
 
   // Notifications dropdown state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [unreadCount, setUnreadCount] = useState(initialUnread || 0);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = useMemo(() => {
-    return notifications.filter((n) => !n.read).length;
-  }, [notifications]);
+  // Keyboard shortcut listener for Global Search (⌘K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const searchInput = document.getElementById("global-search-input");
+        if (searchInput) {
+          searchInput.focus();
+          setSearchFocused(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const markAllAsRead = () => {
+    setUnreadCount(0);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    markAllNotificationsReadAction().catch(() => {});
   };
 
   const markAsRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? ({ ...n, read: true }) : n)));
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setUnreadCount((c) => Math.max(0, c - 1));
+    markNotificationReadAction(id).catch(() => {});
   };
 
   // Click outside listener for dropdowns
@@ -257,25 +228,84 @@ export function Shell({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Dinâmico: catálogo de busca baseado em permissões, rotas ativas e ações rápidas
+  const dynamicSearchableItems = useMemo<SearchResultItem[]>(() => {
+    const items: SearchResultItem[] = [];
+
+    // 1. Ações rápidas por perfil
+    if (role === "morador") {
+      items.push(
+        { title: "Registrar Ocorrência", subtitle: "Abrir chamado com foto e descrição", category: "Ações Rápidas", href: "/painel/ocorrencias", icon: "clipboard" },
+        { title: "Reservar Área Comum", subtitle: "Churrasqueira, salão de festas ou quadra", category: "Ações Rápidas", href: "/painel/reservas", icon: "calendar" },
+        { title: "Liberar Visitante", subtitle: "Gerar convite e QR Code de entrada", category: "Ações Rápidas", href: "/painel/visitantes", icon: "users" },
+        { title: "Contratar Profissional", subtitle: "Buscar eletricistas, encanadores e reparos", category: "Ações Rápidas", href: "/painel/servicos", icon: "briefcase" },
+        { title: "Consultar Encomendas", subtitle: "Ver pacotes disponíveis na portaria", category: "Ações Rápidas", href: "/painel/encomendas", icon: "package" },
+      );
+    } else if (role === "sindico") {
+      items.push(
+        { title: "Novo Comunicado", subtitle: "Disparar aviso para todo o condomínio", category: "Ações Rápidas", href: "/painel/comunicados", icon: "mail" },
+        { title: "Convidar Morador", subtitle: "Cadastrar novos moradores ou proprietários", category: "Ações Rápidas", href: "/painel/moradores", icon: "users" },
+        { title: "Nova Ordem de Serviço", subtitle: "Programar manutenção preventiva ou corretiva", category: "Ações Rápidas", href: "/painel/ordens", icon: "wrench" },
+        { title: "Financeiro & Prestação de Contas", subtitle: "Receitas, despesas e fundo de reserva", category: "Ações Rápidas", href: "/painel/financeiro", icon: "wallet" },
+        { title: "Avisos e Erros do Sistema", subtitle: "Monitoramento de telemetria e incidentes", category: "Ações Rápidas", href: "/painel/sistema/avisos-erros", icon: "alert-triangle" },
+      );
+    } else if (role === "porteiro" || role === "zelador") {
+      items.push(
+        { title: "Registrar Entrada de Visitante", subtitle: "Check-in na portaria", category: "Ações Rápidas", href: "/painel/visitantes", icon: "users" },
+        { title: "Receber Encomenda", subtitle: "Registrar pacote e notificar unidade", category: "Ações Rápidas", href: "/painel/encomendas", icon: "package" },
+        { title: "Passagem de Turno", subtitle: "Registrar ocorrências do plantão", category: "Ações Rápidas", href: "/painel/turnos", icon: "refresh" },
+        { title: "Livro Digital", subtitle: "Consultar ocorrências da portaria", category: "Ações Rápidas", href: "/painel/portaria", icon: "book" },
+      );
+    } else if (role === "superadmin") {
+      items.push(
+        { title: "Painel do Marketplace", subtitle: "Serviços, categorias e prestadores", category: "Ações Rápidas", href: "/painel/admin/marketplace", icon: "briefcase" },
+        { title: "Zeladoria Pay & Repasses", subtitle: "Split Asaas, escrow e conciliação", category: "Ações Rápidas", href: "/painel/admin/zeladoria-pay", icon: "wallet" },
+        { title: "Condomínios Cadastrados", subtitle: "Gerenciar unidades e parametrização", category: "Ações Rápidas", href: "/painel/admin/condominios", icon: "building" },
+        { title: "Moderação de Prestadores", subtitle: "Aprovação KYC e documentos", category: "Ações Rápidas", href: "/painel/admin/prestadores", icon: "shield" },
+      );
+    }
+
+    // 2. Módulos e páginas autorizadas a partir de navigationGroups
+    for (const group of navigationGroups) {
+      if (group.href) {
+        items.push({
+          title: group.title,
+          subtitle: `Módulo ${group.title}`,
+          category: "Módulos & Navegação",
+          href: group.href,
+          icon: group.icon,
+        });
+      }
+      for (const navItem of group.items) {
+        items.push({
+          title: navItem.label,
+          subtitle: `${group.title} · ${navItem.label}`,
+          category: "Módulos & Navegação",
+          href: navItem.href,
+          icon: navItem.icon,
+        });
+      }
+    }
+
+    return items;
+  }, [role, navigationGroups]);
+
   // Filtered search results grouped
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    return MOCK_SEARCHABLE_ITEMS.filter(
+    return dynamicSearchableItems.filter(
       (item) => item.title.toLowerCase().includes(q) || item.subtitle.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [searchQuery, dynamicSearchableItems]);
 
   const groupedSearchResults = useMemo(() => {
-    const groups: Record<string, SearchResultItem[]> = {
-      Ocorrências: [],
-      Reservas: [],
-      Prestadores: [],
-    };
+    const groups: Record<string, SearchResultItem[]> = {};
     searchResults.forEach((item) => {
-      if (groups[item.category]) {
-        groups[item.category].push(item);
+      if (!groups[item.category]) {
+        groups[item.category] = [];
       }
+      groups[item.category].push(item);
     });
     return groups;
   }, [searchResults]);
@@ -836,6 +866,7 @@ export function Shell({
           <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md mx-6">
             <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
+              id="global-search-input"
               type="text"
               placeholder={searchPlaceholder}
               value={searchQuery}
@@ -937,41 +968,59 @@ export function Shell({
                   </div>
 
                   <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
-                    {notifications.map((notif) => (
-                      <Link
-                        key={notif.id}
-                        href={notif.href}
-                        onClick={() => {
-                          markAsRead(notif.id);
-                          setNotificationsOpen(false);
-                        }}
-                        className={`flex items-start gap-2.5 p-3 text-left transition-colors hover:bg-slate-50 ${
-                          !notif.read ? "bg-blue-50/30" : ""
-                        }`}
-                      >
-                        <span
-                          className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[6px] text-xs ${
-                            !notif.read ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-500"
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400 space-y-1">
+                        <Icon name="bell" size={20} className="mx-auto text-slate-300" />
+                        <p className="font-semibold text-slate-600">Nenhuma notificação recente</p>
+                        <p className="text-[11px] text-slate-400">Você está em dia com todos os avisos.</p>
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <Link
+                          key={notif.id}
+                          href={notif.href}
+                          onClick={() => {
+                            markAsRead(notif.id);
+                            setNotificationsOpen(false);
+                          }}
+                          className={`flex items-start gap-2.5 p-3 text-left transition-colors hover:bg-slate-50 ${
+                            !notif.read ? "bg-blue-50/30" : ""
                           }`}
                         >
-                          <Icon name={notif.icon} size={13} />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-slate-900 leading-tight">
-                            {notif.title}
-                          </p>
-                          <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
-                            {notif.description}
-                          </p>
-                          <span className="text-[10px] text-slate-400 mt-1 block">
-                            {notif.time}
+                          <span
+                            className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[6px] text-xs ${
+                              !notif.read ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            <Icon name={notif.icon} size={13} />
                           </span>
-                        </div>
-                        {!notif.read && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF] shrink-0 mt-1" />
-                        )}
-                      </Link>
-                    ))}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-slate-900 leading-tight">
+                              {notif.title}
+                            </p>
+                            <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">
+                              {notif.description}
+                            </p>
+                            <span className="text-[10px] text-slate-400 mt-1 block">
+                              {notif.time}
+                            </span>
+                          </div>
+                          {!notif.read && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF] shrink-0 mt-1" />
+                          )}
+                        </Link>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="p-2 border-t border-slate-100 bg-slate-50/60 text-center">
+                    <Link
+                      href="/painel/notificacoes"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-xs font-bold text-[#1355FF] hover:underline block py-1"
+                    >
+                      Ver todas as notificações →
+                    </Link>
                   </div>
                 </div>
               )}

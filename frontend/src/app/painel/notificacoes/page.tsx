@@ -1,80 +1,33 @@
 import { domainRequest } from "@/lib/api/server";
-
-import { revalidatePath } from "next/cache";
-import Link from "next/link";
-
-import { requireCondo, requireSession } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader } from "@/components/ui";
-import { dateTimeBR } from "@/lib/utils";
+import { requireCondo } from "@/lib/auth";
+import { NotificacoesClient, type NotificationItem } from "./notificacoes-client";
 
 export const dynamic = "force-dynamic";
 
-async function markAllReadAction() {
-  "use server";
-  const session = await requireSession();
-  await domainRequest("/notificacoes/ler-todas", { method: "POST", body: { userId: session.user.id } });
-  revalidatePath("/painel/notificacoes");
-  revalidatePath("/painel", "layout");
-}
-
 export default async function NotificacoesPage() {
-  const { session, condoId } = await requireCondo();
+  const { condoId } = await requireCondo();
 
-  const rows = await domainRequest<any[]>("/painel/notificacoes", { query: { condoId } });
+  let notifications: NotificationItem[] = [];
+  try {
+    const res = await domainRequest<any[]>("/painel/notificacoes", {
+      query: { condoId },
+    });
+    if (Array.isArray(res)) {
+      notifications = res.map((r: any) => ({
+        id: Number(r.id),
+        condoId: Number(r.condoId || condoId),
+        userId: Number(r.userId),
+        title: String(r.title || "Notificação"),
+        body: r.body ? String(r.body) : null,
+        channel: String(r.channel || "app"),
+        link: r.link ? String(r.link) : null,
+        readAt: r.readAt ? String(r.readAt) : null,
+        createdAt: String(r.createdAt || new Date().toISOString()),
+      }));
+    }
+  } catch (err) {
+    console.error("[Notificacoes] Erro ao carregar notificações:", err);
+  }
 
-  const unread = rows.filter((r) => !r.readAt).length;
-
-  return (
-    <>
-      <PageHeader
-        title="Notificações"
-        subtitle="Avisos de portaria, encomendas, chamados, contratos e assembleias. Integração opcional com e-mail e WhatsApp."
-        actions={
-          unread > 0 ? (
-            <form action={markAllReadAction}>
-              <button className="btn-primary btn-sm">Marcar todas como lidas ({unread})</button>
-            </form>
-          ) : null
-        }
-      />
-
-      <Card title={`Caixa de entrada (${rows.length})`}>
-        {rows.length === 0 ? (
-          <EmptyState title="Nenhuma notificação" icon="bell" />
-        ) : (
-          <ul className="space-y-2">
-            {rows.map((n) => (
-              <li
-                key={n.id}
-                className={`rounded-lg border p-3 ${
-                  n.readAt ? "border-[var(--color-line)]" : "border-[var(--color-primary-soft)] bg-[var(--color-primary-soft)]  "
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold text-[var(--color-ink)]">{n.title}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={n.channel === "whatsapp" ? "green" : "zinc"}>{n.channel}</Badge>
-                    <span className="text-xs text-[var(--color-subtle)]">{dateTimeBR(n.createdAt)}</span>
-                  </div>
-                </div>
-                {n.body ? <p className="mt-1 text-sm text-[var(--color-muted)]">{n.body}</p> : null}
-                {n.link ? (
-                  <Link href={n.link} className="link mt-1 inline-block text-xs">
-                    abrir módulo
-                  </Link>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <div className="mt-4">
-        <InfoNote>
-          Canais adicionais (e-mail e WhatsApp) podem ser habilitados por condomínio. Comunicados em massa sempre exigem
-          confirmação humana antes do disparo.
-        </InfoNote>
-      </div>
-    </>
-  );
+  return <NotificacoesClient initialNotifications={notifications} />;
 }
