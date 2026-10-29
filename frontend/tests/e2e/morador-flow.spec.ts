@@ -81,3 +81,4 @@ test.describe("Jornada E2E do Morador", () => {
     expect(hasForbiddenOrRedirect).toBeTruthy();
   });
 });
+

@@ -128,3 +128,4 @@
 3. Remover supressão silenciosa com `.catch(() => [])` em `ajuda/page.tsx` e `chamados/page.tsx`.
 4. Corrigir links 403 e inconsistências de navegação por perfil em `navigation.ts`, `shell.tsx` e `provider-shell.tsx`.
 5. Validar suites com `npm run typecheck`, `npm run lint`, `npm test` e `npm run build`.
+

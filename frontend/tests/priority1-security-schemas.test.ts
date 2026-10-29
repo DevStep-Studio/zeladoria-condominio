@@ -62,3 +62,4 @@ test("AssemblyVoteSchema: requires unitId for vote participation", () => {
   });
   assert.equal(invalid.success, false);
 });
+

@@ -17,3 +17,4 @@ test("AppUI: valida regras e propriedades dos componentes do Design System", () 
   assert.equal(startItem, 11);
   assert.equal(endItem, 20);
 });
+

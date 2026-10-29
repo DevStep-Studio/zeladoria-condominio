@@ -48,3 +48,4 @@
 - [ ] **Tarefa 2.5: Verificação e Auto-Commit**
   - Executar typecheck, lint e suíte de testes.
   - Criar commit descritivo: `feat(ux): componentes de design system, loading skeletons, central de notificacoes e busca global`.
+

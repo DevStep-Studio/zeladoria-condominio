@@ -56,3 +56,4 @@ test.describe("Jornada E2E da Portaria & Controle de Acesso", () => {
     expect(isRestricted).toBeTruthy();
   });
 });
+

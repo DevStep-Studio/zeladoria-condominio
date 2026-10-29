@@ -48,3 +48,4 @@ test.describe("Jornada E2E do Síndico", () => {
     await expect(page.locator("button:has-text('Programadas')")).toBeVisible();
   });
 });
+

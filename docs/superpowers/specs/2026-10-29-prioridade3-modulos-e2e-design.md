@@ -99,3 +99,4 @@ Para assegurar cobertura total sem fragilidade, a suíte de testes Playwright se
 - Execução completa da suíte unitária e de integração (`tests/*.test.ts`) com 100% de aprovação.
 - Execução da suíte E2E Playwright validando os fluxos dos 4 perfis.
 - Geração do relatório final de auditoria em conformidade com a Seção 14 das diretrizes.
+

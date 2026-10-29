@@ -54,3 +54,4 @@ export const AssemblyMinutesSchema = z.object({
   title: z.string().trim().min(3).max(200),
   content: z.string().trim().min(10, "A ata deve conter o registro formal das deliberações."),
 });
+

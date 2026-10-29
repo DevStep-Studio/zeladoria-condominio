@@ -667,3 +667,4 @@ export function AppFilter({ options, selectedId, onSelect, className = "" }: App
     </div>
   );
 }
+

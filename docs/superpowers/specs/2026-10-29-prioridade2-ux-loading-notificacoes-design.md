@@ -97,3 +97,4 @@ Rotas com `loading.tsx` e `error.tsx` dedicados:
   1. **Navegação & Módulos** (rotas permitidas)
   2. **Ações Rápidas** (abrir chamado, reservar espaço, convidar visitante, novo comunicado)
 - Navegação fluida com teclado (Seta Cima/Baixo, Enter, Escape).
+

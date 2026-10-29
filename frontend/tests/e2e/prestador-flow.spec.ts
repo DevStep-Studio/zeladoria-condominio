@@ -32,3 +32,4 @@ test.describe("Jornada E2E do Prestador de Serviços", () => {
     await expect(page.locator("button:has-text('ativos')")).toBeVisible();
   });
 });
+
