@@ -9,7 +9,8 @@ import { ALL_STAFF } from "@/lib/rbac";
 import { addDays, bool, cents, isoDate, maybeDate, num, sequence, str } from "@/lib/utils";
 import { voteAssemblyAction as executeVoteAssemblyAction } from "@/lib/actions/assemblies";
 
-const FINANCE = ["superadmin", "sindico", "conselho"] as const;
+const FINANCE_VIEW = ["superadmin", "sindico", "conselho"] as const;
+const FINANCE_MANAGE = ["superadmin", "sindico"] as const;
 
 /* -------------------------------------------------------- MANUTENÇÃO ---- */
 
@@ -461,7 +462,7 @@ export async function publishMinutesAction(formData: FormData) {
 /* ---------------------------------------------------------- FINANCEIRO -- */
 
 export async function saveTransactionAction(formData: FormData) {
-  const { session, condoId } = await requireRole([...FINANCE]);
+  const { session, condoId } = await requireRole([...FINANCE_MANAGE]);
   const description = str(formData, "description");
   if (!description) return;
   const [row] = await apiOperation("lib.actions.admin.033", [{
@@ -483,7 +484,7 @@ export async function saveTransactionAction(formData: FormData) {
 }
 
 export async function payTransactionAction(formData: FormData) {
-  const { session, condoId } = await requireRole([...FINANCE]);
+  const { session, condoId } = await requireRole([...FINANCE_MANAGE]);
   const id = num(formData, "id");
   const [row] = await apiOperation("lib.actions.admin.034", [id]);
   if (!row || row.condoId !== condoId) return;
@@ -496,7 +497,7 @@ export async function payTransactionAction(formData: FormData) {
 }
 
 export async function registerChargePaymentAction(formData: FormData) {
-  const { session, condoId } = await requireRole([...FINANCE]);
+  const { session, condoId } = await requireRole([...FINANCE_MANAGE]);
   const id = num(formData, "id");
   await apiOperation("lib.actions.admin.036", [{ status: "paga", paidAt: isoDate(), method: str(formData, "method", "pix") }, id, condoId]);
   await logAudit({ session, condoId, action: "quitar", entity: "cobranca", entityId: id, summary: "Registrou pagamento", critical: true });

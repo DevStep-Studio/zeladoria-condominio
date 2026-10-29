@@ -264,7 +264,8 @@ export async function revokeVisitAction(formData: FormData): Promise<any> {
 export async function gateMoveAction(formData: FormData): Promise<any> {
   const { session, condoId } = await requireRole(GATE);
   const id = num(formData, "id");
-  const move = str(formData, "move");
+  const rawMove = str(formData, "move");
+  const move = rawMove === "checkin" ? "entrada" : rawMove === "checkout" ? "saida" : rawMove;
   const [visit] = await apiOperation("lib.actions.portaria.012", [id]);
   if (!visit || visit.condoId !== condoId) {
     return { success: false, error: "Visita não encontrada neste condomínio." };
@@ -507,8 +508,14 @@ export async function deliverParcelAction(formData: FormData): Promise<any> {
     };
   }
 
-  const informed = str(formData, "pickupCode");
-  if (informed && informed !== parcel.pickupCode && !informed.includes(parcel.pickupCode)) {
+  const informed = str(formData, "pickupCode").trim();
+  if (!informed) {
+    return {
+      success: false,
+      error: "O código PIN ou QR Code de retirada é obrigatório para confirmar a entrega.",
+    };
+  }
+  if (informed !== parcel.pickupCode) {
     await logAudit({
       session,
       condoId,
@@ -521,7 +528,7 @@ export async function deliverParcelAction(formData: FormData): Promise<any> {
     });
     return {
       success: false,
-      error: "Código de retirada incorreto. Verifique o código de 6 dígitos ou o QR Code apresentado pelo morador.",
+      error: "Código de retirada incorreto. Solicite o código de retirada ou QR Code gerado no aplicativo do morador.",
     };
   }
 

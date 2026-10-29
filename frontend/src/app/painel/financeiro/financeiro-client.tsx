@@ -117,7 +117,10 @@ export function FinanceiroClient({
   );
   const netResult = totalIncome - totalExpense;
   const reserveFundBalance = useMemo(
-    () => transactions.filter((t) => t.reserveFund).reduce((a, t) => a + t.amountCents, 0),
+    () =>
+      transactions
+        .filter((t) => t.reserveFund && (t.status === "pago" || t.status === "liquidado"))
+        .reduce((a, t) => (t.kind === "receita" ? a + t.amountCents : a - t.amountCents), 0),
     [transactions]
   );
   const payableTransactions = useMemo(

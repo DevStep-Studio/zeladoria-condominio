@@ -116,11 +116,15 @@ export function PorteiroDashboard({
       const formData = new FormData();
       formData.set("id", String(id));
       formData.set("move", move === "checkin" ? "entrada" : "saida");
-      await gateMoveAction(formData);
-      setFeedback({
-        type: "success",
-        msg: move === "checkin" ? "Entrada registrada com sucesso!" : "Saída registrada com sucesso!",
-      });
+      const res = await gateMoveAction(formData);
+      if (res && res.success === false) {
+        setFeedback({ type: "error", msg: res.error || "Erro ao registrar movimentação." });
+      } else {
+        setFeedback({
+          type: "success",
+          msg: move === "checkin" ? "Entrada registrada com sucesso!" : "Saída registrada com sucesso!",
+        });
+      }
       setTimeout(() => setFeedback(null), 3500);
     });
   };
@@ -129,10 +133,14 @@ export function PorteiroDashboard({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      await deliverParcelAction(formData);
-      setFeedback({ type: "success", msg: "Encomenda entregue e retirada registrada com sucesso!" });
-      setModal(null);
-      setSelectedParcel(null);
+      const res = await deliverParcelAction(formData);
+      if (res && res.success === false) {
+        setFeedback({ type: "error", msg: res.error || "Erro ao registrar entrega da encomenda." });
+      } else {
+        setFeedback({ type: "success", msg: "Encomenda entregue e retirada registrada com sucesso!" });
+        setModal(null);
+        setSelectedParcel(null);
+      }
       setTimeout(() => setFeedback(null), 3500);
     });
   };

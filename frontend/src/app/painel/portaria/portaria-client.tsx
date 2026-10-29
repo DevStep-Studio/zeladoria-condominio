@@ -122,21 +122,32 @@ export function PortariaClient({
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));
-      formData.set("move", move);
-      await gateMoveAction(formData);
-      setFeedback({
-        type: "success",
-        msg: move === "checkin" ? "Entrada registrada!" : move === "checkout" ? "Saída registrada!" : "Autorização cancelada.",
-      });
+      formData.set("move", move === "checkin" ? "entrada" : move === "checkout" ? "saida" : move);
+      const res = await gateMoveAction(formData);
+      if (res && res.success === false) {
+        setFeedback({ type: "error", msg: res.error || "Falha ao registrar movimentação." });
+      } else {
+        setFeedback({
+          type: "success",
+          msg: move === "checkin" ? "Entrada registrada!" : move === "checkout" ? "Saída registrada!" : "Autorização cancelada.",
+        });
+      }
     });
   };
 
   const handleDeliverParcel = (id: number) => {
+    const code = window.prompt("Digite o código PIN ou escaneie o QR Code de retirada apresentado pelo morador:");
+    if (!code) return;
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));
-      await deliverParcelAction(formData);
-      setFeedback({ type: "success", msg: "Entrega da encomenda concluída com sucesso!" });
+      formData.set("pickupCode", code.trim());
+      const res = await deliverParcelAction(formData);
+      if (res && res.success === false) {
+        setFeedback({ type: "error", msg: res.error || "Falha ao registrar entrega." });
+      } else {
+        setFeedback({ type: "success", msg: "Entrega da encomenda concluída com sucesso!" });
+      }
     });
   };
 

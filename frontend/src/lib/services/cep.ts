@@ -96,8 +96,9 @@ export async function lookupCep(rawCep: string): Promise<CepResult | null> {
 
     const street = data.logradouro || "";
     const neighborhood = data.bairro || "";
-    const city = data.localidade || "São Paulo";
-    const state = data.uf || "SP";
+    const city = data.localidade || "";
+    const state = data.uf || "";
+    if (!city || !state) return null;
 
     // 1. Tenta geocodificar o endereço exato com Geoapify para obter lat/lng real
     let lat: number | null = null;

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get("q") || "";
     const priority = (searchParams.get("priority") || undefined) as IncidentPriority | undefined;
     const status = searchParams.get("status") || undefined;
-    const module = searchParams.get("module") || undefined;
+    const sourceModule = searchParams.get("module") || undefined;
     const type = (searchParams.get("type") || undefined) as IncidentType | undefined;
     const assignee = searchParams.get("assignee") || undefined;
     const startDate = searchParams.get("startDate") || undefined;
@@ -32,14 +32,16 @@ export async function GET(request: NextRequest) {
     const perPage = parseInt(searchParams.get("perPage") || "15", 10);
 
     const isSuperAdmin = session.role === "superadmin" || session.user.isSuperAdmin;
-    const condoId = searchParams.get("condoId") ? parseInt(searchParams.get("condoId")!, 10) : session.condo?.id ?? null;
+    const condoId = isSuperAdmin
+      ? (searchParams.get("condoId") ? parseInt(searchParams.get("condoId")!, 10) : (session.condo?.id ?? null))
+      : (session.condo?.id ?? null);
 
     const result = queryIncidents({
       tab,
       q,
       priority,
       status,
-      module,
+      module: sourceModule,
       type,
       condoId,
       assignee,
@@ -84,7 +86,7 @@ export async function POST(request: NextRequest) {
       priority: body.priority,
       category: body.category || "operacional",
       sourceModule: body.sourceModule || "Administração Condominial",
-      condoId: body.condoId !== undefined ? body.condoId : session.condo?.id ?? null,
+      condoId: session.role === "superadmin" && body.condoId !== undefined ? body.condoId : session.condo?.id ?? null,
       condoName: session.condo?.name ?? null,
       assigneeId: body.assigneeId || null,
       assigneeName: body.assigneeName || null,

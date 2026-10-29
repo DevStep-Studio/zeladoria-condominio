@@ -68,6 +68,8 @@ export async function saveAssemblyAction(formData: FormData) {
 
   let assemblyId = id;
   if (id) {
+    const [existing] = await apiOperation("lib.actions.assemblies.008", [id, condoId]);
+    if (!existing) return;
     await apiOperation("lib.actions.assemblies.004", [payload, id, condoId]);
     await logAudit({ session, condoId, action: "editar", entity: "assembleia", entityId: id, summary: `Editou assembleia "${title}"` });
   } else {

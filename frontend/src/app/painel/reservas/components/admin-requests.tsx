@@ -22,7 +22,9 @@ export function AdminRequests({ requests }: AdminRequestsProps) {
   };
 
   const handleReject = (id: number) => {
-    const reason = window.prompt("Informe o motivo da recusa (será enviado ao morador):") || "Horário indisponível";
+    const promptValue = window.prompt("Informe o motivo da recusa (será enviado ao morador):");
+    if (promptValue === null) return;
+    const reason = promptValue.trim() || "Horário indisponível";
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));

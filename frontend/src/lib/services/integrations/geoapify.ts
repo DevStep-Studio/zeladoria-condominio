@@ -61,7 +61,7 @@ export function getGeoapifyApiKey(): string {
   return (
     process.env.GEOAPIFY_API_KEY ||
     process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY ||
-    "3efd22bac33a489b901ed171e4ec8609"
+    ""
   );
 }
 

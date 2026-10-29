@@ -10,6 +10,8 @@ import { logAudit, notify } from "@/lib/audit";
 import { ALL_STAFF } from "@/lib/rbac";
 import { bool, maybeDate, num, sequence, str } from "@/lib/utils";
 import { assistNote, suggestCategory, suggestPriority, summarize } from "@/lib/ai";
+import { randomBytes } from "node:crypto";
+import { InviteResidentSchema } from "@/lib/validation/schemas";
 
 async function condoResidentIds(condoId: number) {
   const rows = await apiOperation("lib.actions.gestao.001", [condoId]);
@@ -259,26 +261,47 @@ export async function saveUnitAction(formData: FormData) {
 
 export async function inviteResidentAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
-  const email = str(formData, "email").toLowerCase();
-  const name = str(formData, "name");
-  if (!email || !name) return;
+  const parsed = InviteResidentSchema.safeParse({
+    name: str(formData, "name"),
+    email: str(formData, "email").toLowerCase(),
+    role: str(formData, "role", "morador"),
+    unitId: num(formData, "unitId") || null,
+    phone: str(formData, "phone") || null,
+    document: str(formData, "document") || null,
+  });
+  if (!parsed.success) return;
+  const { name, email, role, unitId, phone, document } = parsed.data;
+
+  if (unitId) {
+    const [unit] = await apiOperation("lib.actions.reservas.005", [unitId]);
+    if (!unit || unit.condoId !== condoId) return;
+  }
+
   let [user] = await apiOperation("lib.actions.gestao.023", [email]);
   if (!user) {
-    [user] = await apiOperation("lib.actions.gestao.024", [{ name, email, passwordHash: hashPassword("demo1234"), phone: str(formData, "phone") || null, status: "convidado" }]);
+    const tempPassword = randomBytes(24).toString("hex");
+    [user] = await apiOperation("lib.actions.gestao.024", [{
+      name,
+      email,
+      passwordHash: hashPassword(tempPassword),
+      phone: phone || null,
+      document: document || null,
+      status: "convidado"
+    }]);
   }
   const existing = await apiOperation("lib.actions.gestao.025", [user.id, condoId]);
   if (existing.length === 0) {
     await apiOperation("lib.actions.gestao.026", [{
       userId: user.id,
       condoId,
-      role: str(formData, "role", "morador"),
-      unitId: num(formData, "unitId") || null,
+      role,
+      unitId: unitId || null,
       relation: str(formData, "relation", "proprietario"),
       status: "convidado",
       invitedAt: new Date(),
     }]);
   }
-  await logAudit({ session, condoId, action: "convidar", entity: "morador", entityId: user.id, summary: `Convidou ${name} (${email})` });
+  await logAudit({ session, condoId, action: "convidar", entity: "morador", entityId: user.id, summary: `Convidou ${name} (${email}) como ${role}` });
   revalidatePath("/painel/moradores");
 }
 
@@ -293,8 +316,8 @@ export async function bulkMembershipAction(formData: FormData) {
     await notify(condoId, ids, "Convite reenviado", "Acesse o sistema e defina sua senha para concluir o cadastro.", "/login");
   } else if (operation === "ativar" || operation === "desativar") {
     const status = operation === "ativar" ? "ativo" : "inativo";
+    // Scoped strictly to condo membership, never affects global users table
     await apiOperation("lib.actions.gestao.028", [{ status }, condoId, ids]);
-    await apiOperation("lib.actions.gestao.029", [{ status: operation === "ativar" ? "ativo" : "bloqueado" }, ids]);
   }
   await logAudit({
     session, condoId, action: `massa_${operation}`, entity: "morador",
@@ -333,7 +356,8 @@ export async function importResidentsAction(formData: FormData) {
     }
     let [user] = await apiOperation("lib.actions.gestao.032", [email.toLowerCase()]);
     if (!user) {
-      [user] = await apiOperation("lib.actions.gestao.033", [{ name, email: email.toLowerCase(), passwordHash: hashPassword("demo1234"), phone: phone || null, status: "convidado" }]);
+      const tempPassword = randomBytes(24).toString("hex");
+      [user] = await apiOperation("lib.actions.gestao.033", [{ name, email: email.toLowerCase(), passwordHash: hashPassword(tempPassword), phone: phone || null, status: "convidado" }]);
     }
     const exists = await apiOperation("lib.actions.gestao.034", [user.id, condoId]);
     if (exists.length === 0) {

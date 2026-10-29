@@ -26,7 +26,8 @@ export async function GET(
     return new NextResponse(payload?.message || "Não foi possível baixar a ata.", { status: response.status });
   }
 
-  return new NextResponse(await response.text(), {
+  const arrayBuffer = await response.arrayBuffer();
+  return new NextResponse(arrayBuffer, {
     status: 200,
     headers: {
       "Content-Type": response.headers.get("content-type") ?? "application/pdf",

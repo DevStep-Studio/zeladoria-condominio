@@ -99,7 +99,9 @@ export function AdminCalendar({
   };
 
   const handleReject = (id: number) => {
-    const reason = window.prompt("Motivo da recusa:") || "Horário indisponível";
+    const promptValue = window.prompt("Motivo da recusa:");
+    if (promptValue === null) return;
+    const reason = promptValue.trim() || "Horário indisponível";
     startTransition(async () => {
       const formData = new FormData();
       formData.set("id", String(id));
