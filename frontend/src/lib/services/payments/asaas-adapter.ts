@@ -95,8 +95,10 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
             ]
           : undefined;
 
+        const customerId = await this.resolveOrCreateCustomer(input.customer);
+
         const payload: Record<string, any> = {
-          customer: input.customer.email, // ou customerId cadastrado
+          customer: customerId,
           billingType: input.billingType,
           value: Number(value),
           dueDate,
@@ -234,11 +236,6 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
       headers["authorization"] ||
       headers["x-webhook-token"];
 
-    if (!token) {
-      if (process.env.NODE_ENV === "production") return false;
-      return true;
-    }
-
     if (process.env.NODE_ENV === "production") {
       if (!process.env.ASAAS_WEBHOOK_SECRET) {
         console.error("Segurança: ASAAS_WEBHOOK_SECRET não configurado em ambiente de produção!");
@@ -247,7 +244,51 @@ export class AsaasGatewayAdapter implements PaymentGatewayAdapter {
       return token === this.webhookSecret;
     }
 
+    if (!token) {
+      return process.env.NODE_ENV === "test";
+    }
+
     return token === this.webhookSecret || token.includes("zeladoria");
+  }
+
+  private async resolveOrCreateCustomer(customer: {
+    name: string;
+    email: string;
+    phone?: string;
+    cpfCnpj?: string;
+  }): Promise<string> {
+    if (!this.apiKey) return `cus_sim_${Date.now()}`;
+    try {
+      const searchRes = await fetch(`${this.baseUrl}/customers?email=${encodeURIComponent(customer.email)}`, {
+        headers: { access_token: this.apiKey },
+      });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.data && searchData.data.length > 0) {
+          return searchData.data[0].id;
+        }
+      }
+      const createRes = await fetch(`${this.baseUrl}/customers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: this.apiKey,
+        },
+        body: JSON.stringify({
+          name: customer.name,
+          email: customer.email,
+          mobilePhone: customer.phone ? customer.phone.replace(/\D/g, "") : undefined,
+          cpfCnpj: customer.cpfCnpj ? customer.cpfCnpj.replace(/\D/g, "") : undefined,
+        }),
+      });
+      if (createRes.ok) {
+        const createData = await createRes.json();
+        return createData.id;
+      }
+    } catch (err) {
+      console.warn("Falha ao resolver/criar cliente no Asaas:", err);
+    }
+    return customer.email;
   }
 
   /**

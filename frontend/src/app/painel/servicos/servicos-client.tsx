@@ -32,6 +32,7 @@ import {
 import {
   customerSelectInspectionSlotAction,
   customerAcceptProposalAction,
+  customerRejectProposalAction,
   customerAcceptContractAddendumAction,
   customerRejectContractAddendumAction,
   rebookServiceRequestAction,
@@ -512,6 +513,18 @@ export function ServicosClient({
       const res = await customerAcceptProposalAction({ quoteId });
       if (res?.success) {
         setServiceCheckoutData(res);
+      } else {
+        alert(res?.error || "Erro ao processar aceite da proposta.");
+      }
+    });
+  };
+
+  const handleRejectQuote = (requestId: number, quoteId: number) => {
+    if (!confirm("Deseja recusar este orçamento?")) return;
+    startActionTransition(async () => {
+      const res = await customerRejectProposalAction({ requestId, quoteId });
+      if (!res.success) {
+        alert(('error' in res && res.error) || "Não foi possível recusar o orçamento.");
       }
     });
   };
@@ -783,7 +796,7 @@ export function ServicosClient({
               type="button"
               onClick={() => {
                 setIsGeneralBudgetOpen(true);
-                setBudgetVendor(providers.length > 0 ? providers[0] : null);
+                setBudgetVendor(null);
               }}
               className="text-xs font-bold text-[#1355FF] hover:underline flex items-center gap-1 cursor-pointer"
             >
@@ -1049,15 +1062,25 @@ export function ServicosClient({
                                               Não selecionado
                                             </span>
                                           ) : (
-                                            <button
-                                              type="button"
-                                              disabled={isActionPending}
-                                              onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
-                                              className="px-4 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
-                                            >
-                                              <span>Aceitar orçamento</span>
-                                              <Icon name="arrow-right" size={13} />
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                              <button
+                                                type="button"
+                                                disabled={isActionPending}
+                                                onClick={() => handleRejectQuote(req.id, q.id)}
+                                                className="px-3 py-2 rounded-xl border border-slate-200 hover:border-rose-200 hover:bg-rose-50/50 hover:text-rose-600 text-slate-500 font-bold text-xs cursor-pointer transition-all"
+                                              >
+                                                Recusar
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={isActionPending}
+                                                onClick={() => setSelectedQuoteForAcceptance({ quote: q, request: req })}
+                                                className="px-4 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black cursor-pointer shadow-xs transition-all flex items-center gap-1.5"
+                                              >
+                                                <span>Aceitar orçamento</span>
+                                                <Icon name="arrow-right" size={13} />
+                                              </button>
+                                            </div>
                                           )}
                                         </div>
                                       );
@@ -1464,8 +1487,29 @@ export function ServicosClient({
                           <span>Mensagens / Chat</span>
                         </button>
 
+                        {/* Retomar Pagamento PIX se aguardando pagamento */}
+                        {req.status === "aguardando_pagamento_servico" && (
+                          (() => {
+                            const candidateQuote = req.quotes?.find((q: any) => q.status === "aceito" || q.status === "pendente") || req.quotes?.[0];
+                            if (candidateQuote) {
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAcceptProposalZeladoriaProtege(candidateQuote.id)}
+                                  disabled={isActionPending}
+                                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <Icon name="zap" size={13} />
+                                  <span>Retomar Pagamento PIX</span>
+                                </button>
+                              );
+                            }
+                            return null;
+                          })()
+                        )}
+
                         {/* Confirm Completion / Zeladoria Protege Buttons */}
-                        {["em_atendimento", "chegou", "a_caminho", "SERVICO_PAGO_LIBERADO"].includes(req.status) && (
+                        {["em_atendimento", "chegou", "a_caminho", "SERVICO_PAGO_LIBERADO", "conclusao_solicitada", "prestador_concluiu", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED"].includes(req.status) && (
                           <>
                             <button
                               type="button"

@@ -13,6 +13,7 @@ import {
   customerConfirmServiceCompletion,
   customerOpenDispute,
   customerRejectContractAddendum,
+  customerRejectProposal,
   customerRequestWarranty,
   customerSelectInspectionSlot,
   getAdminFinancialDashboard,
@@ -211,6 +212,32 @@ export async function customerAcceptProposalAction(payload: {
   } catch (err: any) {
     console.error("Erro em customerAcceptProposalAction:", err);
     return { success: false, error: err?.message || "Erro ao aceitar proposta." };
+  }
+}
+
+/**
+ * 5b. Morador rejeita um orçamento específico
+ */
+export async function customerRejectProposalAction(payload: {
+  requestId: number;
+  quoteId: number;
+  reason?: string;
+}) {
+  try {
+    const { session } = await requireCondo();
+    const result = await customerRejectProposal({
+      requestId: payload.requestId,
+      quoteId: payload.quoteId,
+      customerId: session.user.id,
+      reason: payload.reason,
+    });
+
+    revalidatePath("/painel/servicos");
+    revalidatePath("/prestador/chamados");
+    return result;
+  } catch (err: any) {
+    console.error("Erro em customerRejectProposalAction:", err);
+    return { success: false, error: err?.message || "Erro ao rejeitar orçamento." };
   }
 }
 

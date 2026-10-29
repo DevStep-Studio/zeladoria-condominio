@@ -941,80 +941,55 @@ export function CustomerServiceCheckoutModal({
 
         {/* Cartão de Crédito Content */}
         {paymentMethod === "cartao" && (
-          <div className="space-y-2.5 text-xs">
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Número do Cartão</label>
-              <input
-                type="text"
-                placeholder="0000 0000 0000 0000"
-                maxLength={19}
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
-              />
+          <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2 text-xs text-slate-700">
+            <div className="flex items-center gap-2 text-blue-900 font-bold">
+              <Icon name="shield" size={16} className="text-[#1355FF]" />
+              <span>Cartão de Crédito com Proteção Escrow</span>
             </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Nome Impresso no Cartão</label>
-              <input
-                type="text"
-                placeholder="NOME COMO NO CARTÃO"
-                value={cardHolder}
-                onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                className="w-full h-9 px-3 rounded-xl border border-slate-300 font-medium text-slate-900 outline-none focus:border-[#1355FF]"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Validade (MM/AA)</label>
-                <input
-                  type="text"
-                  placeholder="12/28"
-                  maxLength={5}
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">CVV</label>
-                <input
-                  type="password"
-                  placeholder="123"
-                  maxLength={4}
-                  value={cardCvv}
-                  onChange={(e) => setCardCvv(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-300 font-mono text-slate-900 outline-none focus:border-[#1355FF]"
-                />
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Dados criptografados. Tokenização direta via Asaas PSP.
+            <p className="text-[11px] leading-relaxed text-slate-600">
+              O processamento parcelado via cartão estará disponível na próxima atualização com split Asaas. No momento, o <strong>PIX Protegido</strong> é o meio oficial com compensação imediata e retenção sob custódia do Zeladoria Protege.
             </p>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("pix")}
+              className="mt-1 px-3 py-1.5 rounded-lg bg-[#1355FF] text-white font-bold text-xs cursor-pointer hover:bg-blue-700"
+            >
+              Pagar com PIX Agora
+            </button>
           </div>
         )}
 
-        {/* Ação Principal: CTA Dominante [ Pagar R$ XXX ] */}
+        {/* Ação Principal: CTA Dominante */}
         <div className="space-y-2 pt-2 border-t border-slate-100">
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => onSimulatePay(checkoutData.orderCode)}
-            className="w-full py-3 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white font-black text-sm cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
-          >
-            <Icon name="check-circle" size={16} />
-            <span>
-              {isPending
-                ? "Processando..."
-                : `Pagar R$ ${formattedTotal}`}
-            </span>
-          </button>
+          {checkoutData.pixCopiaECola && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer shadow-xs transition-all flex items-center justify-center gap-2"
+            >
+              <Icon name="copy" size={14} />
+              <span>{copied ? "Código PIX Copiado!" : `Copiar Código PIX (R$ ${formattedTotal})`}</span>
+            </button>
+          )}
+
+          {process.env.NODE_ENV !== "production" && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => onSimulatePay(checkoutData.orderCode)}
+              className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5"
+            >
+              <Icon name="zap" size={13} className="text-amber-600" />
+              <span>{isPending ? "Simulando..." : "Simular Confirmação PIX (Ambiente Sandbox)"}</span>
+            </button>
+          )}
 
           <button
             type="button"
             onClick={onClose}
             className="w-full py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
           >
-            Cancelar e Voltar
+            Fechar (Você pode pagar depois pelo painel)
           </button>
         </div>
       </div>

@@ -471,7 +471,11 @@ export async function sendDigitalProposal(params: {
   const newVersion = latestVersion + 1;
 
   if (existingQuotes.length > 0) {
-    await apiOperation("lib.services.payments.payment-service.032", [{ status: "substituida" }, params.requestId]);
+    for (const q of existingQuotes) {
+      if (q.status === "pendente") {
+        await apiOperation("lib.services.payments.payment-service.042", [{ status: "substituida", updatedAt: new Date() }, q.id]);
+      }
+    }
   }
 
   // 2. Desconto da vistoria técnica paga se aplicável
@@ -783,6 +787,34 @@ export async function customerAcceptProposalAndPay(params: {
 }
 
 /**
+ * Morador rejeita um orçamento individual sem cancelar o chamado inteiro
+ */
+export async function customerRejectProposal(params: {
+  requestId: number;
+  quoteId: number;
+  customerId: number;
+  reason?: string;
+}) {
+  const [req] = await apiOperation("lib.services.payments.payment-service.039", [params.requestId]);
+  if (!req) throw new Error("Chamado não encontrado.");
+  if (req.customerId !== params.customerId) throw new Error("Acesso negado: chamado pertence a outro morador.");
+
+  const [quote] = await apiOperation("lib.services.payments.payment-service.038", [params.quoteId]);
+  if (!quote) throw new Error("Orçamento não encontrado.");
+
+  await apiOperation("lib.services.payments.payment-service.042", [{ status: "recusado", updatedAt: new Date() }, params.quoteId]);
+
+  await apiOperation("lib.services.payments.payment-service.074", [{
+    requestId: params.requestId,
+    senderId: params.customerId,
+    senderRole: "morador",
+    body: `Orçamento #${quote.id} (R$ ${((quote.totalCents || 0) / 100).toFixed(2)}) foi recusado pelo morador.${params.reason ? ` Motivo: ${params.reason}` : ""}`,
+  }]);
+
+  return { success: true };
+}
+
+/**
  * Processamento idempotente de Webhook do PSP
  */
 export async function processPaymentWebhook(rawBody: string, headers: Record<string, string>) {
@@ -973,13 +1005,13 @@ export async function customerConfirmServiceCompletion(requestId: number, custom
   // Valida transição de estado na State Machine
   assertTransition(req.status, "CUSTOMER_CONFIRMED");
 
-  // Localiza a ordem de pagamento do serviço
-  const [order] = await apiOperation("lib.services.payments.payment-service.069", [requestId]);
+  // Localiza todas as ordens de pagamento do serviço (incluindo aditivos aprovados)
+  const orders = await apiOperation("lib.services.payments.payment-service.069", [requestId]);
 
-  if (order) {
+  for (const order of orders || []) {
     // Idempotência: se já liberado anteriormente, não processa repasse duplo
     if (order.status === "released") {
-      return { success: true, alreadyReleased: true };
+      continue;
     }
 
     await apiOperation("lib.services.payments.payment-service.070", [{
@@ -1050,13 +1082,11 @@ export async function customerOpenDispute(params: {
   if (!req) throw new Error("Chamado não encontrado.");
   if (req.customerId !== params.customerId) throw new Error("Não autorizado.");
 
-  // Trava a ordem de pagamento
-  const [order] = await apiOperation("lib.services.payments.payment-service.076", [params.requestId]);
+  // Trava todas as ordens de pagamento e repasses do chamado
+  const orders = await apiOperation("lib.services.payments.payment-service.076", [params.requestId]);
 
-  if (order) {
+  for (const order of orders || []) {
     await apiOperation("lib.services.payments.payment-service.077", [{ status: "in_dispute", updatedAt: new Date() }, order.id]);
-
-    // Trava o repasse financeiro do prestador associado à ordem de pagamento
     await apiOperation("lib.services.payments.payment-service.078", [{ status: "BLOCKED_DISPUTE", updatedAt: new Date() }, order.id]);
   }
 

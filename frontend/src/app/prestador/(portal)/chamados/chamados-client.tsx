@@ -77,12 +77,15 @@ export function ProviderChamadosClient({
         tab = "em_andamento";
       } else if (
         r.vendorId === vendor.id &&
-        ["aceito", "SERVICO_PAGO_LIBERADO", "orcamento_aprovado", "aguardando_pagamento_servico"].includes(
+        ["aceito", "SERVICO_PAGO_LIBERADO", "orcamento_aprovado"].includes(
           r.status
         )
       ) {
         tab = "contratados";
-      } else if (myQuote && (myQuote.status === "pendente" || myQuote.status === "expirado")) {
+      } else if (
+        (myQuote && (myQuote.status === "pendente" || myQuote.status === "expirado")) ||
+        r.status === "aguardando_pagamento_servico"
+      ) {
         tab = "orcamentos_enviados";
       } else {
         tab = "novos";
@@ -136,7 +139,10 @@ export function ProviderChamadosClient({
     nextStatus: "a_caminho" | "chegou" | "em_atendimento" | "concluido"
   ) => {
     startTransition(async () => {
-      await updateServiceProgressAction(requestId, nextStatus);
+      const res = await updateServiceProgressAction(requestId, nextStatus);
+      if (res && !res.success) {
+        alert(res.error || "Não foi possível avançar o status.");
+      }
     });
   };
 
@@ -145,6 +151,8 @@ export function ProviderChamadosClient({
       const res = await acceptServiceRequestAction(requestId);
       if (res.success) {
         setDetailsModalReq(null);
+      } else {
+        alert(res.error || "Não foi possível aceitar a oportunidade.");
       }
     });
   };
@@ -154,6 +162,8 @@ export function ProviderChamadosClient({
       const res = await rejectServiceRequestAction(requestId, reason);
       if (res.success) {
         setDetailsModalReq(null);
+      } else {
+        alert(res.error || "Não foi possível recusar.");
       }
     });
   };

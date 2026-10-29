@@ -89,6 +89,7 @@ export const ALLOWED_TRANSITIONS: Record<ServiceLifecycleStatus, readonly Servic
   PAID: [
     "SERVICE_SCHEDULED",
     "IN_PROGRESS",
+    "CUSTOMER_CONFIRMED",
     "CANCELLED",
   ],
   SERVICE_SCHEDULED: [
@@ -97,6 +98,8 @@ export const ALLOWED_TRANSITIONS: Record<ServiceLifecycleStatus, readonly Servic
   ],
   IN_PROGRESS: [
     "PROVIDER_COMPLETED",
+    "CUSTOMER_CONFIRMED",
+    "COMPLETED",
     "DISPUTED",
     "CANCELLED",
   ],
