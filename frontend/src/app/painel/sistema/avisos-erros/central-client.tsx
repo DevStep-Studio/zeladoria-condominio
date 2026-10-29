@@ -181,17 +181,8 @@ export function CentralAvisosErrosClient({
     condoId,
   ]);
 
-  // Trigger fetch when filters or page changes
-  useEffect(() => {
-    if (activeTab === "regras") {
-      fetchRules();
-    } else {
-      fetchIncidents();
-    }
-  }, [activeTab, priorityFilter, statusFilter, moduleFilter, assigneeFilter, startDateFilter, endDateFilter, currentPage, sortBy, sortDir]);
-
   // Load rules
-  const fetchRules = async () => {
+  const fetchRules = useCallback(async () => {
     setIsRulesLoading(true);
     try {
       const res = await fetch("/api/sistema/avisos-erros/rules");
@@ -204,7 +195,16 @@ export function CentralAvisosErrosClient({
     } finally {
       setIsRulesLoading(false);
     }
-  };
+  }, []);
+
+  // Trigger fetch when filters or page changes
+  useEffect(() => {
+    if (activeTab === "regras") {
+      fetchRules();
+    } else {
+      fetchIncidents();
+    }
+  }, [activeTab, priorityFilter, statusFilter, moduleFilter, assigneeFilter, startDateFilter, endDateFilter, currentPage, sortBy, sortDir, fetchRules, fetchIncidents]);
 
   // Toggle monitoring rule
   const handleToggleRule = async (ruleId: number, currentActive: boolean) => {

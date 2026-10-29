@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Badge, Card, EmptyState, PageHeader, StatCard } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { dateBR, daysUntil, isoDate, money } from "@/lib/utils";
@@ -86,6 +86,22 @@ export function ManutencaoClient({
 }: ManutencaoClientProps) {
   const [activeTab, setActiveTab] = useState<"plans" | "orders" | "assets" | "analytics">("plans");
   const [isPending, startTransition] = useTransition();
+
+  // Sincronização via URL query parameters
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab === "equipamentos" || tab === "assets") {
+      setActiveTab("assets");
+    } else if (tab === "ordens" || tab === "orders") {
+      setActiveTab("orders");
+    } else if (tab === "planos" || tab === "plans") {
+      setActiveTab("plans");
+    } else if (tab === "analytics" || tab === "indicadores") {
+      setActiveTab("analytics");
+    }
+  }, []);
 
   // Search & Filters
   const [planSearch, setPlanSearch] = useState("");

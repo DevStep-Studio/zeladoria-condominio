@@ -113,6 +113,7 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
     title: "Gestão",
     items: [
       { id: "moradores", label: "Moradores e unidades", href: "/painel/moradores", icon: "users", permission: "user.manage" },
+      { id: "financeiro", label: "Financeiro & Contas", href: "/painel/financeiro", icon: "wallet", permission: "financial.view" },
       { id: "equipe", label: "Equipe e porteiros", href: "/painel/portaria", icon: "shield", permission: "shift.view" },
       { id: "equipamentos", label: "Equipamentos", href: "/painel/manutencao?tab=equipamentos", icon: "package", permission: "maintenance.view" },
       { id: "relatorios", label: "Relatórios", href: "/painel/relatorios", icon: "chart", permission: "report.view" },
@@ -124,9 +125,19 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
     title: "Administração",
     items: [
       { id: "avisos_erros", label: "Avisos e erros", href: "/painel/sistema/avisos-erros", icon: "alert-triangle" },
+      { id: "implantacao", label: "Implantação & Onboarding", href: "/painel/implantacao", icon: "sparkles", permission: "condominium.settings.manage" },
       { id: "configuracoes", label: "Configurações do condomínio", href: "/painel/configuracoes", icon: "settings", permission: "condominium.settings.manage" },
       { id: "usuarios_acessos", label: "Usuários e acessos", href: "/painel/moradores?tab=acessos", icon: "lock", permission: "user.manage" },
       { id: "auditoria", label: "Auditoria", href: "/painel/auditoria", icon: "activity", permission: "audit.view" },
+    ],
+  },
+  {
+    id: "conta",
+    title: "Conta",
+    items: [
+      { id: "perfil", label: "Meu perfil", href: "/painel/perfil", icon: "user" },
+      { id: "notificacoes", label: "Notificações", href: "/painel/notificacoes", icon: "bell" },
+      { id: "ajuda", label: "Ajuda & Suporte", href: "/painel/ajuda", icon: "help" },
     ],
   },
 ];
@@ -323,6 +334,15 @@ const CONSELHO_NAVIGATION: NavGroup[] = [
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
     ],
   },
+  {
+    id: "conta",
+    title: "Conta",
+    items: [
+      { id: "perfil", label: "Meu perfil", href: "/painel/perfil", icon: "user" },
+      { id: "notificacoes", label: "Notificações", href: "/painel/notificacoes", icon: "bell" },
+      { id: "ajuda", label: "Ajuda & Suporte", href: "/painel/ajuda", icon: "help" },
+    ],
+  },
 ];
 
 /**
@@ -452,13 +472,23 @@ export function getMobileNavItems(role: Role): NavItem[] {
     ];
   }
 
+  if (role === "conselho") {
+    return [
+      { id: "inicio", href: "/painel", label: "Início", icon: "grid" },
+      { id: "documentos", href: "/painel/documentos", label: "Documentos", icon: "folder", permission: "document.view" },
+      { id: "financeiro", href: "/painel/financeiro", label: "Contas", icon: "wallet", permission: "financial.view" },
+      { id: "auditoria", href: "/painel/auditoria", label: "Auditoria", icon: "activity", permission: "audit.view" },
+      { id: "mais", href: "#drawer", label: "Mais", icon: "more" },
+    ];
+  }
+
   if (role === "superadmin") {
     return [
       { id: "dashboard", href: "/painel/admin", label: "Dashboard", icon: "grid" },
       { id: "marketplace", href: "/painel/admin/marketplace", label: "Marketplace", icon: "briefcase" },
       { id: "financeiro", href: "/painel/admin/zeladoria-pay", label: "Financeiro", icon: "wallet" },
       { id: "alertas", href: "/painel/auditoria", label: "Alertas", icon: "alert" },
-      { id: "mais", href: "/painel/configuracoes", label: "Mais", icon: "more" },
+      { id: "mais", href: "#drawer", label: "Mais", icon: "more" },
     ];
   }
 
@@ -468,6 +498,6 @@ export function getMobileNavItems(role: Role): NavItem[] {
     { id: "pendencias", href: "/painel/ocorrencias", label: "Pendências", icon: "alert" },
     { id: "operacao", href: "/painel/ordens", label: "Operação", icon: "wrench" },
     { id: "comunidade", href: "/painel/reservas", label: "Comunidade", icon: "calendar" },
-    { id: "mais", href: "/painel/configuracoes", label: "Mais", icon: "more" },
+    { id: "mais", href: "#drawer", label: "Mais", icon: "more" },
   ];
 }

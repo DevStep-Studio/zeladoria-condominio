@@ -101,12 +101,20 @@ export default async function ChamadosPage({
   const activeView = view === "table" ? "table" : "cards";
   const search = q.trim();
 
-  const res = await domainRequest<{
-    rows?: any[];
-    comments?: any[];
-  }>("/painel/chamados", {
-    query: { condoId: condoId > 0 ? condoId : undefined, role: session.role, s, q: search, p, c },
-  }).catch(() => ({ rows: [], comments: [] }));
+  let res: { rows?: any[]; comments?: any[] } = { rows: [], comments: [] };
+  let fetchError: string | null = null;
+  try {
+    res = await domainRequest<{
+      rows?: any[];
+      comments?: any[];
+    }>("/painel/chamados", {
+      query: { condoId: condoId > 0 ? condoId : undefined, role: session.role, s, q: search, p, c },
+    });
+  } catch (err: any) {
+    if (err?.digest?.startsWith?.("NEXT_REDIRECT")) throw err;
+    console.error("[Chamados] Erro ao carregar chamados do backend:", err);
+    fetchError = err?.message || "Erro ao conectar com o servidor.";
+  }
 
   const rows = Array.isArray(res?.rows) ? res.rows : [];
   const comments = Array.isArray(res?.comments) ? res.comments : [];
@@ -396,7 +404,15 @@ export default async function ChamadosPage({
       </section>
 
       <div className="mt-6">
-        {ticketsWithMeta.length === 0 ? (
+        {fetchError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center space-y-2">
+            <p className="text-sm font-bold text-red-900">Não foi possível carregar os chamados</p>
+            <p className="text-xs text-red-700">{fetchError}</p>
+            <a href="/painel/chamados" className="inline-block mt-2 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700">
+              Tentar novamente
+            </a>
+          </div>
+        ) : ticketsWithMeta.length === 0 ? (
           <EmptyState
             title="Nenhum chamado encontrado"
             description={search || activeStatus !== "todos" || p || c ? "Ajuste a busca ou remova filtros para ampliar os resultados." : "Quando um chamado for aberto, ele aparecerá nesta fila."}

@@ -163,22 +163,24 @@ export default async function MoradoresPage() {
                 </form>
               </Card>
 
-              <Card title="Ações em massa" description="Selecione com checkbox e aplique a operação.">
-                <BulkForm
-                  action={bulkMembershipAction}
-                  ids={people.map((p) => ({ id: p.userId, label: `${p.name} · ${p.block ?? ""} ${p.unit ?? ""}`.trim() }))}
-                  labels={{ title: "Selecionar pessoas", submit: "Aplicar" }}
-                >
-                  <label className="block">
-                    <span className="label">Operação</span>
-                    <select name="operation" className="input">
-                      <option value="reenviar">Reenviar convite</option>
-                      <option value="ativar">Ativar usuários</option>
-                      <option value="desativar">Desativar usuários</option>
-                    </select>
-                  </label>
-                </BulkForm>
-              </Card>
+              <div id="acessos">
+                <Card title="Ações em massa e controle de acesso" description="Selecione com checkbox e aplique a operação.">
+                  <BulkForm
+                    action={bulkMembershipAction}
+                    ids={people.map((p) => ({ id: p.userId, label: `${p.name} · ${p.block ?? ""} ${p.unit ?? ""}`.trim() }))}
+                    labels={{ title: "Selecionar pessoas", submit: "Aplicar" }}
+                  >
+                    <label className="block">
+                      <span className="label">Operação</span>
+                      <select name="operation" className="input">
+                        <option value="reenviar">Reenviar convite</option>
+                        <option value="ativar">Ativar usuários</option>
+                        <option value="desativar">Desativar usuários</option>
+                      </select>
+                    </label>
+                  </BulkForm>
+                </Card>
+              </div>
 
               <Panel summary="Importar moradores (CSV)">
                 <form action={importResidentsAction} className="space-y-3">

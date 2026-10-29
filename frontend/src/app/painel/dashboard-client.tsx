@@ -154,6 +154,39 @@ export function DashboardClient({
   smartAlerts?: SmartPreventionAlert[];
   logbookEntries?: LogbookEntry[];
 }) {
+  // Hooks moved to the top of the component to obey React Rules of Hooks
+  const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
+  const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [indicatorTooltip, setIndicatorTooltip] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+
+  const handleCopyPhone = useCallback((phone: string) => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(phone).catch(() => {});
+      }
+    } catch {
+      // ignore clipboard permission errors
+    }
+    setCopiedPhone(phone);
+    setTimeout(() => {
+      setCopiedPhone((cur) => (cur === phone ? null : cur));
+    }, 2200);
+  }, []);
+
+  useEffect(() => {
+    if (!emergencyModalOpen && !fullMapModalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setEmergencyModalOpen(false);
+        setFullMapModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [emergencyModalOpen, fullMapModalOpen]);
+
   // 1. Specialized Porteiro Dashboard View
   if ((role === "porteiro" || role === "zelador") && porteiroOverview) {
     return (
@@ -186,37 +219,6 @@ export function DashboardClient({
   }
 
   // 3. Resident / Standard Dashboard View
-  const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
-  const [fullMapModalOpen, setFullMapModalOpen] = useState(false);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [indicatorTooltip, setIndicatorTooltip] = useState(false);
-  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
-
-  const handleCopyPhone = useCallback((phone: string) => {
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(phone).catch(() => {});
-      }
-    } catch {
-      // ignore clipboard permission errors
-    }
-    setCopiedPhone(phone);
-    setTimeout(() => {
-      setCopiedPhone((cur) => (cur === phone ? null : cur));
-    }, 2200);
-  }, []);
-
-  useEffect(() => {
-    if (!emergencyModalOpen && !fullMapModalOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setEmergencyModalOpen(false);
-        setFullMapModalOpen(false);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [emergencyModalOpen, fullMapModalOpen]);
 
   // Filter only items with count > 0 for attention section
   const activeAttention = attentionItems.filter((i) => i.count > 0);

@@ -201,6 +201,10 @@ export function OcorrenciasClient({
         openOccurrence(match, false);
       }
     }
+    if (params.get("criticas") === "1") {
+      setNeedsAttentionOnly(true);
+      setSelectedSeverity("urgente");
+    }
   }, [occurrences]);
 
   // Lock de scroll e listener Escape para modais e drawer

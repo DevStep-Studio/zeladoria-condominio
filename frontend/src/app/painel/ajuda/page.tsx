@@ -27,7 +27,7 @@ export default async function AjudaPage({
       throw err;
     }
     console.error("[Suporte/Ajuda] Erro na autenticação ou contexto do usuário:", err);
-    isSupport = true;
+    isSupport = false;
   }
 
   let params: { q?: string; status?: string } = {};

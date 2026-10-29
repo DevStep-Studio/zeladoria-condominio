@@ -1008,7 +1008,25 @@ export function Shell({
                 { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
               ]
           ).map((item) => {
-            const active = isRouteActive(item.href);
+            const isDrawerOpener = item.id === "mais" || item.href === "#drawer";
+            const active = !isDrawerOpener && isRouteActive(item.href);
+
+            if (isDrawerOpener) {
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setMobileOpen(true)}
+                  className="flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold text-blue-100/80 hover:text-white transition-colors cursor-pointer"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <Icon name={item.icon} size={17} strokeWidth={1.8} />
+                  </div>
+                  <span>{item.label}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

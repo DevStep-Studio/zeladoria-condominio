@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icon";
 
 export type CaptureMode = "document_front" | "document_back" | "document_pdf" | "selfie";
@@ -27,22 +27,14 @@ export function CameraCaptureModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Iniciar câmera quando o modal abrir
-  useEffect(() => {
-    if (!isOpen) {
-      stopCamera();
-      setCapturedImage(null);
-      setCameraError(null);
-      return;
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
     }
+  }, [stream]);
 
-    startCamera();
-    return () => {
-      stopCamera();
-    };
-  }, [isOpen, cameraFacing, mode]);
-
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     stopCamera();
     setCameraError(null);
 
@@ -71,14 +63,22 @@ export function CameraCaptureModal({
         "Não foi possível acessar a câmera (permissão negada ou dispositivo indisponível). Use o envio de arquivo."
       );
     }
-  };
+  }, [cameraFacing, stopCamera]);
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+  // Iniciar câmera quando o modal abrir
+  useEffect(() => {
+    if (!isOpen) {
+      stopCamera();
+      setCapturedImage(null);
+      setCameraError(null);
+      return;
     }
-  };
+
+    startCamera();
+    return () => {
+      stopCamera();
+    };
+  }, [isOpen, cameraFacing, mode, startCamera, stopCamera]);
 
   const handleCapture = () => {
     if (!videoRef.current) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import { PrivacyModal } from "@/components/privacy-modal";
 import {
@@ -34,6 +34,14 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
   // Informações do WhatsApp comercial oficial
   const whatsappInfo = getCommercialWhatsAppInfo();
 
+  const handleClose = useCallback(() => {
+    setFieldErrors({});
+    setGeneralError(null);
+    setWhatsappAlert(null);
+    setIsSuccess(false);
+    onClose();
+  }, [onClose]);
+
   // Bloqueio de scroll do body e foco no primeiro campo ao abrir
   useEffect(() => {
     if (!isOpen) return;
@@ -62,15 +70,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
       window.removeEventListener("keydown", handleKeyDown);
       clearTimeout(timer);
     };
-  }, [isOpen, showPrivacy]);
-
-  const handleClose = () => {
-    setFieldErrors({});
-    setGeneralError(null);
-    setWhatsappAlert(null);
-    setIsSuccess(false);
-    onClose();
-  };
+  }, [isOpen, showPrivacy, handleClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

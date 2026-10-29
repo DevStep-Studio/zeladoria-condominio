@@ -771,7 +771,7 @@ export function ServicosClient({
             )}
           </button>
 
-          {(role === "sindico" || role === "superadmin") && (
+          {role === "superadmin" && (
             <Link
               href="/painel/admin/marketplace/destaques"
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold text-slate-700 hover:text-[#1355FF] hover:bg-white transition-all whitespace-nowrap min-h-[38px] sm:min-h-0"

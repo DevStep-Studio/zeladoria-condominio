@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { Icon, type IconName } from "@/components/icon";
 import { dateBR, isoDate, money } from "@/lib/utils";
@@ -95,9 +95,8 @@ export function SpaceDetailsModal({
 
   const [isPending, startTransition] = useTransition();
 
-  if (!space) return null;
-
   const images = useMemo(() => {
+    if (!space) return ["/amenities/salao-festas.jpg"];
     if (space.images && space.images.length > 0) return space.images;
     const lower = space.name.toLowerCase();
     if (lower.includes("churrasq")) return ["/amenities/churrasqueira.jpg"];
@@ -109,12 +108,13 @@ export function SpaceDetailsModal({
     return ["/amenities/salao-festas.jpg"];
   }, [space]);
 
-  const openTime = space.openTime?.slice(0, 5) || "08:00";
-  const closeTime = space.closeTime?.slice(0, 5) || "22:00";
-  const isFree = !space.feeCents || space.feeCents === 0;
+  const openTime = space?.openTime?.slice(0, 5) || "08:00";
+  const closeTime = space?.closeTime?.slice(0, 5) || "22:00";
+  const isFree = !space?.feeCents || space.feeCents === 0;
 
   // Compute Active Reservations for this Space & Date
   const dateReservations = useMemo(() => {
+    if (!space) return [];
     return reservations.filter(
       (r) =>
         r.amenityId === space.id &&
@@ -122,10 +122,11 @@ export function SpaceDetailsModal({
         r.status !== "cancelada" &&
         r.status !== "rejeitada"
     );
-  }, [reservations, space.id, selectedDate]);
+  }, [reservations, space, selectedDate]);
 
   // Compute Blocked status for dates
-  const isDateBlocked = (dateStr: string) => {
+  const isDateBlocked = useCallback((dateStr: string) => {
+    if (!space) return false;
     return blocks.some(
       (b) =>
         (b.amenityId === null || b.amenityId === space.id) &&
@@ -134,10 +135,11 @@ export function SpaceDetailsModal({
         !b.startTime &&
         !b.endTime
     );
-  };
+  }, [blocks, space]);
 
   // Generate Slots for Slot-Fixo model
   const fixedSlots = useMemo(() => {
+    if (!space) return [];
     const slots: { start: string; end: string; available: boolean; conflictReason?: string }[] = [];
     const openM = timeToMins(openTime);
     const closeM = timeToMins(closeTime);
@@ -152,7 +154,6 @@ export function SpaceDetailsModal({
       const hasConflict = dateReservations.some((r) => {
         const rStart = timeToMins(r.startTime);
         const rEnd = timeToMins(r.endTime) + buffer;
-        const curEnd = timeToMins(sEnd) + buffer;
         return !(timeToMins(sEnd) <= rStart || timeToMins(sStart) >= rEnd);
       });
 
@@ -166,7 +167,7 @@ export function SpaceDetailsModal({
       current += duration + buffer;
     }
     return slots;
-  }, [openTime, closeTime, space.slotDurationMinutes, space.intervalMinutes, dateReservations]);
+  }, [openTime, closeTime, space, dateReservations]);
 
   // Handle Calendar Days Generation
   const calendarDays = useMemo(() => {
@@ -197,6 +198,8 @@ export function SpaceDetailsModal({
 
     return days;
   }, [calendarMonth, isDateBlocked]);
+
+  if (!space) return null;
 
   // Submit Reservation Handler
   const handleConfirmReservation = () => {
