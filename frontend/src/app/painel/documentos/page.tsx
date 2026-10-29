@@ -363,19 +363,25 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
                         </div>
                       </div>
 
-                      <div className="mt-4 grid gap-2 border-t border-[var(--color-line)] pt-4 text-xs text-[var(--color-muted)] sm:grid-cols-3">
-                        <span className="flex items-center gap-2 rounded-[8px] bg-[var(--color-surface-muted)] px-3 py-2">
-                          <Icon name="calendar" size={14} />
-                          {dateBR(d.createdAt)}
-                        </span>
-                        <span className="flex items-center gap-2 rounded-[8px] bg-[var(--color-surface-muted)] px-3 py-2">
-                          <Icon name="users" size={14} />
-                          {d.author ?? "Administração"}
-                        </span>
-                        <span className="flex items-center gap-2 rounded-[8px] bg-[var(--color-surface-muted)] px-3 py-2">
-                          <Icon name={d.visibility === "administrativo" ? "lock" : "download"} size={14} />
-                          {d.visibility === "administrativo" ? "Restrito" : "Disponível"}
-                        </span>
+                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[var(--color-line)] pt-4">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <Icon name="calendar" size={13} />
+                            {dateBR(d.createdAt)}
+                          </span>
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <Icon name="users" size={13} />
+                            {d.author ?? "Administração"}
+                          </span>
+                        </div>
+                        <a
+                          href={d.fileUrl || `data:text/plain;charset=utf-8,${encodeURIComponent(`Documento: ${d.title}\nCategoria: ${d.category}\nVersão: ${d.version}\nData: ${dateBR(d.createdAt)}\nDescrição: ${d.description || "Documento oficial do condomínio."}`)}`}
+                          download={d.fileName || `${d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.txt`}
+                          className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-blue-50 border border-blue-200 text-[#1355FF] hover:bg-blue-100/60 px-3 py-1.5 text-xs font-bold transition-colors"
+                        >
+                          <Icon name="download" size={14} />
+                          <span>Baixar {d.fileName ? d.fileName.split(".").pop()?.toUpperCase() : "Documento"}</span>
+                        </a>
                       </div>
                     </article>
                   ))}

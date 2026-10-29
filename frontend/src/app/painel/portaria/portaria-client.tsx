@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import { StatCard } from "@/components/ui";
+import { AppModal, AppInput, AppButton } from "@/components/app-ui";
 import { dateTimeBR, timeBR, isoDate } from "@/lib/utils";
 import {
   createVisitAction,
@@ -66,6 +67,9 @@ export function PortariaClient({
   const [search, setSearch] = useState("");
   const [showAuthorizeModal, setShowAuthorizeModal] = useState(false);
   const [showParcelModal, setShowParcelModal] = useState(false);
+  const [deliveringParcel, setDeliveringParcel] = useState<ParcelItem | null>(null);
+  const [pickupPinInput, setPickupPinInput] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
   const [selectedPasscode, setSelectedPasscode] = useState<{ name: string; token: string; validUntil: Date } | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -135,18 +139,29 @@ export function PortariaClient({
     });
   };
 
-  const handleDeliverParcel = (id: number) => {
-    const code = window.prompt("Digite o código PIN ou escaneie o QR Code de retirada apresentado pelo morador:");
-    if (!code) return;
+  const openDeliverModal = (parcel: ParcelItem) => {
+    setDeliveringParcel(parcel);
+    setPickupPinInput("");
+    setPinError(null);
+  };
+
+  const confirmDeliverParcel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deliveringParcel) return;
+    if (!pickupPinInput.trim()) {
+      setPinError("Informe o código PIN de retirada.");
+      return;
+    }
     startTransition(async () => {
       const formData = new FormData();
-      formData.set("id", String(id));
-      formData.set("pickupCode", code.trim());
+      formData.set("id", String(deliveringParcel.id));
+      formData.set("pickupCode", pickupPinInput.trim());
       const res = await deliverParcelAction(formData);
       if (res && res.success === false) {
-        setFeedback({ type: "error", msg: res.error || "Falha ao registrar entrega." });
+        setPinError(res.error || "Código PIN inválido.");
       } else {
         setFeedback({ type: "success", msg: "Entrega da encomenda concluída com sucesso!" });
+        setDeliveringParcel(null);
       }
     });
   };
@@ -441,14 +456,14 @@ export function PortariaClient({
                         <p className="font-mono text-lg font-black text-[#0D9488]">{parcel.pickupCode}</p>
                       </div>
 
-                      {isStaff && isPending ? (
+                      {isStaff ? (
                         <button
                           type="button"
-                          onClick={() => handleDeliverParcel(parcel.id)}
+                          onClick={() => openDeliverModal(parcel)}
                           className="btn-primary btn-sm"
                         >
                           <Icon name="check" size={14} />
-                          Dar Baixa
+                          Dar Baixa (PIN)
                         </button>
                       ) : null}
                     </div>
@@ -721,6 +736,57 @@ export function PortariaClient({
             </button>
           </div>
         </div>
+      ) : null}
+
+      {/* Deliver Parcel Modal with PIN */}
+      {deliveringParcel ? (
+        <AppModal
+          isOpen={true}
+          onClose={() => setDeliveringParcel(null)}
+          title={`Baixa de Encomenda · ${deliveringParcel.code}`}
+        >
+          <form onSubmit={confirmDeliverParcel} className="space-y-4 text-xs">
+            <div className="bg-slate-50 p-3.5 rounded-[10px] border border-slate-200">
+              <p className="text-slate-500">Destinatário: <strong className="text-slate-800">{deliveringParcel.recipientName || "Morador"}</strong></p>
+              <p className="text-slate-500 mt-1">Unidade: <strong className="text-slate-800">{deliveringParcel.unit || "—"} {deliveringParcel.block ? `(${deliveringParcel.block})` : ""}</strong></p>
+              <p className="text-slate-500 mt-1">Transportadora: <strong className="text-slate-800">{deliveringParcel.carrier || "Correios"}</strong></p>
+            </div>
+
+            {pinError && (
+              <div className="p-3 rounded-[8px] bg-rose-50 border border-rose-200 text-rose-800 font-semibold text-xs">
+                {pinError}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Código PIN de Retirada (4 a 6 dígitos)
+              </label>
+              <input
+                type="text"
+                value={pickupPinInput}
+                onChange={(e) => setPickupPinInput(e.target.value)}
+                placeholder="Digite o PIN fornecido pelo morador"
+                maxLength={6}
+                required
+                autoFocus
+                className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white font-mono text-center text-lg font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20 focus:border-[#1355FF]"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                O morador encontra este PIN na seção "Minhas encomendas" do aplicativo.
+              </span>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <AppButton variant="secondary" onClick={() => setDeliveringParcel(null)}>
+                Cancelar
+              </AppButton>
+              <AppButton type="submit" variant="primary" isLoading={isPending}>
+                Confirmar Entrega
+              </AppButton>
+            </div>
+          </form>
+        </AppModal>
       ) : null}
     </div>
   );

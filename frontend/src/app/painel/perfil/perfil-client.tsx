@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Icon, type IconName } from "@/components/icon";
 import { PageHeader } from "@/components/page-header";
-import { NextStepModal } from "@/components/next-step-modal";
+import { AppButton, AppInput } from "@/components/app-ui";
 import { logoutAction } from "@/lib/actions/session";
+import {
+  updateProfileInfoAction,
+  updatePasswordAction,
+  updateNotificationPreferencesAction,
+} from "@/lib/actions/perfil";
 
 type UserData = {
   id: number;
@@ -13,6 +19,11 @@ type UserData = {
   phone: string | null;
   document: string | null;
   avatarUrl: string | null;
+  notificationPreferences?: {
+    email?: boolean;
+    push?: boolean;
+    whatsapp?: boolean;
+  };
 };
 
 type MembershipInfo = {
@@ -27,15 +38,14 @@ type MembershipInfo = {
   blockName: string | null;
 };
 
-const PROFILE_SHORTCUTS: { label: string; icon: IconName; desc: string }[] = [
-  { label: "Comunicados", icon: "mail", desc: "Avisos e comunicados da administração" },
-  { label: "Minhas encomendas", icon: "package", desc: "Rastreio e retiradas na portaria" },
-  { label: "Documentos", icon: "folder", desc: "Atas, convenção e regulamento interno" },
-  { label: "Votações e assembleias", icon: "scale", desc: "Pautas em votação e assembleias virtuais" },
-  { label: "Visitantes / acesso", icon: "users", desc: "Liberação de convidados e prestadores" },
-  { label: "Minha agenda", icon: "calendar", desc: "Eventos e cronograma do condomínio" },
-  { label: "Notificações", icon: "bell", desc: "Preferências de alertas e avisos" },
-  { label: "Segurança e privacidade", icon: "shield", desc: "Senha, 2FA e dados protegidos" },
+const PROFILE_LINKS: { label: string; icon: IconName; desc: string; href: string }[] = [
+  { label: "Comunicados", icon: "mail", desc: "Avisos e comunicados da administração", href: "/painel/comunicados" },
+  { label: "Minhas encomendas", icon: "package", desc: "Rastreio e retiradas na portaria", href: "/painel/encomendas" },
+  { label: "Documentos", icon: "folder", desc: "Atas, convenção e regulamento interno", href: "/painel/documentos" },
+  { label: "Votações e assembleias", icon: "scale", desc: "Pautas em votação e assembleias virtuais", href: "/painel/assembleias" },
+  { label: "Visitantes e acessos", icon: "users", desc: "Liberação de convidados e prestadores", href: "/painel/portaria" },
+  { label: "Minha agenda e reservas", icon: "calendar", desc: "Eventos e cronograma do condomínio", href: "/painel/reservas" },
+  { label: "Central de Notificações", icon: "bell", desc: "Preferências e histórico de alertas", href: "/painel/notificacoes" },
 ];
 
 export function PerfilClient({
@@ -54,183 +64,428 @@ export function PerfilClient({
       ? "Síndico"
       : activeMembership?.role === "superadmin"
       ? "Super Admin"
+      : activeMembership?.role === "porteiro"
+      ? "Portaria"
+      : activeMembership?.role === "zelador"
+      ? "Zelador"
       : "Morador";
 
   const condoName = activeMembership?.condoName || "Residencial Zeladoria";
   const unitInfo = activeMembership?.unitNumber
     ? `${activeMembership.blockName ? `${activeMembership.blockName} · ` : ""}Unidade ${activeMembership.unitNumber}`
-    : "Torre A · Unidade 402";
+    : "Unidade Principal";
 
-  const condoAddress = "Av. Brasil, 1000 - Itaim Bibi, São Paulo - SP";
-
-  const [nextStepModalOpen, setNextStepModalOpen] = useState(false);
-  const [nextStepItemName, setNextStepItemName] = useState("");
+  const [activeTab, setActiveTab] = useState<"dados" | "seguranca" | "preferencias">("dados");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleShortcutClick = (label: string) => {
-    setNextStepItemName(label);
-    setNextStepModalOpen(true);
+  // Profile Form State
+  const [name, setName] = useState(user.name);
+  const [phone, setPhone] = useState(user.phone || "");
+  const [documentVal, setDocumentVal] = useState(user.document || "");
+  const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isPendingProfile, startProfileTransition] = useTransition();
+
+  // Password Form State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isPendingPassword, startPasswordTransition] = useTransition();
+
+  // Notification Preferences State
+  const [emailNotif, setEmailNotif] = useState(user.notificationPreferences?.email ?? true);
+  const [pushNotif, setPushNotif] = useState(user.notificationPreferences?.push ?? true);
+  const [whatsappNotif, setWhatsappNotif] = useState(user.notificationPreferences?.whatsapp ?? false);
+  const [prefMsg, setPrefMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isPendingPref, startPrefTransition] = useTransition();
+
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileMsg(null);
+    startProfileTransition(async () => {
+      const fd = new FormData();
+      fd.set("name", name);
+      fd.set("phone", phone);
+      fd.set("document", documentVal);
+      const res = await updateProfileInfoAction(fd);
+      if (res.success) {
+        setProfileMsg({ type: "success", text: "Dados cadastrais atualizados com sucesso!" });
+      } else {
+        setProfileMsg({ type: "error", text: res.error || "Erro ao atualizar dados." });
+      }
+    });
+  };
+
+  const handleUpdatePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMsg(null);
+    if (newPassword.length < 8) {
+      setPasswordMsg({ type: "error", text: "A nova senha deve ter no mínimo 8 caracteres." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: "error", text: "A confirmação de senha não confere." });
+      return;
+    }
+    startPasswordTransition(async () => {
+      const fd = new FormData();
+      fd.set("currentPassword", currentPassword);
+      fd.set("newPassword", newPassword);
+      fd.set("confirmPassword", confirmPassword);
+      const res = await updatePasswordAction(fd);
+      if (res.success) {
+        setPasswordMsg({ type: "success", text: "Senha alterada com sucesso! Use a nova senha no próximo acesso." });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setPasswordMsg({ type: "error", text: res.error || "Erro ao alterar senha. Verifique a senha atual." });
+      }
+    });
+  };
+
+  const handleUpdatePreferences = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPrefMsg(null);
+    startPrefTransition(async () => {
+      const res = await updateNotificationPreferencesAction({
+        email: emailNotif,
+        push: pushNotif,
+        whatsapp: whatsappNotif,
+      });
+      if (res.success) {
+        setPrefMsg({ type: "success", text: "Preferências de notificação salvas!" });
+      } else {
+        setPrefMsg({ type: "error", text: "Erro ao salvar preferências." });
+      }
+    });
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Page Header Padronizado */}
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader
         icon="user"
-        title="Perfil"
-        description="Gerencie suas informações cadastrais e dados condominiais."
+        title="Meu Perfil"
+        description="Gerencie seus dados cadastrais, credenciais de acesso e preferências do condomínio."
       />
 
-      {/* 1. User Identity Card */}
-      <div className="rounded-[14px] border border-slate-200/60 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Banner / Identity */}
+      <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-blue-50 border border-blue-200 text-[#0070F3] text-2xl font-black">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-50 border border-blue-200 text-[#1355FF] text-xl font-black">
             {user.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base sm:text-lg font-black text-[#0F172A]">
-                {user.name}
-              </h2>
-              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-bold text-[#0070F3]">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900">{user.name}</h2>
+              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF]">
                 {roleLabel}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              {user.email}
-            </p>
-            {user.phone && (
-              <p className="text-xs text-slate-400 mt-0.5">
-                {user.phone}
-              </p>
-            )}
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">{user.email}</p>
+            {user.phone && <p className="text-xs text-slate-400 mt-0.5">{user.phone}</p>}
           </div>
+        </div>
+
+        <div className="rounded-[10px] bg-slate-50 border border-slate-200/80 p-3 sm:text-right">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Condomínio Ativo</span>
+          <p className="text-xs font-bold text-slate-900">{condoName}</p>
+          <p className="text-[11px] text-slate-500">{unitInfo}</p>
         </div>
       </div>
 
-      {/* 2. Card Meu Condomínio (Identidade Azul e Amarela, SEM gradiente) */}
-      <div className="rounded-[14px] border border-blue-100 bg-white p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#0070F3] text-white">
-              <Icon name="home" size={17} />
-            </span>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#0070F3]">
-                Meu Condomínio
-              </span>
-              <h3 className="text-base font-black text-[#0F172A]">
-                {condoName}
-              </h3>
+      {/* Tab Navigation */}
+      <div className="border-b border-slate-200 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("dados")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
+            activeTab === "dados"
+              ? "border-[#1355FF] text-[#1355FF]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Icon name="user" size={15} />
+          Dados Pessoais
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("seguranca")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
+            activeTab === "seguranca"
+              ? "border-[#1355FF] text-[#1355FF]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Icon name="shield" size={15} />
+          Segurança & Senha
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("preferencias")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
+            activeTab === "preferencias"
+              ? "border-[#1355FF] text-[#1355FF]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Icon name="bell" size={15} />
+          Notificações
+        </button>
+      </div>
+
+      {/* Tab 1: Dados Pessoais */}
+      {activeTab === "dados" && (
+        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Informações Cadastrais</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Mantenha seus dados atualizados para contato da portaria e administração.</p>
+          </div>
+
+          {profileMsg && (
+            <div
+              className={`p-3.5 rounded-[8px] text-xs font-semibold ${
+                profileMsg.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : "bg-rose-50 text-rose-800 border border-rose-200"
+              }`}
+            >
+              {profileMsg.text}
             </div>
-          </div>
+          )}
 
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-[#FAB800]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#FAB800]" />
-            <span>Ativo</span>
-          </span>
+          <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AppInput
+                label="Nome Completo"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">E-mail de Acesso</label>
+                <input
+                  type="email"
+                  value={user.email}
+                  disabled
+                  className="w-full h-10 px-3.5 rounded-[8px] border border-slate-200 bg-slate-50 text-slate-500 text-xs font-medium cursor-not-allowed"
+                />
+                <span className="text-[10px] text-slate-400 mt-1 block">Para alterar seu e-mail, entre em contato com o suporte.</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AppInput
+                label="Telefone / WhatsApp"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
+              <AppInput
+                label="Documento (CPF ou RG)"
+                value={documentVal}
+                onChange={(e) => setDocumentVal(e.target.value)}
+                placeholder="000.000.000-00"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <AppButton type="submit" variant="primary" isLoading={isPendingProfile}>
+                Salvar Alterações
+              </AppButton>
+            </div>
+          </form>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="rounded-[10px] bg-slate-50/70 p-3 border border-slate-200/50">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Torre & Unidade
-            </span>
-            <p className="text-sm font-bold text-[#0F172A] mt-0.5">
-              {unitInfo}
-            </p>
+      {/* Tab 2: Segurança & Senha */}
+      {activeTab === "seguranca" && (
+        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Alterar Senha de Acesso</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Defina uma senha segura com no mínimo 8 caracteres para proteger sua conta.</p>
           </div>
 
-          <div className="rounded-[10px] bg-slate-50/70 p-3 border border-slate-200/50">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Endereço
-            </span>
-            <p className="text-xs font-semibold text-slate-700 mt-0.5">
-              {condoAddress}
-            </p>
-          </div>
+          {passwordMsg && (
+            <div
+              className={`p-3.5 rounded-[8px] text-xs font-semibold ${
+                passwordMsg.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : "bg-rose-50 text-rose-800 border border-rose-200"
+              }`}
+            >
+              {passwordMsg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-lg">
+            <AppInput
+              label="Senha Atual"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Digite sua senha atual"
+              required
+            />
+            <AppInput
+              label="Nova Senha"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo de 8 caracteres"
+              required
+            />
+            <AppInput
+              label="Confirmar Nova Senha"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Digite novamente a nova senha"
+              required
+            />
+
+            <div className="pt-2">
+              <AppButton type="submit" variant="primary" isLoading={isPendingPassword}>
+                Atualizar Senha
+              </AppButton>
+            </div>
+          </form>
         </div>
-      </div>
+      )}
 
-      {/* 3. Atalhos do Perfil (8 Itens) */}
+      {/* Tab 3: Preferências de Notificações */}
+      {activeTab === "preferencias" && (
+        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Canais de Notificação</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Escolha como prefere receber avisos de encomendas, comunicados e ocorrências.</p>
+          </div>
+
+          {prefMsg && (
+            <div
+              className={`p-3.5 rounded-[8px] text-xs font-semibold ${
+                prefMsg.type === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : "bg-rose-50 text-rose-800 border border-rose-200"
+              }`}
+            >
+              {prefMsg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdatePreferences} className="space-y-4">
+            <div className="space-y-3">
+              <label className="flex items-center justify-between p-3.5 rounded-[10px] border border-slate-200 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition-colors">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Notificações por E-mail</p>
+                  <p className="text-[11px] text-slate-500">Receba cópias de comunicados, boletos e convites no seu e-mail.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={emailNotif}
+                  onChange={(e) => setEmailNotif(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 rounded-[10px] border border-slate-200 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition-colors">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Alertas Push no Navegador</p>
+                  <p className="text-[11px] text-slate-500">Avisos imediatos de entrega de encomendas e chegada de visitantes.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={pushNotif}
+                  onChange={(e) => setPushNotif(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 rounded-[10px] border border-slate-200 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition-colors">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Notificações via WhatsApp</p>
+                  <p className="text-[11px] text-slate-500">Alertas urgentes e comunicados emergenciais no seu número celular.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={whatsappNotif}
+                  onChange={(e) => setWhatsappNotif(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                />
+              </label>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <AppButton type="submit" variant="primary" isLoading={isPendingPref}>
+                Salvar Preferências
+              </AppButton>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Atalhos Rápidos com Links Reais */}
       <div className="space-y-3">
-        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
-          Atalhos do Perfil
-        </h3>
-
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Atalhos do Sistema</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {PROFILE_SHORTCUTS.map((item) => (
-            <button
+          {PROFILE_LINKS.map((item) => (
+            <Link
               key={item.label}
-              type="button"
-              onClick={() => handleShortcutClick(item.label)}
-              className="flex items-center justify-between p-3.5 rounded-[12px] border border-slate-200/60 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group"
+              href={item.href}
+              className="flex items-center justify-between p-3.5 rounded-[12px] border border-slate-200/80 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group shadow-2xs"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#0070F3] transition-colors">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#1355FF] transition-colors">
                   <Icon name={item.icon} size={17} />
                 </span>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-[#0F172A] group-hover:text-[#0070F3] transition-colors truncate">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                     {item.label}
                   </h4>
-                  <p className="text-[11px] text-slate-500 truncate">
-                    {item.desc}
-                  </p>
+                  <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
                 </div>
               </div>
-
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-[#0070F3] shrink-0 ml-2" />
-            </button>
+              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-[#1355FF] shrink-0 ml-2" />
+            </Link>
           ))}
         </div>
       </div>
 
-      {/* 4. Sair da Conta */}
+      {/* Sair da Conta */}
       <div className="pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-[12px] border border-red-200 bg-red-50/50 hover:bg-red-100/60 p-3.5 text-xs sm:text-sm font-bold text-red-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 rounded-[12px] border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 p-3.5 text-xs sm:text-sm font-bold text-rose-600 transition-colors"
         >
           <Icon name="logout" size={16} />
           <span>Sair da conta</span>
         </button>
       </div>
 
-      {/* Logout Confirmation Modal */}
+      {/* Modal de Confirmação de Logout */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
-            onClick={() => setShowLogoutConfirm(false)}
-            aria-hidden
-          />
-          <div className="relative w-full max-w-sm rounded-[16px] border border-slate-200 bg-white p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-sm rounded-[14px] border border-slate-200 bg-white p-6 shadow-xl space-y-4 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
               <Icon name="logout" size={22} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#0F172A]">
-                Deseja realmente sair?
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Sua sessão será encerrada com segurança e você retornará à tela de login.
-              </p>
+              <h3 className="text-base font-bold text-slate-900">Deseja realmente sair?</h3>
+              <p className="text-xs text-slate-500 mt-1">Sua sessão será encerrada com segurança.</p>
             </div>
-
             <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(false)}
-                className="btn-ghost btn-sm flex-1"
+                className="w-1/2 h-9 px-3 text-xs font-bold rounded-[8px] border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Cancelar
               </button>
-              <form action={logoutAction} className="flex-1">
+              <form action={logoutAction} className="w-1/2">
                 <button
                   type="submit"
-                  className="w-full btn-danger btn-sm"
+                  className="w-full h-9 px-3 text-xs font-bold rounded-[8px] bg-rose-600 text-white hover:bg-rose-700"
                 >
                   Confirmar saída
                 </button>
@@ -239,14 +494,6 @@ export function PerfilClient({
           </div>
         </div>
       )}
-
-      {/* Next Step Feature Notification Modal */}
-      <NextStepModal
-        isOpen={nextStepModalOpen}
-        title={nextStepItemName}
-        description="Esta funcionalidade será disponibilizada em uma próxima etapa do Zeladoria Condomínio."
-        onClose={() => setNextStepModalOpen(false)}
-      />
     </div>
   );
 }
