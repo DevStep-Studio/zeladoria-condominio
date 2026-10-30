@@ -34,3 +34,4 @@ test("resolveBrandFromPath: deve preservar 'zeladoria' para rotas de gestão con
   assert.equal(resolveBrandFromPath("/painel/moradores"), "zeladoria");
   assert.equal(resolveBrandFromPath("/painel/portaria"), "zeladoria");
 });
+

@@ -128,3 +128,4 @@ Um contexto React `BrandContext` que lê o pathname atual ou aceita override exp
    - Ao acessar `/painel`, vê o card do Tião.
    - Ao entrar em `/painel/servicos`, o tema assume Laranja Tião.
    - Ao navegar para `/painel/ocorrencias`, o tema reverte instantaneamente para o Azul Zeladoria sem contaminação.
+

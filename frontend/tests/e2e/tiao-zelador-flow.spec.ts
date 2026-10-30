@@ -69,3 +69,4 @@ test.describe("Módulo Tião Zelador: Identidade Visual e Fluxos E2E", () => {
     await expect(page.locator("body")).toContainText(/Marketplace Verificado/i);
   });
 });
+

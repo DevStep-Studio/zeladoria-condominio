@@ -58,3 +58,4 @@
 - [ ] 5.3 Executar `npm --prefix frontend run lint` e garantir 0 erros.
 - [ ] 5.4 Executar suíte de testes unitários com `npx tsx --test`.
 - [ ] 5.5 Criar commit com mensagem descritiva conforme a regra de auto-commit.
+
