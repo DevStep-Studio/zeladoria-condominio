@@ -502,6 +502,54 @@ export function ServicosClient({
     return filteredVendors.filter((v) => !v.isSponsored);
   }, [filteredVendors]);
 
+  // Seus Profissionais filtrados contextualmente (Seção 56)
+  const displayedHiredProviders = useMemo(() => {
+    if (!hiredProviders || hiredProviders.length === 0) return [];
+    return hiredProviders.filter((hp: any) => {
+      if (
+        selectedCategory !== "Todas" &&
+        normalizeServiceCategory(hp.category) !== normalizeServiceCategory(selectedCategory)
+      ) {
+        return false;
+      }
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchesName = hp.name.toLowerCase().includes(q);
+        const matchesCat = hp.category.toLowerCase().includes(q);
+        if (!matchesName && !matchesCat) return false;
+      }
+      return true;
+    });
+  }, [hiredProviders, selectedCategory, search]);
+
+  // Patrocinados relevantes (Seção 13, 14, 57)
+  const displayedSponsoredList = useMemo(() => {
+    const hiredIds = new Set(displayedHiredProviders.map((hp: any) => hp.id));
+    const notInHired = sponsoredList.filter((p) => !hiredIds.has(p.id));
+    return notInHired.length > 0 ? notInHired.slice(0, 2) : sponsoredList.slice(0, 2);
+  }, [sponsoredList, displayedHiredProviders]);
+
+  // Recomendados para você com Deduplicação Visual (Seção 55)
+  const displayedOrganicList = useMemo(() => {
+    const higherPriorityIds = new Set([
+      ...displayedHiredProviders.map((hp: any) => hp.id),
+      ...displayedSponsoredList.map((sp) => sp.id),
+    ]);
+    const deduplicated = organicList.filter((v) => !higherPriorityIds.has(v.id));
+    return deduplicated.length > 0 ? deduplicated : organicList;
+  }, [organicList, displayedHiredProviders, displayedSponsoredList]);
+
+  // Paginação controlada com "Carregar mais" (Seção 48)
+  const [visibleCount, setVisibleCount] = useState(12);
+  const paginatedOrganicList = useMemo(() => {
+    return displayedOrganicList.slice(0, visibleCount);
+  }, [displayedOrganicList, visibleCount]);
+
+  // Reset da paginação ao alterar categoria, busca ou ordenação
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [selectedCategory, search, sortBy]);
+
   const newcomersList = useMemo(() => {
     return providers
       .filter((v) => !v.isSponsored && (v.reviewsCount === 0 || !v.rating))
@@ -2301,112 +2349,92 @@ export function ServicosClient({
             </button>
           </div>
 
-          {/* SECTION 4: RESULTADOS PARA VOCÊ (FULL-WIDTH) */}
+          {/* SECTION 4: BARRA DE RESULTADOS E TOOLBAR REORGANIZADA (Seções 4, 5, 6, 7, 8, 44, 45, 46) */}
           <div className="space-y-4 pt-1 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-3 sm:p-3.5 rounded-2xl shadow-xs">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2 px-1 border-b border-slate-200">
+              {/* Lado Esquerdo: Quantidade e Localização Discreta (Seções 4 e 5) */}
+              <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                    Resultados para Você
+                  <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
+                    {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
                   </h2>
-                  <span className="rounded-[4px] bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-black">
-                    {filteredVendors.length}
-                  </span>
                 </div>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <p className="text-[11px] text-slate-500">
-                    {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"} próximos de <strong>{serviceLocation.name}</strong>
-                  </p>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
+                  <span className="truncate max-w-[220px] sm:max-w-xs">{serviceLocation.name}</span>
+                  <span className="text-slate-300">•</span>
                   <button
                     type="button"
                     onClick={() => setIsLocationModalOpen(true)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FB6B01] hover:underline cursor-pointer"
+                    className="font-bold text-[#FB6B01] hover:underline cursor-pointer"
                   >
-                    <Icon name="map-pin" size={11} />
-                    <span>Alterar local</span>
+                    Alterar local
                   </button>
                 </div>
               </div>
 
-              <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
-                {/* Escolher Localização Button: full width no mobile, inline no desktop */}
-                <button
-                  type="button"
-                  onClick={() => setIsLocationModalOpen(true)}
-                  className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-1.5 rounded-xl border border-orange-200 bg-orange-50/70 px-3 py-2 sm:py-1.5 text-xs font-bold text-[#FB6B01] hover:bg-orange-100/70 transition-colors cursor-pointer"
-                  title="Alterar endereço ou condomínio de atendimento"
-                >
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Icon name="map-pin" size={13} className="text-[#FB6B01] shrink-0" />
-                    <span className="truncate max-w-[200px] sm:max-w-[170px]">
-                      {serviceLocation.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#FB6B01] shrink-0">
-                    <span className="sm:hidden">Trocar</span>
-                    <Icon name="chevron-down" size={11} className="text-[#FB6B01]" />
-                  </div>
-                </button>
-
-                {/* Linha de Abas e Controles: [Lista | Mapa] + [Filtros] + [Ordenar] */}
-                <div className="w-full sm:w-auto flex items-center gap-2">
-                  {/* View Switcher: Lista vs Mapa (segmented tabs) */}
-                  <div className="flex-1 sm:flex-initial grid grid-cols-2 sm:flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => setDisplayMode("lista")}
-                      className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        displayMode === "lista"
-                          ? "bg-[#FB6B01] text-white shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      <Icon name="grid" size={12} />
-                      <span>Lista</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDisplayMode("mapa")}
-                      className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        displayMode === "mapa"
-                          ? "bg-[#FB6B01] text-white shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      <Icon name="map-pin" size={12} />
-                      <span>Mapa</span>
-                    </button>
-                  </div>
-
-                  {/* Filter Drawer Trigger */}
+              {/* Lado Direito: [Lista | Mapa] + [Filtros] + [Ordenar] (Seções 6, 7 e 8) */}
+              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap sm:flex-nowrap">
+                {/* Segmented Control Lista | Mapa */}
+                <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                   <button
                     type="button"
-                    onClick={() => setIsFilterSheetOpen(true)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
+                    onClick={() => setDisplayMode("lista")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                      displayMode === "lista"
+                        ? "bg-[#FB6B01] text-white shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
                   >
-                    <Icon name="filter" size={13} className="text-[#FB6B01]" />
-                    <span className="hidden xs:inline">Filtros</span>
-                    {activeFiltersCount > 0 && (
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FB6B01] text-white text-[9px] font-black">
-                        {activeFiltersCount}
-                      </span>
-                    )}
+                    <Icon name="grid" size={12} />
+                    <span>Lista</span>
                   </button>
-
-                  {/* Sort selector */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => handleSortChange(e.target.value)}
-                    className="flex-1 sm:flex-initial rounded-xl border border-slate-200 bg-white px-2 sm:px-3 py-2 sm:py-1.5 text-xs font-bold text-slate-700 outline-none cursor-pointer truncate max-w-[130px] sm:max-w-none"
+                  <button
+                    type="button"
+                    onClick={() => setDisplayMode("mapa")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                      displayMode === "mapa"
+                        ? "bg-[#FB6B01] text-white shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
                   >
-                    <option value="score">Recomendados</option>
-                    <option value="distance">Mais próximos</option>
-                    <option value="rating">Melhor avaliados</option>
-                    <option value="condo">Mais contratados</option>
-                    <option value="response">Resposta rápida</option>
-                    <option value="price_asc">Menor preço</option>
-                  </select>
+                    <Icon name="map-pin" size={12} />
+                    <span>Mapa</span>
+                  </button>
                 </div>
+
+                {/* Botão de Filtros com Badge Laranja */}
+                <button
+                  type="button"
+                  onClick={() => setIsFilterSheetOpen(true)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                    activeFiltersCount > 0
+                      ? "border-[#FB6B01] bg-orange-50 text-[#FB6B01]"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon name="filter" size={12} className={activeFiltersCount > 0 ? "text-[#FB6B01]" : "text-slate-500"} />
+                  <span>Filtros</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FB6B01] text-white text-[9px] font-black">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Seletor Compacto de Ordenação */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-[#FB6B01] cursor-pointer"
+                >
+                  <option value="score">Recomendados</option>
+                  <option value="rating">Melhor avaliados</option>
+                  <option value="distance">Mais próximos</option>
+                  <option value="price_asc">Menor preço</option>
+                  <option value="condo">Mais contratados</option>
+                  <option value="response">Resposta rápida</option>
+                </select>
               </div>
             </div>
 
@@ -2573,54 +2601,47 @@ export function ServicosClient({
                       </div>
                     )}
                   <div className="space-y-6">
-                    {/* SEUS PROFISSIONAIS (Cláusulas 37 e 38) */}
-                    {hiredProviders && hiredProviders.length > 0 && selectedCategory === "Todas" && !search && (
-                      <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3.5">
+                    {/* SEUS PROFISSIONAIS (Seções 9, 10, 11, 12: Compacto, sem container gigante) */}
+                    {displayedHiredProviders.length > 0 && (
+                      <section className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#FB6B01] text-white shadow-2xs">
-                              <Icon name="user-check" size={14} />
-                            </span>
-                            <div>
-                              <h2 className="text-sm font-black text-[#0F172A]">Seus Profissionais</h2>
-                              <p className="text-[11px] text-slate-500">Profissionais que você já contratou no condomínio</p>
-                            </div>
+                          <div>
+                            <h2 className="text-sm font-bold text-[#0F172A]">Seus profissionais</h2>
+                            <p className="text-xs text-slate-500">Profissionais que você já contratou.</p>
                           </div>
-                          <span className="text-[11px] text-slate-400 font-bold hidden sm:inline">
-                            Mais recentes primeiro
-                          </span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {hiredProviders.map((hp: any) => {
+                        {/* Desktop: flex row com largura controlada (280-320px) / Mobile: carrossel horizontal */}
+                        <div className="flex gap-3 overflow-x-auto pb-2 pt-0.5 sm:overflow-visible sm:flex-wrap">
+                          {displayedHiredProviders.map((hp: any) => {
                             const isEligible = hp.active && hp.onboardingStatus !== "suspenso";
                             return (
                               <div
                                 key={`hired-${hp.id}`}
-                                className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-colors"
+                                className="w-[280px] sm:w-[320px] shrink-0 p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all shadow-2xs flex flex-col justify-between gap-3 snap-start"
                               >
                                 <div className="flex items-center gap-3">
                                   {hp.photoUrl ? (
                                     <img
                                       src={hp.photoUrl}
                                       alt={hp.name}
-                                      className="h-11 w-11 rounded-full object-cover border border-slate-100 shrink-0"
+                                      className="h-12 w-12 rounded-xl object-cover border border-slate-100 shrink-0"
                                     />
                                   ) : (
-                                    <div className="h-11 w-11 rounded-full bg-orange-100 text-[#FB6B01] flex items-center justify-center font-black text-sm shrink-0">
+                                    <div className="h-12 w-12 rounded-xl bg-orange-50 text-[#FB6B01] flex items-center justify-center font-bold text-sm shrink-0 border border-orange-100">
                                       {hp.name[0]}
                                     </div>
                                   )}
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-1">
-                                      <strong className="text-xs font-bold text-slate-900 truncate">{hp.name}</strong>
-                                      <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5 shrink-0">
+                                      <h4 className="text-xs font-bold text-slate-900 truncate">{hp.name}</h4>
+                                      <span className="text-[11px] text-amber-600 font-bold flex items-center gap-0.5 shrink-0">
                                         ★ {(hp.rating || 4.9).toFixed(1)}
                                       </span>
                                     </div>
                                     <span className="text-[11px] text-slate-500 block truncate">{hp.category}</span>
-                                    <span className="text-[10px] font-bold text-[#FB6B01] bg-orange-50 px-1.5 py-0.2 rounded inline-block mt-0.5">
-                                      Você contratou {hp.hireCount} {hp.hireCount === 1 ? "vez" : "vezes"}
+                                    <span className="text-[10px] font-medium text-slate-500 mt-0.5 block">
+                                      Contratado {hp.hireCount} {hp.hireCount === 1 ? "vez" : "vezes"}
                                     </span>
                                   </div>
                                 </div>
@@ -2630,19 +2651,17 @@ export function ServicosClient({
                                     <button
                                       type="button"
                                       onClick={() => handleRehire(hp)}
-                                      className="w-full py-2 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                                      className="w-full py-1.5 px-3 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                                     >
                                       <Icon name="refresh" size={12} />
                                       <span>Contratar novamente</span>
                                     </button>
                                   ) : (
                                     <div className="w-full flex items-center justify-between gap-1 text-[11px]">
-                                      <span className="text-slate-400 italic">Carlos não está recebendo novos serviços</span>
+                                      <span className="text-slate-400 italic">Indisponível no momento</span>
                                       <button
                                         type="button"
-                                        onClick={() => {
-                                          handleCategoryChange(hp.category);
-                                        }}
+                                        onClick={() => handleCategoryChange(hp.category)}
                                         className="text-[#FB6B01] hover:underline font-bold"
                                       >
                                         Ver semelhantes
@@ -2654,92 +2673,109 @@ export function ServicosClient({
                             );
                           })}
                         </div>
-                      </div>
+                      </section>
                     )}
 
-                    {/* BLOCO 1: PATROCINADOS / ANÚNCIO (Separado, máx 1-2, sem medalha #1) */}
-                    {sponsoredList.length > 0 && (
-                      <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md">
-                              Patrocinados · Anúncio
-                            </span>
-                            <span className="text-[11px] text-amber-800 font-medium hidden sm:inline">
-                              Profissionais em destaque nesta especialidade
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400">Publicidade interna</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                          {sponsoredList.map((vendor) => (
-                            <ProviderCard
-                              key={`sponsored-${vendor.id}`}
-                              provider={vendor}
-                              rankingPosition={undefined}
-                              isFavorite={favorites.includes(vendor.id)}
-                              hasHiredBefore={hiredProviderIds.has(vendor.id)}
-                              onToggleFavorite={toggleFavorite}
-                              onViewProfile={(p) => setSelectedProfileVendor(p)}
-                              onRequestBudget={(p) => setBudgetVendor(p)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* BLOCO 2: RANKING ORGÂNICO / RECOMENDADOS (Qualidade, Reputação & Proximidade) */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                    {/* PATROCINADOS (Seções 13 a 17: Anúncio discreto, sem container amarelo gigante) */}
+                    {displayedSponsoredList.length > 0 && (
+                      <section className="space-y-2.5">
                         <div className="flex items-center gap-2">
-                          <h2 className="text-sm font-bold text-[#0F172A]">
-                            {selectedCategory === "Todas"
-                              ? "Melhores Profissionais Recomendados"
-                              : `Melhores em ${selectedCategory}`}
-                          </h2>
-                          <span className="text-xs text-slate-400">
-                            ({organicList.length})
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
+                            Patrocinado
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">
+                            Anúncio · Profissional em destaque
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-400 hidden sm:inline">
-                          Ordenados por avaliação e histórico real
+
+                        {/* Mobile: carrossel horizontal / Desktop: grid alinhado com largura controlada */}
+                        <div className="flex gap-3.5 overflow-x-auto pb-2 pt-0.5 sm:overflow-visible sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                          {displayedSponsoredList.map((vendor) => (
+                            <div key={`sponsored-${vendor.id}`} className="w-[280px] sm:w-auto shrink-0 snap-start">
+                              <ProviderCard
+                                provider={vendor}
+                                rankingPosition={undefined}
+                                isFavorite={favorites.includes(vendor.id)}
+                                hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                                onToggleFavorite={toggleFavorite}
+                                onViewProfile={(p) => setSelectedProfileVendor(p)}
+                                onRequestBudget={(p) => setBudgetVendor(p)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {/* RECOMENDADOS PARA VOCÊ (Seções 18 a 24, 48, 55: Principal área com deduplicação) */}
+                    <section className="space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                        <div>
+                          <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
+                            {selectedCategory === "Todas"
+                              ? "Recomendados para você"
+                              : `Recomendados em ${selectedCategory}`}
+                          </h2>
+                          <p className="text-xs text-slate-500">Com base em localização, avaliações e histórico.</p>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium">
+                          {displayedOrganicList.length} {displayedOrganicList.length === 1 ? "profissional" : "profissionais"}
                         </span>
                       </div>
 
-                      {organicList.length === 0 ? (
-                        <p className="text-xs text-slate-500 py-4">Nenhum resultado orgânico com os filtros selecionados.</p>
+                      {displayedOrganicList.length === 0 ? (
+                        <p className="text-xs text-slate-500 py-6 text-center">Nenhum profissional encontrado com os filtros selecionados.</p>
                       ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                          {organicList.map((vendor, index) => (
-                            <ProviderCard
-                              key={vendor.id}
-                              provider={vendor}
-                              rankingPosition={
-                                (sortBy === "score" || sortBy === "rating") && index < 3 && vendor.reviewsCount > 0
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4">
+                            {paginatedOrganicList.map((vendor, index) => (
+                              <ProviderCard
+                                key={vendor.id}
+                                provider={vendor}
+                                rankingPosition={
+                                  sortBy === "rating" && index < 3 && vendor.reviewsCount > 0
                                     ? index + 1
-                                  : undefined
-                              }
-                              isFavorite={favorites.includes(vendor.id)}
-                              hasHiredBefore={hiredProviderIds.has(vendor.id)}
-                              onToggleFavorite={toggleFavorite}
-                              onViewProfile={(p) => setSelectedProfileVendor(p)}
-                              onRequestBudget={(p) => setBudgetVendor(p)}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                                    : undefined
+                                }
+                                isFavorite={favorites.includes(vendor.id)}
+                                hasHiredBefore={hiredProviderIds.has(vendor.id)}
+                                onToggleFavorite={toggleFavorite}
+                                onViewProfile={(p) => setSelectedProfileVendor(p)}
+                                onRequestBudget={(p) => setBudgetVendor(p)}
+                              />
+                            ))}
+                          </div>
 
-                    {/* BLOCO 3: NOVOS NO TIÃO (Novos profissionais sem distorcer o ranking) */}
-                    {newcomersList.length > 0 && selectedCategory === "Todas" && (
+                          {/* Paginação / Carregar Mais (Seção 48) */}
+                          {displayedOrganicList.length > visibleCount && (
+                            <div className="pt-4 text-center">
+                              <button
+                                type="button"
+                                onClick={() => setVisibleCount((prev) => prev + 8)}
+                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 px-5 py-2.5 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                              >
+                                <Icon name="chevron-down" size={13} />
+                                <span>Carregar mais profissionais</span>
+                                <span className="text-slate-400 font-normal">
+                                  ({paginatedOrganicList.length} de {displayedOrganicList.length})
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </section>
+
+                    {/* BLOCO 4: NOVOS NO TIÃO (Seção 23: Novos profissionais sem distorcer o ranking) */}
+                    {newcomersList.length > 0 && selectedCategory === "Todas" && !search && (
                       <div className="mt-8 pt-6 border-t border-slate-200 space-y-3">
                         <div>
-                          <h3 className="text-sm font-black text-[#0F172A]">Novos no Tião</h3>
-                          <p className="text-[11px] text-slate-500">
+                          <h3 className="text-sm font-bold text-[#0F172A]">Novos no Tião</h3>
+                          <p className="text-xs text-slate-500">
                             Profissionais recém-credenciados para você conhecer e contratar com confiança
                           </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4">
                           {newcomersList.map((vendor) => (
                             <ProviderCard
                               key={`newcomer-${vendor.id}`}

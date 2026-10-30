@@ -304,12 +304,14 @@ export function MarketplaceMap({
               </div>
 
               <div className="text-right shrink-0">
-                <div className="flex items-center gap-1 font-black text-xs text-[#0F172A]">
+                <div className="flex items-center gap-1 font-bold text-xs text-[#0F172A]">
                   <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
-                  <span>{selectedProvider.reviewsCount > 0 ? selectedProvider.rating.toFixed(1) : "Sem avaliações"}</span>
+                  <span>{selectedProvider.reviewsCount > 0 ? selectedProvider.rating.toFixed(1) : "Novo"}</span>
                 </div>
                 <span className="text-[11px] text-slate-400">
-                  {selectedProvider.distanceKm != null ? `~${selectedProvider.distanceKm.toFixed(1).replace(".", ",")} km` : "Atende a região"}
+                  {selectedProvider.distanceKm != null && selectedProvider.distanceKm > 0 && selectedProvider.distanceKm <= 60
+                    ? `~${selectedProvider.distanceKm.toFixed(1).replace(".", ",")} km`
+                    : "Atende a região"}
                 </span>
               </div>
             </div>
@@ -412,7 +414,7 @@ export function MarketplaceMap({
                       <div className="flex items-center justify-between gap-2 mt-1.5 text-xs">
                         <div className="flex items-center gap-1 font-bold text-[#0F172A]">
                           <Icon name="star" size={11} className="text-[#FFD000] fill-[#FFD000]" />
-                          <span>{p.reviewsCount > 0 ? p.rating.toFixed(1) : "Sem avaliações"}</span>
+                          <span>{p.reviewsCount > 0 ? p.rating.toFixed(1) : "Novo"}</span>
                           {p.reviewsCount > 0 && (
                             <span className="text-[10px] text-slate-400 font-normal">
                               ({p.reviewsCount})
@@ -421,7 +423,9 @@ export function MarketplaceMap({
                         </div>
 
                         <span className="text-[11px] text-slate-400">
-                          {p.distanceKm != null ? `~${p.distanceKm.toFixed(1).replace(".", ",")} km` : "Atende a região"}
+                          {p.distanceKm != null && p.distanceKm > 0 && p.distanceKm <= 60
+                            ? `~${p.distanceKm.toFixed(1).replace(".", ",")} km`
+                            : "Atende a região"}
                         </span>
                       </div>
                     </div>
