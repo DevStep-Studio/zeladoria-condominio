@@ -421,31 +421,35 @@ export function DashboardClient({
   ) : null;
 
   // =========================================================================
-  // REFORMULAÇÃO GLOBAL: DASHBOARD DO MORADOR (SaaS Minimalista e Objetivo)
+  // =========================================================================
+  // DASHBOARD DO MORADOR — CENTRAL PESSOAL DO MORADOR
   // =========================================================================
   if (isResident) {
+    const totalPending = activeAttention.reduce((acc, curr) => acc + curr.count, 0);
+    const nextReservation = upcomingReservations.length > 0 ? upcomingReservations[0] : null;
+
     return (
-      <div className="space-y-6">
-        {/* 1. CABEÇALHO OBJETIVO */}
-        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+      <div className="space-y-7 max-w-7xl mx-auto pb-10">
+        {/* 1. CABEÇALHO LIMPO (Saudação sobre fundo claro, sem hero azul grande) */}
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Olá, {userName}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
               {condoName} {unitLabel ? `· Unidade ${unitLabel}` : ""}
             </p>
           </div>
 
-          {/* Ações contextuais de cabeçalho: Emergência discreta e Assistente */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Ações Secundárias: Emergência 24h e Zeladoria IA */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setEmergencyModalOpen(true)}
               title="Central de Emergência e Telefones Úteis 24h"
-              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200/90 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
             >
-              <Icon name="phone" size={13} />
+              <Icon name="phone" size={13} className="text-rose-600" />
               <span>Emergência 24h</span>
             </button>
 
@@ -453,7 +457,7 @@ export function DashboardClient({
               type="button"
               onClick={() => setAssistantOpen(true)}
               title="Assistente de Dúvidas e Regras do Condomínio"
-              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
             >
               <Icon name="sparkles" size={13} className="text-[#1355FF]" />
               <span>Zeladoria IA</span>
@@ -461,289 +465,219 @@ export function DashboardClient({
           </div>
         </section>
 
-        {/* 2. AÇÕES RÁPIDAS (1º botão azul primário destacado, demais com ícone azul primário consistente) */}
-        <section className="space-y-1.5">
-          <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* 1. Registrar ocorrência (Destaque Primário) */}
+        {/* 2. AÇÕES RÁPIDAS (Barra de Ações Limpa: 1ª em Azul sólido, demais neutras e Tião com detalhe laranja) */}
+        <section className="space-y-2">
+          <span className="text-xs font-semibold text-slate-500 block">
+            Ações rápidas
+          </span>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+            {/* 1. Registrar ocorrência (Destaque Primário em Azul Sólido) */}
             <Link
               href="/painel/ocorrencias/nova"
-              className="flex items-center gap-3 rounded-lg border border-[#1355FF] bg-[#1355FF] hover:bg-[#0D47E6] text-white p-3 transition-colors shadow-2xs group"
+              className="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white p-3 sm:p-3.5 transition-all shadow-xs cursor-pointer group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
-                <Icon name="clipboard" size={16} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
+                <Icon name="plus" size={16} />
               </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold text-white truncate">
-                  Registrar ocorrência
-                </h3>
-                <p className="text-[11px] text-blue-100 truncate">Relatar problema</p>
-              </div>
+              <span className="text-xs sm:text-[13px] font-bold text-white truncate">
+                Registrar ocorrência
+              </span>
             </Link>
 
-            {/* 2. Reservar espaço */}
+            {/* 2. Reservar espaço (Neutro) */}
             <Link
               href="/painel/reservas"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70 p-3 sm:p-3.5 transition-all shadow-2xs cursor-pointer group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
-                <Icon name="calendar" size={16} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
+                <Icon name="calendar" size={15} />
               </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
-                  Reservar espaço
-                </h3>
-                <p className="text-[11px] text-slate-400 truncate">Áreas comuns</p>
-              </div>
+              <span className="text-xs sm:text-[13px] font-semibold text-slate-800 group-hover:text-[#1355FF] transition-colors truncate">
+                Reservar espaço
+              </span>
             </Link>
 
-            {/* 3. Autorizar visitante */}
+            {/* 3. Autorizar visitante (Neutro) */}
             <Link
               href="/painel/visitantes"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70 p-3 sm:p-3.5 transition-all shadow-2xs cursor-pointer group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
-                <Icon name="users" size={16} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
+                <Icon name="users" size={15} />
               </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
-                  Autorizar visitante
-                </h3>
-                <p className="text-[11px] text-slate-400 truncate">Liberação de acesso</p>
-              </div>
+              <span className="text-xs sm:text-[13px] font-semibold text-slate-800 group-hover:text-[#1355FF] transition-colors truncate">
+                Autorizar visitante
+              </span>
             </Link>
 
-            {/* 4. Tião Zelador - Botão Laranja Sólido */}
+            {/* 4. Tião Zelador (Botão sólido laranja oficial do Tião) */}
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-3 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] p-3 text-white transition-all shadow-xs hover:shadow-sm group cursor-pointer"
+              className="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] p-3 sm:p-3.5 transition-all shadow-xs hover:shadow-md cursor-pointer group text-white border border-[#E05F00]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-white transition-transform group-hover:scale-105">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white transition-transform group-hover:scale-105">
                 <img
                   src="/brands/tiao/mascot-white.png"
-                  alt="Tião"
-                  className="h-5.5 w-5.5 object-contain"
+                  alt="Tião Zelador"
+                  className="h-5 w-5 object-contain"
                 />
               </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black text-white truncate">
+              <div className="min-w-0 flex-1 flex items-center justify-between">
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-[13px] font-black text-white truncate block">
                     Tião Zelador
-                  </h3>
-                  <Icon
-                    name="arrow-right"
-                    size={12}
-                    className="text-white/80 transition-transform group-hover:translate-x-0.5 shrink-0"
-                  />
+                  </span>
+                  <span className="text-[10px] text-white/85 font-medium truncate hidden sm:block">
+                    Encontrar profissional
+                  </span>
                 </div>
-                <p className="text-[11px] text-white/90 truncate font-medium">Encontre profissionais</p>
+                <Icon
+                  name="arrow-right"
+                  size={14}
+                  className="text-white/90 group-hover:translate-x-0.5 transition-transform shrink-0"
+                />
               </div>
             </Link>
           </div>
         </section>
 
-        {/* 3. RESUMO DO MORADOR (Indicadores compactos e objetivos) */}
+        {/* 3. HOJE (Resumo dinâmico e compacto das informações essenciais do morador) */}
         <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              Visão Geral
-            </h2>
-          </div>
+          <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+            Hoje
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Card 1: Minhas ocorrências */}
-            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  Ocorrências
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
+            {/* Bloco 1: Ocorrências da Unidade */}
+            <Link
+              href={residentStats.myOccurrences > 0 ? "/painel/ocorrencias" : "/painel/ocorrencias/nova"}
+              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                  residentStats.myOccurrences > 0 ? "bg-blue-50 text-[#1355FF]" : "bg-slate-100 text-slate-400"
+                }`}>
+                  <Icon name="clipboard" size={15} />
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
-                  <Icon name="clipboard" size={14} />
-                </span>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
+                    {residentStats.myOccurrences > 0
+                      ? `${residentStats.myOccurrences} ${residentStats.myOccurrences === 1 ? "ocorrência em andamento" : "ocorrências em andamento"}`
+                      : "Nenhuma ocorrência aberta"}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block truncate">
+                    {residentStats.myOccurrences > 0
+                      ? "Acompanhar chamado da unidade"
+                      : "Sua unidade sem chamados pendentes"}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-0.5">
-                {residentStats.myOccurrences > 0 ? (
-                  <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-                        {residentStats.myOccurrences}
-                      </span>
-                      <span className="text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded">
-                        em andamento
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Acompanhe o andamento das solicitações da sua unidade.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm font-semibold text-slate-800">
-                      Nenhuma ocorrência em aberto
-                    </span>
-                    <p className="text-xs text-slate-400">
-                      Nenhum chamado ativo na sua unidade.
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
-                <Link
-                  href={residentStats.myOccurrences > 0 ? "/painel/ocorrencias" : "/painel/ocorrencias/nova"}
-                  className="text-[#1355FF] hover:underline flex items-center gap-1"
-                >
-                  <span>{residentStats.myOccurrences > 0 ? "Acompanhar ocorrências" : "Registrar ocorrência"}</span>
-                  <Icon name="arrow-up-right" size={12} />
-                </Link>
-              </div>
-            </div>
+              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
+            </Link>
 
-            {/* Card 2: Próxima reserva */}
-            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  Próxima reserva
+            {/* Bloco 2: Encomendas na Portaria */}
+            <Link
+              href="/painel/encomendas"
+              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                  residentStats.myParcels > 0 ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-400"
+                }`}>
+                  <Icon name="package" size={15} />
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
-                  <Icon name="calendar" size={14} />
-                </span>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
+                    {residentStats.myParcels > 0
+                      ? `${residentStats.myParcels} ${residentStats.myParcels === 1 ? "encomenda para retirar" : "encomendas para retirar"}`
+                      : "Nenhuma encomenda pendente"}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block truncate">
+                    {residentStats.myParcels > 0
+                      ? "Disponível na portaria"
+                      : "Notificaremos você quando chegar"}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-0.5">
-                {upcomingReservations.length > 0 ? (
-                  <>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-slate-900 truncate">
-                        {upcomingReservations[0].amenityName}
-                      </span>
-                      <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded">
-                        Confirmada
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {upcomingReservations[0].date} · {upcomingReservations[0].time}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm font-semibold text-slate-800">
-                      Nenhuma reserva agendada
-                    </span>
-                    <p className="text-xs text-slate-400">
-                      Áreas de lazer livres para reserva.
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
-                <Link
-                  href="/painel/reservas"
-                  className="text-[#1355FF] hover:underline flex items-center gap-1"
-                >
-                  <span>{upcomingReservations.length > 0 ? "Ver reservas" : "Reservar espaço"}</span>
-                  <Icon name="arrow-up-right" size={12} />
-                </Link>
-              </div>
-            </div>
+              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
+            </Link>
 
-            {/* Card 3: Encomendas */}
-            <div className="flex flex-col justify-between rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  Encomendas na portaria
+            {/* Bloco 3: Próxima Reserva */}
+            <Link
+              href="/painel/reservas"
+              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                  nextReservation ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"
+                }`}>
+                  <Icon name="calendar" size={15} />
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-50 text-amber-700">
-                  <Icon name="package" size={14} />
-                </span>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
+                    {nextReservation
+                      ? `${nextReservation.amenityName}`
+                      : "Nenhuma reserva agendada"}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block truncate">
+                    {nextReservation
+                      ? `${nextReservation.date} · ${nextReservation.time}`
+                      : "Espaços disponíveis para reserva"}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-0.5">
-                {residentStats.myParcels > 0 ? (
-                  <>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-                        {residentStats.myParcels}
-                      </span>
-                      <span className="text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded">
-                        {residentStats.myParcels === 1 ? "pronta para retirada" : "prontas para retirada"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Apresente sua identificação na portaria para retirar.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm font-semibold text-slate-800">
-                      Nenhuma encomenda pendente
-                    </span>
-                    <p className="text-xs text-slate-400">
-                      Notificaremos você assim que um pacote chegar.
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center text-xs font-semibold">
-                <Link
-                  href="/painel/encomendas"
-                  className="text-[#1355FF] hover:underline flex items-center gap-1"
-                >
-                  <span>Ver encomendas</span>
-                  <Icon name="arrow-up-right" size={12} />
-                </Link>
-              </div>
-            </div>
+              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
+            </Link>
           </div>
         </section>
 
-        {/* 4. SEÇÃO EM DUAS COLUNAS (Atenção + Avisos Recentes) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-          {/* Coluna 1: O que precisa da sua atenção */}
-          <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-50 text-amber-700">
-                  <Icon name="alert-triangle" size={13} />
-                </span>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                  Pendências
-                </h3>
-              </div>
-              {activeAttention.length > 0 && (
-                <span className="rounded bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                  {totalPending} {totalPending === 1 ? "item" : "itens"}
+        {/* 4. SEÇÃO EM DUAS COLUNAS: PENDÊNCIAS + AVISOS RECENTES (Sem excesso de bordas, listas limpas) */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+          {/* Coluna 1: Precisa da sua atenção */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                Precisa da sua atenção
+              </h3>
+              {totalPending > 0 && (
+                <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full">
+                  {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
                 </span>
               )}
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {activeAttention.length === 0 ? (
-                <div className="py-6 flex flex-col items-center justify-center text-center">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 mb-1">
-                    <Icon name="check" size={16} />
-                  </span>
-                  <p className="text-xs font-medium text-slate-700">
-                    Nenhuma pendência no momento
-                  </p>
-                </div>
-              ) : (
-                activeAttention.map((item) => (
+            {activeAttention.length === 0 ? (
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 flex items-center gap-3 text-xs text-slate-600">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <Icon name="check" size={14} />
+                </span>
+                <span>Tudo certo por aqui. Nenhuma pendência no momento.</span>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
+                {activeAttention.map((item) => (
                   <Link
                     key={item.id}
                     href={item.href}
-                    className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 rounded-md hover:bg-slate-50 transition-colors group"
+                    className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs ${
-                          item.urgent ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-slate-100 text-slate-600"
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs ${
+                          item.urgent
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-blue-50 text-[#1355FF]"
                         }`}
                       >
-                        <Icon name={item.urgent ? "package" : "clipboard"} size={13} />
+                        <Icon name={item.urgent ? "package" : "clipboard"} size={15} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
                           {item.count} {item.label}
                         </p>
                         {item.detail && (
-                          <p className="text-[11px] text-slate-400 truncate">
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
                             {item.detail}
                           </p>
                         )}
@@ -752,90 +686,93 @@ export function DashboardClient({
 
                     <Icon
                       name="chevron-right"
-                      size={13}
-                      className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0"
+                      size={14}
+                      className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0"
                     />
                   </Link>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Coluna 2: Avisos do condomínio */}
-          <div className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
-                  <Icon name="megaphone" size={13} />
-                </span>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                  Avisos Recentes
-                </h3>
-              </div>
+          {/* Coluna 2: Avisos recentes */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                Avisos recentes
+              </h3>
               <Link
                 href="/painel/comunicados"
-                className="text-[11px] font-semibold text-[#1355FF] hover:underline"
+                className="text-xs font-semibold text-[#1355FF] hover:underline"
               >
                 Ver todos
               </Link>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {notices.length === 0 ? (
-                <div className="py-6 flex flex-col items-center justify-center text-center">
-                  <Icon name="mail" size={18} className="text-slate-300 mb-1" />
-                  <p className="text-xs font-medium text-slate-600">
-                    Nenhum aviso recente
-                  </p>
-                </div>
-              ) : (
-                notices.map((n) => {
+            {notices.length === 0 ? (
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 flex items-center gap-3 text-xs text-slate-600">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <Icon name="mail" size={14} />
+                </span>
+                <span>Nenhum aviso recente no condomínio.</span>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
+                {notices.slice(0, 4).map((n) => {
                   const meta = NOTICE_META[n.kind];
-                  const isUrgent = n.priority === "alta" || n.kind === "alerta";
+                  const isAlert = n.priority === "alta" || n.kind === "alerta";
                   return (
                     <Link
                       key={n.id}
                       href={n.href}
-                      className="py-2.5 px-2 -mx-2 flex items-start justify-between gap-3 rounded-md hover:bg-slate-50 transition-colors group"
+                      className="p-3.5 flex items-start justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     >
-                      <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="flex items-start gap-3 min-w-0">
                         <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs mt-0.5 ${
-                            isUrgent ? "bg-rose-50 text-rose-600 border border-rose-200/60" : "bg-slate-100 text-slate-600"
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs mt-0.5 ${
+                            isAlert
+                              ? "bg-rose-50 text-rose-600 border border-rose-200/60"
+                              : "bg-blue-50 text-[#1355FF]"
                           }`}
                         >
-                          <Icon name={meta.icon} size={13} />
+                          <Icon name={meta.icon} size={14} />
                         </span>
-                        <div className="min-w-0">
+                        <div className="min-w-0 space-y-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-medium text-slate-900 group-hover:text-[#1355FF] transition-colors">
+                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors">
                               {n.title}
                             </span>
-                            <span className="text-[10px] text-slate-400">
-                              {n.date} · {meta.label}
+                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                              isAlert ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-600"
+                            }`}>
+                              {meta.label}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              · {n.date}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          <p className="text-[11px] text-slate-500 line-clamp-1 leading-relaxed">
                             {n.detail}
                           </p>
                         </div>
                       </div>
+
                       <Icon
                         name="chevron-right"
-                        size={13}
-                        className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0 mt-1"
+                        size={14}
+                        className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0 mt-1"
                       />
                     </Link>
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* 5. TIÃO ZELADOR — Banner Hero Oficial da Submarca de Serviços */}
-        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-6 sm:p-7 lg:p-8 shadow-sm border border-[#E05F00]">
-          {/* Detalhes gráficos discretos no fundo (sólidos, sem gradiente ou transparência) */}
+        {/* 5. TIÃO ZELADOR — Banner Institucional da Submarca de Serviços */}
+        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-5 sm:p-6 lg:p-7 shadow-xs border border-[#E05F00]">
+          {/* Detalhes geométricos sutis e sólidos sem transparência ou gradiente */}
           <svg
             className="pointer-events-none absolute right-0 top-0 h-full w-2/5 sm:w-1/3 select-none"
             viewBox="0 0 300 200"
@@ -850,10 +787,10 @@ export function DashboardClient({
             <path d="M210 0 L240 200" stroke="#E66200" strokeWidth="1" />
           </svg>
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5 max-w-3xl">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5 max-w-2xl">
               {/* Mascote Tião em versão branca sobre container sólido */}
-              <div className="shrink-0 flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[#E05F00] p-2 sm:p-2.5 shadow-2xs border border-[#FF8429]">
+              <div className="shrink-0 flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#E05F00] p-2 shadow-2xs border border-[#FF8429]">
                 <img
                   src="/brands/tiao/mascot-white.png"
                   alt="Tião Zelador"
@@ -861,24 +798,24 @@ export function DashboardClient({
                 />
               </div>
 
-              {/* Bloco Textual e Categorias */}
-              <div className="space-y-2 min-w-0">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+              {/* Bloco Textual Institucional */}
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
                     Tião Zelador
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white text-[#FB6B01] text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-2xs">
-                    <Icon name="shield" size={11} className="text-[#FB6B01]" />
+                  </h3>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white text-[#FB6B01] text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                    <Icon name="shield" size={10} className="text-[#FB6B01]" />
                     Marketplace Verificado
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-white font-medium leading-relaxed max-w-2xl">
+                <p className="text-xs sm:text-sm text-white/95 font-medium leading-relaxed">
                   Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
                 </p>
 
-                {/* Categorias Rápidas / Chips com Fundo Branco Sólido */}
-                <div className="pt-2 flex items-center gap-2 flex-wrap">
+                {/* Categorias Rápidas como chips brancos sólidos */}
+                <div className="pt-1.5 flex items-center gap-1.5 flex-wrap">
                   {[
                     { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
                     { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
@@ -889,9 +826,9 @@ export function DashboardClient({
                     <Link
                       key={cat.label}
                       href={cat.href}
-                      className="inline-flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-3 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer group/chip"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-2.5 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer"
                     >
-                      <Icon name={cat.icon} size={13} className="text-[#FB6B01] shrink-0" />
+                      <Icon name={cat.icon} size={12} className="text-[#FB6B01] shrink-0" />
                       <span>{cat.label}</span>
                     </Link>
                   ))}
@@ -899,16 +836,16 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* Botão Principal Branco com Texto em Laranja Oficial */}
-            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-2 lg:pt-0">
+            {/* Botão Branco com Texto em Laranja */}
+            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-1 lg:pt-0">
               <Link
                 href="/painel/servicos"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-6 py-3.5 text-sm font-black transition-all shadow-sm hover:shadow-md group cursor-pointer whitespace-nowrap"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-5 py-3 text-xs sm:text-sm font-black transition-all shadow-sm hover:shadow-md group cursor-pointer whitespace-nowrap"
               >
                 <span>Encontrar profissional</span>
                 <Icon
                   name="arrow-right"
-                  size={16}
+                  size={15}
                   className="text-[#FB6B01] transition-transform duration-200 group-hover:translate-x-1 shrink-0"
                 />
               </Link>

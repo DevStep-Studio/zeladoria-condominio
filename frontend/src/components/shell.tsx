@@ -118,7 +118,7 @@ export function Shell({
       ? "Buscar condomínios, usuários ou transações..."
       : role === "sindico"
       ? "Buscar ocorrência, morador ou ordem de serviço..."
-      : "Buscar ocorrência, reserva ou prestador...";
+      : "Buscar no Zeladoria...";
 
   const condoRef = useRef<HTMLDivElement>(null);
   const profileContainerRef = useRef<HTMLDivElement>(null);
