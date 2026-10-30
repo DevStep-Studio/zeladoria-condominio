@@ -86,6 +86,48 @@ function formatCategory(catKey: string): { label: string; icon: IconName } {
   );
 }
 
+// Deduplicação inteligente de localização (Item 12)
+function formatCleanLocation(occ: {
+  exactLocation?: string | null;
+  blockName?: string | null;
+  unitNumber?: string | null;
+}): string {
+  const loc = (occ.exactLocation || "").trim();
+  const unitStr = occ.unitNumber ? `Unidade ${occ.unitNumber}` : "";
+  const blockStr = occ.blockName ? occ.blockName.trim() : "";
+  const combinedUnit = [blockStr, unitStr].filter(Boolean).join(" · ");
+
+  if (!loc) return combinedUnit || "Área comum";
+  if (combinedUnit && loc.toLowerCase().includes(unitStr.toLowerCase())) {
+    return loc;
+  }
+  if (combinedUnit && loc.toLowerCase() === combinedUnit.toLowerCase()) {
+    return loc;
+  }
+  if (combinedUnit && loc !== combinedUnit) {
+    return `${loc} · ${combinedUnit}`;
+  }
+  return loc;
+}
+
+// Formatação humanizada e concisa de data (Item 13)
+function formatCleanDate(date: Date | string | null): { formatted: string; relative: string } {
+  if (!date) return { formatted: "Hoje", relative: "recente" };
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return { formatted: "Hoje", relative: "recente" };
+
+  const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  const day = d.getDate();
+  const month = months[d.getMonth()];
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  const formatted = `${day} ${month} · ${hours}:${minutes}`;
+  const relative = timeAgoBR(d);
+
+  return { formatted, relative };
+}
+
 // Cores sólidas padrão do Design System: Azul (#1355FF), Amarelo (#FFD000), Verde, Vermelho, Neutros
 const STATUS_CONFIG: Record<
   string,
@@ -167,17 +209,41 @@ export function OcorrenciasClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("todas");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("todas");
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
+  const [onlyWithPhotos, setOnlyWithPhotos] = useState(false); // Filtro visual Com fotos (Item 28)
+  const [viewMode, setViewMode] = useState<"cards" | "tabela">("cards"); // Padrão: Cards com foco visual (Item 9, 48)
   const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   // Drawer / Detalhes
   const [activeOccurrence, setActiveOccurrence] = useState<OccurrenceItem | null>(null);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxData, setLightboxData] = useState<{ photos: string[]; index: number } | null>(null); // Galeria Lightbox (Item 6, 52)
   const [newCommentText, setNewCommentText] = useState("");
   const [reopenModalOpen, setReopenModalOpen] = useState(false);
   const [reopenReason, setReopenReason] = useState("");
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [ratingStars, setRatingStars] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
+
+  // Funções de controle do Lightbox (Itens 6, 22, 52)
+  function openLightbox(photos: string[], index = 0) {
+    if (!photos || photos.length === 0) return;
+    setLightboxData({ photos, index });
+  }
+
+  function nextLightboxPhoto() {
+    if (!lightboxData || lightboxData.photos.length <= 1) return;
+    setLightboxData((prev) =>
+      prev ? { ...prev, index: (prev.index + 1) % prev.photos.length } : null
+    );
+  }
+
+  function prevLightboxPhoto() {
+    if (!lightboxData || lightboxData.photos.length <= 1) return;
+    setLightboxData((prev) =>
+      prev
+        ? { ...prev, index: (prev.index - 1 + prev.photos.length) % prev.photos.length }
+        : null
+    );
+  }
 
   // Edição administrativa in-drawer
   const [adminStatus, setAdminStatus] = useState<string>("");
@@ -207,18 +273,21 @@ export function OcorrenciasClient({
     }
   }, [occurrences]);
 
-  // Lock de scroll e listener Escape para modais e drawer
+  // Lock de scroll e listener Escape/Setas para modais, drawer e lightbox
   useEffect(() => {
-    if (!activeOccurrence && !filterModalOpen && !reopenModalOpen && !ratingModalOpen && !lightbox) return;
+    if (!activeOccurrence && !filterModalOpen && !reopenModalOpen && !ratingModalOpen && !lightboxData) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (lightbox) setLightbox(null);
+        if (lightboxData) setLightboxData(null);
         else if (ratingModalOpen) setRatingModalOpen(false);
         else if (reopenModalOpen) setReopenModalOpen(false);
         else if (filterModalOpen) setFilterModalOpen(false);
         else if (activeOccurrence) closeOccurrence();
+      } else if (lightboxData) {
+        if (e.key === "ArrowRight") nextLightboxPhoto();
+        if (e.key === "ArrowLeft") prevLightboxPhoto();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -226,7 +295,7 @@ export function OcorrenciasClient({
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [activeOccurrence, filterModalOpen, reopenModalOpen, ratingModalOpen, lightbox]);
+  }, [activeOccurrence, filterModalOpen, reopenModalOpen, ratingModalOpen, lightboxData]);
 
   function openOccurrence(occ: OccurrenceItem, updateUrl = true) {
     setActiveOccurrence(occ);
@@ -308,6 +377,12 @@ export function OcorrenciasClient({
           return false;
         }
 
+        // Filtro rápido: Somente com fotos (Item 28)
+        if (onlyWithPhotos) {
+          const hasPhotos = Boolean(occ.attachments && occ.attachments.length > 0);
+          if (!hasPhotos) return false;
+        }
+
         // Busca livre (código, título, local, categoria, morador)
         if (search.trim()) {
           const q = search.toLowerCase();
@@ -338,7 +413,7 @@ export function OcorrenciasClient({
         const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return tB - tA;
       });
-  }, [occurrences, activeTab, needsAttentionOnly, selectedCategory, selectedSeverity, search, sortBy]);
+  }, [occurrences, activeTab, needsAttentionOnly, onlyWithPhotos, selectedCategory, selectedSeverity, search, sortBy]);
 
   // Lista de categorias únicas para filtro
   const categoriesList = useMemo(() => {
@@ -566,16 +641,32 @@ export function OcorrenciasClient({
             type="button"
             onClick={() => setFilterModalOpen(true)}
             className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
-              selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly
+              selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
                 ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             <Icon name="filter" size={12} />
             <span>Filtros</span>
-            {(selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly) && (
+            {(selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos) && (
               <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />
             )}
+          </button>
+
+          {/* Filtro Rápido: Somente com Fotos (Item 26, 28) */}
+          <button
+            type="button"
+            onClick={() => setOnlyWithPhotos((prev) => !prev)}
+            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
+              onlyWithPhotos
+                ? "border-[#1355FF] bg-blue-50 text-[#1355FF] font-semibold"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+            title="Filtrar ocorrências que possuem fotos anexadas"
+          >
+            <Icon name="camera" size={13} className={onlyWithPhotos ? "text-[#1355FF]" : "text-slate-400"} />
+            <span>Com fotos</span>
+            {onlyWithPhotos && <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF]" />}
           </button>
 
           {/* Filtro Rápido para Gestão: Precisa de Atenção */}
@@ -595,6 +686,32 @@ export function OcorrenciasClient({
             </button>
           )}
 
+          {/* Alternador de Visualização para Staff (Cards visuais / Tabela) */}
+          {isStaff && (
+            <div className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`p-1.5 rounded text-xs transition-colors ${
+                  viewMode === "cards" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
+                }`}
+                title="Visualização em Cards com Fotos"
+              >
+                <Icon name="grid" size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("tabela")}
+                className={`p-1.5 rounded text-xs transition-colors ${
+                  viewMode === "tabela" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
+                }`}
+                title="Visualização em Tabela"
+              >
+                <Icon name="menu" size={13} />
+              </button>
+            </div>
+          )}
+
           {/* Ordenação */}
           <select
             value={sortBy}
@@ -608,7 +725,7 @@ export function OcorrenciasClient({
         </div>
       </div>
 
-      {/* 3. VISÃO DO MORADOR OU GESTOR (Conforme Seções 6, 7, 8, 9, 30) */}
+      {/* 3. VISÃO DE OCORRÊNCIAS COM DESTAQUE VISUAL NAS FOTOS (Itens 1 a 10, 36, 40, 48) */}
       {filteredOccurrences.length === 0 ? (
         /* Empty State */
         <div className="rounded-lg border border-slate-200/90 bg-white p-8 text-center shadow-2xs">
@@ -617,12 +734,12 @@ export function OcorrenciasClient({
           </div>
           <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma ocorrência encontrada</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly
+            {search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
               ? "Nenhum resultado corresponde aos filtros aplicados. Tente limpar os filtros."
               : "Se você encontrar algum problema ou reparo necessário no condomínio, registre agora."}
           </p>
           <div className="mt-4 flex items-center justify-center gap-2">
-            {(search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly) && (
+            {(search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos) && (
               <button
                 type="button"
                 onClick={() => {
@@ -630,6 +747,7 @@ export function OcorrenciasClient({
                   setSelectedCategory("todas");
                   setSelectedSeverity("todas");
                   setNeedsAttentionOnly(false);
+                  setOnlyWithPhotos(false);
                 }}
                 className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
@@ -645,189 +763,272 @@ export function OcorrenciasClient({
             </Link>
           </div>
         </div>
-      ) : isStaff ? (
-        /* ========================================================================= */
-        /* TABELA DE GESTÃO PARA SÍNDICO / STAFF (Desktop Denso, Mobile Cards)        */
-        /* ========================================================================= */
-        <>
-          {/* Mobile Cards View */}
-          <div className="md:hidden space-y-2.5">
-            {filteredOccurrences.map((occ) => {
-              const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
-              const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+      ) : isStaff && viewMode === "tabela" ? (
+        /* Visualização Opcional em Tabela para Gestão */
+        <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th className="px-4 py-2.5">Código</th>
+                  <th className="px-4 py-2.5">Ocorrência</th>
+                  <th className="px-4 py-2.5">Localização</th>
+                  <th className="px-4 py-2.5">Prioridade</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Responsável</th>
+                  <th className="px-4 py-2.5">Atualização</th>
+                  <th className="px-4 py-2.5 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredOccurrences.map((occ) => {
+                  const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
+                  const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+                  const cleanLoc = formatCleanLocation(occ);
+                  const cleanDate = formatCleanDate(occ.createdAt);
 
-              return (
-                <div
-                  key={occ.id}
-                  onClick={() => openOccurrence(occ)}
-                  className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-blue-300 transition-all cursor-pointer space-y-2.5 active:bg-slate-50"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-[11px] font-bold text-[#1355FF] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
-                        {occ.code}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
-                      >
-                        {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
-                        {sv.label}
-                      </span>
-                    </div>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
+                  return (
+                    <tr
+                      key={occ.id}
+                      onClick={() => openOccurrence(occ)}
+                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                     >
-                      <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
-                      {st.label}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-[#0F172A] leading-snug">{occ.title}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {occ.exactLocation || "Área comum"} · {occ.reporterName || "Morador"}
-                      {occ.unitNumber ? ` (Unidade ${occ.unitNumber})` : ""}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="truncate max-w-[180px]">
-                      {occ.assignedToName ? `Resp: ${occ.assignedToName}` : "Sem responsável"}
-                    </span>
-                    <span className="text-[#1355FF] font-semibold inline-flex items-center gap-1 shrink-0">
-                      Ver detalhe
-                      <Icon name="chevron-right" size={12} />
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                      <td className="px-4 py-2.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
+                        {occ.code}
+                      </td>
+                      <td className="px-4 py-2.5 max-w-[280px]">
+                        <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
+                          {occ.title}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {occ.reporterName || "Morador"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
+                        <span className="flex items-center gap-1 font-medium text-slate-700">
+                          <Icon name="map-pin" size={12} className="text-slate-400" />
+                          <span className="truncate max-w-[160px]">{cleanLoc}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}>
+                          {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
+                          {sv.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
+                          {st.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
+                        {occ.assignedToName ? (
+                          <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
+                        ) : (
+                          <span className="text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">Sem responsável</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
+                        {cleanDate.relative}
+                      </td>
+                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                        <span className="text-xs font-semibold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
+                          Ver detalhe
+                          <Icon name="chevron-right" size={12} />
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th className="px-4 py-2.5">Código</th>
-                    <th className="px-4 py-2.5">Ocorrência</th>
-                    <th className="px-4 py-2.5">Localização</th>
-                    <th className="px-4 py-2.5">Prioridade</th>
-                    <th className="px-4 py-2.5">Status</th>
-                    <th className="px-4 py-2.5">Responsável</th>
-                    <th className="px-4 py-2.5">Atualização</th>
-                    <th className="px-4 py-2.5 text-right">Ação</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredOccurrences.map((occ) => {
-                    const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
-                    const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
-
-                    return (
-                      <tr
-                        key={occ.id}
-                        onClick={() => openOccurrence(occ)}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                      >
-                        {/* Código */}
-                        <td className="px-4 py-2.5 font-mono font-bold text-[#1355FF] whitespace-nowrap">
-                          {occ.code}
-                        </td>
-
-                        {/* Título + Morador */}
-                        <td className="px-4 py-2.5 max-w-[280px]">
-                          <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
-                            {occ.title}
-                          </p>
-                          <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                            {occ.reporterName || "Morador"}
-                            {occ.unitNumber ? ` · Unidade ${occ.unitNumber}` : ""}
-                          </p>
-                        </td>
-
-                        {/* Localização */}
-                        <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                          <span className="flex items-center gap-1 font-medium text-slate-700">
-                            <Icon name="map-pin" size={12} className="text-slate-400" />
-                            <span className="truncate max-w-[160px]">{occ.exactLocation || "Área comum"}</span>
-                          </span>
-                        </td>
-
-                        {/* Prioridade */}
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}
-                          >
-                            {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
-                            {sv.label}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
-                            {st.label}
-                          </span>
-                        </td>
-
-                        {/* Responsável */}
-                        <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                          {occ.assignedToName ? (
-                            <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
-                          ) : (
-                            <span className="text-slate-400 italic">Sem responsável</span>
-                          )}
-                        </td>
-
-                        {/* Atualização */}
-                        <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
-                          {timeAgoBR(occ.createdAt)}
-                        </td>
-
-                        {/* Ação */}
-                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                          <span className="text-xs font-semibold text-[#1355FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
-                            Ver detalhe
-                            <Icon name="chevron-right" size={12} />
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
+        </div>
       ) : (
-        /* ========================================================================= */
-        /* VISÃO DO MORADOR: LINHAS / CARDS COMPACTOS (Conforme Seções 6, 7, 8, 9)   */
-        /* ========================================================================= */
-        <div className="space-y-2.5">
+        /* Visualização Primária em Coluna Única: Cards com Destaque nas Fotos (Itens 3, 4, 5, 8, 9, 36, 40, 48) */
+        <div className="space-y-3">
           {filteredOccurrences.map((occ) => {
             const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
             const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
             const cat = formatCategory(occ.category);
             const occComments = comments.filter((c) => c.occurrenceId === occ.id);
-            const hasAttachments = occ.attachments && occ.attachments.length > 0;
-            const firstPhoto = hasAttachments ? occ.attachments![0] : null;
+            const hasPhotos = Boolean(occ.attachments && occ.attachments.length > 0);
+            const photos = occ.attachments || [];
+            const firstPhoto = hasPhotos ? photos[0] : null;
+            const cleanLoc = formatCleanLocation(occ);
+            const cleanDate = formatCleanDate(occ.createdAt);
 
+            /* CARD COM FOTO (Itens 3, 4, 5, 6, 7, 36, 48) */
+            if (hasPhotos && firstPhoto) {
+              return (
+                <div
+                  key={occ.id}
+                  className="group relative flex flex-col sm:flex-row items-stretch rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all overflow-hidden"
+                >
+                  {/* Coluna da Foto: 25% a 32% no desktop, altura 150-190px, object-cover - Clicar amplia no Lightbox */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openLightbox(photos, 0);
+                    }}
+                    className="w-full sm:w-60 md:w-68 lg:w-72 shrink-0 relative overflow-hidden bg-slate-900 h-44 sm:h-auto min-h-[150px] max-h-[190px] cursor-zoom-in"
+                    title="Clique para ampliar a foto no visualizador"
+                  >
+                    <img
+                      src={firstPhoto}
+                      alt={occ.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+
+                    {/* Overlay sutil ao passar o mouse sobre a foto */}
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 text-white text-[11px] font-semibold backdrop-blur-xs">
+                        <Icon name="search" size={12} />
+                        Ampliar
+                      </span>
+                    </div>
+
+                    {/* Indicador de Múltiplas Fotos (Item 6, 51) */}
+                    {photos.length > 1 && (
+                      <div
+                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-lg bg-slate-900/85 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-0.5 shadow-sm"
+                        title={`Galeria com ${photos.length} fotos`}
+                      >
+                        <Icon name="camera" size={12} className="text-white" />
+                        <span>+{photos.length - 1}</span>
+                      </div>
+                    )}
+
+                    {/* Categoria sobre a foto em mobile */}
+                    <div className="sm:hidden absolute top-2.5 left-2.5">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/75 backdrop-blur-xs text-white text-[10px] font-bold shadow-sm">
+                        <Icon name={cat.icon} size={11} className="text-white shrink-0" />
+                        <span>{cat.label}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Coluna de Conteúdo (68% a 75%) - Clicar abre o Drawer */}
+                  <div
+                    onClick={() => openOccurrence(occ)}
+                    className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between gap-2.5 cursor-pointer"
+                  >
+                    {/* Linha 1: Badges Superiores */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                        {occ.code}
+                      </span>
+
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
+                        {st.label}
+                      </span>
+
+                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-semibold text-slate-600 border border-slate-200/60">
+                        <Icon name={cat.icon} size={11} className="text-slate-500 shrink-0" />
+                        <span>{cat.label}</span>
+                      </span>
+
+                      {/* Prioridade Alta / Urgente (Item 32) */}
+                      {sv.isUrgent && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200/60">
+                          <Icon name="alert-triangle" size={10} className="text-rose-600 shrink-0" />
+                          <span>Alta prioridade</span>
+                        </span>
+                      )}
+
+                      {/* Novas Mensagens / Atualizações (Item 33) */}
+                      {occComments.length > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#1355FF] text-[10px] font-bold border border-blue-200/50">
+                          <Icon name="mail" size={10} className="text-[#1355FF] shrink-0" />
+                          <span>
+                            {occComments.length} {occComments.length === 1 ? "mensagem" : "mensagens"}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Linha 2: Título Principal e Trecho da Descrição (Itens 10, 11) */}
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight">
+                        {occ.title}
+                      </h3>
+                      {occ.description && (
+                        <p className="text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mt-1 font-normal leading-relaxed">
+                          {occ.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Linha 3: Metadados Estruturados (Local, Data, Responsável, Seta) */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3 text-xs text-slate-500 flex-wrap">
+                      <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+                        {/* Local sem duplicação (Item 12) */}
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                          <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
+                          <span className="truncate max-w-[200px]">{cleanLoc}</span>
+                        </span>
+
+                        <span className="text-slate-300">•</span>
+
+                        {/* Data simplificada (Item 13) */}
+                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-normal">
+                          <Icon name="clock" size={11} className="text-slate-400 shrink-0" />
+                          <span>{cleanDate.formatted}</span>
+                          <span className="text-slate-400 hidden md:inline">({cleanDate.relative})</span>
+                        </span>
+
+                        {/* Responsável (Itens 17, 40) */}
+                        {occ.assignedToName ? (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 font-medium">
+                              <Icon name="user-check" size={11} className="text-slate-500 shrink-0" />
+                              <span>{occ.assignedToName}</span>
+                            </span>
+                          </>
+                        ) : isStaff ? (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
+                              <Icon name="alert-triangle" size={10} className="text-amber-600 shrink-0" />
+                              <span>Sem responsável</span>
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+
+                      {/* Seta indicativa no final */}
+                      <div className="flex items-center gap-1 text-slate-300 group-hover:text-[#1355FF] transition-colors ml-auto">
+                        <span className="text-xs font-semibold hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
+                          Ver detalhes
+                        </span>
+                        <Icon name="chevron-right" size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            /* CARD SEM FOTO — COMPACTO (Itens 8, 37, 48) */
             return (
               <div
                 key={occ.id}
                 onClick={() => openOccurrence(occ)}
-                className="group relative flex items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer"
+                className="group relative flex items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white p-4 sm:py-3.5 sm:px-5 hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer"
               >
-                {/* Lado Esquerdo: Badges + Título + Descrição + Metadados */}
-                <div className="space-y-2 min-w-0 flex-1">
+                <div className="space-y-1.5 min-w-0 flex-1">
                   {/* Linha 1: Badges Superiores */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                    <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
                       {occ.code}
                     </span>
 
@@ -844,9 +1045,9 @@ export function OcorrenciasClient({
                     </span>
 
                     {sv.isUrgent && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-red-700 text-[10px] font-bold border border-red-200/60">
-                        <Icon name="alert-triangle" size={10} className="text-red-600 shrink-0" />
-                        Urgente
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200/60">
+                        <Icon name="alert-triangle" size={10} className="text-rose-600 shrink-0" />
+                        <span>Alta prioridade</span>
                       </span>
                     )}
 
@@ -862,7 +1063,7 @@ export function OcorrenciasClient({
 
                   {/* Linha 2: Título Principal e Trecho da Descrição */}
                   <div>
-                    <h3 className="text-sm sm:text-[15px] font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight">
                       {occ.title}
                     </h3>
                     {occ.description && (
@@ -874,60 +1075,45 @@ export function OcorrenciasClient({
 
                   {/* Linha 3: Metadados Estruturados */}
                   <div className="flex items-center gap-x-3 gap-y-1 text-xs text-slate-500 flex-wrap pt-0.5">
-                    <span className="flex items-center gap-1 font-medium text-slate-700">
+                    <span className="inline-flex items-center gap-1 font-medium text-slate-700">
                       <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
-                      <span className="truncate max-w-[200px]">{occ.exactLocation || "Área comum"}</span>
+                      <span className="truncate max-w-[200px]">{cleanLoc}</span>
                     </span>
-
-                    {occ.unitNumber && (
-                      <>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-[11px] text-slate-600 font-medium">
-                          {occ.blockName ? `${occ.blockName} · ` : ""}Unidade {occ.unitNumber}
-                        </span>
-                      </>
-                    )}
 
                     <span className="text-slate-300">•</span>
-                    <span className="flex items-center gap-1 text-[11px] text-slate-400 font-normal">
-                      <Icon name="clock" size={11} className="text-slate-300 shrink-0" />
-                      <span>{occ.createdAt ? dateTimeBR(occ.createdAt) : "Hoje"}</span>
-                      <span className="hidden sm:inline">({timeAgoBR(occ.createdAt)})</span>
+
+                    <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-normal">
+                      <Icon name="clock" size={11} className="text-slate-400 shrink-0" />
+                      <span>{cleanDate.formatted}</span>
+                      <span className="text-slate-400 hidden sm:inline">({cleanDate.relative})</span>
                     </span>
 
-                    {occ.assignedToName && (
+                    {occ.assignedToName ? (
                       <>
                         <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
-                          <Icon name="user-check" size={11} className="text-slate-400 shrink-0" />
-                          <span>Responsável: {occ.assignedToName}</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 font-medium">
+                          <Icon name="user-check" size={11} className="text-slate-500 shrink-0" />
+                          <span>{occ.assignedToName}</span>
                         </span>
                       </>
-                    )}
+                    ) : isStaff ? (
+                      <>
+                        <span className="text-slate-300">•</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
+                          <Icon name="alert-triangle" size={10} className="text-amber-600 shrink-0" />
+                          <span>Sem responsável</span>
+                        </span>
+                      </>
+                    ) : null}
                   </div>
                 </div>
 
-                {/* Lado Direito: Foto (se houver) + Chevron */}
-                <div className="flex items-center gap-3 shrink-0 self-center">
-                  {hasAttachments && firstPhoto && (
-                    <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 group-hover:border-slate-300 transition-colors">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={firstPhoto}
-                        alt="Anexo da ocorrência"
-                        className="h-full w-full object-cover"
-                      />
-                      {occ.attachments!.length > 1 && (
-                        <span className="absolute bottom-0 right-0 bg-slate-900/80 text-white text-[9px] font-bold px-1 rounded-tl-md">
-                          +{occ.attachments!.length - 1}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-center h-8 w-8 rounded-full text-slate-300 group-hover:text-[#1355FF] group-hover:translate-x-0.5 group-hover:bg-blue-50/60 transition-all">
-                    <Icon name="chevron-right" size={18} strokeWidth={2.2} />
-                  </div>
+                {/* Seta indicativa no final */}
+                <div className="flex items-center gap-1 text-slate-300 group-hover:text-[#1355FF] transition-colors shrink-0 self-center">
+                  <span className="text-xs font-semibold hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
+                    Ver detalhes
+                  </span>
+                  <Icon name="chevron-right" size={14} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );
@@ -994,6 +1180,66 @@ export function OcorrenciasClient({
 
             {/* CORPO DO DRAWER ROLÁVEL */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
+              {/* GALERIA DE FOTOS EM DESTAQUE NO TOPO (Itens 17, 18, 20) */}
+              {activeOccurrence.attachments && activeOccurrence.attachments.length > 0 && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Registro Fotográfico ({activeOccurrence.attachments.length})
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                      <Icon name="search" size={11} />
+                      Clique para ampliar
+                    </span>
+                  </div>
+
+                  {/* Foto Principal em Destaque */}
+                  <div
+                    onClick={() => openLightbox(activeOccurrence.attachments!, 0)}
+                    className="relative aspect-video sm:aspect-16/10 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-950 group cursor-zoom-in shadow-xs"
+                    title="Clique para abrir foto em tela cheia"
+                  >
+                    <img
+                      src={activeOccurrence.attachments[0]}
+                      alt={activeOccurrence.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center pointer-events-none">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 text-white text-xs font-semibold backdrop-blur-xs shadow-md">
+                        <Icon name="search" size={13} />
+                        Ampliar foto em tela cheia
+                      </span>
+                    </div>
+                    {activeOccurrence.attachments.length > 1 && (
+                      <span className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-slate-900/85 text-white text-[11px] font-bold backdrop-blur-xs shadow-xs pointer-events-none">
+                        1 de {activeOccurrence.attachments.length} fotos
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Faixa de Miniaturas se houver mais de 1 foto */}
+                  {activeOccurrence.attachments.length > 1 && (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
+                      {activeOccurrence.attachments.map((src, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => openLightbox(activeOccurrence.attachments!, idx)}
+                          className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-slate-200 hover:border-[#1355FF] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 group"
+                        >
+                          <img
+                            src={src}
+                            alt={`Miniatura ${idx + 1}`}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* PROGRESSO VISUAL / TIMELINE DE ESTÁGIOS (Seção 12) */}
               <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3.5 space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
@@ -1093,32 +1339,6 @@ export function OcorrenciasClient({
                 </div>
               </div>
 
-              {/* FOTOS ANEXADAS (Seção 20) */}
-              {activeOccurrence.attachments && activeOccurrence.attachments.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Fotos anexadas ({activeOccurrence.attachments.length})
-                  </span>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    {activeOccurrence.attachments.map((src, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setLightbox(src)}
-                        className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-transform hover:scale-102 cursor-pointer shadow-2xs"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={src}
-                          alt={`Foto ${idx + 1}`}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* FERRAMENTAS DO SÍNDICO / STAFF (Seções 29 a 35) */}
               {isStaff && (
@@ -1382,6 +1602,17 @@ export function OcorrenciasClient({
                 </select>
               </div>
 
+              {/* Somente com fotos */}
+              <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={onlyWithPhotos}
+                  onChange={(e) => setOnlyWithPhotos(e.target.checked)}
+                  className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF] h-4 w-4 cursor-pointer"
+                />
+                <span className="font-medium text-slate-700">Somente ocorrências com fotos</span>
+              </label>
+
               {/* Botões de Ação do Filtro */}
               <div className="pt-2 flex items-center justify-between">
                 <button
@@ -1390,9 +1621,10 @@ export function OcorrenciasClient({
                     setSelectedCategory("todas");
                     setSelectedSeverity("todas");
                     setNeedsAttentionOnly(false);
+                    setOnlyWithPhotos(false);
                     setFilterModalOpen(false);
                   }}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
                   Limpar tudo
                 </button>
@@ -1537,27 +1769,93 @@ export function OcorrenciasClient({
       )}
 
       {/* ========================================================================= */}
-      {/* 8. LIGHTBOX DE IMAGENS (Seção 20)                                         */}
+      {/* 8. LIGHTBOX / GALERIA DE FOTOS EM TELA CHEIA (Itens 6, 20, 22, 52)         */}
       {/* ========================================================================= */}
-      {lightbox && (
+      {lightboxData && lightboxData.photos.length > 0 && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black/95 p-4 sm:p-6 select-none animate-in fade-in duration-150"
+          onClick={() => setLightboxData(null)}
         >
-          <button
-            type="button"
-            onClick={() => setLightbox(null)}
-            className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
-          >
-            <Icon name="x" size={20} />
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox}
-            alt="Foto ampliada da ocorrência"
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl"
-            onClick={(e) => e.stopPropagation()}
-          />
+          {/* Barra Superior: Contador e Botão Fechar */}
+          <div className="w-full flex items-center justify-between z-20">
+            <span className="text-white/90 text-xs sm:text-sm font-semibold bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md">
+              Foto {lightboxData.index + 1} de {lightboxData.photos.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => setLightboxData(null)}
+              className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Fechar visualizador de fotos"
+            >
+              <Icon name="x" size={20} />
+            </button>
+          </div>
+
+          {/* Área Central: Foto Principal + Setas de Navegação */}
+          <div className="relative flex-1 w-full flex items-center justify-center my-3 overflow-hidden">
+            {lightboxData.photos.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevLightboxPhoto();
+                }}
+                className="absolute left-2 sm:left-6 z-20 h-11 w-11 sm:h-12 sm:w-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl hover:scale-105"
+                aria-label="Foto anterior (Seta esquerda)"
+              >
+                <Icon name="chevron-left" size={24} />
+              </button>
+            )}
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxData.photos[lightboxData.index]}
+              alt={`Foto ${lightboxData.index + 1} da ocorrência`}
+              className="max-h-[75vh] max-w-[90vw] object-contain rounded-xl shadow-2xl select-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {lightboxData.photos.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextLightboxPhoto();
+                }}
+                className="absolute right-2 sm:right-6 z-20 h-11 w-11 sm:h-12 sm:w-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl hover:scale-105"
+                aria-label="Próxima foto (Seta direita)"
+              >
+                <Icon name="chevron-right" size={24} />
+              </button>
+            )}
+          </div>
+
+          {/* Barra Inferior: Miniaturas */}
+          {lightboxData.photos.length > 1 && (
+            <div
+              className="flex items-center gap-2 overflow-x-auto max-w-full px-2 py-1.5 z-20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightboxData.photos.map((photo, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setLightboxData({ ...lightboxData, index: i })}
+                  className={`relative h-14 w-16 sm:h-16 sm:w-20 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                    i === lightboxData.index
+                      ? "border-[#1355FF] ring-2 ring-blue-500/50 scale-105 opacity-100"
+                      : "border-white/20 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={photo}
+                    alt={`Miniatura ${i + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
