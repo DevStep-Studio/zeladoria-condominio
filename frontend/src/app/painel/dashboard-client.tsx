@@ -833,32 +833,52 @@ export function DashboardClient({
           </div>
         </section>
 
-        {/* 5. TIÃO ZELADOR — Card Institucional da Submarca de Serviços */}
-        <section className="rounded-xl border border-orange-200/90 bg-white p-5 sm:p-6 shadow-2xs relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-            <div className="flex items-start gap-4 max-w-xl">
-              <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-xl bg-orange-50 border border-orange-200/70 p-1.5 shadow-2xs">
+        {/* 5. TIÃO ZELADOR — Banner Hero Oficial da Submarca de Serviços */}
+        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-6 sm:p-7 lg:p-8 shadow-sm border border-[#E05F00]">
+          {/* Detalhes gráficos discretos no fundo (sólidos, sem gradiente ou transparência) */}
+          <svg
+            className="pointer-events-none absolute right-0 top-0 h-full w-2/5 sm:w-1/3 select-none"
+            viewBox="0 0 300 200"
+            fill="none"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <circle cx="280" cy="50" r="90" stroke="#E66200" strokeWidth="1.5" />
+            <circle cx="280" cy="50" r="140" stroke="#E66200" strokeWidth="1" strokeDasharray="5 5" />
+            <circle cx="280" cy="50" r="190" stroke="#E66200" strokeWidth="1" />
+            <path d="M150 0 L180 200" stroke="#E66200" strokeWidth="1" strokeDasharray="6 6" />
+            <path d="M210 0 L240 200" stroke="#E66200" strokeWidth="1" />
+          </svg>
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5 max-w-3xl">
+              {/* Mascote Tião em versão branca sobre container sólido */}
+              <div className="shrink-0 flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[#E05F00] p-2 sm:p-2.5 shadow-2xs border border-[#FF8429]">
                 <img
-                  src="/brands/tiao/mascot-black.png"
-                  alt="Mascote Tião"
+                  src="/brands/tiao/mascot-white.png"
+                  alt="Tião Zelador"
                   className="h-full w-full object-contain"
                 />
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">
+
+              {/* Bloco Textual e Categorias */}
+              <div className="space-y-2 min-w-0">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
                     Tião Zelador
-                  </h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[#FB6B01] text-[10px] font-bold">
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white text-[#FB6B01] text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-2xs">
+                    <Icon name="shield" size={11} className="text-[#FB6B01]" />
                     Marketplace Verificado
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
+
+                <p className="text-xs sm:text-sm text-white font-medium leading-relaxed max-w-2xl">
                   Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
                 </p>
 
-                {/* Categorias Rápidas */}
-                <div className="pt-2 flex items-center gap-1.5 flex-wrap">
+                {/* Categorias Rápidas / Chips com Fundo Branco Sólido */}
+                <div className="pt-2 flex items-center gap-2 flex-wrap">
                   {[
                     { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
                     { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
@@ -869,9 +889,9 @@ export function DashboardClient({
                     <Link
                       key={cat.label}
                       href={cat.href}
-                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 hover:bg-orange-50 hover:border-orange-200 hover:text-[#FB6B01] text-slate-700 px-2.5 py-1 text-xs font-medium transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-3 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer group/chip"
                     >
-                      <Icon name={cat.icon} size={12} className="text-slate-500" />
+                      <Icon name={cat.icon} size={13} className="text-[#FB6B01] shrink-0" />
                       <span>{cat.label}</span>
                     </Link>
                   ))}
@@ -879,13 +899,18 @@ export function DashboardClient({
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center">
+            {/* Botão Principal Branco com Texto em Laranja Oficial */}
+            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-2 lg:pt-0">
               <Link
                 href="/painel/servicos"
-                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2.5 text-xs font-bold transition-colors shadow-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-6 py-3.5 text-sm font-black transition-all shadow-sm hover:shadow-md group cursor-pointer whitespace-nowrap"
               >
                 <span>Encontrar profissional</span>
-                <Icon name="arrow-right" size={14} />
+                <Icon
+                  name="arrow-right"
+                  size={16}
+                  className="text-[#FB6B01] transition-transform duration-200 group-hover:translate-x-1 shrink-0"
+                />
               </Link>
             </div>
           </div>
