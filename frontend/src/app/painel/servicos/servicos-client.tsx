@@ -4,7 +4,7 @@ import { resolveRebookProvider } from "@/lib/services/rebooking";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Icon } from "@/components/icon";
+import { Icon, type IconName } from "@/components/icon";
 import {
   buildCategoriesConfig,
   normalizeServiceCategory,
@@ -51,6 +51,62 @@ import {
   EvidenceLightboxModal,
   RebookServiceModal,
 } from "@/components/marketplace/zeladoria-pay-modals";
+
+// Definição das 5 etapas da máquina de estados do Tião Zelador
+const SERVICE_STEPS = [
+  { id: "solicitado", label: "Solicitado", icon: "clock" as IconName, shortDesc: "Pedido enviado" },
+  { id: "aceito", label: "Aceito", icon: "user-check" as IconName, shortDesc: "Confirmado" },
+  { id: "deslocamento", label: "Deslocamento", icon: "truck" as IconName, shortDesc: "A caminho" },
+  { id: "atendimento", label: "Atendimento", icon: "wrench" as IconName, shortDesc: "Em execução" },
+  { id: "concluido", label: "Concluído", icon: "check-circle" as IconName, shortDesc: "Finalizado" },
+];
+
+function getServiceProgress(status: string): {
+  stepIndex: number;
+  isDispute: boolean;
+  isCanceled: boolean;
+} {
+  const s = String(status || "").toLowerCase();
+  const isCanceled = s === "cancelado" || s === "recusado";
+  const isDispute = s === "em_disputa" || s === "disputa_aberta";
+
+  if (s === "concluido" || s === "finalizado" || s === "fechado") {
+    return { stepIndex: 4, isDispute, isCanceled };
+  }
+  if (
+    [
+      "em_atendimento",
+      "correcao_solicitada",
+      "prestador_concluiu",
+      "conclusao_solicitada",
+      "prestador_finalizou",
+      "servico_finalizado_prestador",
+      "provider_completed",
+      "executado_prestador",
+    ].includes(s)
+  ) {
+    return { stepIndex: 3, isDispute, isCanceled };
+  }
+  if (["a_caminho", "deslocamento", "chegou"].includes(s)) {
+    return { stepIndex: 2, isDispute, isCanceled };
+  }
+  if (
+    [
+      "aceito",
+      "orcamento_aprovado",
+      "proposta_aceita",
+      "servico_pago_liberado",
+      "pago",
+      "agendado",
+      "vistoria_confirmada",
+      "vistoria_concluida",
+      "aguardando_pagamento_servico",
+    ].includes(s)
+  ) {
+    return { stepIndex: 1, isDispute, isCanceled };
+  }
+  return { stepIndex: 0, isDispute, isCanceled };
+}
 
 export function ServicosClient({
   services = [],
@@ -897,72 +953,182 @@ export function ServicosClient({
                     className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 transition-colors"
                   >
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-[#FB6B01] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/60">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span className="text-xs font-black text-[#FB6B01] bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200/70 shadow-2xs">
                           {req.code}
                         </span>
-                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">{req.title}</h3>
-                        <span className="rounded bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5">
+                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A] tracking-tight">{req.title}</h3>
+                        <span className="rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">
                           {req.mode === "on_demand" ? "Sob Demanda" : "Orçamento"}
                         </span>
                       </div>
 
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-[4px] ${
+                        className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-2xs self-start sm:self-center ${
                           req.status === "concluido"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : ["prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador"].includes(req.status)
-                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200 animate-pulse"
+                            ? "bg-indigo-50 text-indigo-700 border-indigo-200 animate-pulse"
                             : req.status === "em_atendimento"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+                            ? "bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
                             : req.status === "a_caminho" || req.status === "chegou"
-                            ? "bg-orange-50 text-[#FB6B01] border border-orange-200"
-                            : "bg-slate-100 text-slate-700"
+                            ? "bg-orange-50 text-[#FB6B01] border-orange-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
                         }`}
                       >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {req.status.replace(/_/g, " ")}
                       </span>
                     </div>
 
-                    {/* Progress State Machine Indicators */}
-                    <div className="grid grid-cols-5 gap-1 text-center text-[10px] font-bold text-slate-400 pt-1">
-                      <div className={`p-1.5 rounded-lg ${["solicitado", "buscando_prestador", "proposta_enviada", "orcamento_aprovado", "SERVICO_PAGO_LIBERADO", "aceito", "a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-orange-50 text-[#FB6B01]" : "bg-slate-50"}`}>
-                        1. Solicitado
+                    {/* Barra de Progresso Minimalista e Funcional */}
+                    {(() => {
+                      const progress = getServiceProgress(req.status);
+                      return (
+                        <div className="py-3 px-1 sm:px-3">
+                          <div className="relative">
+                            {/* Trilho de fundo conectando centros dos nós (10% ao 90%) */}
+                            <div className="absolute top-4 sm:top-4.5 left-[10%] right-[10%] h-0.5 bg-slate-100 z-0" />
+
+                            {/* Trilho ativo de preenchimento */}
+                            <div
+                              className={`absolute top-4 sm:top-4.5 left-[10%] h-0.5 z-0 transition-all duration-500 ${
+                                progress.isCanceled
+                                  ? "bg-slate-300"
+                                  : progress.isDispute
+                                  ? "bg-rose-500"
+                                  : progress.stepIndex === 4
+                                  ? "bg-emerald-500"
+                                  : "bg-[#FB6B01]"
+                              }`}
+                              style={{
+                                width: `${(progress.stepIndex / (SERVICE_STEPS.length - 1)) * 80}%`,
+                              }}
+                            />
+
+                            {/* Nós de Etapas com Ícones */}
+                            <div className="relative z-10 grid grid-cols-5 gap-1">
+                              {SERVICE_STEPS.map((step, idx) => {
+                                const isDone = idx < progress.stepIndex;
+                                const isCurrent = idx === progress.stepIndex;
+
+                                return (
+                                  <div key={step.id} className="flex flex-col items-center text-center">
+                                    <div
+                                      className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-all duration-200 ${
+                                        isDone
+                                          ? "bg-[#FB6B01] text-white shadow-2xs"
+                                          : isCurrent
+                                          ? progress.isCanceled
+                                            ? "bg-slate-500 text-white ring-4 ring-slate-100 shadow-xs"
+                                            : progress.isDispute
+                                            ? "bg-rose-600 text-white ring-4 ring-rose-100 shadow-xs animate-pulse"
+                                            : progress.stepIndex === 4
+                                            ? "bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-xs"
+                                            : "bg-[#FB6B01] text-white ring-4 ring-orange-100 shadow-xs scale-105"
+                                          : "bg-white border-2 border-slate-200 text-slate-400"
+                                      }`}
+                                    >
+                                      {isDone ? (
+                                        <Icon name="check" size={14} strokeWidth={2.5} />
+                                      ) : (
+                                        <Icon
+                                          name={step.icon}
+                                          size={14}
+                                          strokeWidth={isCurrent ? 2.2 : 1.8}
+                                        />
+                                      )}
+                                    </div>
+
+                                    <span
+                                      className={`mt-2 text-[10px] sm:text-xs font-bold leading-tight ${
+                                        isCurrent
+                                          ? progress.stepIndex === 4
+                                            ? "text-emerald-700"
+                                            : "text-[#FB6B01]"
+                                          : isDone
+                                          ? "text-slate-800"
+                                          : "text-slate-400"
+                                      }`}
+                                    >
+                                      <span className="hidden sm:inline">{idx + 1}. </span>
+                                      {step.label}
+                                    </span>
+
+                                    {isCurrent && (
+                                      <span
+                                        className={`mt-1 hidden md:inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                                          progress.stepIndex === 4
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                            : "bg-orange-50 text-[#FB6B01] border-orange-200/60"
+                                        }`}
+                                      >
+                                        {step.shortDesc}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Faixa de Detalhes com Ícones Minimalistas */}
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                      {/* Profissional */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="briefcase" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Profissional</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {req.vendorCompany || req.vendorName || "Buscando parceiro..."}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["aceito", "orcamento_aprovado", "SERVICO_PAGO_LIBERADO", "a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-orange-50 text-[#FB6B01]" : "bg-slate-50"}`}>
-                        2. Aceito
+
+                      <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+
+                      {/* Local */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="map-pin" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Local</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {req.location}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`p-1.5 rounded-lg ${["a_caminho", "chegou", "em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-orange-50 text-[#FB6B01]" : "bg-slate-50"}`}>
-                        3. Deslocamento
-                      </div>
-                      <div className={`p-1.5 rounded-lg ${["em_atendimento", "correcao_solicitada", "prestador_concluiu", "conclusao_solicitada", "prestador_finalizou", "servico_finalizado_prestador", "PROVIDER_COMPLETED", "executado_prestador", "concluido"].includes(req.status) ? "bg-orange-50 text-[#FB6B01]" : "bg-slate-50"}`}>
-                        4. Atendimento
-                      </div>
-                      <div className={`p-1.5 rounded-lg ${req.status === "concluido" ? "bg-emerald-50 text-emerald-700" : "bg-slate-50"}`}>
-                        5. Concluído
+
+                      <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+
+                      {/* Data / Previsão */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="calendar" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Data / Previsão</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {req.scheduledDate || "Hoje / Imediato"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Details Info */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
-                      <div>
-                        <span className="text-slate-400">Profissional:</span>{" "}
-                        <strong className="text-slate-800">{req.vendorCompany || req.vendorName || "Buscando parceiro..."}</strong>
+                    {/* Descrição do Chamado */}
+                    {req.description && (
+                      <div className="text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex items-start gap-2.5">
+                        <Icon name="file" size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                        <span className="leading-relaxed">{req.description}</span>
                       </div>
-                      <div>
-                        <span className="text-slate-400">Local:</span>{" "}
-                        <strong className="text-slate-800">{req.location}</strong>
-                      </div>
-                      <div>
-                        <span className="text-slate-400">Data/Previsão:</span>{" "}
-                        <strong className="text-slate-800">{req.scheduledDate || "Hoje / Imediato"}</strong>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      {req.description}
-                    </p>
+                    )}
 
                     {/* Orçamentos para seu chamado */}
                     {reqQuotes.length > 0 && !["concluido", "cancelado"].includes(req.status) && (
@@ -1543,10 +1709,18 @@ export function ServicosClient({
                         <button
                           type="button"
                           onClick={() => setActiveChatRequest(req)}
-                          className="flex items-center gap-1.5 text-xs font-bold text-[#FB6B01] hover:bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-2 text-xs font-bold text-[#FB6B01] bg-orange-50/90 hover:bg-orange-100/80 border border-orange-200/80 px-3.5 py-2 rounded-xl transition-all shadow-2xs cursor-pointer group"
                         >
-                          <Icon name="mail" size={13} />
+                          <Icon name="mail" size={14} className="text-[#FB6B01] transition-transform group-hover:scale-110" />
                           <span>Mensagens / Chat</span>
+                          {(() => {
+                            const chatCount = messages.filter((m) => m.requestId === req.id).length;
+                            return chatCount > 0 ? (
+                              <span className="rounded-full bg-[#FB6B01] text-white px-1.5 py-0.2 text-[10px] font-black">
+                                {chatCount}
+                              </span>
+                            ) : null;
+                          })()}
                         </button>
 
                         {/* Retomar Pagamento PIX se aguardando pagamento */}
@@ -1673,55 +1847,137 @@ export function ServicosClient({
                     key={`svc-${svc.id}`}
                     className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3 hover:border-slate-300 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-[#FB6B01] bg-orange-50 px-2 py-0.5 rounded-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span className="text-xs font-black text-[#FB6B01] bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200/70 shadow-2xs">
                           {svc.code}
                         </span>
-                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">{svc.title}</h3>
-                        <span className="rounded bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 capitalize">
+                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A] tracking-tight">{svc.title}</h3>
+                        <span className="rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 capitalize">
                           {svc.category}
                         </span>
                       </div>
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-[4px] ${
+                        className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border shadow-2xs self-start sm:self-center ${
                           isCompleted
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-orange-50 text-[#FB6B01] border border-orange-200"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-orange-50 text-[#FB6B01] border-orange-200"
                         }`}
                       >
-                        {(svc.status || "solicitado").replace("_", " ")}
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {(svc.status || "solicitado").replace(/_/g, " ")}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
-                      <div>
-                        <span className="text-slate-400">Profissional:</span>{" "}
-                        <strong className="text-slate-800">
-                          {svcVendor?.name || "Prestador credenciado"}
-                        </strong>
+                    {/* Barra de Progresso Minimalista e Funcional */}
+                    {(() => {
+                      const progress = getServiceProgress(svc.status);
+                      return (
+                        <div className="py-3 px-1 sm:px-3">
+                          <div className="relative">
+                            <div className="absolute top-4 sm:top-4.5 left-[10%] right-[10%] h-0.5 bg-slate-100 z-0" />
+                            <div
+                              className={`absolute top-4 sm:top-4.5 left-[10%] h-0.5 z-0 transition-all duration-500 ${
+                                isCompleted ? "bg-emerald-500" : "bg-[#FB6B01]"
+                              }`}
+                              style={{
+                                width: `${(progress.stepIndex / (SERVICE_STEPS.length - 1)) * 80}%`,
+                              }}
+                            />
+                            <div className="relative z-10 grid grid-cols-5 gap-1">
+                              {SERVICE_STEPS.map((step, idx) => {
+                                const isDone = idx < progress.stepIndex;
+                                const isCurrent = idx === progress.stepIndex;
+                                return (
+                                  <div key={step.id} className="flex flex-col items-center text-center">
+                                    <div
+                                      className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-all duration-200 ${
+                                        isDone
+                                          ? "bg-[#FB6B01] text-white shadow-2xs"
+                                          : isCurrent
+                                          ? isCompleted
+                                            ? "bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-xs"
+                                            : "bg-[#FB6B01] text-white ring-4 ring-orange-100 shadow-xs scale-105"
+                                          : "bg-white border-2 border-slate-200 text-slate-400"
+                                      }`}
+                                    >
+                                      {isDone ? (
+                                        <Icon name="check" size={14} strokeWidth={2.5} />
+                                      ) : (
+                                        <Icon name={step.icon} size={14} strokeWidth={isCurrent ? 2.2 : 1.8} />
+                                      )}
+                                    </div>
+                                    <span
+                                      className={`mt-2 text-[10px] sm:text-xs font-bold leading-tight ${
+                                        isCurrent
+                                          ? isCompleted
+                                            ? "text-emerald-700"
+                                            : "text-[#FB6B01]"
+                                          : isDone
+                                          ? "text-slate-800"
+                                          : "text-slate-400"
+                                      }`}
+                                    >
+                                      <span className="hidden sm:inline">{idx + 1}. </span>
+                                      {step.label}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Faixa de Detalhes com Ícones */}
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="briefcase" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Profissional</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {svcVendor?.name || "Prestador credenciado"}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-slate-400">Local:</span>{" "}
-                        <strong className="text-slate-800">
-                          {svc.location ||
-                            (svc.blockName && svc.unitNumber
-                              ? `${svc.blockName} · Unidade ${svc.unitNumber}`
-                              : "Unidade no condomínio")}
-                        </strong>
+
+                      <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="map-pin" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Local</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {svc.location || (svc.blockName && svc.unitNumber ? `${svc.blockName} · Unidade ${svc.unitNumber}` : "Unidade no condomínio")}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-slate-400">Data/Previsão:</span>{" "}
-                        <strong className="text-slate-800">
-                          {svc.scheduledFor || svc.preferredTime || "Conforme agendado"}
-                        </strong>
+
+                      <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                          <Icon name="calendar" size={12} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block leading-none font-medium">Data / Previsão</span>
+                          <span className="text-xs font-bold text-slate-900 truncate block mt-0.5">
+                            {svc.scheduledFor || svc.preferredTime || "Conforme agendado"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     {svc.description && (
-                      <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        {svc.description}
-                      </p>
+                      <div className="text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex items-start gap-2.5">
+                        <Icon name="file" size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                        <span className="leading-relaxed">{svc.description}</span>
+                      </div>
                     )}
 
                     {svc.costCents != null && svc.costCents > 0 && (
