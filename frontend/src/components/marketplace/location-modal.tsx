@@ -21,13 +21,12 @@ export interface ServiceLocation {
 }
 
 const PRESET_CITIES = [
-  { label: "São Paulo (SP)", name: "São Paulo - Capital", city: "São Paulo", state: "SP", lat: -23.5505, lng: -46.6333 },
   { label: "Curitiba (PR)", name: "Curitiba e Região", city: "Curitiba", state: "PR", lat: -25.4284, lng: -49.2733 },
+  { label: "São Paulo (SP)", name: "São Paulo - Capital", city: "São Paulo", state: "SP", lat: -23.5505, lng: -46.6333 },
   { label: "Campinas (SP)", name: "Campinas", city: "Campinas", state: "SP", lat: -22.9099, lng: -47.0626 },
   { label: "Rio de Janeiro (RJ)", name: "Rio de Janeiro", city: "Rio de Janeiro", state: "RJ", lat: -22.9068, lng: -43.1729 },
   { label: "Belo Horizonte (MG)", name: "Belo Horizonte", city: "Belo Horizonte", state: "MG", lat: -19.9167, lng: -43.9345 },
   { label: "Brasília (DF)", name: "Brasília", city: "Brasília", state: "DF", lat: -15.7975, lng: -47.8919 },
-  { label: "Queimados (RJ)", name: "Queimados - Baixada Fluminense", city: "Queimados", state: "RJ", lat: -22.7161, lng: -43.5558 },
   { label: "Florianópolis (SC)", name: "Florianópolis", city: "Florianópolis", state: "SC", lat: -27.5954, lng: -48.548 },
 ];
 
@@ -58,8 +57,8 @@ export function LocationModal({
   const [number, setNumber] = useState(currentLocation.number || "");
   const [complement, setComplement] = useState(currentLocation.complement || "");
   const [neighborhood, setNeighborhood] = useState(currentLocation.neighborhood || "");
-  const [city, setCity] = useState(currentLocation.city || "São Paulo");
-  const [state, setState] = useState(currentLocation.state || "SP");
+  const [city, setCity] = useState(currentLocation.city || "Curitiba");
+  const [state, setState] = useState(currentLocation.state || "PR");
   const [customCoords, setCustomCoords] = useState<{ lat?: number; lng?: number }>({
     lat: currentLocation.lat,
     lng: currentLocation.lng,
@@ -93,7 +92,7 @@ export function LocationModal({
 
     if (raw.length === 8) {
       setIsCepSearching(true);
-      setCepMessage("Buscando endereço e coordenadas...");
+      setCepMessage("Localizando endereço...");
       try {
         const res = await lookupCep(raw);
         if (res) {
@@ -102,9 +101,9 @@ export function LocationModal({
           if (res.city) setCity(res.city);
           if (res.state) setState(res.state);
           setCustomCoords({ lat: res.lat, lng: res.lng });
-          setCepMessage(`✓ Localizado: ${res.neighborhood || res.city} (${res.state})`);
+          setCepMessage(`✓ ${res.neighborhood || res.city} (${res.state})`);
         } else {
-          setCepMessage("CEP não encontrado. Preencha os campos abaixo.");
+          setCepMessage("CEP não localizado. Preencha manualmente abaixo.");
         }
       } catch {
         setCepMessage("Erro na consulta do CEP.");
@@ -132,8 +131,8 @@ export function LocationModal({
 
         onSave({
           type: "gps",
-          name: "Minha Localização Atual (GPS)",
-          address: `Lat: ${lat}, Lng: ${lng}`,
+          name: "Minha Localização Atual",
+          address: `Coordenadas: ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
           city: "Localização Atual",
           state: "GPS",
           lat,
@@ -143,7 +142,7 @@ export function LocationModal({
       },
       () => {
         setIsGpsLoading(false);
-        alert("Não foi possível obter sua localização. Permita o acesso ao GPS nas configurações do navegador.");
+        alert("Não foi possível obter sua localização. Permita o acesso ao GPS nas configurações do seu navegador.");
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
@@ -158,7 +157,7 @@ export function LocationModal({
     setNumber("");
     setNeighborhood("");
     setCustomCoords({ lat: c.lat, lng: c.lng });
-    setCepMessage(`✓ Região selecionada: ${c.name}`);
+    setCepMessage(`✓ Cidade selecionada: ${c.name}`);
   };
 
   const handleConfirm = () => {
@@ -207,331 +206,355 @@ export function LocationModal({
         number,
         complement,
         neighborhood,
-        city: city || "São Paulo",
-        state: state || "SP",
-        lat: customCoords.lat ?? -23.5505,
-        lng: customCoords.lng ?? -46.6333,
+        city: city || "Curitiba",
+        state: state || "PR",
+        lat: customCoords.lat ?? -25.4284,
+        lng: customCoords.lng ?? -49.2733,
       });
     }
     onClose();
   };
 
+  const condoDefault = availableCondos[0];
+  const condoName = currentLocation.name || condoDefault?.name || "Residencial Parque das Águas";
+  const condoAddress = currentLocation.address || condoDefault?.address || "Av. das Nações, 1200";
+  const condoCity = currentLocation.city || condoDefault?.city || "Curitiba";
+  const condoState = currentLocation.state || condoDefault?.state || "PR";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-        {/* Header */}
-        <div className="flex items-start justify-between pb-3 border-b border-slate-100">
-          <div>
+      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Cabeçalho */}
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+          <div className="space-y-1">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#FB6B01]">
               Localização do Serviço
             </span>
-            <h3 className="text-base sm:text-lg font-black text-[#0F172A] tracking-tight">
+            <h3 className="text-base sm:text-lg font-bold text-[#0F172A] leading-snug">
               Onde você precisa de atendimento?
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Filtraremos profissionais credenciados que atendem este local.
+            <p className="text-xs text-slate-500 font-normal">
+              Mostraremos profissionais que atendem exatamente o local informado.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+            className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+            aria-label="Fechar"
           >
             <Icon name="x" size={16} />
           </button>
         </div>
 
-        {/* Quick GPS Button */}
-        <button
-          type="button"
-          onClick={handleUseGps}
-          disabled={isGpsLoading}
-          className="w-full flex items-center justify-between p-3 rounded-2xl bg-orange-50/70 hover:bg-orange-100/70 border border-orange-200 text-[#FB6B01] transition-colors cursor-pointer text-left"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-[#FB6B01] text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <Icon name="map-pin" size={15} />
-            </div>
-            <div>
-              <span className="text-xs font-black block text-[#0F172A]">
-                {isGpsLoading ? "Obtendo sinal GPS..." : "Usar minha localização atual (GPS)"}
-              </span>
-              <span className="text-[11px] text-slate-500">
-                Calibrar pelo sensor de localização do seu aparelho
-              </span>
-            </div>
-          </div>
-          <Icon name="chevron-right" size={14} className="text-[#FB6B01] shrink-0" />
-        </button>
-
-        {/* Cidades Rápidas */}
-        <div>
-          <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-            Cidades Rápidas:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {PRESET_CITIES.map((c) => (
-              <button
-                key={c.label}
-                type="button"
-                onClick={() => handleSelectPresetCity(c)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
-                  city.toLowerCase() === c.city.toLowerCase()
-                    ? "bg-[#FB6B01] text-white border-[#FB6B01]"
-                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Opções Principais */}
-        <div className="space-y-2.5">
-          {/* Opção 1: Meu Condomínio Atual */}
-          <div
-            onClick={() => setSelectedType("meu_condominio")}
-            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-              selectedType === "meu_condominio"
-                ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
-                : "border-slate-200 hover:border-slate-300 bg-white"
-            }`}
-          >
-            <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-              selectedType === "meu_condominio"
-                ? "border-[#FB6B01] bg-[#FB6B01]"
-                : "border-slate-300 bg-white"
-            }`}>
-              {selectedType === "meu_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <Icon name="building" size={14} className="text-[#FB6B01] shrink-0" />
-                <span className="text-xs font-bold text-[#0F172A]">
-                  Meu Condomínio Atual
-                </span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-orange-100 text-[#FB6B01]">
-                  Padrão
-                </span>
+        {/* Corpo do Modal com Scroll */}
+        <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+          {/* Atalhos Rápidos: GPS e Mapa (Design limpo em 2 colunas) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={handleUseGps}
+              disabled={isGpsLoading}
+              className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/90 bg-slate-50/70 hover:bg-orange-50/60 hover:border-orange-200 text-slate-700 hover:text-[#FB6B01] transition-all cursor-pointer group text-left shadow-2xs"
+            >
+              <div className="h-8.5 w-8.5 rounded-lg bg-white border border-slate-200 group-hover:border-orange-300 text-slate-500 group-hover:text-[#FB6B01] flex items-center justify-center shrink-0 transition-colors shadow-2xs">
+                <Icon name="navigation" size={15} />
               </div>
-              <p className="text-xs font-semibold text-slate-700 mt-1">
-                {currentLocation.name || availableCondos[0]?.name || "Residencial Parque das Águas"}
-              </p>
-              <p className="text-[11px] text-slate-400">
-                {currentLocation.address || availableCondos[0]?.address || "Av. das Nações, 1200"} · {currentLocation.city || availableCondos[0]?.city || "Curitiba"} - {currentLocation.state || availableCondos[0]?.state || "PR"}
-              </p>
+              <div className="min-w-0">
+                <span className="text-xs font-bold block text-slate-800 group-hover:text-[#FB6B01]">
+                  {isGpsLoading ? "Buscando GPS..." : "Localização GPS"}
+                </span>
+                <span className="text-[10px] text-slate-400 block truncate">Sensor do seu aparelho</span>
+              </div>
+            </button>
 
-              {selectedType === "meu_condominio" && (
-                <div className="mt-2.5 pt-2 border-t border-orange-100/60">
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Sua Unidade / Apartamento:
-                  </label>
-                  <input
-                    type="text"
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    placeholder="Ex: Apto 302, Bloco B"
-                    className="w-full h-8 px-2.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                  />
+            {onPickOnMap && (
+              <button
+                type="button"
+                onClick={() => {
+                  onPickOnMap();
+                  onClose();
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/90 bg-slate-50/70 hover:bg-orange-50/60 hover:border-orange-200 text-slate-700 hover:text-[#FB6B01] transition-all cursor-pointer group text-left shadow-2xs"
+              >
+                <div className="h-8.5 w-8.5 rounded-lg bg-white border border-slate-200 group-hover:border-orange-300 text-slate-500 group-hover:text-[#FB6B01] flex items-center justify-center shrink-0 transition-colors shadow-2xs">
+                  <Icon name="map-pin" size={15} />
                 </div>
-              )}
-            </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold block text-slate-800 group-hover:text-[#FB6B01]">
+                    Escolher no Mapa
+                  </span>
+                  <span className="text-[10px] text-slate-400 block truncate">Apontar ponto no mapa</span>
+                </div>
+              </button>
+            )}
           </div>
 
-          {/* Opção 2: Outro Condomínio Vinculado */}
-          {availableCondos.length > 1 && (
+          {/* Opções Principais de Endereço */}
+          <div className="space-y-3 pt-1">
+            {/* Opção 1: Meu Condomínio Atual (Destaque limpo) */}
             <div
-              onClick={() => setSelectedType("outro_condominio")}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                selectedType === "outro_condominio"
-                  ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
-                : "border-slate-200 hover:border-slate-300 bg-white"
+              onClick={() => setSelectedType("meu_condominio")}
+              className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                selectedType === "meu_condominio"
+                  ? "border-[#FB6B01] bg-orange-50/20 ring-1 ring-[#FB6B01]/30 shadow-2xs"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
               }`}
             >
-              <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                selectedType === "outro_condominio"
-                  ? "border-[#FB6B01] bg-[#FB6B01]"
-                  : "border-slate-300 bg-white"
-              }`}>
-                {selectedType === "outro_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              {/* Radio Button Customizado */}
+              <div
+                className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                  selectedType === "meu_condominio"
+                    ? "border-[#FB6B01] bg-[#FB6B01]"
+                    : "border-slate-300 bg-white"
+                }`}
+              >
+                {selectedType === "meu_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
               </div>
 
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-[#0F172A] block">
-                  Outro Condomínio Vinculado
-                </span>
-                <p className="text-[11px] text-slate-400">
-                  Selecione outro condomínio gerenciado ou onde possui unidade.
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900">
+                    Meu condomínio
+                  </span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-[#FB6B01]">
+                    Atual
+                  </span>
+                </div>
+
+                <p className="text-xs font-bold text-slate-800 mt-1">
+                  {condoName}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {condoAddress} · {condoCity} - {condoState}
                 </p>
 
-                {selectedType === "outro_condominio" && (
-                  <div className="mt-2.5 space-y-2">
-                    <select
-                      value={selectedCondoId || availableCondos[0]?.id}
-                      onChange={(e) => setSelectedCondoId(Number(e.target.value))}
-                      className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                    >
-                      {availableCondos.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} — {c.city}/{c.state}
-                        </option>
-                      ))}
-                    </select>
+                {selectedType === "meu_condominio" && (
+                  <div className="mt-3 pt-3 border-t border-orange-100/70 space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-700">
+                      Sua unidade / apartamento:
+                    </label>
+                    <input
+                      type="text"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                      placeholder="Ex: Apto 302, Bloco B"
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 outline-none focus:border-[#FB6B01] focus:ring-1 focus:ring-orange-500/20 transition-all"
+                    />
                   </div>
                 )}
               </div>
             </div>
-          )}
 
-          {/* Opção 3: Outro Endereço / CEP */}
-          <div
-            onClick={() => setSelectedType("outro_endereco")}
-            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-              selectedType === "outro_endereco"
-                ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
-                : "border-slate-200 hover:border-slate-300 bg-white"
-            }`}
-          >
-            <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-              selectedType === "outro_endereco"
-                ? "border-[#FB6B01] bg-[#FB6B01]"
-                : "border-slate-300 bg-white"
-            }`}>
-              {selectedType === "outro_endereco" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-            </div>
+            {/* Opção 2: Outro Condomínio Vinculado (Se houver mais de 1) */}
+            {availableCondos.length > 1 && (
+              <div
+                onClick={() => setSelectedType("outro_condominio")}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                  selectedType === "outro_condominio"
+                    ? "border-[#FB6B01] bg-orange-50/20 ring-1 ring-[#FB6B01]/30 shadow-2xs"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
+                }`}
+              >
+                <div
+                  className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                    selectedType === "outro_condominio"
+                      ? "border-[#FB6B01] bg-[#FB6B01]"
+                      : "border-slate-300 bg-white"
+                  }`}
+                >
+                  {selectedType === "outro_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </div>
 
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-[#0F172A] block">
-                Outro Endereço (Residência, Loja ou Casa)
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Digite o CEP ou rua para atendimento fora da área condominial.
-              </p>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold text-slate-900 block">
+                    Outro condomínio vinculado
+                  </span>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Selecione outro condomínio onde você possui unidade ou gerencia.
+                  </p>
 
-              {selectedType === "outro_endereco" && (
-                <div className="mt-3 pt-2.5 border-t border-orange-100/60 space-y-2.5 text-xs">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                        CEP {isCepSearching && <span className="text-[#FB6B01]">...</span>}
-                      </label>
-                      <input
-                        type="text"
-                        value={cep}
-                        onChange={(e) => handleCepChange(e.target.value)}
-                        placeholder="01000-000"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                      />
+                  {selectedType === "outro_condominio" && (
+                    <div className="mt-3 space-y-2">
+                      <select
+                        value={selectedCondoId || availableCondos[0]?.id}
+                        onChange={(e) => setSelectedCondoId(Number(e.target.value))}
+                        className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 outline-none focus:border-[#FB6B01]"
+                      >
+                        {availableCondos.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} — {c.city}/{c.state}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Rua / Logradouro</label>
-                      <input
-                        type="text"
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        placeholder="Nome da rua ou avenida"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                      />
-                    </div>
-                  </div>
-
-                  {cepMessage && (
-                    <p className={`text-[11px] font-bold ${cepMessage.startsWith("✓") ? "text-emerald-600" : "text-amber-600"}`}>
-                      {cepMessage}
-                    </p>
                   )}
+                </div>
+              </div>
+            )}
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Número</label>
-                      <input
-                        type="text"
-                        value={number}
-                        onChange={(e) => setNumber(e.target.value)}
-                        placeholder="123"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                      />
+            {/* Opção 3: Outro Endereço / Fora do Condomínio */}
+            <div
+              onClick={() => setSelectedType("outro_endereco")}
+              className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                selectedType === "outro_endereco"
+                  ? "border-[#FB6B01] bg-orange-50/20 ring-1 ring-[#FB6B01]/30 shadow-2xs"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
+            >
+              <div
+                className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                  selectedType === "outro_endereco"
+                    ? "border-[#FB6B01] bg-[#FB6B01]"
+                    : "border-slate-300 bg-white"
+                }`}
+              >
+                {selectedType === "outro_endereco" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-bold text-slate-900 block">
+                  Outro endereço (Casa, Loja ou Escritório)
+                </span>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Informe o CEP ou rua para atendimento fora da área do condomínio.
+                </p>
+
+                {selectedType === "outro_endereco" && (
+                  <div className="mt-3 pt-3 border-t border-orange-100/70 space-y-3 text-xs">
+                    {/* Atalhos discretos de cidades */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Cidades com atendimento:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_CITIES.map((c) => (
+                          <button
+                            key={c.label}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectPresetCity(c);
+                            }}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold border transition-colors cursor-pointer ${
+                              city.toLowerCase() === c.city.toLowerCase()
+                                ? "bg-[#FB6B01] text-white border-[#FB6B01]"
+                                : "bg-white hover:bg-slate-50 text-slate-600 border-slate-200"
+                            }`}
+                          >
+                            {c.city} ({c.state})
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Complemento / Bairro</label>
-                      <div className="flex gap-1.5">
+
+                    {/* Formulário de CEP e Rua */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">
+                          CEP {isCepSearching && <span className="text-[#FB6B01]">...</span>}
+                        </label>
                         <input
                           type="text"
-                          value={complement}
-                          onChange={(e) => setComplement(e.target.value)}
-                          placeholder="Apto/Casa"
-                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                          value={cep}
+                          onChange={(e) => handleCepChange(e.target.value)}
+                          placeholder="00000-000"
+                          className="w-full h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                         />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Rua / Logradouro</label>
                         <input
                           type="text"
-                          value={neighborhood}
-                          onChange={(e) => setNeighborhood(e.target.value)}
-                          placeholder="Bairro"
-                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                          placeholder="Nome da rua ou avenida"
+                          className="w-full h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                        />
+                      </div>
+                    </div>
+
+                    {cepMessage && (
+                      <p className={`text-[11px] font-bold ${cepMessage.startsWith("✓") ? "text-emerald-600" : "text-amber-600"}`}>
+                        {cepMessage}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Número</label>
+                        <input
+                          type="text"
+                          value={number}
+                          onChange={(e) => setNumber(e.target.value)}
+                          placeholder="123"
+                          className="w-full h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Complemento / Bairro</label>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={complement}
+                            onChange={(e) => setComplement(e.target.value)}
+                            placeholder="Apto/Casa"
+                            className="w-1/2 h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                          />
+                          <input
+                            type="text"
+                            value={neighborhood}
+                            onChange={(e) => setNeighborhood(e.target.value)}
+                            placeholder="Bairro"
+                            className="w-1/2 h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Cidade</label>
+                        <input
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="Cidade"
+                          className="w-full h-8.5 px-2.5 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">UF</label>
+                        <input
+                          type="text"
+                          value={state}
+                          onChange={(e) => setState(e.target.value)}
+                          placeholder="PR"
+                          className="w-full h-8.5 px-2 text-center uppercase rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                         />
                       </div>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Cidade</label>
-                      <input
-                        type="text"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="Cidade"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">UF</label>
-                      <input
-                        type="text"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        placeholder="SP"
-                        className="w-full h-8 px-2 text-center uppercase rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Escolher direto no Mapa Button */}
-        {onPickOnMap && (
-          <button
-            type="button"
-            onClick={() => {
-              onPickOnMap();
-              onClose();
-            }}
-            className="w-full py-2.5 rounded-xl border border-dashed border-[#FB6B01]/40 text-[#FB6B01] bg-orange-50/30 hover:bg-orange-50/70 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <Icon name="map-pin" size={13} />
-            <span>Ou clique no mapa para escolher o ponto exato</span>
-          </button>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+        {/* Rodapé com Ações */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Cancelar
           </button>
