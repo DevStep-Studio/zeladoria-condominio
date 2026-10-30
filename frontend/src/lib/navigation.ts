@@ -101,9 +101,9 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
   },
   {
     id: "servicos",
-    title: "Serviços",
+    title: "Tião Zelador",
     items: [
-      { id: "prestadores", label: "Encontrar prestador", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
+      { id: "prestadores", label: "Encontrar profissional", href: "/painel/servicos", icon: "tiao" as any, permission: "provider.view" },
       { id: "contratacoes", label: "Contratações do condomínio", href: "/painel/servicos?tab=contratacoes", icon: "sparkles", permission: "marketplace.request.view_own" },
       { id: "fornecedores", label: "Prestadores utilizados", href: "/painel/fornecedores", icon: "user-check", permission: "provider.manage" },
     ],
@@ -114,6 +114,7 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
     items: [
       { id: "moradores", label: "Moradores e unidades", href: "/painel/moradores", icon: "users", permission: "user.manage" },
       { id: "financeiro", label: "Financeiro & Contas", href: "/painel/financeiro", icon: "wallet", permission: "financial.view" },
+      { id: "fornecedores", label: "Prestadores cadastrados", href: "/painel/fornecedores", icon: "user-check", permission: "provider.manage" },
       { id: "equipe", label: "Equipe e porteiros", href: "/painel/portaria", icon: "shield", permission: "shift.view" },
       { id: "equipamentos", label: "Equipamentos", href: "/painel/manutencao?tab=equipamentos", icon: "package", permission: "maintenance.view" },
       { id: "relatorios", label: "Relatórios", href: "/painel/relatorios", icon: "chart", permission: "report.view" },

@@ -512,19 +512,30 @@ export function DashboardClient({
               </div>
             </Link>
 
-            {/* 4. Tião Zelador */}
+            {/* 4. Tião Zelador - Botão Laranja Sólido */}
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-3 rounded-lg border border-orange-200/80 bg-white p-3 hover:border-orange-300 hover:bg-orange-50/20 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] p-3 text-white transition-all shadow-xs hover:shadow-sm group cursor-pointer"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-orange-50 border border-orange-200/60 text-[#FB6B01]">
-                <Icon name="tiao" size={20} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/20 text-white transition-transform group-hover:scale-105">
+                <img
+                  src="/brands/tiao/mascot-white.png"
+                  alt="Tião"
+                  className="h-5.5 w-5.5 object-contain"
+                />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold text-slate-900 group-hover:text-[#FB6B01] transition-colors truncate">
-                  Tião Zelador
-                </h3>
-                <p className="text-[11px] text-slate-500 truncate">Encontre profissionais</p>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black text-white truncate">
+                    Tião Zelador
+                  </h3>
+                  <Icon
+                    name="arrow-right"
+                    size={12}
+                    className="text-white/80 transition-transform group-hover:translate-x-0.5 shrink-0"
+                  />
+                </div>
+                <p className="text-[11px] text-white/90 truncate font-medium">Encontre profissionais</p>
               </div>
             </Link>
           </div>
@@ -965,7 +976,7 @@ export function DashboardClient({
                   desc: "Profissionais avaliados",
                   href: "/painel/servicos",
                   icon: "tiao" as IconName,
-                  variant: "blue" as const,
+                  variant: "orange" as const,
                 },
               ]
             : [
@@ -995,18 +1006,21 @@ export function DashboardClient({
                   desc: "Profissionais avaliados",
                   href: "/painel/servicos",
                   icon: "tiao" as IconName,
-                  variant: "blue" as const,
+                  variant: "orange" as const,
                 },
               ]
           ).map((action) => {
             const isYellow = action.variant === "yellow";
+            const isOrange = action.variant === "orange" || action.label === "Tião Zelador";
 
             return (
               <Link
                 key={action.label}
                 href={action.href}
                 className={`group relative flex min-h-[112px] sm:min-h-[132px] flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[20px] p-4 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 ${
-                  isYellow
+                  isOrange
+                    ? "bg-[#FB6B01] text-white shadow-md shadow-[#FB6B01]/25 hover:shadow-lg hover:shadow-[#FB6B01]/35"
+                    : isYellow
                     ? "bg-[#FFD000] text-[#12162A] shadow-md shadow-[#FFD000]/25 hover:shadow-lg hover:shadow-[#FFD000]/35"
                     : "bg-[#0070F3] text-white shadow-md shadow-[#0070F3]/20 hover:shadow-lg hover:shadow-[#0070F3]/30"
                 }`}
@@ -1015,12 +1029,22 @@ export function DashboardClient({
                 <div className="flex items-center justify-start">
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110 ${
-                      isYellow
+                      isOrange
+                        ? "bg-white/20 text-white"
+                        : isYellow
                         ? "bg-[#12162A]/10 text-[#12162A]"
                         : "bg-white/15 text-white"
                     }`}
                   >
-                    <Icon name={action.icon} size={17} strokeWidth={2.2} />
+                    {isOrange ? (
+                      <img
+                        src="/brands/tiao/mascot-white.png"
+                        alt="Tião"
+                        className="h-5.5 w-5.5 object-contain"
+                      />
+                    ) : (
+                      <Icon name={action.icon} size={17} strokeWidth={2.2} />
+                    )}
                   </span>
                 </div>
 
@@ -1045,7 +1069,11 @@ export function DashboardClient({
                 {/* Circular arrow button at bottom-right corner */}
                 <div
                   className={`absolute bottom-3 right-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[8px] bg-white shadow-sm shadow-black/10 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md ${
-                    isYellow ? "text-[#12162A]" : "text-[#0070F3]"
+                    isOrange
+                      ? "text-[#FB6B01]"
+                      : isYellow
+                      ? "text-[#12162A]"
+                      : "text-[#0070F3]"
                   }`}
                 >
                   <Icon name="arrow-up-right" size={15} strokeWidth={2.6} />
