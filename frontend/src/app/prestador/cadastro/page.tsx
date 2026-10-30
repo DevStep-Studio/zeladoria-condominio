@@ -7,7 +7,7 @@ import { OnboardingWizard } from "./onboarding-wizard";
 import { getSession } from "@/lib/auth";
 
 export const metadata = {
-  title: "Cadastro de Prestador · Zeladoria Serviços",
+  title: "Cadastro de Prestador · Tião Parceiros",
   description: "Cadastre-se como prestador parceiro e atenda condomínios da sua região.",
 };
 

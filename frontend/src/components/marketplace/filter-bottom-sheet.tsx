@@ -46,7 +46,7 @@ export function FilterBottomSheet({
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Icon name="filter" size={16} className="text-[#1355FF]" />
+            <Icon name="filter" size={16} className="text-[#FB6B01]" />
             <h3 className="text-base font-bold text-[#0F172A]">Filtros de Busca</h3>
           </div>
           <button
@@ -73,7 +73,7 @@ export function FilterBottomSheet({
                   onClick={() => onChange({ category: cat.id })}
                   className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                     filters.category === cat.id
-                      ? "bg-[#1355FF] text-white shadow-xs"
+                      ? "bg-[#FB6B01] text-white shadow-xs"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -100,7 +100,7 @@ export function FilterBottomSheet({
                   onClick={() => onChange({ minRating: item.val })}
                   className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
                     filters.minRating === item.val
-                      ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
+                      ? "border-[#FB6B01] bg-orange-50 text-[#FB6B01]"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -118,14 +118,14 @@ export function FilterBottomSheet({
             <div className="space-y-2">
               <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                 <div className="flex items-center gap-2">
-                  <Icon name="check-circle" size={14} className="text-[#1355FF]" />
+                  <Icon name="check-circle" size={14} className="text-[#FB6B01]" />
                   <span className="font-semibold text-slate-800">Apenas verificados pelo condomínio</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={filters.verifiedOnly}
                   onChange={(e) => onChange({ verifiedOnly: e.target.checked })}
-                  className="rounded h-4 w-4 text-[#1355FF] focus:ring-[#1355FF]"
+                  className="rounded h-4 w-4 text-[#FB6B01] focus:ring-[#FB6B01]"
                 />
               </label>
             </div>
@@ -137,7 +137,7 @@ export function FilterBottomSheet({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-3 text-xs font-bold transition-colors cursor-pointer text-center shadow-xs"
+            className="w-full rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-3 text-xs font-bold transition-colors cursor-pointer text-center shadow-xs"
           >
             Ver {totalResultsCount} profissional{totalResultsCount === 1 ? "" : "is"}
           </button>

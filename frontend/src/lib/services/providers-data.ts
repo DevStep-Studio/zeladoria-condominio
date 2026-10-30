@@ -52,6 +52,7 @@ export interface MarketplaceProvider {
   score: number;
   isSponsored: boolean;
   isVerified: boolean;
+  isNew?: boolean;
   completionRate: number | null;
   hiredCount: number;
   startingPriceCents: number | null;

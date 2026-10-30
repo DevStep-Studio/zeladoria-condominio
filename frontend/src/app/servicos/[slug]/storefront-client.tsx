@@ -93,7 +93,7 @@ export function StorefrontClient({
               <img src={vendor.coverUrl} alt="Capa" className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full bg-slate-900 flex items-center justify-center text-slate-500 text-xs font-medium">
-                Zeladoria Serviços · Credenciado Oficial
+                Tião Zelador · Credenciado Oficial
               </div>
             )}
           </div>
@@ -417,7 +417,7 @@ export function StorefrontClient({
           <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4 text-xs text-slate-700 leading-relaxed">
             <div>
               <h3 className="text-sm font-bold text-[#0F172A] mb-1">Apresentação Profissional</h3>
-              <p>{vendor.description || "Profissional credenciado no Zeladoria Serviços."}</p>
+              <p>{vendor.description || "Profissional credenciado no Tião Zelador."}</p>
             </div>
 
             <div className="border-t border-slate-100 pt-3">

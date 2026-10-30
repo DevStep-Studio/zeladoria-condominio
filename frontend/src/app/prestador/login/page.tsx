@@ -9,8 +9,8 @@ import { ProviderLoginForm } from "./login-form";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Acesso do Prestador · Zeladoria Serviços",
-  description: "Encontre novos clientes e gerencie seus serviços de condomínio.",
+  title: "Acesso do Prestador · Tião Parceiros",
+  description: "Encontre novos clientes e gerencie seus serviços de condomínio no Tião Parceiros.",
 };
 
 export default async function PrestadorLoginPage() {

@@ -110,7 +110,7 @@ export default async function FornecedoresPage() {
             )}
           </Card>
 
-          <Card title="Fornecedores" description="O cadastro abaixo alimenta diretamente o marketplace de prestadores em Zeladoria Serviços.">
+          <Card title="Fornecedores" description="O cadastro abaixo alimenta diretamente o marketplace de prestadores no Tião Zelador.">
             {vendorRows.length === 0 ? (
               <EmptyState title="Nenhum fornecedor" icon="briefcase" />
             ) : (

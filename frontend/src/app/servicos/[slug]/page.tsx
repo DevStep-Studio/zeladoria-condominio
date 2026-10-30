@@ -10,11 +10,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const data = await getPublicProvider(slug);
   const vendor = data?.vendor;
 
-  if (!vendor) return { title: "Prestador não encontrado · Zeladoria Serviços" };
+  if (!vendor) return { title: "Prestador não encontrado · Tião Zelador" };
 
   return {
-    title: `${vendor.companyName || vendor.name} · Zeladoria Serviços`,
-    description: `Contrate ${vendor.name} para serviços de ${vendor.category} em condomínios.`,
+    title: `${vendor.companyName || vendor.name} · Tião Zelador`,
+    description: `Contrate ${vendor.name} para serviços de ${vendor.category} com garantia pelo Tião Zelador e Zeladoria Pay.`,
   };
 }
 

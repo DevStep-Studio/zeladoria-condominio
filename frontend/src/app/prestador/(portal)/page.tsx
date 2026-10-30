@@ -5,7 +5,7 @@ import { ProviderDashboardClient } from "./dashboard-client";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Painel do Prestador · Zeladoria Serviços",
+  title: "Painel do Prestador · Tião Parceiros",
   description: "Visão geral das solicitações, chamados e agenda de hoje.",
 };
 

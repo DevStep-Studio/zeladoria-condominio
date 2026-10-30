@@ -230,7 +230,7 @@ export function LocationModal({
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#1355FF]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#FB6B01]">
               Localização do Serviço
             </span>
             <h3 className="text-base sm:text-lg font-black text-[#0F172A] tracking-tight">
@@ -254,10 +254,10 @@ export function LocationModal({
           type="button"
           onClick={handleUseGps}
           disabled={isGpsLoading}
-          className="w-full flex items-center justify-between p-3 rounded-2xl bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200 text-[#1355FF] transition-colors cursor-pointer text-left"
+          className="w-full flex items-center justify-between p-3 rounded-2xl bg-orange-50/70 hover:bg-orange-100/70 border border-orange-200 text-[#FB6B01] transition-colors cursor-pointer text-left"
         >
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-[#1355FF] text-white flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="h-8 w-8 rounded-xl bg-[#FB6B01] text-white flex items-center justify-center shrink-0 shadow-2xs">
               <Icon name="map-pin" size={15} />
             </div>
             <div>
@@ -269,7 +269,7 @@ export function LocationModal({
               </span>
             </div>
           </div>
-          <Icon name="chevron-right" size={14} className="text-[#1355FF] shrink-0" />
+          <Icon name="chevron-right" size={14} className="text-[#FB6B01] shrink-0" />
         </button>
 
         {/* Cidades Rápidas */}
@@ -285,7 +285,7 @@ export function LocationModal({
                 onClick={() => handleSelectPresetCity(c)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
                   city.toLowerCase() === c.city.toLowerCase()
-                    ? "bg-[#1355FF] text-white border-[#1355FF]"
+                    ? "bg-[#FB6B01] text-white border-[#FB6B01]"
                     : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
                 }`}
               >
@@ -302,13 +302,13 @@ export function LocationModal({
             onClick={() => setSelectedType("meu_condominio")}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
               selectedType === "meu_condominio"
-                ? "border-[#1355FF] bg-blue-50/40 shadow-2xs"
+                ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
                 : "border-slate-200 hover:border-slate-300 bg-white"
             }`}
           >
             <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
               selectedType === "meu_condominio"
-                ? "border-[#1355FF] bg-[#1355FF]"
+                ? "border-[#FB6B01] bg-[#FB6B01]"
                 : "border-slate-300 bg-white"
             }`}>
               {selectedType === "meu_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -316,11 +316,11 @@ export function LocationModal({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <Icon name="building" size={14} className="text-[#1355FF] shrink-0" />
+                <Icon name="building" size={14} className="text-[#FB6B01] shrink-0" />
                 <span className="text-xs font-bold text-[#0F172A]">
                   Meu Condomínio Atual
                 </span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-blue-100 text-[#1355FF]">
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-orange-100 text-[#FB6B01]">
                   Padrão
                 </span>
               </div>
@@ -332,7 +332,7 @@ export function LocationModal({
               </p>
 
               {selectedType === "meu_condominio" && (
-                <div className="mt-2.5 pt-2 border-t border-blue-100/60">
+                <div className="mt-2.5 pt-2 border-t border-orange-100/60">
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Sua Unidade / Apartamento:
                   </label>
@@ -341,7 +341,7 @@ export function LocationModal({
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
                     placeholder="Ex: Apto 302, Bloco B"
-                    className="w-full h-8 px-2.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                    className="w-full h-8 px-2.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                   />
                 </div>
               )}
@@ -354,13 +354,13 @@ export function LocationModal({
               onClick={() => setSelectedType("outro_condominio")}
               className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
                 selectedType === "outro_condominio"
-                  ? "border-[#1355FF] bg-blue-50/40 shadow-2xs"
+                  ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
                 : "border-slate-200 hover:border-slate-300 bg-white"
               }`}
             >
               <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                 selectedType === "outro_condominio"
-                  ? "border-[#1355FF] bg-[#1355FF]"
+                  ? "border-[#FB6B01] bg-[#FB6B01]"
                   : "border-slate-300 bg-white"
               }`}>
                 {selectedType === "outro_condominio" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -379,7 +379,7 @@ export function LocationModal({
                     <select
                       value={selectedCondoId || availableCondos[0]?.id}
                       onChange={(e) => setSelectedCondoId(Number(e.target.value))}
-                      className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                      className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                     >
                       {availableCondos.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -398,13 +398,13 @@ export function LocationModal({
             onClick={() => setSelectedType("outro_endereco")}
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
               selectedType === "outro_endereco"
-                ? "border-[#1355FF] bg-blue-50/40 shadow-2xs"
+                ? "border-[#FB6B01] bg-orange-50/40 shadow-2xs"
                 : "border-slate-200 hover:border-slate-300 bg-white"
             }`}
           >
             <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
               selectedType === "outro_endereco"
-                ? "border-[#1355FF] bg-[#1355FF]"
+                ? "border-[#FB6B01] bg-[#FB6B01]"
                 : "border-slate-300 bg-white"
             }`}>
               {selectedType === "outro_endereco" && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -419,18 +419,18 @@ export function LocationModal({
               </p>
 
               {selectedType === "outro_endereco" && (
-                <div className="mt-3 pt-2.5 border-t border-blue-100/60 space-y-2.5 text-xs">
+                <div className="mt-3 pt-2.5 border-t border-orange-100/60 space-y-2.5 text-xs">
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                        CEP {isCepSearching && <span className="text-[#1355FF]">...</span>}
+                        CEP {isCepSearching && <span className="text-[#FB6B01]">...</span>}
                       </label>
                       <input
                         type="text"
                         value={cep}
                         onChange={(e) => handleCepChange(e.target.value)}
                         placeholder="01000-000"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                       />
                     </div>
                     <div className="col-span-2">
@@ -440,7 +440,7 @@ export function LocationModal({
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
                         placeholder="Nome da rua ou avenida"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                       />
                     </div>
                   </div>
@@ -459,7 +459,7 @@ export function LocationModal({
                         value={number}
                         onChange={(e) => setNumber(e.target.value)}
                         placeholder="123"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                       />
                     </div>
                     <div className="col-span-2">
@@ -470,14 +470,14 @@ export function LocationModal({
                           value={complement}
                           onChange={(e) => setComplement(e.target.value)}
                           placeholder="Apto/Casa"
-                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                         />
                         <input
                           type="text"
                           value={neighborhood}
                           onChange={(e) => setNeighborhood(e.target.value)}
                           placeholder="Bairro"
-                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                          className="w-1/2 h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                         />
                       </div>
                     </div>
@@ -491,7 +491,7 @@ export function LocationModal({
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         placeholder="Cidade"
-                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                        className="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                       />
                     </div>
                     <div>
@@ -501,7 +501,7 @@ export function LocationModal({
                         value={state}
                         onChange={(e) => setState(e.target.value)}
                         placeholder="SP"
-                        className="w-full h-8 px-2 text-center uppercase rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#1355FF]"
+                        className="w-full h-8 px-2 text-center uppercase rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#FB6B01]"
                       />
                     </div>
                   </div>
@@ -519,7 +519,7 @@ export function LocationModal({
               onPickOnMap();
               onClose();
             }}
-            className="w-full py-2.5 rounded-xl border border-dashed border-[#1355FF]/40 text-[#1355FF] bg-blue-50/30 hover:bg-blue-50/70 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full py-2.5 rounded-xl border border-dashed border-[#FB6B01]/40 text-[#FB6B01] bg-orange-50/30 hover:bg-orange-50/70 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Icon name="map-pin" size={13} />
             <span>Ou clique no mapa para escolher o ponto exato</span>
@@ -538,7 +538,7 @@ export function LocationModal({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             Confirmar Local
           </button>

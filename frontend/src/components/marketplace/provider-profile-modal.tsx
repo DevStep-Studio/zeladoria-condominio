@@ -86,7 +86,7 @@ export function ProviderProfileModal({
                 <Icon
                   name="heart"
                   size={15}
-                  className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
+                  className={isFavorite ? "fill-[#FB6B01] text-[#FB6B01]" : ""}
                 />
               </button>
 
@@ -114,7 +114,7 @@ export function ProviderProfileModal({
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#1355FF] rounded-xl text-xl sm:text-2xl">
+                    <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#FB6B01] rounded-xl text-xl sm:text-2xl">
                       {provider.name.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -122,7 +122,7 @@ export function ProviderProfileModal({
                   {provider.isVerified && (
                     <div
                       title="Profissional com verificação oficial"
-                      className="absolute bottom-1 right-1 bg-[#1355FF] text-white rounded-md p-0.5 shadow-sm"
+                      className="absolute bottom-1 right-1 bg-[#FB6B01] text-white rounded-md p-0.5 shadow-sm"
                     >
                       <Icon name="check" size={10} strokeWidth={3} />
                     </div>
@@ -136,7 +136,7 @@ export function ProviderProfileModal({
                       {provider.name}
                     </h1>
                     {provider.isVerified && (
-                      <span className="inline-flex items-center gap-1 text-[#1355FF] text-xs font-bold">
+                      <span className="inline-flex items-center gap-1 text-[#FB6B01] text-xs font-bold">
                         <Icon name="check-circle" size={13} />
                         <span>Verificado</span>
                       </span>
@@ -170,7 +170,7 @@ export function ProviderProfileModal({
                 <button
                   type="button"
                   onClick={() => onRequestBudget(provider)}
-                  className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+                  className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2 text-xs font-black shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <Icon name="zap" size={13} className="text-[#FFD000] fill-[#FFD000]" />
                   <span>Solicitar Serviço</span>
@@ -223,7 +223,7 @@ export function ProviderProfileModal({
 
               <div className="flex items-center gap-1 font-medium">
                 <span className="text-slate-400">Preço:</span>
-                <span className="font-bold text-[#1355FF]">
+                <span className="font-black text-[#FB6B01]">
                   {provider.startingPriceCents != null
                     ? `A partir de R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                     : "Sob consulta"}
@@ -232,9 +232,9 @@ export function ProviderProfileModal({
             </div>
 
             {userHiredCount != null && userHiredCount > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-between text-xs text-blue-900">
+              <div className="mt-3 p-3 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-between text-xs text-orange-950">
                 <div className="flex items-center gap-2">
-                  <Icon name="check-circle" size={15} className="text-[#1355FF] shrink-0" />
+                  <Icon name="check-circle" size={15} className="text-[#FB6B01] shrink-0" />
                   <span>
                     Você já contratou <strong>{provider.name}</strong> {userHiredCount} {userHiredCount === 1 ? "vez" : "vezes"}.
                   </span>
@@ -246,7 +246,7 @@ export function ProviderProfileModal({
                       onClose();
                       onRehire(provider);
                     }}
-                    className="px-3 py-1 rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                    className="px-3 py-1 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-[11px] font-bold cursor-pointer transition-colors shrink-0 shadow-2xs"
                   >
                     Contratar novamente
                   </button>
@@ -262,7 +262,7 @@ export function ProviderProfileModal({
               onClick={() => setActiveTab("servicos")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "servicos"
-                  ? "bg-white text-[#1355FF] shadow-xs"
+                  ? "bg-white text-[#FB6B01] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -270,9 +270,9 @@ export function ProviderProfileModal({
               <span>Serviços</span>
               {provider.servicesOffered.length > 0 && (
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                     activeTab === "servicos"
-                      ? "bg-blue-100 text-[#1355FF]"
+                      ? "bg-orange-100 text-[#FB6B01]"
                       : "bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -286,7 +286,7 @@ export function ProviderProfileModal({
               onClick={() => setActiveTab("portfolio")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "portfolio"
-                  ? "bg-white text-[#1355FF] shadow-xs"
+                  ? "bg-white text-[#FB6B01] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -294,9 +294,9 @@ export function ProviderProfileModal({
               <span>Portfólio</span>
               {provider.portfolio.length > 0 && (
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                     activeTab === "portfolio"
-                      ? "bg-blue-100 text-[#1355FF]"
+                      ? "bg-orange-100 text-[#FB6B01]"
                       : "bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -310,7 +310,7 @@ export function ProviderProfileModal({
               onClick={() => setActiveTab("avaliacoes")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "avaliacoes"
-                  ? "bg-white text-[#1355FF] shadow-xs"
+                  ? "bg-white text-[#FB6B01] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -318,9 +318,9 @@ export function ProviderProfileModal({
               <span>Avaliações</span>
               {provider.reviewsCount > 0 && (
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                     activeTab === "avaliacoes"
-                      ? "bg-blue-100 text-[#1355FF]"
+                      ? "bg-orange-100 text-[#FB6B01]"
                       : "bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -334,7 +334,7 @@ export function ProviderProfileModal({
               onClick={() => setActiveTab("sobre")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 snap-start ${
                 activeTab === "sobre"
-                  ? "bg-white text-[#1355FF] shadow-xs"
+                  ? "bg-white text-[#FB6B01] shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -364,7 +364,7 @@ export function ProviderProfileModal({
                 <button
                   type="button"
                   onClick={() => onRequestBudget(provider)}
-                  className="text-xs font-bold text-[#1355FF] hover:underline"
+                  className="text-xs font-bold text-[#FB6B01] hover:underline"
                 >
                   Solicitar orçamento personalizado →
                 </button>
@@ -373,7 +373,7 @@ export function ProviderProfileModal({
               {provider.servicesOffered.length === 0 ? (
                 /* Empty state elegante (Prompt Item 34) */
                 <div className="rounded-2xl border border-slate-200 p-8 text-center space-y-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto">
+                  <div className="h-10 w-10 rounded-full bg-orange-50 text-[#FB6B01] flex items-center justify-center mx-auto">
                     <Icon name="briefcase" size={18} />
                   </div>
                   <h4 className="text-xs sm:text-sm font-bold text-[#0F172A]">
@@ -385,7 +385,7 @@ export function ProviderProfileModal({
                   <button
                     type="button"
                     onClick={() => onRequestBudget(provider)}
-                    className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
+                    className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
                   >
                     Solicitar Orçamento
                   </button>
@@ -395,14 +395,14 @@ export function ProviderProfileModal({
                   {provider.servicesOffered.map((svc) => (
                     <div
                       key={svc.id}
-                      className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-blue-300 transition-all shadow-xs flex flex-col justify-between gap-3"
+                      className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-300 transition-all shadow-xs flex flex-col justify-between gap-3"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] leading-snug">
                             {svc.name}
                           </h4>
-                          <span className="text-sm font-black text-[#1355FF] shrink-0">
+                          <span className="text-sm font-black text-[#FB6B01] shrink-0">
                             {svc.priceFromCents != null
                               ? `R$ ${(svc.priceFromCents / 100).toFixed(0)}`
                               : "Sob consulta"}
@@ -420,7 +420,7 @@ export function ProviderProfileModal({
                         <button
                           type="button"
                           onClick={() => onRequestBudget(provider, svc)}
-                          className="rounded-lg bg-blue-50 hover:bg-[#1355FF] text-[#1355FF] hover:text-white px-3 py-1 font-bold text-xs transition-colors cursor-pointer"
+                          className="rounded-lg bg-orange-50 hover:bg-[#FB6B01] text-[#FB6B01] hover:text-white px-3 py-1 font-bold text-xs transition-colors cursor-pointer"
                         >
                           Solicitar
                         </button>
@@ -454,7 +454,7 @@ export function ProviderProfileModal({
                   <button
                     type="button"
                     onClick={() => onRequestBudget(provider)}
-                    className="text-xs font-bold text-[#1355FF] hover:underline"
+                    className="text-xs font-bold text-[#FB6B01] hover:underline"
                   >
                     Solicitar atendimento agora →
                   </button>
@@ -465,7 +465,7 @@ export function ProviderProfileModal({
                     <div
                       key={idx}
                       onClick={() => setLightboxIndex(idx)}
-                      className="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-xs cursor-pointer hover:border-blue-300 transition-all"
+                      className="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-xs cursor-pointer hover:border-orange-300 transition-all"
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
                         <img
@@ -611,7 +611,7 @@ export function ProviderProfileModal({
                     Área e Raio de Atendimento
                   </h4>
                   <div className="flex items-center gap-2 text-slate-800 font-bold">
-                    <Icon name="map-pin" size={16} className="text-[#1355FF]" />
+                    <Icon name="map-pin" size={16} className="text-[#FB6B01]" />
                     <span>{provider.regionCoverage || "Curitiba e Região Metropolitana"}</span>
                   </div>
                   <p className="text-slate-500 text-[11px]">
@@ -624,7 +624,7 @@ export function ProviderProfileModal({
                     Horários de Funcionamento
                   </h4>
                   <div className="flex items-center gap-2 text-slate-800 font-bold">
-                    <Icon name="clock" size={16} className="text-[#1355FF]" />
+                    <Icon name="clock" size={16} className="text-[#FB6B01]" />
                     <span>{provider.workingHours || "Seg a Sex 08:00 - 18:00"}</span>
                   </div>
                   <p className="text-slate-500 text-[11px]">
@@ -642,7 +642,7 @@ export function ProviderProfileModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {provider.teamMembers.map((member, mIdx) => (
                       <div key={mIdx} className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <div className="h-9 w-9 rounded-lg bg-blue-100 text-[#1355FF] flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                        <div className="h-9 w-9 rounded-lg bg-orange-100 text-[#FB6B01] flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
                           {member.avatarUrl ? (
                             <img src={member.avatarUrl} alt={member.name} className="h-full w-full object-cover" />
                           ) : (
@@ -668,7 +668,7 @@ export function ProviderProfileModal({
             <span className="text-[10px] text-slate-400 font-bold uppercase block">
               Preço a partir de
             </span>
-            <span className="text-sm font-black text-[#1355FF]">
+            <span className="text-sm font-black text-[#FB6B01]">
               {provider.startingPriceCents != null
                 ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                 : "Sob consulta"}
@@ -678,7 +678,7 @@ export function ProviderProfileModal({
           <button
             type="button"
             onClick={() => onRequestBudget(provider)}
-            className="flex-1 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-2.5 text-xs font-bold shadow-md transition-colors cursor-pointer text-center"
+            className="flex-1 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-2.5 text-xs font-black shadow-md transition-colors cursor-pointer text-center"
           >
             Solicitar Serviço
           </button>

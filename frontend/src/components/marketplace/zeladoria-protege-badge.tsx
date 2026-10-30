@@ -15,8 +15,8 @@ export function ZeladoriaProtegeCard({
 }: ZeladoriaProtegeProps) {
   if (variant === "badge") {
     return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#1355FF] text-[11px] font-bold">
-        <Icon name="shield" size={13} className="text-[#1355FF]" />
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#FB6B01] text-[11px] font-bold">
+        <Icon name="shield" size={13} className="text-[#FB6B01]" />
         <span>Zeladoria Protege</span>
       </div>
     );
@@ -24,17 +24,17 @@ export function ZeladoriaProtegeCard({
 
   if (variant === "compact") {
     return (
-      <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 space-y-2">
+      <div className="rounded-xl border border-orange-200 bg-orange-50/70 p-3.5 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-lg bg-[#1355FF] text-white flex items-center justify-center font-bold">
+            <span className="h-6 w-6 rounded-lg bg-[#FB6B01] text-white flex items-center justify-center font-bold">
               <Icon name="shield" size={13} />
             </span>
             <span className="text-xs font-black text-slate-900 tracking-tight">
               PROTEÇÃO ZELADORIA
             </span>
           </div>
-          <span className="text-[10px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-100">
+          <span className="text-[10px] font-bold text-orange-700 bg-white px-2 py-0.5 rounded-full border border-orange-100">
             Contratação Verificada
           </span>
         </div>
@@ -46,11 +46,11 @@ export function ZeladoriaProtegeCard({
   }
 
   return (
-    <div className="rounded-2xl border-2 border-blue-200/90 bg-white p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border-2 border-orange-200/90 bg-white p-5 shadow-xs space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-[#1355FF] text-white flex items-center justify-center font-black shadow-xs">
+          <div className="h-9 w-9 rounded-xl bg-[#FB6B01] text-white flex items-center justify-center font-black shadow-xs">
             <Icon name="shield" size={18} />
           </div>
           <div>

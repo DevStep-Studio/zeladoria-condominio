@@ -4,8 +4,8 @@ import { Icon } from "@/components/icon";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Central de Ajuda do Prestador · Zeladoria",
-  description: "Orientações operacionais, repasses, comissões e boas práticas no Zeladoria Serviços.",
+  title: "Central de Ajuda do Prestador · Tião Parceiros",
+  description: "Orientações operacionais, repasses, comissões e boas práticas no Tião Parceiros.",
 };
 
 export default function PrestadorAjudaPage() {

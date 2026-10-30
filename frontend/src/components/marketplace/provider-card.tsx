@@ -51,7 +51,7 @@ export function ProviderCard({
           ) : (
             /* Fallback elegante e neutro: Ícone da categoria + nome da categoria */
             <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-3 border-b border-slate-100">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#1355FF] shadow-2xs">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-[#FB6B01] shadow-2xs">
                 <Icon name={catIconName} size={20} />
               </span>
               <span className="text-xs font-bold text-slate-600 capitalize">
@@ -59,6 +59,25 @@ export function ProviderCard({
               </span>
             </div>
           )}
+
+          {/* Badges de Destaque no topo esquerdo do banner */}
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 flex-wrap">
+            {provider.isSponsored && (
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-100/95 border border-amber-300/80 px-2 py-0.5 rounded-lg shadow-2xs">
+                Patrocinado
+              </span>
+            )}
+            {provider.isNew && !provider.isSponsored && (
+              <span className="text-[10px] font-black uppercase tracking-wider text-orange-950 bg-orange-100/95 border border-orange-300/80 px-2 py-0.5 rounded-lg shadow-2xs">
+                Novo no Tião
+              </span>
+            )}
+            {provider.rating >= 4.9 && provider.reviewsCount >= 3 && !provider.isSponsored && (
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-950 bg-emerald-100/95 border border-emerald-300/80 px-2 py-0.5 rounded-lg shadow-2xs">
+                Melhor avaliado
+              </span>
+            )}
+          </div>
 
           {/* Botão de Favoritar (♡) compacto no topo direito */}
           <div className="absolute top-2 right-2 z-10">
@@ -164,7 +183,7 @@ export function ProviderCard({
               ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço no condomínio" : "serviços no condomínio"}
             </p>
           ) : hasHiredBefore ? (
-            <p className="text-[10px] font-semibold text-[#1355FF] truncate">
+            <p className="text-[10px] font-semibold text-[#FB6B01] truncate">
               ✓ Já contratado anteriormente
             </p>
           ) : null}
@@ -178,7 +197,7 @@ export function ProviderCard({
               <span className="text-xs sm:text-sm font-black text-[#0F172A]">
                 {provider.startingPriceCents != null && provider.startingPriceCents > 0
                   ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
-                  : "Sob orçamento"}
+                  : "Sob consulta"}
               </span>
             </div>
 
@@ -202,7 +221,7 @@ export function ProviderCard({
         </div>
       </div>
 
-      {/* BOTÕES DE AÇÃO: Ver perfil e Solicitar (Mais compactos e elegantes) */}
+      {/* BOTÕES DE AÇÃO: Ver perfil e Solicitar orçamento */}
       <div className="grid grid-cols-2 gap-2 p-3 pt-1 border-t border-slate-50">
         <button
           type="button"
@@ -221,9 +240,9 @@ export function ProviderCard({
             e.stopPropagation();
             onRequestBudget(provider);
           }}
-          className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
+          className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-1.5 sm:py-2 text-xs font-black shadow-xs transition-colors cursor-pointer text-center"
         >
-          Pedir orçamento
+          Solicitar orçamento
         </button>
       </div>
     </div>

@@ -129,7 +129,7 @@ export function MarketplaceMap({
           className: "condo-center-pin",
           html: `
             <div style="
-              background-color: #1355FF;
+              background-color: #FB6B01;
               color: #FFFFFF;
               width: 38px;
               height: 38px;
@@ -138,7 +138,7 @@ export function MarketplaceMap({
               align-items: center;
               justify-content: center;
               border: 3px solid #FFFFFF;
-              box-shadow: 0 4px 14px rgba(19,85,255,0.45);
+              box-shadow: 0 4px 14px rgba(251,107,1,0.45);
               cursor: grab;
             ">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -188,7 +188,7 @@ export function MarketplaceMap({
             className: `provider-pin-${p.id}`,
             html: `
               <div style="
-                background-color: ${isSelected ? "#1355FF" : "#FFFFFF"};
+                background-color: ${isSelected ? "#FB6B01" : "#FFFFFF"};
                 color: ${isSelected ? "#FFFFFF" : "#0F172A"};
                 min-width: 32px;
                 height: 32px;
@@ -253,7 +253,7 @@ export function MarketplaceMap({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 font-black text-[#0F172A]">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#1355FF] shrink-0" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#FB6B01] shrink-0" />
                 <span className="truncate">{condoName}</span>
               </div>
               <p className="text-[11px] text-slate-500 truncate mt-0.5">{condoAddress}</p>
@@ -262,7 +262,7 @@ export function MarketplaceMap({
               <button
                 type="button"
                 onClick={onChangeLocationClick}
-                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-[#1355FF] text-white font-bold text-xs hover:bg-[#0D47E6] transition-colors cursor-pointer shadow-xs flex items-center gap-1"
+                className="shrink-0 px-2.5 py-1.5 rounded-xl bg-[#FB6B01] text-white font-bold text-xs hover:bg-[#E05F00] transition-colors cursor-pointer shadow-xs flex items-center gap-1"
                 title="Escolher localização de atendimento"
               >
                 <Icon name="map-pin" size={12} />
@@ -271,8 +271,8 @@ export function MarketplaceMap({
             )}
           </div>
           <div className="flex items-center gap-1.5 text-slate-500 text-[11px] pt-1.5 border-t border-slate-100">
-            <span className="h-2 w-2 rounded-full border border-amber-400 bg-white shrink-0" />
-            <span className="truncate">Clique ou arraste o pin azul para mudar o local</span>
+            <span className="h-2 w-2 rounded-full border border-orange-400 bg-white shrink-0" />
+            <span className="truncate">Clique ou arraste o pin laranja para mudar o local</span>
           </div>
         </div>
 
@@ -281,7 +281,7 @@ export function MarketplaceMap({
           <div className="lg:hidden absolute bottom-3 left-3 right-3 z-20 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xl space-y-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-blue-50 text-[#1355FF] flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
+                <div className="h-11 w-11 rounded-xl bg-orange-50 text-[#FB6B01] flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
                   {selectedProvider.avatarUrl ? (
                     <img src={selectedProvider.avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
@@ -294,7 +294,7 @@ export function MarketplaceMap({
                       {selectedProvider.name}
                     </h4>
                     {selectedProvider.isVerified && (
-                      <Icon name="check-circle" size={13} className="text-[#1355FF] shrink-0" />
+                      <Icon name="check-circle" size={13} className="text-[#FB6B01] shrink-0" />
                     )}
                   </div>
                   <p className="text-[11px] text-slate-500 truncate">
@@ -332,7 +332,7 @@ export function MarketplaceMap({
                 <button
                   type="button"
                   onClick={() => onRequestBudget(selectedProvider)}
-                  className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                  className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer shadow-xs"
                 >
                   Solicitar
                 </button>
@@ -379,7 +379,7 @@ export function MarketplaceMap({
                   onClick={() => setSelectedProvider(p)}
                   className={`p-3 rounded-2xl border transition-all cursor-pointer bg-white ${
                     isSelected
-                      ? "border-[#1355FF] ring-2 ring-blue-100 shadow-sm"
+                      ? "border-[#FB6B01] ring-2 ring-orange-100 shadow-sm"
                       : "border-slate-200 hover:border-slate-300 shadow-2xs"
                   }`}
                 >
@@ -389,7 +389,7 @@ export function MarketplaceMap({
                       {photo ? (
                         <img src={photo} alt={p.name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center font-black text-sm text-[#1355FF] bg-blue-50">
+                        <div className="h-full w-full flex items-center justify-center font-black text-sm text-[#FB6B01] bg-orange-50">
                           {p.name.charAt(0)}
                         </div>
                       )}
@@ -402,7 +402,7 @@ export function MarketplaceMap({
                           {p.name}
                         </h4>
                         {p.isVerified && (
-                          <Icon name="check-circle" size={13} className="text-[#1355FF] shrink-0" />
+                          <Icon name="check-circle" size={13} className="text-[#FB6B01] shrink-0" />
                         )}
                       </div>
                       <p className="text-[11px] text-slate-500 truncate">
@@ -457,7 +457,7 @@ export function MarketplaceMap({
                           e.stopPropagation();
                           onRequestBudget(p);
                         }}
-                        className="rounded-lg bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3 py-1 text-[11px] font-bold transition-colors shadow-2xs"
+                        className="rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white px-3 py-1 text-[11px] font-bold transition-colors shadow-2xs"
                       >
                         Solicitar
                       </button>
