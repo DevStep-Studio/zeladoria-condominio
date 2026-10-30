@@ -757,19 +757,9 @@ export function ServicosClient({
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-                  Tião Zelador
-                </h1>
-                <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-orange-100 text-[#FB6B01] px-2.5 py-0.5 rounded-full border border-orange-200/60 shadow-2xs">
-                  <Icon name="shield" size={11} className="text-[#FB6B01]" />
-                  Marketplace Verificado
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                  <Icon name="check" size={10} className="text-emerald-600" />
-                  Garantia Zeladoria Pay
-                </span>
-              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+                Tião Zelador
+              </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                 Encontre, compare e contrate profissionais para pequenos reparos, manutenções e serviços do dia a dia com pagamento seguro.
               </p>
