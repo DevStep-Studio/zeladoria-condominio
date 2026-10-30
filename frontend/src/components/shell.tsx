@@ -345,8 +345,7 @@ export function Shell({
       return !searchParams.get("tab") && !searchParams.get("aba");
     }
     if (targetPath === "/painel/admin/zeladoria-pay" && pathname === "/painel/admin/zeladoria-pay") {
-      const currentTab = searchParams.get("tab");
-      return !currentTab || currentTab === "visao-geral" || currentTab === "overview";
+      return searchParams.get("tab") !== "contratos";
     }
     return pathname.startsWith(targetPath);
   };

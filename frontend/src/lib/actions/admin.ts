@@ -615,31 +615,34 @@ export async function createSupportTicketAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const subject = str(formData, "subject");
   if (!subject) return;
+  const resolvedCondoId = condoId > 0 ? condoId : null;
   const [row] = await apiOperation("lib.actions.admin.045", [{
-      condoId,
+      condoId: resolvedCondoId,
       userId: session.user.id,
       subject,
       body: str(formData, "body"),
       category: str(formData, "category", "duvida"),
       priority: str(formData, "priority", "normal"),
     }]);
-  await logAudit({ session, condoId, action: "criar", entity: "suporte", entityId: row.id, summary: subject });
+  await logAudit({ session, condoId: resolvedCondoId, action: "criar", entity: "suporte", entityId: row.id, summary: subject });
   revalidatePath("/painel/ajuda");
 }
 
 export async function answerSupportTicketAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin"]);
   const id = num(formData, "id");
+  const resolvedCondoId = condoId > 0 ? condoId : null;
   await apiOperation("lib.actions.admin.046", [{ answer: str(formData, "answer"), status: "respondido" }, id]);
-  await logAudit({ session, condoId, action: "responder", entity: "suporte", entityId: id, summary: "Suporte respondeu chamado", origin: "suporte" });
+  await logAudit({ session, condoId: resolvedCondoId, action: "responder", entity: "suporte", entityId: id, summary: "Suporte respondeu chamado", origin: "suporte" });
   revalidatePath("/painel/ajuda");
 }
 
 export async function rateSupportAction(formData: FormData) {
   const { session, condoId } = await requireCondo();
   const id = num(formData, "id");
+  const resolvedCondoId = condoId > 0 ? condoId : null;
   await apiOperation("lib.actions.admin.047", [{ satisfaction: num(formData, "satisfaction", 5), status: "encerrado" }, id]);
-  await logAudit({ session, condoId, action: "avaliar", entity: "suporte", entityId: id, summary: "Pesquisa de satisfação respondida" });
+  await logAudit({ session, condoId: resolvedCondoId, action: "avaliar", entity: "suporte", entityId: id, summary: "Pesquisa de satisfação respondida" });
   revalidatePath("/painel/ajuda");
 }
 

@@ -1,7 +1,10 @@
+import fs from "node:fs";
+import path from "node:path";
 import test, { describe } from "node:test";
 import assert from "node:assert/strict";
 import { getNavigationGroups } from "../src/lib/navigation";
 import { hasPermission } from "../src/lib/permissions";
+import { statusLabel, statusTone } from "../src/lib/status";
 
 describe("Abas de Operação para Super Admin — Chamados e Suporte", () => {
   test("Superadmin possui itens de Operação: Chamados e Suporte no menu lateral", () => {
@@ -48,5 +51,29 @@ describe("Abas de Operação para Super Admin — Chamados e Suporte", () => {
     assert.ok(marketplace, "Item Marketplace deve existir na navegação do Superadmin");
     assert.equal(marketplace.href, "/painel/admin/marketplace", "Marketplace deve possuir href direto");
     assert.equal(marketplace.items.length, 0, "Marketplace não deve ter subitens no menu lateral");
+  });
+
+  test("Superadmin possui Zeladoria Pay como item direto de navegação (sem subitens)", () => {
+    const groups = getNavigationGroups("superadmin");
+    const zeladoriaPay = groups.find((g) => g.id === "zeladoria_pay");
+
+    assert.ok(zeladoriaPay, "Item Zeladoria Pay deve existir na navegação do Superadmin");
+    assert.equal(zeladoriaPay.href, "/painel/admin/zeladoria-pay", "Zeladoria Pay deve possuir href direto");
+    assert.equal(zeladoriaPay.items.length, 0, "Zeladoria Pay não deve ter subitens no menu lateral");
+  });
+
+  test("Módulo ui.tsx permanece compatível com Server Components (statusTone/statusLabel invocáveis na rota /painel/ajuda)", () => {
+    const uiSource = fs.readFileSync(path.resolve(__dirname, "../src/components/ui.tsx"), "utf8");
+    assert.equal(
+      /^\s*["']use client["']/.test(uiSource),
+      false,
+      "ui.tsx não deve ter 'use client' no topo para não converter statusTone/statusLabel em Client Reference Proxies no RSC"
+    );
+
+    assert.equal(statusTone("aberto"), "yellow");
+    assert.equal(statusTone("respondido"), "green");
+    assert.equal(statusTone("encerrado"), "green");
+    assert.equal(statusTone(null), "neutral");
+    assert.equal(statusLabel("em_andamento"), "em andamento");
   });
 });

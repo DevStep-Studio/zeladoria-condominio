@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
@@ -74,11 +75,11 @@ export default async function AjudaPage({
         title: a.title ? String(a.title) : "Artigo sem título",
         body: a.body ? String(a.body) : "",
         category: a.category ? String(a.category) : "Geral",
-        tags: Array.isArray(a.tags) ? a.tags : [],
+        tags: Array.isArray(a.tags) ? a.tags.join(" ") : a.tags ? String(a.tags) : "",
         videoUrl: a.videoUrl ?? a.video_url ?? null,
       }));
 
-    list = q ? rankByQuery(validArticles, ["title", "body", "category"], q) : validArticles;
+    list = q ? rankByQuery(validArticles, ["title", "body", "category", "tags"], q) : validArticles;
   } catch (err) {
     console.error("[Suporte/Ajuda] Erro ao processar/filtrar artigos da base de conhecimento:", err);
     list = [];
@@ -171,13 +172,13 @@ export default async function AjudaPage({
                   { key: "respondido", label: `Respondidos (${answeredTickets})` },
                   { key: "encerrado", label: `Encerrados (${closedTickets})` },
                 ].map((tab) => (
-                  <a
+                  <Link
                     key={tab.key}
                     href={`/painel/ajuda?status=${tab.key}`}
                     className={`tab ${status === tab.key ? "tab-active" : ""}`}
                   >
                     {tab.label}
-                  </a>
+                  </Link>
                 ))}
               </div>
 

@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Icon, isIconName, type IconName } from "@/components/icon";
 
 const DEFAULT_TITLE_ICONS: Array<[RegExp, IconName]> = [
@@ -144,7 +142,7 @@ export function Badge({ children, tone = "neutral" }: { children: ReactNode; ton
 export function statusTone(status?: string | null) {
   if (!status || typeof status !== "string") return "neutral";
   const s = status.toLowerCase().replace(/_/g, " ");
-  if (["autorizado", "aprovada", "aprovado", "entregue", "concluida", "concluido", "pago", "paga", "ativo", "vigente", "operacional", "retirado", "finalizado", "fechado", "devolvido", "presente"].includes(s))
+  if (["autorizado", "aprovada", "aprovado", "entregue", "concluida", "concluido", "pago", "paga", "ativo", "vigente", "operacional", "retirado", "finalizado", "fechado", "devolvido", "presente", "respondido", "encerrado"].includes(s))
     return "green";
   if (["pendente", "aguardando", "programada", "aberta", "aberto", "convocada", "em andamento", "guardado", "em análise", "em analise", "solicitado", "agendado", "convidado"].includes(s)) return "yellow";
   if (["negado", "bloqueado", "vencido", "vencida", "atrasado", "cancelado", "rejeitada", "rejeitado", "inativo", "falha", "descartado"].includes(s)) return "red";
@@ -177,10 +175,10 @@ export function StatCard({
     tone === "yellow"
       ? "bg-amber-50 text-amber-700"
       : tone === "green"
-      ? "bg-emerald-50 text-emerald-700"
-      : tone === "purple"
-      ? "bg-indigo-50 text-indigo-700"
-      : "bg-blue-50 text-[#1355FF]";
+        ? "bg-emerald-50 text-emerald-700"
+        : tone === "purple"
+          ? "bg-indigo-50 text-indigo-700"
+          : "bg-blue-50 text-[#1355FF]";
 
   const body = (
     <div className="flex h-full min-h-[84px] items-start gap-3 rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
@@ -385,51 +383,5 @@ export function ActivityRow({
   );
 }
 
-export function Drawer({
-  title,
-  open,
-  onClose,
-  children,
-}: {
-  title: string;
-  open: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-  return (
-    <>
-      <div className="drawer-scrim" onClick={onClose} />
-      <div className="drawer-panel max-w-full sm:max-w-md w-full">
-        <div className="flex items-center justify-between border-b border-[var(--color-line)] pb-4 mb-4 sm:mb-6">
-          <h2 className="text-base sm:text-lg font-bold tracking-tight text-[var(--color-ink)] truncate pr-2">{title}</h2>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-[var(--color-muted)] hover:bg-[var(--color-surface-muted)] cursor-pointer"
-            aria-label="Fechar"
-          >
-            <Icon name="x" size={16} />
-          </button>
-        </div>
-        <div className="overflow-y-auto max-h-[calc(100vh-7rem)] pr-1">
-          {children}
-        </div>
-      </div>
-    </>
-  );
-}
+export { Drawer } from "@/components/drawer";
 

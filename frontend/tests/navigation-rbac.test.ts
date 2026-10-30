@@ -187,7 +187,7 @@ describe("Navegação por Perfil e RBAC — Auditoria e Matrizes de Acesso", () 
     const allHrefs = groups.flatMap((g) => [g.href, ...g.items.map((i) => i.href)].filter(Boolean) as string[]);
     assert.ok(allHrefs.includes("/painel/admin/condominios"));
     assert.ok(allHrefs.includes("/painel/admin/marketplace"));
-    assert.ok(allHrefs.includes("/painel/admin/zeladoria-pay?tab=pagamentos"));
+    assert.ok(allHrefs.includes("/painel/admin/zeladoria-pay"));
     assert.ok(allHrefs.includes("/painel/chamados"));
     assert.ok(allHrefs.includes("/painel/auditoria"));
   });

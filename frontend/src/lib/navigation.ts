@@ -228,18 +228,10 @@ export const ADMIN_NAVIGATION: NavGroup[] = [
   {
     id: "zeladoria_pay",
     title: "Zeladoria Pay",
-    items: [
-      { id: "visao_geral", label: "Visão Geral", href: "/painel/admin/zeladoria-pay", icon: "grid", permission: "platform.finance.manage" },
-      { id: "pagamentos", label: "Pagamentos", href: "/painel/admin/zeladoria-pay?tab=pagamentos", icon: "wallet", permission: "platform.finance.manage" },
-      { id: "vistorias_pagas", label: "Vistorias Pagas", href: "/painel/admin/zeladoria-pay?tab=vistorias", icon: "check-circle", permission: "platform.finance.manage" },
-      { id: "repasses", label: "Repasses", href: "/painel/admin/zeladoria-pay?tab=repasses", icon: "refresh", permission: "platform.finance.manage" },
-      { id: "comissoes", label: "Comissões", href: "/painel/admin/zeladoria-pay?tab=comissoes", icon: "chart", permission: "platform.finance.manage" },
-      { id: "reembolsos", label: "Reembolsos", href: "/painel/admin/zeladoria-pay?tab=reembolsos", icon: "x-circle", permission: "platform.finance.manage" },
-      { id: "contestacoes", label: "Contestações", href: "/painel/admin/zeladoria-pay?tab=contestacoes", icon: "alert", permission: "platform.finance.manage" },
-      { id: "prestadores_financeiros", label: "Prestadores financeiros", href: "/painel/admin/zeladoria-pay?tab=prestadores", icon: "shield", permission: "platform.finance.manage" },
-      { id: "configuracoes_flags", label: "Configurações & Flags", href: "/painel/admin/zeladoria-pay?tab=configuracoes", icon: "settings", permission: "platform.finance.manage" },
-      { id: "simulador_financeiro", label: "Simulador Financeiro", href: "/painel/admin/zeladoria-pay?tab=simulador", icon: "sparkles", permission: "platform.finance.manage" },
-    ],
+    href: "/painel/admin/zeladoria-pay",
+    icon: "wallet",
+    permission: "platform.finance.manage",
+    items: [],
   },
   {
     id: "operacao",
