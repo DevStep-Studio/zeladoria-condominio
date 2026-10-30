@@ -48,10 +48,10 @@ export const MORADOR_NAVIGATION: NavGroup[] = [
   },
   {
     id: "servicos",
-    title: "Serviços",
+    title: "Tião Zelador",
     items: [
-      { id: "prestadores", label: "Encontrar profissional", href: "/painel/servicos", icon: "briefcase", permission: "provider.view" },
-      { id: "minhas_contratacoes", label: "Minhas contratações", href: "/painel/servicos?tab=minhas-contratacoes", icon: "sparkles", permission: "marketplace.request.view_own" },
+      { id: "prestadores", label: "Encontrar profissional", href: "/painel/servicos", icon: "tiao" as any, permission: "provider.view" },
+      { id: "minhas_contratacoes", label: "Minhas contratações", href: "/painel/servicos?tab=minhas-contratacoes", icon: "clipboard", permission: "marketplace.request.view_own" },
       { id: "favoritos", label: "Favoritos", href: "/painel/servicos?tab=favoritos", icon: "star", permission: "marketplace.favorite.toggle" },
     ],
   },
@@ -439,7 +439,7 @@ export function getMobileNavItems(role: Role): NavItem[] {
       { id: "inicio", href: "/painel", label: "Início", icon: "grid" },
       { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard", permission: "occurrence.view_own" },
       { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar", permission: "reservation.view_own" },
-      { id: "servicos", href: "/painel/servicos", label: "Serviços", icon: "briefcase", permission: "provider.view" },
+      { id: "servicos", href: "/painel/servicos", label: "Tião", icon: "tiao" as any, permission: "provider.view" },
       { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" },
     ];
   }

@@ -6,6 +6,7 @@ import { ROLE_LABEL } from "@/lib/rbac";
 import { getNavigationGroups, getMobileNavItems } from "@/lib/navigation";
 import { Shell } from "@/components/shell";
 import { logoutAction, switchCondoAction } from "@/lib/actions/session";
+import { BrandProvider } from "@/lib/brand-context";
 
 export const dynamic = "force-dynamic";
 
@@ -26,21 +27,23 @@ export default async function PainelLayout({ children }: { children: ReactNode }
   );
 
   return (
-    <Shell
-      navigationGroups={navigationGroups}
-      mobileNav={mobileNav}
-      condos={uniqueCondos}
-      activeCondoId={condoId}
-      userName={session.user.name}
-      roleLabel={ROLE_LABEL[session.role]}
-      role={session.role}
-      unitLabel={activeMembership?.unitLabel ?? null}
-      condoName={session.condo?.name ?? "Condomínio"}
-      unread={Number(unread ?? 0)}
-      switchAction={switchCondoAction}
-      logout={logoutAction}
-    >
-      {children}
-    </Shell>
+    <BrandProvider>
+      <Shell
+        navigationGroups={navigationGroups}
+        mobileNav={mobileNav}
+        condos={uniqueCondos}
+        activeCondoId={condoId}
+        userName={session.user.name}
+        roleLabel={ROLE_LABEL[session.role]}
+        role={session.role}
+        unitLabel={activeMembership?.unitLabel ?? null}
+        condoName={session.condo?.name ?? "Condomínio"}
+        unread={Number(unread ?? 0)}
+        switchAction={switchCondoAction}
+        logout={logoutAction}
+      >
+        {children}
+      </Shell>
+    </BrandProvider>
   );
 }

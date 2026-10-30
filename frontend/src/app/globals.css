@@ -34,6 +34,23 @@
   color-scheme: light;
 }
 
+/* ============ Submarca: Tião Zelador (Laranja Oficial #FB6B01) ============ */
+[data-brand="tiao"] {
+  --color-primary: #fb6b01;
+  --color-primary-hover: #e05f00;
+  --color-primary-dark: #c75400;
+  --color-primary-soft: #fff7ed;
+}
+
+[data-brand="tiao"] a:focus-visible,
+[data-brand="tiao"] button:focus-visible,
+[data-brand="tiao"] input:focus-visible,
+[data-brand="tiao"] select:focus-visible,
+[data-brand="tiao"] textarea:focus-visible,
+[data-brand="tiao"] [tabindex]:focus-visible {
+  box-shadow: 0 0 0 2px rgba(251, 107, 1, 0.4);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }

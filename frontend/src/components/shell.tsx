@@ -466,6 +466,7 @@ export function Shell({
 
           const isExpanded = expandedGroups[group.id] ?? true;
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
+          const isTiaoGroup = group.id === "servicos" || group.title.toLowerCase().includes("tião");
 
           return (
             <div key={group.id} className="pt-2.5">
@@ -476,7 +477,9 @@ export function Shell({
                   className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className={hasActiveChild ? "text-[#1355FF] font-bold" : ""}>{group.title}</span>
+                    <span className={hasActiveChild ? (isTiaoGroup ? "text-[#FB6B01] font-bold" : "text-[#1355FF] font-bold") : ""}>
+                      {group.title}
+                    </span>
                   </span>
                   <Icon
                     name="chevron-down"
@@ -500,7 +503,11 @@ export function Shell({
                         onClick={() => setMobileOpen(false)}
                         className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
                           active
-                            ? "bg-blue-50 text-[#1355FF] font-semibold"
+                            ? isTiaoGroup
+                              ? "bg-[#FB6B01] text-white font-semibold shadow-xs"
+                              : "bg-blue-50 text-[#1355FF] font-semibold"
+                            : isTiaoGroup
+                            ? "text-slate-600 hover:text-[#FB6B01] hover:bg-orange-50/60 font-medium"
                             : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
                         } ${collapsed ? "justify-center px-2" : ""}`}
                         title={collapsed ? item.label : undefined}
@@ -509,7 +516,15 @@ export function Shell({
                           name={item.icon}
                           size={15}
                           strokeWidth={active ? 2 : 1.75}
-                          className={active ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
+                          className={
+                            active
+                              ? isTiaoGroup
+                                ? "text-white"
+                                : "text-[#1355FF]"
+                              : isTiaoGroup
+                              ? "text-slate-400 group-hover:text-[#FB6B01]"
+                              : "text-slate-400 group-hover:text-slate-600"
+                          }
                         />
                         {!collapsed && <span className="truncate flex-1">{item.label}</span>}
 
@@ -517,7 +532,11 @@ export function Shell({
                         {!collapsed && item.badge && item.badge > 0 ? (
                           <span
                             className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-semibold ${
-                              active ? "bg-blue-100 text-[#1355FF]" : "bg-slate-100 text-slate-700"
+                              active
+                                ? isTiaoGroup
+                                  ? "bg-white/20 text-white"
+                                  : "bg-blue-100 text-[#1355FF]"
+                                : "bg-slate-100 text-slate-700"
                             }`}
                           >
                             {item.badge}
@@ -1045,55 +1064,92 @@ export function Shell({
         </main>
 
         {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-white/10 bg-[#1355FF] px-1 py-1 lg:hidden shadow-lg select-none text-white pb-[max(env(safe-area-inset-bottom),0.35rem)]">
-          {(mobileNav && mobileNav.length > 0
-            ? mobileNav
-            : [
-                { id: "inicio", href: "/painel", label: "Início", icon: "grid" as IconName },
-                { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
-                { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
-                { id: "servicos", href: "/painel/servicos", label: "Serviços", icon: "briefcase" as IconName },
-                { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
-              ]
-          ).map((item) => {
-            const isDrawerOpener = item.id === "mais" || item.href === "#drawer";
-            const active = !isDrawerOpener && isRouteActive(item.href);
+        {(() => {
+          const isTiaoRoute =
+            pathname?.startsWith("/painel/servicos") ||
+            pathname?.startsWith("/painel/chamados") ||
+            pathname?.startsWith("/prestador");
 
-            if (isDrawerOpener) {
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setMobileOpen(true)}
-                  className="flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold text-blue-100/80 hover:text-white transition-colors cursor-pointer"
-                >
-                  <div className="relative flex items-center justify-center">
-                    <Icon name={item.icon} size={17} strokeWidth={1.8} />
-                  </div>
-                  <span>{item.label}</span>
-                </button>
-              );
-            }
+          return (
+            <nav
+              className={`fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around px-1 py-1 lg:hidden shadow-lg select-none pb-[max(env(safe-area-inset-bottom),0.35rem)] transition-colors ${
+                isTiaoRoute
+                  ? "bg-white border-t border-slate-200 text-slate-600"
+                  : "bg-[#1355FF] border-t border-white/10 text-white"
+              }`}
+            >
+              {(mobileNav && mobileNav.length > 0
+                ? mobileNav
+                : [
+                    { id: "inicio", href: "/painel", label: "Início", icon: "grid" as IconName },
+                    { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
+                    { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
+                    { id: "servicos", href: "/painel/servicos", label: "Tião", icon: "tiao" as IconName },
+                    { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
+                  ]
+              ).map((item) => {
+                const isDrawerOpener = item.id === "mais" || item.href === "#drawer";
+                const active = !isDrawerOpener && isRouteActive(item.href);
+                const isTiaoItem = item.id === "servicos" || item.label.toLowerCase().includes("tião") || item.icon === "tiao";
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors ${
-                  active ? "text-[#FFD000]" : "text-blue-100/80 hover:text-white"
-                }`}
-              >
-                <div className="relative flex items-center justify-center">
-                  <Icon name={item.icon} size={17} strokeWidth={active ? 2.2 : 1.8} />
-                  {active && (
-                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#FFD000]" />
-                  )}
-                </div>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                if (isDrawerOpener) {
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setMobileOpen(true)}
+                      className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors cursor-pointer ${
+                        isTiaoRoute ? "text-slate-400 hover:text-slate-600" : "text-blue-100/80 hover:text-white"
+                      }`}
+                    >
+                      <div className="relative flex items-center justify-center">
+                        <Icon name={item.icon} size={17} strokeWidth={1.8} />
+                      </div>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                }
+
+                const activeColor = isTiaoRoute
+                  ? isTiaoItem
+                    ? "text-[#FB6B01]"
+                    : "text-slate-900"
+                  : isTiaoItem
+                  ? "text-[#FFD000]"
+                  : "text-[#FFD000]";
+
+                const inactiveColor = isTiaoRoute ? "text-slate-400 hover:text-slate-600" : "text-blue-100/80 hover:text-white";
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors ${
+                      active ? activeColor : inactiveColor
+                    }`}
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <Icon
+                        name={item.icon}
+                        size={17}
+                        strokeWidth={active ? 2.2 : 1.8}
+                        className={!isTiaoRoute && item.icon === "tiao" ? "text-white" : ""}
+                      />
+                      {active && (
+                        <span
+                          className={`absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full ${
+                            isTiaoRoute ? "bg-[#FB6B01]" : "bg-[#FFD000]"
+                          }`}
+                        />
+                      )}
+                    </div>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          );
+        })()}
       </div>
     </div>
   );

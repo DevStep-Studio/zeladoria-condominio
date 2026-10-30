@@ -83,7 +83,7 @@ describe("Navegação por Perfil e RBAC — Auditoria e Matrizes de Acesso", () 
 
     assert.ok(groupTitles.includes("minha rotina"), "Deve conter Minha rotina");
     assert.ok(groupTitles.includes("condomínio"), "Deve conter Condomínio");
-    assert.ok(groupTitles.includes("serviços"), "Deve conter Serviços");
+    assert.ok(groupTitles.includes("tião zelador") || groupTitles.includes("serviços"), "Deve conter Tião Zelador");
     assert.ok(groupTitles.includes("conta"), "Deve conter Conta");
 
     // Garantir que não exibe grupos administrativos
@@ -120,7 +120,7 @@ describe("Navegação por Perfil e RBAC — Auditoria e Matrizes de Acesso", () 
     assert.ok(groupTitles.includes("operação"), "Deve conter Operação");
     assert.ok(groupTitles.includes("comunidade"), "Deve conter Comunidade");
     assert.ok(groupTitles.includes("comunicação"), "Deve conter Comunicação");
-    assert.ok(groupTitles.includes("serviços"), "Deve conter Serviços");
+    assert.ok(groupTitles.includes("tião zelador") || groupTitles.includes("serviços"), "Deve conter Tião Zelador");
     assert.ok(groupTitles.includes("gestão"), "Deve conter Gestão");
     assert.ok(groupTitles.includes("administração"), "Deve conter Administração");
 

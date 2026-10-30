@@ -201,9 +201,11 @@ export default async function ChamadosPage({
   return (
     <>
       <PageHeader
-        title="Chamados"
+        title={session.role === "morador" ? "Minhas Contratações" : "Chamados"}
         subtitle={
-          session.role === "superadmin" && condoId <= 0
+          session.role === "morador"
+            ? "Acompanhe seus pedidos aos profissionais do Tião Zelador, orçamentos, vistorias e pagamentos protegidos por Zeladoria Pay."
+            : session.role === "superadmin" && condoId <= 0
             ? "Visão global de todos os chamados dos condomínios da plataforma Zeladoria."
             : "Acompanhe solicitações, prazos, responsáveis e interações com moradores em uma fila clara de atendimento."
         }
@@ -295,6 +297,33 @@ export default async function ChamadosPage({
           </details>
         }
       />
+
+      {session.role === "morador" && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-orange-200/80 bg-orange-50/70 p-4 text-xs">
+          <div className="flex items-center gap-3">
+            <img
+              src="/brands/tiao/mascot-black.png"
+              alt="Tião Zelador"
+              className="h-10 w-10 shrink-0 object-contain"
+            />
+            <div>
+              <p className="font-black text-slate-900">
+                Tião Zelador <span className="font-normal text-slate-500">· Marketplace Verificado</span>
+              </p>
+              <p className="text-[11px] text-slate-600">
+                Seus pagamentos ficam retidos sob custódia segura do Zeladoria Pay e só são liberados após sua aprovação da entrega.
+              </p>
+            </div>
+          </div>
+          <a
+            href="/painel/servicos"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] px-3.5 py-2 font-bold text-white shadow-xs transition-colors"
+          >
+            <span>Encontrar profissional</span>
+            <Icon name="arrow-right" size={14} />
+          </a>
+        </div>
+      )}
 
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Em aberto" value={open} icon="wrench" hint="em atendimento" tone="yellow" />

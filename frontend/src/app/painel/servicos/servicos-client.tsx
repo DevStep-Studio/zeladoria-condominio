@@ -1691,13 +1691,43 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* BANNER DE IMAGEM FULL-BLEED (SEM TEXTOS, IMAGEM OCUPA TODA A CAIXA) */}
-          <MarketplaceImageBanner />
+          {/* HEADER INSTITUCIONAL TIÃO ZELADOR */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-white border border-orange-200/90 shadow-2xs w-full">
+            <div className="flex items-center gap-3.5">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-2xl bg-orange-50 border border-orange-200 p-1 flex items-center justify-center shadow-xs">
+                <img
+                  src="/brands/tiao/mascot-black.png"
+                  alt="Mascote Tião"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+                    Tião Zelador
+                  </h1>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[#FB6B01] text-[10px] font-black uppercase">
+                    Serviços & Reparos
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                  Precisando de uma mão? Encontre profissionais para resolver o que você precisa.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 font-semibold">
+                <Icon name="shield" size={14} className="text-[#FB6B01]" />
+                <span>Garantia Zeladoria Pay</span>
+              </span>
+            </div>
+          </div>
 
           {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs w-full">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] shrink-0 border border-blue-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#FB6B01] shrink-0 border border-orange-200/60">
                 <Icon name="map-pin" size={18} />
               </div>
               <div className="min-w-0">
@@ -1717,7 +1747,7 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FB6B01] hover:text-[#E05F00] self-start sm:self-center px-3.5 py-1.5 rounded-xl border border-orange-200 bg-orange-50/50 hover:bg-orange-100/50 transition-colors cursor-pointer shrink-0"
             >
               <span>Alterar local</span>
               <Icon name="chevron-down" size={13} />
@@ -1731,7 +1761,7 @@ export function ServicosClient({
                 Qual serviço você precisa?
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                Encontre profissionais que atendem {serviceLocation.name}.
+                Encontre profissionais avaliados que atendem {serviceLocation.name}.
               </p>
             </div>
 
@@ -1751,8 +1781,8 @@ export function ServicosClient({
                     handleSearchChange(e.target.value);
                     setShowSuggestions(true);
                   }}
-                  placeholder="Ex.: chuveiro queimado, pia vazando, instalar ar-condicionado..."
-                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
+                  placeholder="Ex.: vazamento, chuveiro, pintura, eletricista..."
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#FB6B01] focus:ring-2 focus:ring-orange-100 transition-all shadow-xs"
                 />
                 {search && (
                   <button
@@ -1828,7 +1858,7 @@ export function ServicosClient({
           <div className="space-y-3 pt-1 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#1355FF]" />
+                <span className="h-2 w-2 rounded-full bg-[#FB6B01]" />
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-700">
                   Categorias de Serviços
                 </h2>
@@ -1837,7 +1867,7 @@ export function ServicosClient({
                 <button
                   type="button"
                   onClick={() => handleCategoryChange("Todas")}
-                  className="text-xs font-bold text-[#1355FF] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-[#FB6B01] hover:underline cursor-pointer"
                 >
                   Ver todas as categorias
                 </button>
@@ -1855,8 +1885,8 @@ export function ServicosClient({
                     onClick={() => handleCategoryChange(cat.id)}
                     className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all w-full cursor-pointer border ${
                       isActive
-                        ? "bg-blue-50/70 border-[#1355FF] shadow-xs ring-2 ring-[#1355FF]/20"
-                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
+                        ? "bg-orange-50/90 border-[#FB6B01] shadow-xs ring-2 ring-[#FB6B01]/20"
+                        : "bg-white border-slate-200 hover:border-orange-200 hover:bg-orange-50/20 shadow-2xs"
                     }`}
                   >
                     {/* Visual photo/icon tile com fallback automático onError */}
@@ -1873,22 +1903,22 @@ export function ServicosClient({
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
                           />
-                          <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#1355FF]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
+                          <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#FB6B01]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
                           <span className="absolute bottom-1 right-1 p-1 rounded-md bg-white/95 text-slate-800 shadow-2xs">
-                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#1355FF]" : "text-slate-700"} />
+                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#FB6B01]" : "text-slate-700"} />
                           </span>
                         </>
                       ) : (
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#1355FF] text-white" : "bg-blue-50 text-[#1355FF]"}`}>
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#FB6B01] text-white" : "bg-orange-50 text-[#FB6B01]"}`}>
                           <Icon name={cat.icon as any} size={20} />
                         </span>
                       )}
                     </div>
 
-                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#1355FF]" : "text-[#0F172A]"}`}>
+                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#FB6B01]" : "text-[#0F172A]"}`}>
                       {cat.name}
                     </span>
-                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#1355FF]" : "text-slate-400"}`}>
+                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#FB6B01]" : "text-slate-400"}`}>
                       {cat.count} {cat.count === 1 ? "profissional" : "profissionais"}
                     </span>
                   </button>
@@ -2015,9 +2045,9 @@ export function ServicosClient({
                       {serviceLocation.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#1355FF] shrink-0">
+                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#FB6B01] shrink-0">
                     <span className="sm:hidden">Trocar</span>
-                    <Icon name="chevron-down" size={11} className="text-[#1355FF]" />
+                    <Icon name="chevron-down" size={11} className="text-[#FB6B01]" />
                   </div>
                 </button>
 
@@ -2030,7 +2060,7 @@ export function ServicosClient({
                       onClick={() => setDisplayMode("lista")}
                       className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                         displayMode === "lista"
-                          ? "bg-[#1355FF] text-white shadow-xs"
+                          ? "bg-[#FB6B01] text-white shadow-xs"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
@@ -2042,7 +2072,7 @@ export function ServicosClient({
                       onClick={() => setDisplayMode("mapa")}
                       className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                         displayMode === "mapa"
-                          ? "bg-[#1355FF] text-white shadow-xs"
+                          ? "bg-[#FB6B01] text-white shadow-xs"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >

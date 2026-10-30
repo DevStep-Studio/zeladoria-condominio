@@ -79,19 +79,32 @@ export function ProviderShell({
   const categoryLabel = vendor?.category || "Serviços";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-[#0F172A] selection:bg-[#1355FF] selection:text-white">
+    <div data-brand="tiao" className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-[#0F172A] selection:bg-[#FB6B01] selection:text-white">
       {/* TOP HEADER */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-3">
-            {/* LEFT: Logo + Badge + Status Switch */}
+            {/* LEFT: Logo Tião Parceiros + Status Switch */}
             <div className="flex items-center gap-3 shrink-0">
               <Link
                 href="/prestador"
-                className="inline-flex items-center transition-opacity hover:opacity-90 focus:outline-none"
-                title="Zeladoria Condomínio · Área do Prestador"
+                className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-90 focus:outline-none"
+                title="Tião Parceiros · Conectando profissionais a novos clientes"
               >
-                <BrandLogo size="md" variant="default" />
+                <div className="h-9 w-9 rounded-xl bg-orange-50 border border-orange-200/80 p-0.5 flex items-center justify-center shadow-xs">
+                  <img
+                    src="/brands/tiao/mascot-black.png"
+                    alt="Tião Parceiros"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-sm text-[#0F172A] tracking-tight">Tião Parceiros</span>
+                    <span className="text-[10px] font-bold text-[#FB6B01] bg-orange-50 border border-orange-200/60 px-1.5 py-0.2 rounded-full">Pro</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Conectando profissionais a novos clientes</p>
+                </div>
               </Link>
 
               <span className="hidden sm:block h-4 w-[1px] bg-slate-200" />
@@ -129,8 +142,8 @@ export function ProviderShell({
                     href={item.href}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs transition-colors duration-150 ${
                       isActive
-                        ? "bg-[#1355FF] text-white font-bold shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold"
+                        ? "bg-[#FB6B01] text-white font-bold shadow-2xs"
+                        : "text-slate-600 hover:text-[#FB6B01] hover:bg-orange-50/60 font-semibold"
                     }`}
                   >
                     <Icon
@@ -304,7 +317,7 @@ export function ProviderShell({
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center py-1 px-2.5 rounded-[8px] text-[10px] font-bold transition-colors ${
-                isActive ? "text-[#1355FF]" : "text-slate-400 hover:text-slate-700"
+                isActive ? "text-[#FB6B01]" : "text-slate-400 hover:text-slate-700"
               }`}
             >
               <Icon name={item.icon} size={17} strokeWidth={isActive ? 2.4 : 1.8} />

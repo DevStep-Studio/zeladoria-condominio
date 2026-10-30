@@ -58,6 +58,7 @@ export type IconName =
   | "x-circle"
   | "eye"
   | "file-text"
+  | "tiao"
   | "external-link"
   | "minus-circle"
   | "heart"
@@ -92,7 +93,7 @@ export type IconName =
   | "palette"
   | "eye-off";
 
-const PATHS: Record<IconName, ReactElement> = {
+const PATHS: Record<Exclude<IconName, "tiao">, ReactElement> = {
   palette: (
     <>
       <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
@@ -582,7 +583,7 @@ const PATHS: Record<IconName, ReactElement> = {
   ),
 };
 
-export const ICON_KEYS = new Set<string>(Object.keys(PATHS));
+export const ICON_KEYS = new Set<string>([...Object.keys(PATHS), "tiao"]);
 
 export function isIconName(value: string): value is IconName {
   return ICON_KEYS.has(value);
@@ -595,6 +596,20 @@ export function Icon({
   strokeWidth = 1.75,
   ...rest
 }: { name: IconName; size?: number; strokeWidth?: number } & Omit<SVGProps<SVGSVGElement>, "name">) {
+  if (name === "tiao") {
+    const isWhite = className.includes("text-white");
+    return (
+      <img
+        src={isWhite ? "/brands/tiao/mascot-white.png" : "/brands/tiao/mascot-black.png"}
+        alt="Tião"
+        width={size}
+        height={size}
+        className={`object-contain shrink-0 ${className}`}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -610,7 +625,7 @@ export function Icon({
       aria-hidden="true"
       {...rest}
     >
-      {PATHS[name]}
+      {PATHS[name as Exclude<IconName, "tiao">]}
     </svg>
   );
 }

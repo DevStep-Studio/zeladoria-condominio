@@ -69,14 +69,14 @@ export function ProviderCard({
                 onToggleFavorite?.(provider.id);
               }}
               className={`flex h-7.5 w-7.5 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
-                isFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
+                isFavorite ? "text-[#FB6B01]" : "text-slate-400 hover:text-[#FB6B01]"
               }`}
               title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
             >
               <Icon
                 name="heart"
                 size={14}
-                className={isFavorite ? "fill-rose-500 text-rose-500" : ""}
+                className={isFavorite ? "fill-[#FB6B01] text-[#FB6B01]" : ""}
               />
             </button>
           </div>
@@ -96,7 +96,7 @@ export function ProviderCard({
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#1355FF] rounded-lg text-sm shadow-2xs">
+                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#FB6B01] rounded-lg text-sm shadow-2xs">
                   {provider.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -105,7 +105,7 @@ export function ProviderCard({
               {provider.isVerified && (
                 <div
                   title="Documento e antecedentes verificados"
-                  className="absolute bottom-0 right-0 bg-[#1355FF] text-white rounded-tl-md rounded-br-lg p-0.5"
+                  className="absolute bottom-0 right-0 bg-[#FB6B01] text-white rounded-tl-md rounded-br-lg p-0.5"
                 >
                   <Icon name="check" size={8} strokeWidth={3} />
                 </div>
@@ -114,7 +114,7 @@ export function ProviderCard({
 
             {/* Selo de Ranking (#1, #2, #3) */}
             {rankingPosition && rankingPosition <= 3 ? (
-              <span className="text-[10px] font-black text-[#1355FF] bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-lg shrink-0 mb-1">
+              <span className="text-[10px] font-black text-[#FB6B01] bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-lg shrink-0 mb-1">
                 #{rankingPosition}
               </span>
             ) : null}
@@ -122,7 +122,7 @@ export function ProviderCard({
 
           {/* Identidade: Nome & Empresa / Especialidade */}
           <div>
-            <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#1355FF] transition-colors">
+            <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#FB6B01] transition-colors">
               {provider.name}
             </h3>
             <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
@@ -221,9 +221,9 @@ export function ProviderCard({
             e.stopPropagation();
             onRequestBudget(provider);
           }}
-          className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
+          className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-1.5 sm:py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer text-center"
         >
-          Contratar
+          Pedir orçamento
         </button>
       </div>
     </div>

@@ -512,19 +512,19 @@ export function DashboardClient({
               </div>
             </Link>
 
-            {/* 4. Contratar serviço */}
+            {/* 4. Tião Zelador */}
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-3 rounded-lg border border-slate-200/90 bg-white p-3 hover:border-blue-200 hover:bg-slate-50/60 transition-colors shadow-2xs group"
+              className="flex items-center gap-3 rounded-lg border border-orange-200/80 bg-white p-3 hover:border-orange-300 hover:bg-orange-50/20 transition-colors shadow-2xs group"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF]">
-                <Icon name="briefcase" size={16} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-orange-50 border border-orange-200/60 text-[#FB6B01]">
+                <Icon name="tiao" size={20} />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
-                  Contratar serviço
+                <h3 className="text-xs font-bold text-slate-900 group-hover:text-[#FB6B01] transition-colors truncate">
+                  Tião Zelador
                 </h3>
-                <p className="text-[11px] text-slate-400 truncate">Prestadores parceiros</p>
+                <p className="text-[11px] text-slate-500 truncate">Encontre profissionais</p>
               </div>
             </Link>
           </div>
@@ -822,45 +822,59 @@ export function DashboardClient({
           </div>
         </section>
 
-        {/* 5. ZELADORIA SERVIÇOS (Acesso limpo ao marketplace, sem bloco amarelo excessivo) */}
-        <section className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-2xs">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1 max-w-xl">
-              <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
-                Contratação de Serviços
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Profissionais de manutenção e reparo avaliados por moradores do seu condomínio.
-              </p>
+        {/* 5. TIÃO ZELADOR — Card Institucional da Submarca de Serviços */}
+        <section className="rounded-xl border border-orange-200/90 bg-white p-5 sm:p-6 shadow-2xs relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div className="flex items-start gap-4 max-w-xl">
+              <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-xl bg-orange-50 border border-orange-200/70 p-1.5 shadow-2xs">
+                <img
+                  src="/brands/tiao/mascot-black.png"
+                  alt="Mascote Tião"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">
+                    Tião Zelador
+                  </h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[#FB6B01] text-[10px] font-bold">
+                    Marketplace Verificado
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
+                </p>
 
-              {/* Categorias Rápidas */}
-              <div className="pt-2 flex items-center gap-1.5 flex-wrap">
-                {[
-                  { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
-                  { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
-                  { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
-                  { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
-                  { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
-                ].map((cat) => (
-                  <Link
-                    key={cat.label}
-                    href={cat.href}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 hover:bg-slate-100 hover:border-slate-300 text-slate-700 px-2.5 py-1 text-xs font-medium transition-colors"
-                  >
-                    <Icon name={cat.icon} size={12} className="text-slate-500" />
-                    <span>{cat.label}</span>
-                  </Link>
-                ))}
+                {/* Categorias Rápidas */}
+                <div className="pt-2 flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
+                    { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
+                    { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
+                    { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
+                    { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
+                  ].map((cat) => (
+                    <Link
+                      key={cat.label}
+                      href={cat.href}
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 hover:bg-orange-50 hover:border-orange-200 hover:text-[#FB6B01] text-slate-700 px-2.5 py-1 text-xs font-medium transition-colors"
+                    >
+                      <Icon name={cat.icon} size={12} className="text-slate-500" />
+                      <span>{cat.label}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className="shrink-0 flex items-center">
               <Link
                 href="/painel/servicos"
-                className="btn-primary min-h-9 px-3.5 py-1.5 text-xs"
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2.5 text-xs font-bold transition-colors shadow-xs"
               >
-                <span>Ver todos os profissionais</span>
-                <Icon name="arrow-up-right" size={13} />
+                <span>Encontrar profissional</span>
+                <Icon name="arrow-right" size={14} />
               </Link>
             </div>
           </div>
@@ -947,10 +961,10 @@ export function DashboardClient({
                   variant: "blue" as const,
                 },
                 {
-                  label: "Prestadores",
+                  label: "Tião Zelador",
                   desc: "Profissionais avaliados",
                   href: "/painel/servicos",
-                  icon: "briefcase" as IconName,
+                  icon: "tiao" as IconName,
                   variant: "blue" as const,
                 },
               ]
@@ -977,10 +991,10 @@ export function DashboardClient({
                   variant: "blue" as const,
                 },
                 {
-                  label: "Prestadores",
+                  label: "Tião Zelador",
                   desc: "Profissionais avaliados",
                   href: "/painel/servicos",
-                  icon: "briefcase" as IconName,
+                  icon: "tiao" as IconName,
                   variant: "blue" as const,
                 },
               ]
