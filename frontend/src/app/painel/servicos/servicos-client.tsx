@@ -300,34 +300,45 @@ export function ServicosClient({
     );
   };
 
+  const isFavoritesTab = (params: { get: (k: string) => string | null }) => {
+    return params.get("tab") === "favoritos" || params.get("fav") === "1";
+  };
+
   const [activeView, setActiveView] = useState<"marketplace" | "contratacoes">(
     isContratacoesTab(searchParams) ? "contratacoes" : "marketplace"
   );
   const [onlyFavorites, setOnlyFavorites] = useState<boolean>(
-    searchParams.get("tab") === "favoritos"
+    isFavoritesTab(searchParams)
   );
 
   useEffect(() => {
     setActiveView(isContratacoesTab(searchParams) ? "contratacoes" : "marketplace");
-    setOnlyFavorites(searchParams.get("tab") === "favoritos");
+    setOnlyFavorites(isFavoritesTab(searchParams));
   }, [searchParams]);
 
-  const switchView = (view: "marketplace" | "contratacoes") => {
-    setActiveView(view);
-    if (view === "marketplace") {
-      setOnlyFavorites(false);
-    }
+  const switchTab = (tab: "marketplace" | "contratacoes" | "favoritos") => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("aba");
-    if (view === "contratacoes") {
+    if (tab === "contratacoes") {
+      setActiveView("contratacoes");
+      setOnlyFavorites(false);
       params.set("tab", role === "morador" ? "minhas-contratacoes" : "contratacoes");
+    } else if (tab === "favoritos") {
+      setActiveView("marketplace");
+      setOnlyFavorites(true);
+      params.set("tab", "favoritos");
     } else {
+      setActiveView("marketplace");
+      setOnlyFavorites(false);
       params.delete("tab");
+      params.delete("fav");
     }
     const queryStr = params.toString();
     const newPath = queryStr ? `/painel/servicos?${queryStr}` : `/painel/servicos`;
     window.history.replaceState(null, "", newPath);
   };
+
+  const switchView = (view: "marketplace" | "contratacoes") => switchTab(view);
 
   // Distância dinâmica recalculada em tempo real com base no local de atendimento selecionado
   const providersWithDynamicDistance = useMemo(() => {
@@ -721,52 +732,96 @@ export function ServicosClient({
   return (
     <div className="space-y-6 w-full pb-12">
       {/* Top Banner / Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1355FF] text-white shadow-xs">
-              <Icon name="briefcase" size={16} />
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FB6B01] text-white shadow-xs p-1">
+              <img
+                src="/brands/tiao/mascot-white.png"
+                alt="Tião Zelador"
+                className="h-7 w-7 object-contain"
+              />
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-              Zeladoria Serviços
-            </h1>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
+                  Tião Zelador
+                </h1>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-[#FB6B01] px-2 py-0.5 rounded-full">
+                  Marketplace Verificado
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Encontre profissionais qualificados, acompanhe contratações e acesse seus favoritos com a garantia Zeladoria Pay.
+              </p>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Encontre, compare e contrate os melhores profissionais para pequenos reparos ou reformas completas.
-          </p>
         </div>
 
-        {/* View Switcher: Marketplace vs Minhas Contratações */}
-        <div className="w-full sm:w-auto flex items-stretch sm:items-center gap-1 bg-slate-100 p-1 rounded-2xl sm:rounded-xl shrink-0 border border-slate-200/60 shadow-2xs overflow-x-auto scrollbar-none">
+        {/* View Switcher: 3 Abas (Encontrar Profissional, Minhas Contratações, Favoritos) */}
+        <div className="w-full md:w-auto flex items-stretch sm:items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl shrink-0 border border-slate-200 shadow-2xs overflow-x-auto scrollbar-none">
+          {/* Aba 1: Encontrar Profissional */}
           <button
             type="button"
-            onClick={() => switchView("marketplace")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
-              activeView === "marketplace"
-                ? "bg-white text-[#1355FF] shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+            onClick={() => switchTab("marketplace")}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
+              activeView === "marketplace" && !onlyFavorites
+                ? "bg-[#FB6B01] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
-            <Icon name="grid" size={14} />
-            <span className="hidden sm:inline">Explorar Serviços</span>
-            <span className="sm:hidden">Explorar</span>
+            <Icon name="search" size={14} />
+            <span className="hidden sm:inline">Encontrar profissional</span>
+            <span className="sm:hidden">Profissionais</span>
           </button>
 
+          {/* Aba 2: Minhas Contratações */}
           <button
             type="button"
-            onClick={() => switchView("contratacoes")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
+            onClick={() => switchTab("contratacoes")}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
               activeView === "contratacoes"
-                ? "bg-white text-[#1355FF] shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                ? "bg-[#FB6B01] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <Icon name="clipboard" size={14} />
-            <span className="hidden sm:inline">Minhas Contratações</span>
+            <span className="hidden sm:inline">Minhas contratações</span>
             <span className="sm:hidden">Contratações</span>
             {totalContractedCount > 0 && (
-              <span className="rounded-full bg-[#1355FF] text-white px-2 py-0.5 text-[10px] font-black">
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  activeView === "contratacoes"
+                    ? "bg-white/25 text-white"
+                    : "bg-orange-100 text-[#FB6B01]"
+                }`}
+              >
                 {totalContractedCount}
+              </span>
+            )}
+          </button>
+
+          {/* Aba 3: Favoritos */}
+          <button
+            type="button"
+            onClick={() => switchTab("favoritos")}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[38px] sm:min-h-0 ${
+              activeView === "marketplace" && onlyFavorites
+                ? "bg-[#FB6B01] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
+            }`}
+          >
+            <Icon name="star" size={14} />
+            <span>Favoritos</span>
+            {favorites.length > 0 && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  activeView === "marketplace" && onlyFavorites
+                    ? "bg-white/25 text-white"
+                    : "bg-orange-100 text-[#FB6B01]"
+                }`}
+              >
+                {favorites.length}
               </span>
             )}
           </button>
@@ -774,7 +829,7 @@ export function ServicosClient({
           {role === "superadmin" && (
             <Link
               href="/painel/admin/marketplace/destaques"
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-bold text-slate-700 hover:text-[#1355FF] hover:bg-white transition-all whitespace-nowrap min-h-[38px] sm:min-h-0"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FB6B01] hover:bg-white transition-all whitespace-nowrap min-h-[38px] sm:min-h-0"
               title="Gerenciar Planos de Publicidade e Destaques"
             >
               <Icon name="sparkles" size={14} />
@@ -798,7 +853,7 @@ export function ServicosClient({
                 setIsGeneralBudgetOpen(true);
                 setBudgetVendor(null);
               }}
-              className="text-xs font-bold text-[#1355FF] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#FB6B01] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>+ Solicitar novo serviço</span>
             </button>
@@ -806,17 +861,17 @@ export function ServicosClient({
 
           {marketplaceRequests.length === 0 && services.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto">
+              <div className="h-12 w-12 rounded-full bg-orange-50 text-[#FB6B01] flex items-center justify-center mx-auto">
                 <Icon name="clipboard" size={22} />
               </div>
               <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma contratação registrada</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Você ainda não solicitou atendimentos pelo Zeladoria Serviços.
+                Você ainda não solicitou atendimentos pelo Tião Zelador.
               </p>
               <button
                 type="button"
-                onClick={() => switchView("marketplace")}
-                className="rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
+                onClick={() => switchTab("marketplace")}
+                className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
                 Buscar Profissionais
               </button>
@@ -2087,10 +2142,10 @@ export function ServicosClient({
                     onClick={() => setIsFilterSheetOpen(true)}
                     className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
                   >
-                    <Icon name="filter" size={13} className="text-[#1355FF]" />
+                    <Icon name="filter" size={13} className="text-[#FB6B01]" />
                     <span className="hidden xs:inline">Filtros</span>
                     {activeFiltersCount > 0 && (
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1355FF] text-white text-[9px] font-black">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FB6B01] text-white text-[9px] font-black">
                         {activeFiltersCount}
                       </span>
                     )}
@@ -2139,101 +2194,142 @@ export function ServicosClient({
               /* Display Mode: LISTA */
               <>
                 {filteredVendors.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 text-center space-y-5 shadow-xs max-w-xl mx-auto my-6">
-                    <div className="h-14 w-14 rounded-2xl bg-blue-50 text-[#1355FF] flex items-center justify-center mx-auto shadow-2xs">
-                      <Icon name="map-pin" size={26} />
+                  onlyFavorites ? (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-12 text-center space-y-4 shadow-xs max-w-lg mx-auto my-6">
+                      <div className="h-14 w-14 rounded-2xl bg-orange-50 text-[#FB6B01] flex items-center justify-center mx-auto shadow-2xs">
+                        <Icon name="star" size={26} />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
+                          Nenhum profissional favoritado ainda
+                        </h3>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                          Toque no ícone de estrela nos cards dos profissionais para salvá-los e acessá-los rapidamente aqui.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => switchTab("marketplace")}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      >
+                        <Icon name="search" size={14} />
+                        <span>Encontrar profissionais</span>
+                      </button>
                     </div>
-                    <div className="space-y-1.5">
-                      <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
-                        Ainda não encontramos profissionais cadastrados nesta região.
-                      </h3>
-                      <p className="text-xs text-slate-500 max-w-md mx-auto">
-                        Para a região de <strong>{serviceLocation.name}</strong> ({serviceLocation.city} - {serviceLocation.state}), não há prestadores aprovados com os filtros atuais.
-                      </p>
-                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 text-center space-y-5 shadow-xs max-w-xl mx-auto my-6">
+                      <div className="h-14 w-14 rounded-2xl bg-orange-50 text-[#FB6B01] flex items-center justify-center mx-auto shadow-2xs">
+                        <Icon name="map-pin" size={26} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
+                          Ainda não encontramos profissionais cadastrados nesta região.
+                        </h3>
+                        <p className="text-xs text-slate-500 max-w-md mx-auto">
+                          Para a região de <strong>{serviceLocation.name}</strong> ({serviceLocation.city} - {serviceLocation.state}), não há prestadores aprovados com os filtros atuais.
+                        </p>
+                      </div>
 
-                    <div className="pt-3 border-t border-slate-100">
-                      <p className="text-xs font-bold text-slate-700 mb-3 text-left">
-                        Alternativas disponíveis:
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-                        {/* 1. Ampliar o raio de busca */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFilters((prev) => ({ ...prev, maxDistanceKm: 100 }));
-                          }}
-                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
-                        >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
-                            <Icon name="compass" size={15} />
-                          </span>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
-                              Ampliar o raio de busca
+                      <div className="pt-3 border-t border-slate-100">
+                        <p className="text-xs font-bold text-slate-700 mb-3 text-left">
+                          Alternativas disponíveis:
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                          {/* 1. Ampliar o raio de busca */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFilters((prev) => ({ ...prev, maxDistanceKm: 100 }));
+                            }}
+                            className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#FB6B01] hover:bg-orange-50/50 transition-all cursor-pointer group"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#FB6B01] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                              <Icon name="compass" size={15} />
                             </span>
-                            <span className="text-[10px] text-slate-400">Expandir raio para até 100 km</span>
-                          </div>
-                        </button>
+                            <div>
+                              <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#FB6B01]">
+                                Ampliar o raio de busca
+                              </span>
+                              <span className="text-[10px] text-slate-400">Expandir raio para até 100 km</span>
+                            </div>
+                          </button>
 
-                        {/* 2. Alterar a localização */}
-                        <button
-                          type="button"
-                          onClick={() => setIsLocationModalOpen(true)}
-                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
-                        >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
-                            <Icon name="map-pin" size={15} />
-                          </span>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
-                              Alterar a localização
+                          {/* 2. Alterar a localização */}
+                          <button
+                            type="button"
+                            onClick={() => setIsLocationModalOpen(true)}
+                            className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#FB6B01] hover:bg-orange-50/50 transition-all cursor-pointer group"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#FB6B01] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                              <Icon name="map-pin" size={15} />
                             </span>
-                            <span className="text-[10px] text-slate-400">Buscar por GPS, CEP ou cidade</span>
-                          </div>
-                        </button>
+                            <div>
+                              <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#FB6B01]">
+                                Alterar a localização
+                              </span>
+                              <span className="text-[10px] text-slate-400">Buscar por GPS, CEP ou cidade</span>
+                            </div>
+                          </button>
 
-                        {/* 3. Buscar outra especialidade */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedCategory("Todas");
-                            setFilters((prev) => ({ ...prev, category: "Todas", subcategory: undefined }));
-                            updateUrlParams("Todas", search, sortBy);
-                          }}
-                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
-                        >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
-                            <Icon name="grid" size={15} />
-                          </span>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
-                              Buscar outra especialidade
+                          {/* 3. Buscar outra especialidade */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory("Todas");
+                              setFilters((prev) => ({ ...prev, category: "Todas", subcategory: undefined }));
+                              updateUrlParams("Todas", search, sortBy);
+                            }}
+                            className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#FB6B01] hover:bg-orange-50/50 transition-all cursor-pointer group"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#FB6B01] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                              <Icon name="grid" size={15} />
                             </span>
-                            <span className="text-[10px] text-slate-400">Ver todas as especialidades</span>
-                          </div>
-                        </button>
+                            <div>
+                              <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#FB6B01]">
+                                Buscar outra especialidade
+                              </span>
+                              <span className="text-[10px] text-slate-400">Ver todas as especialidades</span>
+                            </div>
+                          </button>
 
-                        {/* 4. Convidar um profissional para se cadastrar */}
-                        <button
-                          type="button"
-                          onClick={() => setIsInviteModalOpen(true)}
-                          className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50/50 transition-all cursor-pointer group"
-                        >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#1355FF] group-hover:text-white text-slate-600 transition-colors shrink-0">
-                            <Icon name="users" size={15} />
-                          </span>
-                          <div>
-                            <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#1355FF]">
-                              Convidar um profissional
+                          {/* 4. Convidar um profissional para se cadastrar */}
+                          <button
+                            type="button"
+                            onClick={() => setIsInviteModalOpen(true)}
+                            className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-[#FB6B01] hover:bg-orange-50/50 transition-all cursor-pointer group"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-[#FB6B01] group-hover:text-white text-slate-600 transition-colors shrink-0">
+                              <Icon name="users" size={15} />
                             </span>
-                            <span className="text-[10px] text-slate-400">Enviar convite de adesão</span>
-                          </div>
-                        </button>
+                            <div>
+                              <span className="text-xs font-bold text-[#0F172A] block group-hover:text-[#FB6B01]">
+                                Convidar um profissional
+                              </span>
+                              <span className="text-[10px] text-slate-400">Enviar convite de adesão</span>
+                            </div>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )
                 ) : (
+                  <>
+                    {/* Header indicativo de favoritos */}
+                    {onlyFavorites && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-orange-50/80 border border-orange-200/80 text-xs text-orange-950 mb-3">
+                        <div className="flex items-center gap-2 font-bold">
+                          <Icon name="star" size={15} className="text-[#FB6B01] fill-[#FB6B01]" />
+                          <span>Exibindo seus profissionais favoritos ({filteredVendors.length})</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => switchTab("marketplace")}
+                          className="text-[11px] font-bold text-[#FB6B01] hover:underline cursor-pointer"
+                        >
+                          Ver todos os profissionais →
+                        </button>
+                      </div>
+                    )}
                   <div className="space-y-6">
                     {/* SEUS PROFISSIONAIS (Cláusulas 37 e 38) */}
                     {hiredProviders && hiredProviders.length > 0 && selectedCategory === "Todas" && !search && (
@@ -2418,7 +2514,8 @@ export function ServicosClient({
                       </div>
                     )}
                   </div>
-                )}
+                </>
+              )}
               </>
             )}
           </div>

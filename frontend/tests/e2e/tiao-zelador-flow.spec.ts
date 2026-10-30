@@ -14,14 +14,14 @@ test.describe("Módulo Tião Zelador: Identidade Visual e Fluxos E2E", () => {
     await expect(tiaoCard).toBeVisible();
     await expect(page.locator("body")).toContainText(/Tião Zelador/i);
 
-    // Sidebar: grupo Tião Zelador com item 'Encontrar profissional'
+    // Sidebar: botão único do Tião Zelador em laranja sólido
     const sidebarTiaoLink = page.locator("aside a[href='/painel/servicos']");
     if (await sidebarTiaoLink.isVisible()) {
-      await expect(sidebarTiaoLink).toContainText(/Encontrar profissional/i);
+      await expect(sidebarTiaoLink).toContainText(/Tião Zelador/i);
     }
   });
 
-  test("Navegação para /painel/servicos: ativa tema contextual data-brand='tiao' e identidade do Tião", async ({ page }) => {
+  test("Navegação para /painel/servicos: ativa tema contextual data-brand='tiao', identidade e abas internas", async ({ page }) => {
     await page.goto("/painel/servicos", { waitUntil: "domcontentloaded" });
 
     // Verifica que o tema contextual Tião foi ativado no container principal
@@ -32,6 +32,11 @@ test.describe("Módulo Tião Zelador: Identidade Visual e Fluxos E2E", () => {
     await expect(page.locator("h1")).toContainText(/Tião Zelador/i);
     const mascotImg = page.locator("img[src*='/brands/tiao/']").first();
     await expect(mascotImg).toBeVisible();
+
+    // Abas internas: Encontrar profissional, Minhas contratações, Favoritos
+    await expect(page.locator("button:has-text('Encontrar profissional')")).toBeVisible();
+    await expect(page.locator("button:has-text('Minhas contratações')")).toBeVisible();
+    await expect(page.locator("button:has-text('Favoritos')")).toBeVisible();
 
     // Garantia Zeladoria Pay visível
     await expect(page.locator("body")).toContainText(/Zeladoria Pay/i);

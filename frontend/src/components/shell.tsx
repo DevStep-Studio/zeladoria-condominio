@@ -468,6 +468,66 @@ export function Shell({
           const hasActiveChild = group.items.some((item) => isRouteActive(item.href));
           const isTiaoGroup = group.id === "servicos" || group.title.toLowerCase().includes("tião");
 
+          if (isTiaoGroup) {
+            const isTiaoActive =
+              pathname.startsWith("/painel/servicos") ||
+              pathname.startsWith("/painel/chamados") ||
+              pathname.startsWith("/prestador");
+
+            return (
+              <div key={group.id} className="pt-2.5 pb-1">
+                {!collapsed ? (
+                  <Link
+                    href="/painel/servicos"
+                    onClick={() => setMobileOpen(false)}
+                    className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-all duration-150 shadow-xs cursor-pointer ${
+                      isTiaoActive
+                        ? "bg-[#FB6B01] ring-2 ring-[#FB6B01]/50 shadow-md brightness-95"
+                        : "bg-[#FB6B01] hover:bg-[#E05F00] hover:shadow-md"
+                    }`}
+                    title="Tião Zelador · Encontrar profissional, contratações e favoritos"
+                  >
+                    <img
+                      src="/brands/tiao/mascot-white.png"
+                      alt="Tião Zelador"
+                      className="h-6 w-6 shrink-0 object-contain transition-transform group-hover:scale-105"
+                    />
+                    <div className="flex-1 min-w-0 flex items-center justify-between">
+                      <span className="font-black text-[13px] tracking-tight text-white truncate">
+                        Tião Zelador
+                      </span>
+                      <Icon
+                        name="arrow-right"
+                        size={13}
+                        className="text-white/80 transition-transform group-hover:translate-x-0.5 shrink-0"
+                      />
+                    </div>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/painel/servicos"
+                    onClick={() => setMobileOpen(false)}
+                    className={`group relative flex items-center justify-center h-10 w-10 mx-auto rounded-xl text-white transition-all duration-150 shadow-xs cursor-pointer ${
+                      isTiaoActive
+                        ? "bg-[#FB6B01] ring-2 ring-[#FB6B01]/50 shadow-md brightness-95"
+                        : "bg-[#FB6B01] hover:bg-[#E05F00] hover:shadow-md"
+                    }`}
+                    title="Tião Zelador"
+                  >
+                    <img
+                      src="/brands/tiao/mascot-white.png"
+                      alt="Tião Zelador"
+                      className="h-6 w-6 object-contain transition-transform group-hover:scale-110"
+                    />
+                    <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
+                      Tião Zelador
+                    </span>
+                  </Link>
+                )}
+              </div>
+            );
+          }
+
           return (
             <div key={group.id} className="pt-2.5">
               {!collapsed ? (
