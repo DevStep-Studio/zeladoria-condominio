@@ -835,51 +835,58 @@ export function ServicosClient({
 
   return (
     <div className="space-y-6 w-full pb-12">
-      {/* 1. HERO OFICIAL DO TIÃO ZELADOR */}
-      <div className="rounded-2xl border border-orange-200/90 bg-white p-5 sm:p-6 shadow-xs relative overflow-hidden">
-        {/* Detalhe gráfico discreto e sólido de fundo */}
+      {/* 1. HERO OFICIAL DO TIÃO ZELADOR COM FUNDO LARANJA */}
+      <div className="rounded-2xl sm:rounded-3xl bg-[#FB6B01] p-5 sm:p-6 md:p-7 shadow-md relative overflow-hidden text-white">
+        {/* Detalhe gráfico discreto e elegante de fundo */}
         <svg
-          className="pointer-events-none absolute right-0 top-0 h-full w-1/3 select-none text-orange-50"
-          viewBox="0 0 240 140"
+          className="pointer-events-none absolute right-0 top-0 h-full w-2/5 select-none"
+          viewBox="0 0 280 140"
           fill="none"
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          <circle cx="200" cy="40" r="80" stroke="#FB6B01" strokeWidth="1" strokeOpacity="0.15" />
-          <circle cx="200" cy="40" r="120" stroke="#FB6B01" strokeWidth="1" strokeDasharray="4 4" strokeOpacity="0.12" />
+          <circle cx="240" cy="40" r="90" stroke="white" strokeWidth="1.5" strokeOpacity="0.12" />
+          <circle cx="240" cy="40" r="140" stroke="white" strokeWidth="1" strokeDasharray="5 5" strokeOpacity="0.15" />
+          <circle cx="240" cy="40" r="190" stroke="white" strokeWidth="1" strokeOpacity="0.08" />
         </svg>
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
           {/* Lado Esquerdo: Identidade Tião */}
-          <div className="flex items-start gap-4 max-w-2xl">
-            <div className="shrink-0 flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#FB6B01] p-2 shadow-xs">
+          <div className="flex items-start gap-4 sm:gap-5 max-w-2xl">
+            <div className="shrink-0 flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/15 border border-white/25 p-2 shadow-inner backdrop-blur-xs">
               <img
                 src="/brands/tiao/mascot-white.png"
                 alt="Tião Zelador"
-                className="h-full w-full object-contain"
+                className="h-full w-full object-contain drop-shadow-sm"
               />
             </div>
 
-            <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-                Tião Zelador
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                Encontre, compare e contrate profissionais para pequenos reparos, manutenções e serviços do dia a dia com pagamento seguro.
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">
+                  Tião Zelador
+                </h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 text-white text-[11px] font-bold backdrop-blur-xs">
+                  <Icon name="shield" size={12} className="text-white" />
+                  Marketplace Verificado
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-white/95 font-medium leading-relaxed max-w-xl">
+                Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
               </p>
             </div>
           </div>
 
-          {/* Lado Direito: Alternância de Abas (Encontrar Profissional, Minhas Contratações, Favoritos) */}
-          <div className="w-full lg:w-auto flex items-stretch sm:items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl shrink-0 border border-slate-200 shadow-2xs overflow-x-auto scrollbar-none">
+          {/* Lado Direito: Alternância de Abas sobre o fundo laranja */}
+          <div className="w-full lg:w-auto flex items-stretch sm:items-center gap-1.5 bg-black/15 p-1.5 rounded-2xl shrink-0 border border-white/20 shadow-inner backdrop-blur-xs overflow-x-auto scrollbar-none">
             {/* Aba 1: Encontrar Profissional */}
             <button
               type="button"
               onClick={() => switchTab("marketplace")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
                 activeView === "marketplace" && !onlyFavorites
-                  ? "bg-[#FB6B01] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
+                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
               }`}
             >
               <Icon name="search" size={14} />
@@ -890,10 +897,10 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => switchTab("contratacoes")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
                 activeView === "contratacoes"
-                  ? "bg-[#FB6B01] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
+                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
               }`}
             >
               <Icon name="clipboard" size={14} />
@@ -902,8 +909,8 @@ export function ServicosClient({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                     activeView === "contratacoes"
-                      ? "bg-white text-[#FB6B01]"
-                      : "bg-orange-100 text-[#FB6B01]"
+                      ? "bg-[#FB6B01] text-white"
+                      : "bg-white/25 text-white"
                   }`}
                 >
                   {totalContractedCount}
@@ -915,10 +922,10 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => switchTab("favoritos")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
                 activeView === "marketplace" && onlyFavorites
-                  ? "bg-[#FB6B01] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
+                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
               }`}
             >
               <Icon name="star" size={14} />
@@ -927,8 +934,8 @@ export function ServicosClient({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                     activeView === "marketplace" && onlyFavorites
-                      ? "bg-white text-[#FB6B01]"
-                      : "bg-orange-100 text-[#FB6B01]"
+                      ? "bg-[#FB6B01] text-white"
+                      : "bg-white/25 text-white"
                   }`}
                 >
                   {favorites.length}
@@ -939,7 +946,7 @@ export function ServicosClient({
             {role === "superadmin" && (
               <Link
                 href="/painel/admin/marketplace/destaques"
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FB6B01] hover:bg-white transition-all whitespace-nowrap min-h-[40px] sm:min-h-0"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/15 transition-all whitespace-nowrap min-h-[40px] sm:min-h-0"
                 title="Gerenciar Planos de Publicidade e Destaques"
               >
                 <Icon name="sparkles" size={14} />
