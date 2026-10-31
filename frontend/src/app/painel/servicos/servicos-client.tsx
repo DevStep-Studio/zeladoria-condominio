@@ -282,6 +282,16 @@ export function ServicosClient({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestions = useMemo(() => getSearchSuggestions(search), [search]);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const categoriesCarouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollCategories = (direction: "left" | "right") => {
+    if (!categoriesCarouselRef.current) return;
+    const scrollAmount = categoriesCarouselRef.current.clientWidth * 0.75;
+    categoriesCarouselRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -2206,7 +2216,7 @@ export function ServicosClient({
             </div>
           </div>
 
-          {/* SECTION 2: CATEGORIAS VISUAIS (EXPANDIDAS EM 6 COLUNAS ATÉ O FINAL DA PÁGINA) */}
+          {/* SECTION 2: CARROSSEL DE CATEGORIAS VISUAIS */}
           <div className="space-y-3 pt-1 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -2214,20 +2224,49 @@ export function ServicosClient({
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-700">
                   Categorias de Serviços
                 </h2>
+                <span className="text-[11px] text-slate-400 font-medium">({categoriesConfig.length})</span>
               </div>
-              {selectedCategory !== "Todas" && (
-                <button
-                  type="button"
-                  onClick={() => handleCategoryChange("Todas")}
-                  className="text-xs font-bold text-[#FB6B01] hover:underline cursor-pointer"
-                >
-                  Ver todas as categorias
-                </button>
-              )}
+
+              <div className="flex items-center gap-2">
+                {selectedCategory !== "Todas" && (
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryChange("Todas")}
+                    className="text-xs font-bold text-[#FB6B01] hover:underline cursor-pointer mr-2"
+                  >
+                    Ver todas
+                  </button>
+                )}
+
+                {/* Controles de Navegação do Carrossel */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => scrollCategories("left")}
+                    className="h-7 w-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#FB6B01] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                    title="Anterior"
+                    aria-label="Rolar categorias para esquerda"
+                  >
+                    <Icon name="chevron-left" size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollCategories("right")}
+                    className="h-7 w-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#FB6B01] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                    title="Próxima"
+                    aria-label="Rolar categorias para direita"
+                  >
+                    <Icon name="chevron-right" size={14} />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Category grid: 6 items spanning exactly across 6 columns on lg, 3 on sm, 2 on xs, filling 100% */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 w-full">
+            {/* Carrossel Horizontal Deslizável */}
+            <div
+              ref={categoriesCarouselRef}
+              className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-0.5 scroll-smooth scrollbar-none snap-x snap-mandatory -mx-1 px-1"
+            >
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 return (
@@ -2235,14 +2274,14 @@ export function ServicosClient({
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all w-full cursor-pointer border ${
+                    className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all cursor-pointer border shrink-0 snap-start w-[145px] sm:w-[160px] md:w-[170px] ${
                       isActive
-                        ? "bg-orange-50/90 border-[#FB6B01] shadow-xs ring-2 ring-[#FB6B01]/20"
-                        : "bg-white border-slate-200 hover:border-orange-200 hover:bg-orange-50/20 shadow-2xs"
+                        ? "bg-orange-50/90 border-[#FB6B01] shadow-xs ring-2 ring-[#FB6B01]/20 text-[#FB6B01]"
+                        : "bg-white border-slate-200 hover:border-orange-200 hover:bg-orange-50/20 shadow-2xs text-[#0F172A]"
                     }`}
                   >
                     {/* Visual photo/icon tile com fallback automático onError */}
-                    <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
+                    <div className="relative h-18 sm:h-20 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
                       {cat.imageUrl ? (
                         <>
                           <img
