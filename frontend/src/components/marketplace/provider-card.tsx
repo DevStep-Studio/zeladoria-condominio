@@ -119,21 +119,21 @@ export function ProviderCard({
     );
   }
 
-  // VARIANTE STANDARD (Card Vertical Otimizado - Seções 20 a 33)
+  // VARIANTE STANDARD (Card Minimalista, Elegante e Funcional)
   return (
     <div
       onClick={() => onViewProfile(provider)}
       className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-xs cursor-pointer overflow-hidden"
     >
       <div>
-        {/* FOTO DO SERVIÇO (Proporção 16:9 / 3:2 consistente e altura reduzida) */}
+        {/* FOTO DO SERVIÇO / PORTFÓLIO */}
         <div className="relative aspect-16/10 sm:aspect-16/9 w-full overflow-hidden bg-slate-100">
           {coverImage && !imageError ? (
             <img
               src={coverImage}
               alt={provider.name}
               onError={() => setImageError(true)}
-              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103"
               loading="lazy"
             />
           ) : (
@@ -148,34 +148,37 @@ export function ProviderCard({
           )}
 
           {/* Badges de Destaque no topo esquerdo (Máximo 1 badge por card) */}
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
             {provider.isSponsored ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-100/95 border border-amber-200/90 px-2 py-0.5 rounded-md shadow-2xs backdrop-blur-xs">
-                Patrocinado
+              <span className="text-[10px] font-bold tracking-wider uppercase text-white bg-slate-900/80 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1">
+                <Icon name="sparkles" size={10} className="text-amber-400" />
+                <span>Destaque</span>
               </span>
             ) : provider.isNew ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-orange-950 bg-orange-100/95 border border-orange-200/90 px-2 py-0.5 rounded-md shadow-2xs backdrop-blur-xs">
-                Novo no Tião
+              <span className="text-[10px] font-bold tracking-wider uppercase text-white bg-[#FB6B01] px-2.5 py-0.5 rounded-full shadow-2xs">
+                Novo
               </span>
             ) : provider.rating >= 4.9 && provider.reviewsCount >= 3 ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-950 bg-emerald-100/95 border border-emerald-200/90 px-2 py-0.5 rounded-md shadow-2xs backdrop-blur-xs">
-                Melhor avaliado
+              <span className="text-[10px] font-bold tracking-wider uppercase text-white bg-emerald-600 px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1">
+                <Icon name="star" size={9} className="fill-white" />
+                <span>Top Avaliado</span>
               </span>
             ) : null}
           </div>
 
           {/* Botão de Favoritar (♡) no canto superior direito */}
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-2.5 right-2.5 z-10">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite?.(provider.id);
               }}
-              className={`flex h-7.5 w-7.5 items-center justify-center rounded-full bg-white/95 shadow-xs transition-transform active:scale-90 hover:scale-105 cursor-pointer ${
-                isFavorite ? "text-[#FB6B01]" : "text-slate-400 hover:text-[#FB6B01]"
+              className={`flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs shadow-2xs transition-all active:scale-90 hover:scale-105 cursor-pointer ${
+                isFavorite ? "text-[#FB6B01] bg-white" : "text-slate-400 hover:text-[#FB6B01] hover:bg-white"
               }`}
               title={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
+              aria-label={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
             >
               <Icon
                 name="heart"
@@ -186,21 +189,22 @@ export function ProviderCard({
           </div>
         </div>
 
-        {/* CORPO DO CARD */}
-        <div className="p-3.5 pt-0 space-y-2 relative">
-          {/* AVATAR DO PRESTADOR (Sobrepondo sutilmente a divisória da imagem) */}
-          <div className="-mt-5 flex items-end justify-between gap-2 relative z-20">
-            <div className="relative h-11 w-11 rounded-xl bg-white p-0.5 border-2 border-white shadow-xs overflow-hidden shrink-0 bg-slate-100">
+        {/* CORPO DO CARD (Limpo, sem sobreposição pesada) */}
+        <div className="p-3.5 space-y-2.5">
+          {/* Identificação: Avatar + Nome + Categoria */}
+          <div className="flex items-start gap-2.5">
+            {/* Avatar integrado com inicial / foto e badge de verificado */}
+            <div className="relative h-10 w-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/80 shrink-0 shadow-2xs">
               {provider.avatarUrl && !avatarError ? (
                 <img
                   src={provider.avatarUrl}
                   alt={provider.name}
                   onError={() => setAvatarError(true)}
-                  className="h-full w-full object-cover rounded-lg"
+                  className="h-full w-full object-cover"
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center font-bold text-white bg-[#FB6B01] rounded-lg text-sm shadow-2xs">
+                <div className="flex h-full w-full items-center justify-center font-black text-white bg-[#FB6B01] text-xs">
                   {provider.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -211,108 +215,116 @@ export function ProviderCard({
                   title="Documento e antecedentes verificados"
                   className="absolute bottom-0 right-0 bg-[#FB6B01] text-white rounded-tl-md p-0.5"
                 >
-                  <Icon name="check" size={8} strokeWidth={3} />
+                  <Icon name="check" size={7} strokeWidth={3} />
                 </div>
               )}
             </div>
 
-            {/* Selo de Ranking (#1, #2, #3) - Exibido apenas com avaliações reais */}
-            {rankingPosition && rankingPosition <= 3 && provider.reviewsCount > 0 ? (
-              <span className="text-[10px] font-bold text-[#FB6B01] bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md shrink-0 mb-0.5">
-                #{rankingPosition}
-              </span>
-            ) : null}
-          </div>
+            {/* Nome e Especialidade */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-1">
+                <h3 className="text-xs sm:text-sm font-bold text-[#0F172A] truncate group-hover:text-[#FB6B01] transition-colors leading-tight">
+                  {provider.name}
+                </h3>
+                {rankingPosition && rankingPosition <= 3 && provider.reviewsCount > 0 && (
+                  <span className="text-[10px] font-bold text-[#FB6B01] bg-orange-50 border border-orange-200/60 px-1.5 py-0.5 rounded-md shrink-0">
+                    #{rankingPosition}
+                  </span>
+                )}
+              </div>
 
-          {/* Nome e Categoria */}
-          <div>
-            <h3 className="text-sm font-bold text-[#0F172A] truncate group-hover:text-[#FB6B01] transition-colors leading-snug">
-              {provider.name}
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-              {provider.category.charAt(0).toUpperCase() + provider.category.slice(1)}
-              {provider.contactName && provider.contactName !== provider.name
-                ? ` · ${provider.contactName}`
-                : provider.company && provider.company !== provider.name
-                ? ` · ${provider.company}`
-                : ""}
-            </p>
+              <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                <span className="capitalize text-slate-600 font-semibold">{provider.category}</span>
+                {provider.company && provider.company !== provider.name ? (
+                  <span className="text-slate-400 font-normal"> · {provider.company}</span>
+                ) : provider.contactName && provider.contactName !== provider.name ? (
+                  <span className="text-slate-400 font-normal"> · {provider.contactName}</span>
+                ) : null}
+              </p>
+            </div>
           </div>
 
           {/* Avaliação e Tempo de Resposta */}
           <div className="flex items-center justify-between text-xs gap-2 pt-0.5">
             {provider.reviewsCount > 0 ? (
-              <div className="flex items-center gap-1 font-bold text-[#0F172A]">
-                <Icon name="star" size={12} className="text-[#FFD000] fill-[#FFD000]" />
-                <span>{provider.rating.toFixed(1)}</span>
-                <span className="text-slate-400 font-normal text-[10px]">
-                  ({provider.reviewsCount})
+              <div className="flex items-center gap-1.5 font-bold text-[#0F172A]">
+                <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200/60 text-amber-900 text-[11px] font-black px-1.5 py-0.5 rounded-md">
+                  <Icon name="star" size={10} className="fill-amber-400 text-amber-500" />
+                  {provider.rating.toFixed(1)}
+                </span>
+                <span className="text-slate-400 font-normal text-[11px]">
+                  ({provider.reviewsCount} {provider.reviewsCount === 1 ? "avaliação" : "avaliações"})
                 </span>
               </div>
             ) : (
-              <span className="text-[11px] font-medium text-slate-500">
-                Ainda sem avaliações
+              <span className="text-[11px] font-medium text-slate-400">
+                Novo profissional
               </span>
             )}
 
             {provider.responseTimeMinutes && (
-              <span className="text-[10px] text-slate-400 font-normal">
+              <span className="text-[11px] text-slate-400 font-normal flex items-center gap-1">
+                <Icon name="clock" size={11} className="text-slate-400" />
                 ~{provider.responseTimeMinutes} min resposta
               </span>
             )}
           </div>
 
-          {/* Prova Social Condominial (Seção 22: sutil e prioritária) */}
-          {provider.condoHiredCount && provider.condoHiredCount > 0 ? (
-            <p className="text-[10px] font-semibold text-emerald-700 truncate">
-              ✓ {provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço no condomínio" : "serviços no condomínio"}
-            </p>
-          ) : hasHiredBefore ? (
-            <p className="text-[10px] font-semibold text-[#FB6B01] truncate">
-              ✓ Já contratado por você
-            </p>
+          {/* Prova Social Condominial */}
+          {(provider.condoHiredCount && provider.condoHiredCount > 0) || hasHiredBefore ? (
+            <div className="pt-0.5">
+              {provider.condoHiredCount && provider.condoHiredCount > 0 ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/80 truncate max-w-full">
+                  <Icon name="check" size={10} strokeWidth={3} className="text-emerald-600 shrink-0" />
+                  <span className="truncate">{provider.condoHiredCount} {provider.condoHiredCount === 1 ? "serviço no condomínio" : "serviços no condomínio"}</span>
+                </span>
+              ) : hasHiredBefore ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100/80 truncate max-w-full">
+                  <Icon name="user-check" size={11} className="text-[#FB6B01] shrink-0" />
+                  <span>Já contratado por você</span>
+                </span>
+              ) : null}
+            </div>
           ) : null}
 
           {/* Preço Inicial & Disponibilidade / Distância */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-            <div>
-              <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block">
+          <div className="pt-2 border-t border-slate-100 flex items-baseline justify-between">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                 A partir de
               </span>
-              <span className="text-xs sm:text-sm font-bold text-[#0F172A]">
+              <span className="text-xs sm:text-sm font-black text-[#0F172A]">
                 {provider.startingPriceCents != null && provider.startingPriceCents > 0
                   ? `R$ ${(provider.startingPriceCents / 100).toFixed(0)}`
                   : "Sob consulta"}
               </span>
             </div>
 
-            <div className="text-right text-[10px]">
+            <div className="text-right">
               {provider.availableNow && provider.isOnline ? (
-                <span className="font-semibold text-emerald-700 block">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Disponível hoje
                 </span>
               ) : (
-                <span className="text-slate-400 block">
-                  Sob agendamento
+                <span className="text-[11px] text-slate-400">
+                  {distanceLabel}
                 </span>
               )}
-              <span className="text-slate-400">
-                {distanceLabel}
-              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* BOTÕES DE AÇÃO: Ver perfil (Neutro) e Solicitar orçamento (Laranja Tião) */}
-      <div className="grid grid-cols-2 gap-2 p-3 pt-1 border-t border-slate-50">
+      <div className="grid grid-cols-2 gap-2 p-3.5 pt-0">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onViewProfile(provider);
           }}
-          className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 py-1.5 sm:py-2 text-xs font-bold transition-colors cursor-pointer text-center"
+          className="rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 py-2 text-xs font-bold transition-all cursor-pointer text-center shadow-2xs"
         >
           Ver perfil
         </button>
@@ -323,9 +335,10 @@ export function ProviderCard({
             e.stopPropagation();
             onRequestBudget(provider);
           }}
-          className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-1.5 sm:py-2 text-xs font-bold shadow-2xs transition-colors cursor-pointer text-center"
+          className="rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-2 text-xs font-bold shadow-2xs transition-all cursor-pointer text-center flex items-center justify-center gap-1"
         >
-          Orçamento
+          <span>Orçamento</span>
+          <Icon name="arrow-right" size={11} />
         </button>
       </div>
     </div>

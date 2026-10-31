@@ -2765,11 +2765,11 @@ export function ServicosClient({
                       </section>
                     )}
 
-                    {/* PATROCINADOS (Seções 13 a 17: Anúncio discreto, sem container amarelo gigante) */}
+                    {/* PATROCINADOS: Anúncio sutil e integrado */}
                     {displayedSponsoredList.length > 0 && (
                       <section className="space-y-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
                             Patrocinado
                           </span>
                           <span className="text-xs text-slate-500 font-medium">
