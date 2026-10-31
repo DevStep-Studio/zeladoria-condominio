@@ -2397,22 +2397,24 @@ export function ServicosClient({
 
           {/* SECTION 4: BARRA DE RESULTADOS E TOOLBAR REORGANIZADA (Seções 4, 5, 6, 7, 8, 44, 45, 46) */}
           <div className="space-y-4 pt-1 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2 px-1 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
               {/* Lado Esquerdo: Quantidade e Localização Discreta (Seções 4 e 5) */}
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">
+                  <h2 className="text-sm sm:text-base font-black text-[#0F172A] tracking-tight">
                     {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
                   </h2>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
-                  <span className="truncate max-w-[220px] sm:max-w-xs">{serviceLocation.name}</span>
+                  <span className="flex items-center gap-1 text-slate-600 font-medium">
+                    <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
+                    <span className="truncate max-w-[200px] sm:max-w-xs">{serviceLocation.name}</span>
+                  </span>
                   <span className="text-slate-300">•</span>
                   <button
                     type="button"
                     onClick={() => setIsLocationModalOpen(true)}
-                    className="font-bold text-[#FB6B01] hover:underline cursor-pointer"
+                    className="font-bold text-[#FB6B01] hover:underline cursor-pointer text-xs"
                   >
                     Alterar local
                   </button>
@@ -2422,11 +2424,11 @@ export function ServicosClient({
               {/* Lado Direito: [Lista | Mapa] + [Filtros] + [Ordenar] (Seções 6, 7 e 8) */}
               <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap sm:flex-nowrap">
                 {/* Segmented Control Lista | Mapa */}
-                <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => setDisplayMode("lista")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "lista"
                         ? "bg-[#FB6B01] text-white shadow-2xs"
                         : "text-slate-600 hover:text-slate-900"
@@ -2438,7 +2440,7 @@ export function ServicosClient({
                   <button
                     type="button"
                     onClick={() => setDisplayMode("mapa")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       displayMode === "mapa"
                         ? "bg-[#FB6B01] text-white shadow-2xs"
                         : "text-slate-600 hover:text-slate-900"
@@ -2453,10 +2455,10 @@ export function ServicosClient({
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(true)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
                     activeFiltersCount > 0
                       ? "border-[#FB6B01] bg-orange-50 text-[#FB6B01]"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
                   }`}
                 >
                   <Icon name="filter" size={12} className={activeFiltersCount > 0 ? "text-[#FB6B01]" : "text-slate-500"} />
@@ -2469,18 +2471,23 @@ export function ServicosClient({
                 </button>
 
                 {/* Seletor Compacto de Ordenação */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-[#FB6B01] cursor-pointer"
-                >
-                  <option value="score">Recomendados</option>
-                  <option value="rating">Melhor avaliados</option>
-                  <option value="distance">Mais próximos</option>
-                  <option value="price_asc">Menor preço</option>
-                  <option value="condo">Mais contratados</option>
-                  <option value="response">Resposta rápida</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    className="rounded-xl border border-slate-200/90 bg-white pl-3 pr-8 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#FB6B01] transition-all cursor-pointer shadow-2xs appearance-none"
+                  >
+                    <option value="score">Recomendados</option>
+                    <option value="rating">Melhor avaliados</option>
+                    <option value="distance">Mais próximos</option>
+                    <option value="price_asc">Menor preço</option>
+                    <option value="condo">Mais contratados</option>
+                    <option value="response">Resposta rápida</option>
+                  </select>
+                  <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Icon name="chevron-down" size={12} />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2647,70 +2654,106 @@ export function ServicosClient({
                       </div>
                     )}
                   <div className="space-y-6">
-                    {/* SEUS PROFISSIONAIS (Seções 9, 10, 11, 12: Compacto, sem container gigante) */}
+                    {/* SEUS PROFISSIONAIS: Compacto, horizontal, elegante e minimalista */}
                     {displayedHiredProviders.length > 0 && (
-                      <section className="space-y-2.5">
+                      <section className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <h2 className="text-sm font-bold text-[#0F172A]">Seus profissionais</h2>
-                            <p className="text-xs text-slate-500">Profissionais que você já contratou.</p>
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-[#FB6B01] border border-orange-100">
+                              <Icon name="user-check" size={13} />
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                                  Seus profissionais
+                                </h3>
+                                <span className="text-[11px] font-bold text-slate-400">
+                                  ({displayedHiredProviders.length})
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500">
+                                Profissionais que já atenderam seu condomínio ou residência
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Desktop: flex row com largura controlada (280-320px) / Mobile: carrossel horizontal */}
-                        <div className="flex gap-3 overflow-x-auto pb-2 pt-0.5 sm:overflow-visible sm:flex-wrap">
+                        {/* Grid moderno e responsivo de cards horizontais compactos */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {displayedHiredProviders.map((hp: any) => {
                             const isEligible = hp.active && hp.onboardingStatus !== "suspenso";
                             return (
                               <div
                                 key={`hired-${hp.id}`}
-                                className="w-[280px] sm:w-[320px] shrink-0 p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all shadow-2xs flex flex-col justify-between gap-3 snap-start"
+                                className="flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 bg-white hover:border-orange-200/90 hover:shadow-xs transition-all gap-3 group"
                               >
-                                <div className="flex items-center gap-3">
+                                {/* Bloco de Informações do Prestador */}
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  {/* Avatar ou Iniciais com Borda Suave */}
                                   {hp.photoUrl ? (
                                     <img
                                       src={hp.photoUrl}
                                       alt={hp.name}
-                                      className="h-12 w-12 rounded-xl object-cover border border-slate-100 shrink-0"
+                                      className="h-11 w-11 rounded-xl object-cover border border-slate-100 shrink-0 shadow-2xs"
                                     />
                                   ) : (
-                                    <div className="h-12 w-12 rounded-xl bg-orange-50 text-[#FB6B01] flex items-center justify-center font-bold text-sm shrink-0 border border-orange-100">
+                                    <div className="h-11 w-11 rounded-xl bg-orange-50 text-[#FB6B01] flex items-center justify-center font-black text-sm shrink-0 border border-orange-100/80 shadow-2xs">
                                       {hp.name[0]}
                                     </div>
                                   )}
+
+                                  {/* Dados do Prestador */}
                                   <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-1">
-                                      <h4 className="text-xs font-bold text-slate-900 truncate">{hp.name}</h4>
-                                      <span className="text-[11px] text-amber-600 font-bold flex items-center gap-0.5 shrink-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <h4
+                                        className="text-xs font-bold text-[#0F172A] truncate group-hover:text-[#FB6B01] transition-colors"
+                                        title={hp.name}
+                                      >
+                                        {hp.name}
+                                      </h4>
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0 border border-amber-200/60">
                                         ★ {(hp.rating || 4.9).toFixed(1)}
                                       </span>
                                     </div>
-                                    <span className="text-[11px] text-slate-500 block truncate">{hp.category}</span>
-                                    <span className="text-[10px] font-medium text-slate-500 mt-0.5 block">
-                                      Contratado {hp.hireCount} {hp.hireCount === 1 ? "vez" : "vezes"}
-                                    </span>
+
+                                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
+                                      <span className="capitalize font-medium text-slate-600 truncate max-w-[100px]">
+                                        {hp.category}
+                                      </span>
+                                      <span className="text-slate-300">•</span>
+                                      <span className="text-slate-400 font-medium shrink-0">
+                                        {hp.hireCount} {hp.hireCount === 1 ? "serviço" : "serviços"}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                {/* Ação: Botão Contratar Novamente Minimalista e Refinado */}
+                                <div className="shrink-0">
                                   {isEligible ? (
                                     <button
                                       type="button"
                                       onClick={() => handleRehire(hp)}
-                                      className="w-full py-1.5 px-3 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                                      className="inline-flex items-center gap-1.5 py-2 px-3 rounded-xl bg-orange-50 hover:bg-[#FB6B01] text-[#FB6B01] hover:text-white border border-orange-200/80 hover:border-[#FB6B01] text-xs font-bold transition-all duration-150 cursor-pointer shadow-2xs group/btn"
+                                      title="Solicitar novo serviço com este profissional"
                                     >
-                                      <Icon name="refresh" size={12} />
-                                      <span>Contratar novamente</span>
+                                      <Icon
+                                        name="refresh"
+                                        size={11}
+                                        className="transition-transform group-hover/btn:rotate-180 duration-300"
+                                      />
+                                      <span className="hidden sm:inline">Contratar novamente</span>
+                                      <span className="sm:hidden">Contratar</span>
                                     </button>
                                   ) : (
-                                    <div className="w-full flex items-center justify-between gap-1 text-[11px]">
-                                      <span className="text-slate-400 italic">Indisponível no momento</span>
+                                    <div className="flex items-center gap-1.5 text-[11px]">
+                                      <span className="text-slate-400 italic">Indisponível</span>
                                       <button
                                         type="button"
                                         onClick={() => handleCategoryChange(hp.category)}
                                         className="text-[#FB6B01] hover:underline font-bold"
                                       >
-                                        Ver semelhantes
+                                        Ver outros
                                       </button>
                                     </div>
                                   )}
