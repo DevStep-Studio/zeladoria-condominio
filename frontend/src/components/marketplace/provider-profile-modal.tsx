@@ -662,11 +662,11 @@ export function ProviderProfileModal({
           )}
         </div>
 
-        {/* MOBILE STICKY CTA BAR (Prompt Item 29: Barra fixa inferior no mobile) */}
-        <div className="sm:hidden sticky bottom-0 z-30 bg-white border-t border-slate-200 p-3 flex items-center justify-between gap-3 shadow-lg">
+        {/* MOBILE STICKY CTA BAR (Prompt Item 20: Barra fixa inferior compacta no mobile) */}
+        <div className="sm:hidden sticky bottom-0 z-30 bg-white border-t border-slate-200 px-3.5 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] flex items-center justify-between gap-3 shadow-lg">
           <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase block">
-              Preço a partir de
+            <span className="text-[10px] text-slate-400 font-bold uppercase block leading-none">
+              A partir de
             </span>
             <span className="text-sm font-black text-[#FB6B01]">
               {provider.startingPriceCents != null
@@ -680,7 +680,7 @@ export function ProviderProfileModal({
             onClick={() => onRequestBudget(provider)}
             className="flex-1 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white py-2.5 text-xs font-black shadow-md transition-colors cursor-pointer text-center"
           >
-            Solicitar Serviço
+            Solicitar orçamento
           </button>
         </div>
       </div>

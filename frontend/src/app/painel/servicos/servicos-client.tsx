@@ -9,6 +9,7 @@ import {
   buildCategoriesConfig,
   normalizeServiceCategory,
   getCategorySubcategories,
+  deduplicateProviders,
   type MarketplaceProvider,
   type ServiceOffering,
 } from "@/lib/services/providers-data";

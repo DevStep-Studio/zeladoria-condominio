@@ -186,3 +186,51 @@ export function buildCategoriesConfig(providers: MarketplaceProvider[]): Categor
   }
   return categories;
 }
+
+/**
+ * Deduplicação estrita de prestadores na visualização do morador (Prompt Item 14).
+ * Prioridade:
+ * 1. Seus Profissionais (já contratados anteriormente)
+ * 2. Patrocinados (anúncios em destaque)
+ * 3. Recomendados (orgânicos)
+ *
+ * Garante que se o prestador já estiver exibido em uma seção prioritária,
+ * não seja repetido na seção de Recomendados, economizando rolagem e confusão.
+ */
+export function deduplicateProviders<T extends { id: number }>(
+  hiredProviders: T[],
+  sponsoredProviders: T[],
+  organicProviders: T[]
+): {
+  hired: T[];
+  sponsored: T[];
+  organic: T[];
+} {
+  const seenIds = new Set<number>();
+
+  const hired: T[] = [];
+  for (const p of hiredProviders) {
+    if (!seenIds.has(p.id)) {
+      seenIds.add(p.id);
+      hired.push(p);
+    }
+  }
+
+  const sponsored: T[] = [];
+  for (const p of sponsoredProviders) {
+    if (!seenIds.has(p.id)) {
+      seenIds.add(p.id);
+      sponsored.push(p);
+    }
+  }
+
+  const organic: T[] = [];
+  for (const p of organicProviders) {
+    if (!seenIds.has(p.id)) {
+      seenIds.add(p.id);
+      organic.push(p);
+    }
+  }
+
+  return { hired, sponsored, organic };
+}
