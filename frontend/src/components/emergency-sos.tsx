@@ -42,27 +42,16 @@ export function EmergencySos({
 
   return (
     <>
-      {/* Botão Flutuante de SOS — Visível em Celular e Desktop */}
+      {/* Botão Flutuante de SOS — Visível em Celular e Desktop (Apenas Ícone Minimalista) */}
       <aside aria-label="Ações de emergência e segurança">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed right-4 bottom-20 z-40 lg:bottom-6 lg:right-6 flex items-center justify-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-xl hover:shadow-red-600/30 border border-white/25 transition-all duration-200 active:scale-95 cursor-pointer px-3.5 py-2.5 sm:px-4 sm:py-2.5 group select-none"
+          className="fixed right-4 bottom-20 z-40 lg:bottom-6 lg:right-6 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-xl hover:shadow-red-600/30 border border-white/20 transition-all duration-200 active:scale-95 cursor-pointer select-none"
           aria-label="Abrir Central de Emergência e SOS 24h"
           title="Central de Emergência e SOS 24h"
         >
-          {/* Indicador de pulso luminoso */}
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-          </span>
-
-          <Icon name="siren" size={17} className="animate-pulse shrink-0 text-white" />
-
-          <span className="font-black text-xs tracking-wider uppercase">SOS</span>
-          <span className="hidden sm:inline font-bold text-xs text-red-100 group-hover:text-white transition-colors">
-            24h
-          </span>
+          <Icon name="siren" size={21} className="text-white shrink-0" />
         </button>
       </aside>
 
