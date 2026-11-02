@@ -771,7 +771,7 @@ export function DashboardClient({
         </section>
 
         {/* 5. TIÃO ZELADOR — Banner Institucional da Submarca de Serviços */}
-        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-5 sm:p-6 lg:p-7 shadow-xs border border-[#E05F00]">
+        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-4 sm:p-6 lg:p-7 shadow-xs border border-[#E05F00]">
           {/* Detalhes geométricos sutis e sólidos sem transparência ou gradiente */}
           <svg
             className="pointer-events-none absolute right-0 top-0 h-full w-2/5 sm:w-1/3 select-none"
@@ -787,65 +787,66 @@ export function DashboardClient({
             <path d="M210 0 L240 200" stroke="#E66200" strokeWidth="1" />
           </svg>
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5 max-w-2xl">
-              {/* Mascote Tião em versão branca sobre container sólido */}
-              <div className="shrink-0 flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#E05F00] p-2 shadow-2xs border border-[#FF8429]">
-                <img
-                  src="/brands/tiao/mascot-white.png"
-                  alt="Tião Zelador"
-                  className="h-full w-full object-contain"
-                />
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5 sm:gap-5">
+            <div className="space-y-2.5 sm:space-y-3.5 max-w-2xl">
+              {/* Mascote Tião e Identidade alinhados horizontalmente para compacidade no mobile */}
+              <div className="flex items-start gap-3 sm:gap-4.5">
+                <div className="shrink-0 flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-[#E05F00] p-1.5 sm:p-2 shadow-2xs border border-[#FF8429]">
+                  <img
+                    src="/brands/tiao/mascot-white.png"
+                    alt="Tião Zelador"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h3 className="text-base sm:text-xl font-black text-white tracking-tight leading-snug">
+                      Tião Zelador
+                    </h3>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[#FB6B01] text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                      <Icon name="shield" size={10} className="text-[#FB6B01]" />
+                      Marketplace Verificado
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] sm:text-sm text-white/95 font-medium leading-relaxed">
+                    Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
+                  </p>
+                </div>
               </div>
 
-              {/* Bloco Textual Institucional */}
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                    Tião Zelador
-                  </h3>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white text-[#FB6B01] text-[10px] font-black uppercase tracking-wider shadow-2xs">
-                    <Icon name="shield" size={10} className="text-[#FB6B01]" />
-                    Marketplace Verificado
-                  </span>
-                </div>
-
-                <p className="text-xs sm:text-sm text-white/95 font-medium leading-relaxed">
-                  Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
-                </p>
-
-                {/* Categorias Rápidas como chips brancos sólidos */}
-                <div className="pt-1.5 flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
-                    { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
-                    { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
-                    { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
-                    { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
-                  ].map((cat) => (
-                    <Link
-                      key={cat.label}
-                      href={cat.href}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-2.5 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                    >
-                      <Icon name={cat.icon} size={12} className="text-[#FB6B01] shrink-0" />
-                      <span>{cat.label}</span>
-                    </Link>
-                  ))}
-                </div>
+              {/* Categorias Rápidas como chips brancos sólidos com scroll horizontal suave no mobile */}
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap pb-0.5">
+                {[
+                  { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
+                  { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
+                  { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
+                  { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
+                  { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
+                ].map((cat) => (
+                  <Link
+                    key={cat.label}
+                    href={cat.href}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-2.5 py-1 text-[11px] sm:text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95"
+                  >
+                    <Icon name={cat.icon} size={11} className="text-[#FB6B01] shrink-0" />
+                    <span>{cat.label}</span>
+                  </Link>
+                ))}
               </div>
             </div>
 
-            {/* Botão Branco com Texto em Laranja */}
-            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-1 lg:pt-0">
+            {/* Botão Branco com Texto em Laranja otimizado para celular */}
+            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-0.5 lg:pt-0">
               <Link
                 href="/painel/servicos"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-5 py-3 text-xs sm:text-sm font-black transition-all shadow-sm hover:shadow-md group cursor-pointer whitespace-nowrap"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-4.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-black transition-all shadow-xs hover:shadow-md group cursor-pointer whitespace-nowrap active:scale-[0.99]"
               >
                 <span>Encontrar profissional</span>
                 <Icon
                   name="arrow-right"
-                  size={15}
+                  size={14}
                   className="text-[#FB6B01] transition-transform duration-200 group-hover:translate-x-1 shrink-0"
                 />
               </Link>

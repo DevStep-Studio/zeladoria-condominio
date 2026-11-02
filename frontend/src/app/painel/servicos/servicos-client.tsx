@@ -831,7 +831,7 @@ export function ServicosClient({
   return (
     <div className="space-y-6 w-full pb-12">
       {/* 1. HERO OFICIAL DO TIÃO ZELADOR COM FUNDO LARANJA */}
-      <div className="rounded-2xl sm:rounded-3xl bg-[#FB6B01] p-5 sm:p-6 md:p-7 shadow-md relative overflow-hidden text-white">
+      <div className="rounded-2xl sm:rounded-3xl bg-[#FB6B01] p-4 sm:p-6 md:p-7 shadow-md relative overflow-hidden text-white">
         {/* Detalhe gráfico discreto e elegante de fundo */}
         <svg
           className="pointer-events-none absolute right-0 top-0 h-full w-2/5 select-none"
@@ -845,10 +845,10 @@ export function ServicosClient({
           <circle cx="240" cy="40" r="190" stroke="white" strokeWidth="1" strokeOpacity="0.08" />
         </svg>
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5">
           {/* Lado Esquerdo: Identidade Tião */}
-          <div className="flex items-start gap-4 sm:gap-5 max-w-2xl">
-            <div className="shrink-0 flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/15 border border-white/25 p-2 shadow-inner backdrop-blur-xs">
+          <div className="flex items-start gap-3 sm:gap-5 max-w-2xl">
+            <div className="shrink-0 flex items-center justify-center h-12 w-12 sm:h-20 sm:w-20 rounded-xl sm:rounded-2xl bg-white/15 border border-white/25 p-1.5 sm:p-2 shadow-inner backdrop-blur-xs">
               <img
                 src="/brands/tiao/mascot-white.png"
                 alt="Tião Zelador"
@@ -856,17 +856,17 @@ export function ServicosClient({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">
+            <div className="space-y-1 sm:space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white tracking-tight">
                   Tião Zelador
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 text-white text-[11px] font-bold backdrop-blur-xs">
-                  <Icon name="shield" size={12} className="text-white" />
+                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 text-white text-[10px] sm:text-[11px] font-bold backdrop-blur-xs">
+                  <Icon name="shield" size={11} className="text-white" />
                   Marketplace Verificado
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-white/95 font-medium leading-relaxed max-w-xl">
+              <p className="text-[11px] sm:text-sm text-white/95 font-medium leading-relaxed max-w-xl">
                 Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
               </p>
             </div>
