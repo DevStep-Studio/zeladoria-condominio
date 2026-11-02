@@ -12,7 +12,6 @@ import {
   type MarketplaceProvider,
   type ServiceOffering,
 } from "@/lib/services/providers-data";
-import { getSearchSuggestions, type SearchSuggestion } from "@/lib/services/ranking";
 import { ProviderCard } from "@/components/marketplace/provider-card";
 import { ProviderProfileModal } from "@/components/marketplace/provider-profile-modal";
 import { ServiceRequestWizard } from "@/components/marketplace/service-request-wizard";
@@ -278,10 +277,6 @@ export function ServicosClient({
     }
   };
 
-  // Autocomplete state
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestions = useMemo(() => getSearchSuggestions(search), [search]);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
   const categoriesCarouselRef = useRef<HTMLDivElement>(null);
 
   const scrollCategories = (direction: "left" | "right") => {
@@ -292,16 +287,6 @@ export function ServicosClient({
       behavior: "smooth",
     });
   };
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const updateUrlParams = (cat: string, q: string, sort: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -2104,149 +2089,6 @@ export function ServicosClient({
             </button>
           </div>
 
-          {/* SECTION 1: SEARCH BAR PROMINENTE & ORGANIZADA */}
-          <div className="py-1 space-y-3.5 w-full">
-            <div className="space-y-0.5">
-              <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-                Qual serviço você precisa?
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Encontre profissionais avaliados que atendem <span className="text-slate-700 font-semibold">{serviceLocation.name}</span>.
-              </p>
-            </div>
-
-            {/* Barra de Busca Integrada e Refinada */}
-            <div ref={searchContainerRef} className="relative w-full">
-              <div className="relative flex items-center h-13 sm:h-14 w-full rounded-2xl border border-slate-200/90 bg-white pl-4 pr-2 shadow-2xs hover:border-slate-300 focus-within:border-[#FB6B01] focus-within:ring-2 focus-within:ring-orange-100 transition-all">
-                <Icon
-                  name="search"
-                  size={19}
-                  className="text-slate-400 shrink-0 pointer-events-none"
-                />
-                <input
-                  id="search-marketplace-input"
-                  type="text"
-                  value={search}
-                  onFocus={() => setShowSuggestions(true)}
-                  onChange={(e) => {
-                    handleSearchChange(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      setShowSuggestions(false);
-                      updateUrlParams(selectedCategory, search, sortBy);
-                    }
-                  }}
-                  placeholder="Ex.: vazamento, chuveiro, pintura, eletricista..."
-                  className="h-full w-full bg-transparent px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none font-medium"
-                />
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {search && (
-                    <button
-                      type="button"
-                      onClick={() => handleSearchChange("")}
-                      className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer transition-colors"
-                      title="Limpar busca"
-                    >
-                      <Icon name="x" size={15} />
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSuggestions(false);
-                      updateUrlParams(selectedCategory, search, sortBy);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                  >
-                    <span>Buscar</span>
-                    <Icon name="arrow-right" size={12} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Sugestões do Autocomplete */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-30 mt-1.5 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 block">
-                    Sugestões de problemas e serviços
-                  </span>
-                  <div className="space-y-1">
-                    {suggestions.map((sug) => (
-                      <div
-                        key={sug.query + sug.serviceTitle}
-                        onClick={() => {
-                          handleSearchChange(sug.query);
-                          setSelectedCategory(sug.category);
-                          setShowSuggestions(false);
-                        }}
-                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-orange-50/70 transition-colors cursor-pointer text-xs"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Icon name="search" size={13} className="text-[#FB6B01] shrink-0" />
-                          <span className="font-bold text-[#0F172A] truncate">{sug.serviceTitle}</span>
-                          <span className="text-[11px] text-slate-400 shrink-0">em {sug.category}</span>
-                        </div>
-                        {sug.badge && (
-                          <span className="rounded bg-amber-100 text-amber-900 text-[9px] font-black uppercase px-1.5 py-0.2 shrink-0">
-                            {sug.badge}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Tags de Problemas Comuns (Linha única contínua com rolagem suave horizontal) */}
-            <div className="flex items-center gap-2.5 pt-0.5 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0 flex items-center gap-1.5">
-                <Icon name="trending" size={12} className="text-[#FB6B01]" />
-                <span>Problemas comuns:</span>
-              </span>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                {[
-                  { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
-                  { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
-                  { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
-                  { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
-                  { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
-                  { tag: "Marcenaria", cat: "marcenaria", q: "marcenaria" },
-                ].map((item) => {
-                  const isSelected = search.toLowerCase() === item.q.toLowerCase();
-                  return (
-                    <button
-                      key={item.tag}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) {
-                          handleSearchChange("");
-                          setSelectedCategory("Todas");
-                        } else {
-                          handleSearchChange(item.q);
-                          setSelectedCategory(item.cat);
-                        }
-                      }}
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border shrink-0 ${
-                        isSelected
-                          ? "bg-[#FB6B01] text-white border-[#FB6B01] shadow-2xs font-bold"
-                          : "bg-slate-50 hover:bg-orange-50/80 text-slate-600 hover:text-[#FB6B01] border-slate-200/80 hover:border-orange-200"
-                      }`}
-                    >
-                      <span>{item.tag}</span>
-                      {isSelected && <Icon name="x" size={10} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
           {/* SECTION 2: CARROSSEL DE CATEGORIAS VISUAIS */}
           <div className="space-y-3 pt-1 w-full">
             <div className="flex items-center justify-between">
@@ -2436,7 +2278,7 @@ export function ServicosClient({
                     {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
                   </h2>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap">
                   <span className="flex items-center gap-1 text-slate-600 font-medium">
                     <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
                     <span className="truncate max-w-[200px] sm:max-w-xs">{serviceLocation.name}</span>
@@ -2449,6 +2291,22 @@ export function ServicosClient({
                   >
                     Alterar local
                   </button>
+                  {search && (
+                    <>
+                      <span className="text-slate-300">•</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[11px] font-bold text-[#FB6B01]">
+                        <span>Busca: "{search}"</span>
+                        <button
+                          type="button"
+                          onClick={() => handleSearchChange("")}
+                          className="hover:text-orange-950 cursor-pointer ml-0.5"
+                          title="Limpar busca"
+                        >
+                          <Icon name="x" size={10} />
+                        </button>
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
