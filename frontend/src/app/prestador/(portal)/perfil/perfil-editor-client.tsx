@@ -88,7 +88,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               className="rounded-[8px] border border-slate-200/80 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Icon name="external-link" size={13} />
-              <span>Ver Vitrine Pública</span>
+              <span>Ver meu perfil como cliente</span>
             </Link>
           )}
 
@@ -96,7 +96,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+            className="rounded-[8px] bg-[#FB6B01] hover:bg-[#E05F00] text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
           >
             <Icon name="check" size={14} />
             <span>{isPending ? "Salvando..." : savedSuccess ? "Salvo!" : "Salvar Loja"}</span>
@@ -158,7 +158,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
             {/* Progress bar */}
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
               <div
-                className="h-full bg-[#1355FF] transition-all duration-500 rounded-full"
+                className="h-full bg-[#FB6B01] transition-all duration-500 rounded-full"
                 style={{ width: `${completeness}%` }}
               />
             </div>
@@ -183,13 +183,58 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
 
             {/* Photo & Portfolio Incentive Callout */}
             {(!hasPhoto || !hasPortfolio) && (
-              <div className="p-3.5 rounded-[12px] bg-blue-50 border border-blue-200/80 text-[#1355FF] text-xs font-medium flex items-center gap-3">
-                <Icon name="camera" size={20} className="shrink-0 text-[#1355FF]" />
-                <p>
-                  <strong>Dica de visibilidade:</strong> Perfis com fotos dos trabalhos ajudam moradores a conhecer melhor seu serviço e aumentam a confiança na contratação.
+              <div className="p-3.5 rounded-[12px] bg-orange-50 border border-orange-200/80 text-[#FB6B01] text-xs font-medium flex items-center gap-3">
+                <Icon name="camera" size={20} className="shrink-0 text-[#FB6B01]" />
+                <p className="text-slate-700">
+                  <strong className="text-[#FB6B01]">Dica de visibilidade:</strong> Perfis com fotos dos trabalhos ajudam moradores a conhecer melhor seu serviço e aumentam a confiança na contratação.
                 </p>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Card de Recebimento (Prompt Item 49) */}
+      {(() => {
+        const hasPayout = Boolean(
+          vendor.pixInfo?.key ||
+          vendor.bankInfo?.account ||
+          vendor.payoutConfigured ||
+          vendor.payoutMethod
+        );
+
+        return (
+          <div className="rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  hasPayout
+                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200/80"
+                    : "bg-amber-50 text-amber-600 border border-amber-200/80"
+                }`}
+              >
+                <Icon name={hasPayout ? "check-circle" : "alert-triangle"} size={18} />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Recebimento · Zeladoria Pay
+                </span>
+                <p className="text-xs font-bold text-slate-900 mt-0.5">
+                  {hasPayout ? "Recebimentos: ✓ Configurado" : "Recebimentos: Dados bancários pendentes"}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {hasPayout
+                    ? "Repasses automáticos liberados após conclusão dos serviços."
+                    : "Adicione sua chave PIX ou conta para receber os valores de seus serviços."}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/prestador/ganhos"
+              className="px-3.5 py-1.5 rounded-[8px] border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors shrink-0 text-center"
+            >
+              {hasPayout ? "Ver extrato" : "Configurar agora"}
+            </Link>
           </div>
         );
       })()}
@@ -311,19 +356,19 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               value={workingHours}
               onChange={(e) => setWorkingHours(e.target.value)}
               placeholder="Ex: Seg a Sex 08:00 - 18:00"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#FB6B01] shadow-2xs"
             />
           </div>
         </div>
 
         {/* Raio de Atendimento e Deslocamento */}
-        <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 space-y-2.5">
+        <div className="p-4 rounded-xl border border-orange-100 bg-orange-50/40 space-y-2.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Icon name="navigation" size={14} className="text-[#1355FF]" />
+              <Icon name="navigation" size={14} className="text-[#FB6B01]" />
               <span>Raio Máximo de Cobertura / Deslocamento</span>
             </label>
-            <span className="text-xs font-black text-[#1355FF] bg-white px-2.5 py-0.5 rounded-full border border-blue-200 shadow-2xs">
+            <span className="text-xs font-black text-[#FB6B01] bg-white px-2.5 py-0.5 rounded-full border border-orange-200 shadow-2xs">
               {serviceRadiusKm} km
             </span>
           </div>
@@ -334,7 +379,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
             step={1}
             value={serviceRadiusKm}
             onChange={(e) => setServiceRadiusKm(Number(e.target.value))}
-            className="w-full accent-[#1355FF] cursor-pointer"
+            className="w-full accent-[#FB6B01] cursor-pointer"
           />
           <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
             <span>5 km (Local / Bairro)</span>
@@ -386,21 +431,21 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               placeholder="URL da imagem (ex: https://...)"
               value={newPhotoUrl}
               onChange={(e) => setNewPhotoUrl(e.target.value)}
-              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
+              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#FB6B01]"
             />
             <input
               type="text"
               placeholder="Legenda do trabalho"
               value={newPhotoCaption}
               onChange={(e) => setNewPhotoCaption(e.target.value)}
-              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#1355FF]"
+              className="h-9 rounded-[8px] border border-slate-200/80 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-[#FB6B01]"
             />
           </div>
           <div className="flex justify-end">
             <button
               type="button"
               onClick={addPortfolio}
-              className="h-9 px-3.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold cursor-pointer transition-colors shadow-2xs"
+              className="h-9 px-3.5 rounded-[8px] bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold cursor-pointer transition-colors shadow-2xs"
             >
               Adicionar ao Portfólio
             </button>

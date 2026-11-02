@@ -704,6 +704,37 @@ export function Shell({
                   </div>
                 )}
 
+                {/* Troca de Contexto: Morador vs Tião Parceiros (Prompt Item 54) */}
+                <div className="px-3 py-1.5 border-t border-slate-100 my-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    Usar como:
+                  </span>
+                  <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-slate-100">
+                    <Link
+                      href="/painel"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
+                        role !== "prestador"
+                          ? "bg-white text-[#1355FF] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Morador
+                    </Link>
+                    <Link
+                      href="/prestador"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
+                        role === "prestador"
+                          ? "bg-[#FB6B01] text-white shadow-2xs"
+                          : "text-slate-600 hover:text-[#FB6B01]"
+                      }`}
+                    >
+                      Tião Parceiros
+                    </Link>
+                  </div>
+                </div>
+
                 {(role === "sindico" || role === "superadmin") && (
                   <Link
                     href="/painel/configuracoes"

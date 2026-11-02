@@ -518,22 +518,14 @@ export function ServicosClient({
     });
   }, [hiredProviders, selectedCategory, search]);
 
-  // Patrocinados relevantes (Seção 13, 14, 57)
-  const displayedSponsoredList = useMemo(() => {
-    const hiredIds = new Set(displayedHiredProviders.map((hp: any) => hp.id));
-    const notInHired = sponsoredList.filter((p) => !hiredIds.has(p.id));
-    return notInHired.length > 0 ? notInHired.slice(0, 2) : sponsoredList.slice(0, 2);
-  }, [sponsoredList, displayedHiredProviders]);
-
-  // Recomendados para você com Deduplicação Visual (Seção 55)
-  const displayedOrganicList = useMemo(() => {
-    const higherPriorityIds = new Set([
-      ...displayedHiredProviders.map((hp: any) => hp.id),
-      ...displayedSponsoredList.map((sp) => sp.id),
-    ]);
-    const deduplicated = organicList.filter((v) => !higherPriorityIds.has(v.id));
-    return deduplicated.length > 0 ? deduplicated : organicList;
-  }, [organicList, displayedHiredProviders, displayedSponsoredList]);
+  // Deduplicação Estrita entre Seus Profissionais > Patrocinados > Recomendados (Prompt Item 14)
+  const {
+    hired: displayedHiredProvidersDedup,
+    sponsored: displayedSponsoredList,
+    organic: displayedOrganicList,
+  } = useMemo(() => {
+    return deduplicateProviders(displayedHiredProviders, sponsoredList.slice(0, 2), organicList);
+  }, [displayedHiredProviders, sponsoredList, organicList]);
 
   // Paginação controlada com "Carregar mais" (Seção 48)
   const [visibleCount, setVisibleCount] = useState(12);
@@ -830,80 +822,67 @@ export function ServicosClient({
   const totalContractedCount = marketplaceRequests.length + services.length;
 
   return (
-    <div className="space-y-6 w-full pb-12">
-      {/* 1. HERO OFICIAL DO TIÃO ZELADOR COM FUNDO LARANJA */}
-      <div className="rounded-2xl sm:rounded-3xl bg-[#FB6B01] p-4 sm:p-6 md:p-7 shadow-md relative overflow-hidden text-white">
-        {/* Detalhe gráfico discreto e elegante de fundo */}
-        <svg
-          className="pointer-events-none absolute right-0 top-0 h-full w-2/5 select-none"
-          viewBox="0 0 280 140"
-          fill="none"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <circle cx="240" cy="40" r="90" stroke="white" strokeWidth="1.5" strokeOpacity="0.12" />
-          <circle cx="240" cy="40" r="140" stroke="white" strokeWidth="1" strokeDasharray="5 5" strokeOpacity="0.15" />
-          <circle cx="240" cy="40" r="190" stroke="white" strokeWidth="1" strokeOpacity="0.08" />
-        </svg>
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5">
+    <div className="space-y-4 sm:space-y-6 w-full pb-12 font-sans">
+      {/* 1. HERO DO TIÃO ZELADOR COMPACTO (Fundo Laranja Sólido, Logo Branca, Sem Gradiente) */}
+      <div className="rounded-2xl sm:rounded-3xl bg-[#FB6B01] p-3.5 sm:p-5 shadow-xs relative overflow-hidden text-white border border-[#E05F00]">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           {/* Lado Esquerdo: Identidade Tião */}
-          <div className="flex items-start gap-3 sm:gap-5 max-w-2xl">
-            <div className="shrink-0 flex items-center justify-center h-12 w-12 sm:h-20 sm:w-20 rounded-xl sm:rounded-2xl bg-white/15 border border-white/25 p-1.5 sm:p-2 shadow-inner backdrop-blur-xs">
+          <div className="flex items-center gap-3">
+            <div className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/20 p-1.5 shadow-2xs">
               <img
                 src="/brands/tiao/mascot-white.png"
                 alt="Tião Zelador"
-                className="h-full w-full object-contain drop-shadow-sm"
+                className="h-full w-full object-contain"
               />
             </div>
 
-            <div className="space-y-1 sm:space-y-1.5 min-w-0">
-              <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-xl font-black text-white tracking-tight">
                   Tião Zelador
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 text-white text-[10px] sm:text-[11px] font-bold backdrop-blur-xs">
-                  <Icon name="shield" size={11} className="text-white" />
-                  Marketplace Verificado
+                <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-white/20 text-white text-[9px] sm:text-[10px] font-bold">
+                  <Icon name="shield" size={10} className="text-white" />
+                  Verificado
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm text-white/95 font-medium leading-relaxed max-w-xl">
-                Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
+              <p className="text-xs sm:text-sm text-white/95 font-medium leading-tight mt-0.5 truncate max-w-md">
+                Encontre profissionais avaliados para o que você precisa.
               </p>
             </div>
           </div>
 
           {/* Lado Direito: Alternância de Abas sobre o fundo laranja */}
-          <div className="w-full lg:w-auto flex items-stretch sm:items-center gap-1.5 bg-black/15 p-1.5 rounded-2xl shrink-0 border border-white/20 shadow-inner backdrop-blur-xs overflow-x-auto scrollbar-none">
+          <div className="w-full sm:w-auto flex items-center gap-1 bg-black/15 p-1 rounded-xl shrink-0 overflow-x-auto scrollbar-none self-start sm:self-auto">
             {/* Aba 1: Encontrar Profissional */}
             <button
               type="button"
               onClick={() => switchTab("marketplace")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeView === "marketplace" && !onlyFavorites
-                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
-                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
+                  ? "bg-white text-[#FB6B01] shadow-2xs"
+                  : "text-white/90 hover:text-white"
               }`}
             >
-              <Icon name="search" size={14} />
-              <span>Encontrar profissional</span>
+              <Icon name="search" size={13} />
+              <span>Encontrar</span>
             </button>
 
             {/* Aba 2: Minhas Contratações */}
             <button
               type="button"
               onClick={() => switchTab("contratacoes")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeView === "contratacoes"
-                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
-                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
+                  ? "bg-white text-[#FB6B01] shadow-2xs"
+                  : "text-white/90 hover:text-white"
               }`}
             >
-              <Icon name="clipboard" size={14} />
-              <span>Minhas contratações</span>
+              <Icon name="clipboard" size={13} />
+              <span>Contratações</span>
               {totalContractedCount > 0 && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded-full px-1.5 py-0.2 text-[9px] font-black ${
                     activeView === "contratacoes"
                       ? "bg-[#FB6B01] text-white"
                       : "bg-white/25 text-white"
@@ -918,17 +897,17 @@ export function ServicosClient({
             <button
               type="button"
               onClick={() => switchTab("favoritos")}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap min-h-[40px] sm:min-h-0 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeView === "marketplace" && onlyFavorites
-                  ? "bg-white text-[#FB6B01] font-black shadow-md hover:bg-orange-50"
-                  : "text-white/90 hover:text-white hover:bg-white/15 font-bold"
+                  ? "bg-white text-[#FB6B01] shadow-2xs"
+                  : "text-white/90 hover:text-white"
               }`}
             >
-              <Icon name="star" size={14} />
+              <Icon name="star" size={13} />
               <span>Favoritos</span>
               {favorites.length > 0 && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded-full px-1.5 py-0.2 text-[9px] font-black ${
                     activeView === "marketplace" && onlyFavorites
                       ? "bg-[#FB6B01] text-white"
                       : "bg-white/25 text-white"
@@ -942,10 +921,10 @@ export function ServicosClient({
             {role === "superadmin" && (
               <Link
                 href="/painel/admin/marketplace/destaques"
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/15 transition-all whitespace-nowrap min-h-[40px] sm:min-h-0"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/90 hover:text-white hover:bg-white/15 transition-all whitespace-nowrap"
                 title="Gerenciar Planos de Publicidade e Destaques"
               >
-                <Icon name="sparkles" size={14} />
+                <Icon name="sparkles" size={13} />
                 <span className="hidden xs:inline">Destaques Admin</span>
                 <span className="xs:hidden">Destaques</span>
               </Link>
@@ -2060,38 +2039,81 @@ export function ServicosClient({
       ) : (
         /* MARKETPLACE DISCOVERY EXPERIENCE */
         <>
-          {/* LOCALIZAÇÃO (COMPONENTE INTERATIVO PRINCIPAL FULL-WIDTH) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs w-full">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-[#FB6B01] shrink-0 border border-orange-200/70 shadow-2xs">
-                <Icon name="map-pin" size={20} />
-              </div>
-              <div className="min-w-0">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Atendimento em
-                </span>
-                <p className="text-sm font-black text-[#0F172A] leading-tight mt-0.5 truncate">
-                  {serviceLocation.name}
-                  {serviceLocation.unit ? ` · Unidade ${serviceLocation.unit}` : ""}
-                </p>
-                <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                  {serviceLocation.address} · {serviceLocation.city} - {serviceLocation.state}
-                </p>
-              </div>
+          {/* LOCALIZAÇÃO COMPACTA (Prompt Item 7) */}
+          <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs w-full text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <Icon name="map-pin" size={14} className="text-[#FB6B01] shrink-0" />
+              <span className="text-slate-900 font-bold truncate">
+                {serviceLocation.name}
+                {serviceLocation.unit ? ` · Unidade ${serviceLocation.unit}` : ""}
+              </span>
             </div>
-
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FB6B01] hover:text-[#E05F00] self-start sm:self-center px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100/70 transition-colors cursor-pointer shrink-0 shadow-2xs"
+              className="text-[#FB6B01] hover:underline font-bold text-xs shrink-0 cursor-pointer"
             >
-              <span>Alterar local</span>
-              <Icon name="chevron-down" size={13} />
+              Alterar
             </button>
           </div>
 
-          {/* SECTION 2: CARROSSEL DE CATEGORIAS VISUAIS */}
-          <div className="space-y-3 pt-1 w-full">
+          {/* BUSCA DE SERVIÇOS ANTES DOS RESULTADOS (Prompt Item 6: O que você precisa resolver?) */}
+          <div className="space-y-2 w-full">
+            <label htmlFor="tiao-main-search" className="text-xs sm:text-sm font-bold text-slate-800 block">
+              O que você precisa resolver?
+            </label>
+            <div className="relative">
+              <Icon
+                name="search"
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
+              <input
+                id="tiao-main-search"
+                type="text"
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Buscar eletricista, vazamento, pintura, ar-condicionado..."
+                className="w-full h-11 pl-10 pr-9 rounded-xl border border-slate-200/90 bg-white text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 shadow-2xs outline-none focus:border-[#FB6B01] focus:ring-1 focus:ring-[#FB6B01] transition-all"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Limpar busca"
+                >
+                  <Icon name="x" size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Chips rápidos de problemas comuns */}
+            {!search && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-0.5">
+                <span className="text-[11px] font-semibold text-slate-400 shrink-0">Comuns:</span>
+                {[
+                  { label: "Chuveiro Queimou", query: "chuveiro" },
+                  { label: "Pia Vazando", query: "vazamento" },
+                  { label: "Ar Não Gela", query: "ar condicionado" },
+                  { label: "Fechadura Travada", query: "fechadura" },
+                  { label: "Pintura de Parede", query: "pintura" },
+                ].map((chip) => (
+                  <button
+                    key={chip.query}
+                    type="button"
+                    onClick={() => handleSearchChange(chip.query)}
+                    className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-[#FB6B01] text-slate-600 text-[11px] font-medium transition-colors cursor-pointer shrink-0"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 2: CARROSSEL DE CATEGORIAS VISUAIS COMPACTO (Prompt Item 8: 100-130px) */}
+          <div className="space-y-2.5 pt-1 w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#FB6B01]" />
@@ -2136,10 +2158,10 @@ export function ServicosClient({
               </div>
             </div>
 
-            {/* Carrossel Horizontal Deslizável */}
+            {/* Carrossel Horizontal Deslizável (115px a 130px) */}
             <div
               ref={categoriesCarouselRef}
-              className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-0.5 scroll-smooth scrollbar-none snap-x snap-mandatory -mx-1 px-1"
+              className="flex items-stretch gap-2.5 overflow-x-auto pb-2 pt-0.5 scroll-smooth scrollbar-none snap-x snap-mandatory -mx-1 px-1"
             >
               {categoriesConfig.map((cat) => {
                 const isActive = selectedCategory === cat.id;
@@ -2148,43 +2170,42 @@ export function ServicosClient({
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`group flex flex-col items-center justify-between p-2.5 rounded-2xl text-center transition-all cursor-pointer border shrink-0 snap-start w-[145px] sm:w-[160px] md:w-[170px] ${
+                    className={`group flex flex-col items-center justify-between p-2 rounded-xl text-center transition-all cursor-pointer border shrink-0 snap-start w-[115px] sm:w-[130px] ${
                       isActive
-                        ? "bg-orange-50/90 border-[#FB6B01] shadow-xs ring-2 ring-[#FB6B01]/20 text-[#FB6B01]"
-                        : "bg-white border-slate-200 hover:border-orange-200 hover:bg-orange-50/20 shadow-2xs text-[#0F172A]"
+                        ? "bg-orange-50/90 border-[#FB6B01] shadow-2xs ring-2 ring-[#FB6B01]/20 text-[#FB6B01]"
+                        : "bg-white border-slate-200/90 hover:border-orange-200 hover:bg-orange-50/20 shadow-2xs text-[#0F172A]"
                     }`}
                   >
                     {/* Visual photo/icon tile com fallback automático onError */}
-                    <div className="relative h-18 sm:h-20 w-full rounded-xl overflow-hidden bg-slate-100 mb-2 flex items-center justify-center">
+                    <div className="relative h-14 sm:h-16 w-full rounded-lg overflow-hidden bg-slate-100 mb-1.5 flex items-center justify-center">
                       {cat.imageUrl ? (
                         <>
                           <img
                             src={cat.imageUrl}
                             alt={cat.name}
                             onError={(e) => {
-                              // Se houver erro de rede na imagem, esconde a tag img e mostra o container de fallback
                               e.currentTarget.style.display = "none";
                             }}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
                           />
                           <div className={`absolute inset-0 transition-opacity ${isActive ? "bg-[#FB6B01]/25" : "bg-black/20 group-hover:bg-black/10"}`} />
-                          <span className="absolute bottom-1 right-1 p-1 rounded-md bg-white/95 text-slate-800 shadow-2xs">
-                            <Icon name={cat.icon as any} size={11} className={isActive ? "text-[#FB6B01]" : "text-slate-700"} />
+                          <span className="absolute bottom-1 right-1 p-0.5 rounded-md bg-white/95 text-slate-800 shadow-2xs">
+                            <Icon name={cat.icon as any} size={10} className={isActive ? "text-[#FB6B01]" : "text-slate-700"} />
                           </span>
                         </>
                       ) : (
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? "bg-[#FB6B01] text-white" : "bg-orange-50 text-[#FB6B01]"}`}>
-                          <Icon name={cat.icon as any} size={20} />
+                        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? "bg-[#FB6B01] text-white" : "bg-orange-50 text-[#FB6B01]"}`}>
+                          <Icon name={cat.icon as any} size={16} />
                         </span>
                       )}
                     </div>
 
-                    <span className={`text-xs font-bold truncate max-w-full leading-tight ${isActive ? "text-[#FB6B01]" : "text-[#0F172A]"}`}>
+                    <span className={`text-[11px] font-bold truncate max-w-full leading-tight ${isActive ? "text-[#FB6B01]" : "text-[#0F172A]"}`}>
                       {cat.name}
                     </span>
-                    <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? "text-[#FB6B01]" : "text-slate-400"}`}>
-                      {cat.count} {cat.count === 1 ? "profissional" : "profissionais"}
+                    <span className={`text-[9px] font-semibold mt-0.5 ${isActive ? "text-[#FB6B01]" : "text-slate-400"}`}>
+                      {cat.count} {cat.count === 1 ? "prof." : "profs."}
                     </span>
                   </button>
                 );
@@ -2226,18 +2247,18 @@ export function ServicosClient({
             )}
           </div>
 
-          {/* SECTION 3: PRECISA PARA HOJE? (CHAMADA VISUAL LIMPA E FULL-WIDTH) */}
-          <div className="w-full rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shrink-0">
-                <Icon name="zap" size={24} className="text-[#FFD000] fill-[#FFD000]" />
-              </div>
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-[#0F172A] tracking-tight">
+          {/* SECTION 3: PRECISA PARA HOJE? (Prompt Item 9: Compacto) */}
+          <div className="w-full rounded-xl bg-white border border-slate-200/90 p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-[#FB6B01] border border-orange-200/60 shrink-0">
+                <Icon name="zap" size={16} />
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
                   Precisa resolver agora?
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Encontre profissionais aprovados e online com disponibilidade confirmada para hoje.
+                <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                  Profissionais disponíveis hoje no condomínio
                 </p>
               </div>
             </div>
@@ -2249,133 +2270,96 @@ export function ServicosClient({
                 setOnlyAvailableNow(nextVal);
                 setFilters((prev) => ({ ...prev, availableNowOnly: nextVal }));
               }}
-              className={`rounded-xl px-4 py-2.5 text-xs font-black transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center gap-2 ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 ${
                 onlyAvailableNow
                   ? "bg-slate-900 text-white"
                   : "bg-[#FB6B01] hover:bg-[#E05F00] text-white"
               }`}
             >
-              {onlyAvailableNow ? (
-                <>
-                  <Icon name="check" size={14} strokeWidth={2.4} />
-                  <span>Mostrando Disponíveis Agora</span>
-                </>
-              ) : (
-                <>
-                  <span>Encontrar disponível agora</span>
-                  <Icon name="arrow-right" size={13} />
-                </>
-              )}
+              {onlyAvailableNow ? "Ver todos" : "Ver disponíveis"}
             </button>
           </div>
 
-          {/* SECTION 4: BARRA DE RESULTADOS E TOOLBAR REORGANIZADA (Seções 4, 5, 6, 7, 8, 44, 45, 46) */}
+          {/* SECTION 4: BARRA DE RESULTADOS E TOOLBAR STICKY (Prompt Items 10 & 11) */}
           <div className="space-y-4 pt-1 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
-              {/* Lado Esquerdo: Quantidade e Localização Discreta (Seções 4 e 5) */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base font-black text-[#0F172A] tracking-tight">
-                    {filteredVendors.length} {filteredVendors.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
-                  </h2>
+            <div className="sticky top-14 z-20 bg-[#F8FAFC]/95 backdrop-blur-xs py-2 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-slate-200/80">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h2 className="text-xs sm:text-sm font-black text-[#0F172A] tracking-tight">
+                      {displayedOrganicList.length} {displayedOrganicList.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
+                    </h2>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium truncate">
+                    📍 {serviceLocation.name}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 flex-wrap">
-                  <span className="flex items-center gap-1 text-slate-600 font-medium">
-                    <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
-                    <span className="truncate max-w-[200px] sm:max-w-xs">{serviceLocation.name}</span>
-                  </span>
-                  <span className="text-slate-300">•</span>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Segmented Control Lista | Mapa */}
+                  <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode("lista")}
+                      className={`p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        displayMode === "lista"
+                          ? "bg-[#FB6B01] text-white shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                      title="Visualizar em lista"
+                    >
+                      <Icon name="grid" size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode("mapa")}
+                      className={`p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        displayMode === "mapa"
+                          ? "bg-[#FB6B01] text-white shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                      title="Visualizar no mapa"
+                    >
+                      <Icon name="map-pin" size={13} />
+                    </button>
+                  </div>
+
+                  {/* Filtros */}
                   <button
                     type="button"
-                    onClick={() => setIsLocationModalOpen(true)}
-                    className="font-bold text-[#FB6B01] hover:underline cursor-pointer text-xs"
+                    onClick={() => setIsFilterSheetOpen(true)}
+                    className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                      activeFiltersCount > 0
+                        ? "border-[#FB6B01] bg-orange-50 text-[#FB6B01]"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
                   >
-                    Alterar local
-                  </button>
-                  {search && (
-                    <>
-                      <span className="text-slate-300">•</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[11px] font-bold text-[#FB6B01]">
-                        <span>Busca: "{search}"</span>
-                        <button
-                          type="button"
-                          onClick={() => handleSearchChange("")}
-                          className="hover:text-orange-950 cursor-pointer ml-0.5"
-                          title="Limpar busca"
-                        >
-                          <Icon name="x" size={10} />
-                        </button>
+                    <Icon name="filter" size={12} />
+                    <span className="hidden sm:inline">Filtros</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="h-4 w-4 rounded-full bg-[#FB6B01] text-white text-[9px] font-black flex items-center justify-center">
+                        {activeFiltersCount}
                       </span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Lado Direito: [Lista | Mapa] + [Filtros] + [Ordenar] (Seções 6, 7 e 8) */}
-              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap sm:flex-nowrap">
-                {/* Segmented Control Lista | Mapa */}
-                <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => setDisplayMode("lista")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      displayMode === "lista"
-                        ? "bg-[#FB6B01] text-white shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Icon name="grid" size={12} />
-                    <span>Lista</span>
+                    )}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setDisplayMode("mapa")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      displayMode === "mapa"
-                        ? "bg-[#FB6B01] text-white shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Icon name="map-pin" size={12} />
-                    <span>Mapa</span>
-                  </button>
-                </div>
 
-                {/* Botão de Filtros com Badge Laranja */}
-                <button
-                  type="button"
-                  onClick={() => setIsFilterSheetOpen(true)}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                    activeFiltersCount > 0
-                      ? "border-[#FB6B01] bg-orange-50 text-[#FB6B01]"
-                      : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-                  }`}
-                >
-                  <Icon name="filter" size={12} className={activeFiltersCount > 0 ? "text-[#FB6B01]" : "text-slate-500"} />
-                  <span>Filtros</span>
-                  {activeFiltersCount > 0 && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FB6B01] text-white text-[9px] font-black">
-                      {activeFiltersCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Seletor Compacto de Ordenação */}
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => handleSortChange(e.target.value)}
-                    className="rounded-xl border border-slate-200/90 bg-white pl-3 pr-8 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#FB6B01] transition-all cursor-pointer shadow-2xs appearance-none"
-                  >
-                    <option value="score">Recomendados</option>
-                    <option value="rating">Melhor avaliados</option>
-                    <option value="distance">Mais próximos</option>
-                    <option value="price_asc">Menor preço</option>
-                    <option value="condo">Mais contratados</option>
-                    <option value="response">Resposta rápida</option>
-                  </select>
-                  <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-                    <Icon name="chevron-down" size={12} />
+                  {/* Ordenação */}
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => handleSortChange(e.target.value)}
+                      className="rounded-lg border border-slate-200 bg-white pl-2 pr-5 py-1.5 text-[11px] font-bold text-slate-700 outline-none focus:border-[#FB6B01] transition-all cursor-pointer shadow-2xs appearance-none"
+                    >
+                      <option value="score">Recomendados</option>
+                      <option value="rating">Melhor avaliados</option>
+                      <option value="distance">Mais próximos</option>
+                      <option value="price_asc">Menor preço</option>
+                      <option value="condo">Mais contratados</option>
+                      <option value="response">Resposta rápida</option>
+                    </select>
+                    <div className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Icon name="chevron-down" size={10} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2544,9 +2528,9 @@ export function ServicosClient({
                       </div>
                     )}
                   <div className="space-y-6">
-                    {/* SEUS PROFISSIONAIS: Compacto, horizontal, elegante e minimalista */}
-                    {displayedHiredProviders.length > 0 && (
-                      <section className="space-y-3">
+                    {/* SEUS PROFISSIONAIS: Carrossel Horizontal Compacto (Prompt Item 12) */}
+                    {displayedHiredProvidersDedup.length > 0 && (
+                      <section className="space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 text-[#FB6B01] border border-orange-100">
@@ -2558,7 +2542,7 @@ export function ServicosClient({
                                   Seus profissionais
                                 </h3>
                                 <span className="text-[11px] font-bold text-slate-400">
-                                  ({displayedHiredProviders.length})
+                                  ({displayedHiredProvidersDedup.length})
                                 </span>
                               </div>
                               <p className="text-[11px] text-slate-500">
@@ -2568,14 +2552,14 @@ export function ServicosClient({
                           </div>
                         </div>
 
-                        {/* Grid moderno e responsivo de cards horizontais compactos */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {displayedHiredProviders.map((hp: any) => {
+                        {/* Carrossel Horizontal Deslizável no mobile (Prompt Item 12) */}
+                        <div className="flex gap-3 overflow-x-auto pb-2 pt-0.5 scrollbar-none snap-x sm:overflow-visible sm:grid sm:grid-cols-2 lg:grid-cols-3">
+                          {displayedHiredProvidersDedup.map((hp: any) => {
                             const isEligible = hp.active && hp.onboardingStatus !== "suspenso";
                             return (
                               <div
                                 key={`hired-${hp.id}`}
-                                className="flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 bg-white hover:border-orange-200/90 hover:shadow-xs transition-all gap-3 group"
+                                className="w-[250px] sm:w-auto shrink-0 snap-start flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 bg-white hover:border-orange-200/90 hover:shadow-xs transition-all gap-3 group"
                               >
                                 {/* Bloco de Informações do Prestador */}
                                 <div className="flex items-center gap-3 min-w-0 flex-1">

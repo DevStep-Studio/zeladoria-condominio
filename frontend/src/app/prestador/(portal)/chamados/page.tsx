@@ -9,8 +9,20 @@ export const metadata = {
   description: "Gerencie seus atendimentos, orçamentos e histórico de serviços.",
 };
 
-export default async function PrestadorChamadosPage() {
+export default async function PrestadorChamadosPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tab?: string }>;
+}) {
   await requireProvider();
+  const sp = searchParams ? await searchParams : {};
   const data = await domainRequest<ProviderDashboard>("/prestador/chamados");
-  return <ProviderChamadosClient vendor={data.vendor} requests={data.requests} quotes={data.quotes} />;
+  return (
+    <ProviderChamadosClient
+      vendor={data.vendor}
+      requests={data.requests}
+      quotes={data.quotes}
+      initialTab={sp.tab}
+    />
+  );
 }

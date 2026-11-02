@@ -54,51 +54,55 @@ export function ProviderGanhosClient({
         </div>
       </div>
 
-      {/* Metrics Cards: A receber | Em processamento | Recebido | Comissão Zeladoria */}
-      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      {/* Topo do Financeiro: 3 Cards Limpos (Prompt Item 43) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-amber-800 font-bold uppercase">
-            <span>A receber (Retido)</span>
+          <div className="flex items-center justify-between text-xs text-amber-800 font-bold uppercase tracking-wider">
+            <span>A receber</span>
             <Icon name="clock" size={16} className="text-amber-700" />
           </div>
           <div className="text-2xl font-black text-amber-900">
             R$ {(retainedCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-amber-700 font-medium">Zeladoria Protege ativo</p>
+          <p className="text-[11px] text-amber-700 font-medium">Retido em escrow · Zeladoria Protege</p>
         </div>
 
-        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#1355FF] font-bold uppercase">
+        <div className="rounded-2xl border border-orange-200 bg-orange-50/60 p-5 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#FB6B01] font-bold uppercase tracking-wider">
             <span>Em processamento</span>
-            <Icon name="zap" size={16} className="text-[#1355FF]" />
+            <Icon name="zap" size={16} className="text-[#FB6B01]" />
           </div>
-          <div className="text-2xl font-black text-blue-950">
+          <div className="text-2xl font-black text-slate-900">
             R$ {(processingCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-blue-700 font-medium">Split em andamento no PSP</p>
+          <p className="text-[11px] text-orange-700 font-medium">Split em andamento via Zeladoria Pay</p>
         </div>
 
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-emerald-800 font-bold uppercase">
-            <span>Recebido (Líquido)</span>
+          <div className="flex items-center justify-between text-xs text-emerald-800 font-bold uppercase tracking-wider">
+            <span>Recebido este mês</span>
             <Icon name="check-circle" size={16} className="text-emerald-700" />
           </div>
           <div className="text-2xl font-black text-emerald-800">
             R$ {(releasedCents / 100).toFixed(2)}
           </div>
-          <p className="text-[11px] text-emerald-700 font-medium">Disponível para saque</p>
+          <p className="text-[11px] text-emerald-700 font-medium">Líquido liberado na sua conta</p>
         </div>
+      </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Comissão Zeladoria</span>
-            <Icon name="shield" size={16} className="text-slate-400" />
-          </div>
-          <div className="text-2xl font-black text-slate-700">
-            R$ {(totalFeesCents / 100).toFixed(2)}
-          </div>
-          <p className="text-[11px] text-slate-500 font-medium">10% padrão de intermediação</p>
+      {/* Info Split Transparente */}
+      <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50 text-[#FB6B01]">
+            <Icon name="shield" size={14} />
+          </span>
+          <p className="text-slate-600">
+            <strong className="text-slate-800">Divisão transparente Zeladoria Pay:</strong> Cobrança fixa de 10% da comissão da plataforma apenas sobre serviços concluídos. Sem mensalidade oculta.
+          </p>
         </div>
+        <span className="text-[11px] font-bold text-slate-500 shrink-0 hidden sm:inline">
+          Comissão acumulada: R$ {(totalFeesCents / 100).toFixed(2)}
+        </span>
       </div>
 
       {/* History */}

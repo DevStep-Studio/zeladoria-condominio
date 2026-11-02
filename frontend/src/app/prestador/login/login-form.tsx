@@ -43,7 +43,7 @@ export function ProviderLoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs font-medium text-slate-900 outline-none focus:border-[#FB6B01] focus:ring-1 focus:ring-[#FB6B01] transition-all"
             />
           </div>
         </div>
@@ -58,7 +58,7 @@ export function ProviderLoginForm() {
             </label>
             <Link
               href="/esqueci-senha"
-              className="text-[11px] font-semibold text-[#1355FF] hover:underline"
+              className="text-[11px] font-semibold text-[#FB6B01] hover:underline"
             >
               Esqueci minha senha
             </Link>
@@ -78,7 +78,7 @@ export function ProviderLoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF] transition-all"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs font-medium text-slate-900 outline-none focus:border-[#FB6B01] focus:ring-1 focus:ring-[#FB6B01] transition-all"
             />
             <button
               type="button"
@@ -93,7 +93,7 @@ export function ProviderLoginForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
         >
           {isPending ? (
             <>
@@ -102,7 +102,7 @@ export function ProviderLoginForm() {
             </>
           ) : (
             <>
-              <span>Entrar na Área do Prestador</span>
+              <span>Entrar</span>
               <Icon name="arrow-right" size={14} />
             </>
           )}

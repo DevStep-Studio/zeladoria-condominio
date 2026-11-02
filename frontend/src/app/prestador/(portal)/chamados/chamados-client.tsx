@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import {
   acceptServiceRequestAction,
@@ -24,14 +24,39 @@ export function ProviderChamadosClient({
   vendor,
   requests = [],
   quotes = [],
+  initialTab,
 }: {
   vendor: any;
   requests: any[];
   quotes?: any[];
+  initialTab?: string;
 }) {
   const [activeTab, setActiveTab] = useState<
     "novos" | "orcamentos_enviados" | "contratados" | "em_andamento" | "concluidos"
-  >("novos");
+  >(() => {
+    if (
+      initialTab === "novos" ||
+      initialTab === "orcamentos_enviados" ||
+      initialTab === "contratados" ||
+      initialTab === "em_andamento" ||
+      initialTab === "concluidos"
+    ) {
+      return initialTab;
+    }
+    return "novos";
+  });
+
+  useEffect(() => {
+    if (
+      initialTab === "novos" ||
+      initialTab === "orcamentos_enviados" ||
+      initialTab === "contratados" ||
+      initialTab === "em_andamento" ||
+      initialTab === "concluidos"
+    ) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -206,7 +231,7 @@ export function ProviderChamadosClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar chamado..."
-            className="h-9 w-full rounded-xl border border-slate-200/80 bg-white pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+            className="h-9 w-full rounded-xl border border-slate-200/80 bg-white pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-[#FB6B01] shadow-2xs"
           />
         </div>
       </div>
@@ -222,7 +247,7 @@ export function ProviderChamadosClient({
               onClick={() => setActiveTab(t.id as any)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer snap-start ${
                 isActive
-                  ? "bg-[#1355FF] text-white shadow-2xs"
+                  ? "bg-[#FB6B01] text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
@@ -462,7 +487,7 @@ export function ProviderChamadosClient({
                           type="button"
                           onClick={() => setProposalModalReq(req)}
                           disabled={isPending}
-                          className="px-5 py-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          className="px-5 py-2 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                         >
                           <Icon name="send" size={14} />
                           <span>Enviar Orçamento</span>
@@ -483,7 +508,7 @@ export function ProviderChamadosClient({
                             type="button"
                             onClick={() => setProposalModalReq(req)}
                             disabled={isPending}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                            className="px-3.5 py-1.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
                           >
                             Enviar novo orçamento
                           </button>
@@ -512,10 +537,10 @@ export function ProviderChamadosClient({
                       type="button"
                       onClick={() => handleAdvance(req.id, "a_caminho")}
                       disabled={isPending}
-                      className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                      className="px-6 py-2.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-2"
                     >
                       <Icon name="navigation" size={14} />
-                      <span>A caminho</span>
+                      <span>Estou a caminho</span>
                     </button>
                   )}
 
@@ -527,7 +552,7 @@ export function ProviderChamadosClient({
                           type="button"
                           onClick={() => handleAdvance(req.id, "chegou")}
                           disabled={isPending}
-                          className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          className="px-5 py-2.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                         >
                           <Icon name="map-pin" size={14} />
                           <span>Cheguei ao condomínio</span>

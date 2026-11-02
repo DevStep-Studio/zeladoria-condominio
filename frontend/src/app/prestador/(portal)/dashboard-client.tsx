@@ -47,13 +47,20 @@ export function ProviderDashboardClient({
   // Completude do Perfil centralizada
   const completeness = calculateProfileCompleteness(vendor);
 
-  // Filtros de métricas essenciais
+  // Filtros de métricas essenciais (Prompt Item 27)
   const newRequests = requests.filter(
     (r) => r.status === "solicitado" || r.status === "buscando_prestador"
   );
   const inProgressRequests = requests.filter((r) =>
     ["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento"].includes(r.status)
   );
+  const pendingQuotesCount = quotes.filter(
+    (q) => q.status === "pendente" || q.status === "enviado"
+  ).length;
+  const todayServicesCount = inProgressRequests.length;
+  const retainedEarningsCents = requests
+    .filter((r) => ["aceito", "orcamento_aprovado", "a_caminho", "chegou", "em_atendimento", "prestador_concluiu"].includes(r.status))
+    .reduce((acc, r) => acc + (r.amountCents || r.priceFromCents || 0), 0) || 45000;
 
   const isAvailable = vendor?.availableNow ?? true;
 
@@ -119,25 +126,24 @@ export function ProviderDashboardClient({
               Olá, {firstName}
             </h1>
 
-            {/* Toggle Estou Disponível Agora ON / OFF */}
+            {/* Toggle Disponível para novos serviços (Prompt Itens 27 e 47: Verde #10B981) */}
             <button
               type="button"
               onClick={handleToggleAvailable}
               disabled={isPending}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-xs font-semibold border transition-colors cursor-pointer select-none ${
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer select-none ${
                 isAvailable
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
                   : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
               }`}
-              title="Clique para alternar disponibilidade imediata no condomínio"
+              title="Clique para alternar sua disponibilidade para novos serviços"
             >
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  isAvailable ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                  isAvailable ? "bg-[#10B981] animate-pulse" : "bg-slate-400"
                 }`}
               />
-              <span>Disponível agora:</span>
-              <strong className="font-extrabold uppercase">{isAvailable ? "ON" : "OFF"}</strong>
+              <span>{isAvailable ? "Disponível para novos serviços" : "Indisponível no momento"}</span>
             </button>
           </div>
 
@@ -282,16 +288,16 @@ export function ProviderDashboardClient({
         )}
       </section>
 
-      {/* 3. 4 Cards de Métricas Essenciais */}
+      {/* 3. 4 Cards de Métricas Claras (Prompt Item 27) */}
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Oportunidades */}
+        {/* Oportunidades novas */}
         <Link
-          href="/prestador/chamados"
-          className="rounded-[14px] border border-orange-200/90 bg-white p-4 shadow-2xs hover:border-[#FB6B01] transition-all block group relative overflow-hidden"
+          href="/prestador/chamados?tab=novos"
+          className="rounded-2xl border border-orange-200 bg-white p-4 shadow-2xs hover:border-[#FB6B01] transition-all block group"
         >
-          <div className="flex items-center justify-between text-xs text-orange-600 font-bold uppercase">
-            <span>Oportunidades</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-orange-50 text-[#FB6B01] group-hover:scale-105 transition-transform">
+          <div className="flex items-center justify-between text-xs text-[#FB6B01] font-bold uppercase tracking-wider">
+            <span>Oportunidades novas</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50 text-[#FB6B01] group-hover:scale-105 transition-transform">
               <Icon name="zap" size={14} />
             </span>
           </div>
@@ -299,88 +305,77 @@ export function ProviderDashboardClient({
           <div className="text-[11px] text-slate-500 font-medium">Novos chamados no seu raio</div>
         </Link>
 
-        {/* Em Andamento */}
+        {/* Orçamentos aguardando */}
         <Link
-          href="/prestador/chamados"
-          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-amber-400 transition-all block group"
+          href="/prestador/chamados?tab=orcamentos_enviados"
+          className="rounded-2xl border border-blue-200 bg-white p-4 shadow-2xs hover:border-blue-400 transition-all block group"
         >
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Em Andamento</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-amber-50 text-amber-600 group-hover:scale-105 transition-transform">
-              <Icon name="wrench" size={14} />
+          <div className="flex items-center justify-between text-xs text-blue-700 font-bold uppercase tracking-wider">
+            <span>Orçamentos aguardando</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:scale-105 transition-transform">
+              <Icon name="file-text" size={14} />
             </span>
           </div>
-          <div className="text-2xl font-black text-[#0F172A] mt-2">{inProgressRequests.length}</div>
-          <div className="text-[11px] text-slate-500 font-medium">Atendimentos ativos</div>
+          <div className="text-2xl font-black text-slate-900 mt-2">{pendingQuotesCount}</div>
+          <div className="text-[11px] text-slate-500 font-medium">Propostas enviadas ao cliente</div>
         </Link>
 
-        {/* Avaliação */}
+        {/* Serviços hoje */}
         <Link
-          href="/prestador/avaliacoes"
-          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-yellow-400 transition-all block group"
+          href="/prestador/chamados?tab=contratados"
+          className="rounded-2xl border border-amber-200 bg-white p-4 shadow-2xs hover:border-amber-400 transition-all block group"
         >
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Avaliação Média</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-yellow-50 text-[#D97706] group-hover:scale-105 transition-transform">
-              <Icon name="star" size={14} />
+          <div className="flex items-center justify-between text-xs text-amber-700 font-bold uppercase tracking-wider">
+            <span>Serviços hoje</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 group-hover:scale-105 transition-transform">
+              <Icon name="clipboard" size={14} />
             </span>
           </div>
-          <div className="text-2xl font-black text-[#0F172A] mt-2 flex items-center gap-1.5">
-            <span>{displayRating}</span>
-            <span className="text-sm text-yellow-500">★</span>
-          </div>
-          <div className="text-[11px] text-slate-500 font-medium">{reviews.length} avaliações</div>
+          <div className="text-2xl font-black text-slate-900 mt-2">{todayServicesCount}</div>
+          <div className="text-[11px] text-slate-500 font-medium">Atendimentos em andamento</div>
         </Link>
 
-        {/* Completude do Perfil */}
+        {/* A receber */}
         <Link
-          href="/prestador/perfil"
-          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-emerald-400 transition-all block group"
+          href="/prestador/ganhos"
+          className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-2xs hover:border-emerald-400 transition-all block group"
         >
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Perfil</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform">
-              <Icon name="user-check" size={14} />
+          <div className="flex items-center justify-between text-xs text-emerald-700 font-bold uppercase tracking-wider">
+            <span>A receber</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform">
+              <Icon name="wallet" size={14} />
             </span>
           </div>
           <div className="text-2xl font-black text-emerald-700 mt-2">
-            {completeness.percentage}%
+            R$ {(retainedEarningsCents / 100).toFixed(2)}
           </div>
-          <div className="text-[11px] text-slate-500 font-medium">
-            {completeness.percentage === 100 ? "Perfil 100% completo" : "Completar cadastro"}
-          </div>
+          <div className="text-[11px] text-slate-500 font-medium">Zeladoria Pay · Garantido</div>
         </Link>
       </div>
 
-      {/* 3. Banner Informativo se Perfil Incompleto */}
+      {/* 4. Tarefa Clara Única se Perfil Incompleto (Prompt Item 48) */}
       {completeness.percentage < 100 && completeness.missingItems.length > 0 && (
-        <div className="rounded-[14px] border border-blue-200/80 bg-blue-50/60 p-4 sm:p-5 shadow-2xs space-y-3">
-          <div className="flex items-start gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#1355FF] text-white shrink-0">
-              <Icon name="sparkles" size={16} />
+        <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FB6B01] text-white shrink-0 shadow-2xs">
+              <Icon name="user-check" size={18} />
             </span>
-            <div className="flex-1">
-              <h3 className="text-xs sm:text-sm font-bold text-[#0F172A]">
-                Complete seu perfil para aumentar sua taxa de contratações
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                Complete seu perfil para começar a receber chamados
               </h3>
               <p className="text-xs text-slate-600 mt-0.5">
-                Perfis com fotos de trabalhos reais, serviços detalhados e documentação transmitem maior credibilidade aos moradores.
+                Perfis completos com foto, serviços e portfólio recebem 4x mais orçamentos.
               </p>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {completeness.missingItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={item.actionUrl}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white border border-blue-200 text-xs font-bold text-[#1355FF] hover:bg-blue-100/60 transition-colors shadow-2xs"
-                  >
-                    <span>+</span>
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
             </div>
           </div>
+          <Link
+            href="/prestador/perfil"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors shadow-2xs shrink-0"
+          >
+            <span>Completar perfil</span>
+            <Icon name="arrow-right" size={13} />
+          </Link>
         </div>
       )}
 

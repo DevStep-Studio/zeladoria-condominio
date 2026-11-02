@@ -49,3 +49,4 @@ test("Tião Redesign — Cálculo Financeiro e Split Transparente de Ganhos", ()
   assert.equal(taxaPlataformaCentavos, 3500);
   assert.equal(liquidoPrestadorCentavos, 31500);
 });
+
