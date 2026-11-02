@@ -2104,23 +2104,24 @@ export function ServicosClient({
             </button>
           </div>
 
-          {/* SECTION 1: SEARCH BAR PROMINENTE (FULL WIDTH ATÉ O FINAL DA PÁGINA) */}
-          <div className="py-1 space-y-3 w-full">
-            <div>
+          {/* SECTION 1: SEARCH BAR PROMINENTE & ORGANIZADA */}
+          <div className="py-1 space-y-3.5 w-full">
+            <div className="space-y-0.5">
               <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
                 Qual serviço você precisa?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                Encontre profissionais avaliados que atendem {serviceLocation.name}.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Encontre profissionais avaliados que atendem <span className="text-slate-700 font-semibold">{serviceLocation.name}</span>.
               </p>
             </div>
 
+            {/* Barra de Busca Integrada e Refinada */}
             <div ref={searchContainerRef} className="relative w-full">
-              <div className="relative flex items-center">
+              <div className="relative flex items-center h-13 sm:h-14 w-full rounded-2xl border border-slate-200/90 bg-white pl-4 pr-2 shadow-2xs hover:border-slate-300 focus-within:border-[#FB6B01] focus-within:ring-2 focus-within:ring-orange-100 transition-all">
                 <Icon
                   name="search"
-                  size={20}
-                  className="absolute left-4 text-slate-400 pointer-events-none"
+                  size={19}
+                  className="text-slate-400 shrink-0 pointer-events-none"
                 />
                 <input
                   id="search-marketplace-input"
@@ -2131,20 +2132,43 @@ export function ServicosClient({
                     handleSearchChange(e.target.value);
                     setShowSuggestions(true);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setShowSuggestions(false);
+                      updateUrlParams(selectedCategory, search, sortBy);
+                    }
+                  }}
                   placeholder="Ex.: vazamento, chuveiro, pintura, eletricista..."
-                  className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#FB6B01] focus:ring-2 focus:ring-orange-100 transition-all shadow-xs"
+                  className="h-full w-full bg-transparent px-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none font-medium"
                 />
-                {search && (
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => handleSearchChange("")}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer transition-colors"
+                      title="Limpar busca"
+                    >
+                      <Icon name="x" size={15} />
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => handleSearchChange("")}
-                    className="absolute right-3.5 p-1.5 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer"
+                    onClick={() => {
+                      setShowSuggestions(false);
+                      updateUrlParams(selectedCategory, search, sortBy);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
                   >
-                    <Icon name="x" size={16} />
+                    <span>Buscar</span>
+                    <Icon name="arrow-right" size={12} />
                   </button>
-                )}
+                </div>
               </div>
 
+              {/* Sugestões do Autocomplete */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-30 mt-1.5 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 block">
@@ -2178,41 +2202,48 @@ export function ServicosClient({
               )}
             </div>
 
-            {/* Quick Tags de Problemas Comuns */}
-            <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
-              <span className="text-xs font-bold text-slate-500">Problemas comuns:</span>
-              {[
-                { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
-                { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
-                { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
-                { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
-                { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
-                { tag: "Marcenaria", cat: "marcenaria", q: "marcenaria" },
-              ].map((item) => {
-                const isSelected = search.toLowerCase() === item.q.toLowerCase();
-                return (
-                  <button
-                    key={item.tag}
-                    type="button"
-                    onClick={() => {
-                      if (isSelected) {
-                        handleSearchChange("");
-                        setSelectedCategory("Todas");
-                      } else {
-                        handleSearchChange(item.q);
-                        setSelectedCategory(item.cat);
-                      }
-                    }}
-                    className={`rounded-full px-3.5 py-1 text-xs font-semibold transition-all cursor-pointer border ${
-                      isSelected
-                        ? "bg-[#FB6B01] text-white border-[#FB6B01] shadow-2xs font-bold"
-                        : "bg-slate-100 hover:bg-orange-50 hover:text-[#FB6B01] text-slate-600 border-slate-200/80"
-                    }`}
-                  >
-                    {item.tag}
-                  </button>
-                );
-              })}
+            {/* Quick Tags de Problemas Comuns (Linha única contínua com rolagem suave horizontal) */}
+            <div className="flex items-center gap-2.5 pt-0.5 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0 flex items-center gap-1.5">
+                <Icon name="trending" size={12} className="text-[#FB6B01]" />
+                <span>Problemas comuns:</span>
+              </span>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {[
+                  { tag: "Chuveiro Queimou", cat: "eletrica", q: "chuveiro" },
+                  { tag: "Pia Vazando", cat: "hidraulica", q: "vazamento" },
+                  { tag: "Ar Não Gela", cat: "climatizacao", q: "ar-condicionado" },
+                  { tag: "Fechadura Travada", cat: "seguranca", q: "fechadura" },
+                  { tag: "Pintura de Parede", cat: "pintura", q: "pintura" },
+                  { tag: "Marcenaria", cat: "marcenaria", q: "marcenaria" },
+                ].map((item) => {
+                  const isSelected = search.toLowerCase() === item.q.toLowerCase();
+                  return (
+                    <button
+                      key={item.tag}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          handleSearchChange("");
+                          setSelectedCategory("Todas");
+                        } else {
+                          handleSearchChange(item.q);
+                          setSelectedCategory(item.cat);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border shrink-0 ${
+                        isSelected
+                          ? "bg-[#FB6B01] text-white border-[#FB6B01] shadow-2xs font-bold"
+                          : "bg-slate-50 hover:bg-orange-50/80 text-slate-600 hover:text-[#FB6B01] border-slate-200/80 hover:border-orange-200"
+                      }`}
+                    >
+                      <span>{item.tag}</span>
+                      {isSelected && <Icon name="x" size={10} />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
