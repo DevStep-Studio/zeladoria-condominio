@@ -425,34 +425,28 @@ export function DashboardClient({
   // DASHBOARD DO MORADOR — CENTRAL PESSOAL DO MORADOR
   // =========================================================================
   if (isResident) {
-    const totalPending = activeAttention.reduce((acc, curr) => acc + curr.count, 0);
     const nextReservation = upcomingReservations.length > 0 ? upcomingReservations[0] : null;
+    const hasParcels = residentStats.myParcels > 0;
+    const hasOccurrences = residentStats.myOccurrences > 0;
+    const hasReservation = Boolean(nextReservation);
+    const hasTodayItems = hasParcels || hasOccurrences || hasReservation;
 
     return (
-      <div className="space-y-5 sm:space-y-7 max-w-7xl mx-auto pb-10">
-        {/* 1. CABEÇALHO DO MORADOR (Compacto, elegante e com ações na mesma linha no mobile) */}
-        <section className="flex items-center justify-between gap-3 pt-1 pb-0.5">
+      <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-10">
+        {/* 1. CABEÇALHO DO MORADOR (Compacto, direto e limpo) */}
+        <section className="flex items-center justify-between gap-3 pt-1">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-[26px] font-black tracking-tight text-slate-900 leading-tight">
-                Olá, {userName}
-              </h1>
-              {unitLabel && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200/80 text-[#1355FF] text-[11px] font-bold">
-                  <Icon name="home" size={10} className="text-[#1355FF]" />
-                  <span>Unidade {unitLabel}</span>
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5 truncate flex items-center gap-1">
-              <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
-              <span className="truncate">{condoName}</span>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-tight">
+              Olá, {userName}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
+              {condoName} {unitLabel ? `· Unidade ${unitLabel}` : ""}
             </p>
           </div>
 
           {/* Ações Rápidas no Topo */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Botão de Emergência 24h */}
+            {/* Botão de Emergência SOS */}
             <button
               type="button"
               onClick={() => {
@@ -466,8 +460,7 @@ export function DashboardClient({
               aria-label="Central de Emergência e SOS 24h"
             >
               <Icon name="phone" size={13} className="text-red-600 animate-pulse shrink-0" />
-              <span className="hidden sm:inline">Emergência 24h</span>
-              <span className="sm:hidden font-black text-[11px]">SOS</span>
+              <span>SOS</span>
             </button>
 
             {/* Botão Zeladoria IA */}
@@ -479,25 +472,25 @@ export function DashboardClient({
               aria-label="Assistente Virtual Zeladoria IA"
             >
               <Icon name="sparkles" size={13} className="text-[#1355FF] shrink-0" />
-              <span className="text-xs">Zeladoria IA</span>
+              <span>Zeladoria IA</span>
             </button>
           </div>
         </section>
 
-        {/* 2. AÇÕES RÁPIDAS (Barra de Ações Limpa: 1ª em Azul sólido, demais neutras e Tião com detalhe laranja) */}
+        {/* 2. AÇÕES RÁPIDAS (Grid 2x2 Compacto) */}
         <section className="space-y-2">
           <span className="text-xs font-semibold text-slate-500 block">
             Ações rápidas
           </span>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            {/* 1. Registrar ocorrência (Destaque Primário em Azul Sólido) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {/* 1. Registrar ocorrência (Azul Sólido) */}
             <Link
               href="/painel/ocorrencias/nova"
-              className="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white p-3 sm:p-3.5 transition-all shadow-xs cursor-pointer group"
+              className="flex items-center gap-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white p-2.5 sm:p-3 transition-all shadow-xs cursor-pointer group active:scale-[0.99]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
-                <Icon name="plus" size={16} />
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
+                <Icon name="plus" size={15} />
               </span>
               <span className="text-xs sm:text-[13px] font-bold text-white truncate">
                 Registrar ocorrência
@@ -507,10 +500,10 @@ export function DashboardClient({
             {/* 2. Reservar espaço (Neutro) */}
             <Link
               href="/painel/reservas"
-              className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70 p-3 sm:p-3.5 transition-all shadow-2xs cursor-pointer group"
+              className="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 p-2.5 sm:p-3 transition-all shadow-2xs cursor-pointer group active:scale-[0.99]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
-                <Icon name="calendar" size={15} />
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
+                <Icon name="calendar" size={14} />
               </span>
               <span className="text-xs sm:text-[13px] font-semibold text-slate-800 group-hover:text-[#1355FF] transition-colors truncate">
                 Reservar espaço
@@ -520,186 +513,197 @@ export function DashboardClient({
             {/* 3. Autorizar visitante (Neutro) */}
             <Link
               href="/painel/visitantes"
-              className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70 p-3 sm:p-3.5 transition-all shadow-2xs cursor-pointer group"
+              className="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 p-2.5 sm:p-3 transition-all shadow-2xs cursor-pointer group active:scale-[0.99]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
-                <Icon name="users" size={15} />
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:text-[#1355FF] transition-colors">
+                <Icon name="users" size={14} />
               </span>
               <span className="text-xs sm:text-[13px] font-semibold text-slate-800 group-hover:text-[#1355FF] transition-colors truncate">
                 Autorizar visitante
               </span>
             </Link>
 
-            {/* 4. Tião Zelador (Botão sólido laranja oficial do Tião) */}
+            {/* 4. Tião Zelador (Laranja Oficial) */}
             <Link
               href="/painel/servicos"
-              className="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] p-3 sm:p-3.5 transition-all shadow-xs hover:shadow-md cursor-pointer group text-white border border-[#E05F00]"
+              className="flex items-center gap-2.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] p-2.5 sm:p-3 transition-all shadow-xs cursor-pointer group text-white border border-[#E05F00] active:scale-[0.99]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white transition-transform group-hover:scale-105">
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white transition-transform group-hover:scale-105">
                 <img
                   src="/brands/tiao/mascot-white.png"
                   alt="Tião Zelador"
                   className="h-5 w-5 object-contain"
                 />
               </span>
-              <div className="min-w-0 flex-1 flex items-center justify-between">
-                <div className="min-w-0">
-                  <span className="text-xs sm:text-[13px] font-black text-white truncate block">
-                    Tião Zelador
-                  </span>
-                  <span className="text-[10px] text-white/85 font-medium truncate hidden sm:block">
-                    Encontrar profissional
-                  </span>
-                </div>
-                <Icon
-                  name="arrow-right"
-                  size={14}
-                  className="text-white/90 group-hover:translate-x-0.5 transition-transform shrink-0"
-                />
-              </div>
+              <span className="text-xs sm:text-[13px] font-black text-white truncate">
+                Tião Zelador
+              </span>
             </Link>
           </div>
         </section>
 
-        {/* 3. HOJE (Resumo dinâmico e compacto das informações essenciais do morador) */}
+        {/* 3. HOJE (Única superfície branca com divisores para pendências e eventos pessoais) */}
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-slate-900 tracking-tight">
             Hoje
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
-            {/* Bloco 1: Ocorrências da Unidade */}
-            <Link
-              href={residentStats.myOccurrences > 0 ? "/painel/ocorrencias" : "/painel/ocorrencias/nova"}
-              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                  residentStats.myOccurrences > 0 ? "bg-blue-50 text-[#1355FF]" : "bg-slate-100 text-slate-400"
-                }`}>
-                  <Icon name="clipboard" size={15} />
-                </span>
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
-                    {residentStats.myOccurrences > 0
-                      ? `${residentStats.myOccurrences} ${residentStats.myOccurrences === 1 ? "ocorrência em andamento" : "ocorrências em andamento"}`
-                      : "Nenhuma ocorrência aberta"}
-                  </span>
-                  <span className="text-[11px] text-slate-500 block truncate">
-                    {residentStats.myOccurrences > 0
-                      ? "Acompanhar chamado da unidade"
-                      : "Sua unidade sem chamados pendentes"}
-                  </span>
-                </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
-            </Link>
+          {!hasTodayItems ? (
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 flex items-center gap-3 text-xs text-slate-600 shadow-2xs">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <Icon name="check" size={14} />
+              </span>
+              <span className="font-medium">✓ Tudo certo por aqui.</span>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
+              {/* Encomendas para retirar */}
+              {hasParcels && (
+                <Link
+                  href="/painel/encomendas"
+                  className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-900">
+                      <Icon name="package" size={15} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                        {residentStats.myParcels} {residentStats.myParcels === 1 ? "encomenda para retirar" : "encomendas para retirar"}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        Portaria · disponível agora
+                      </p>
+                    </div>
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0"
+                  />
+                </Link>
+              )}
 
-            {/* Bloco 2: Encomendas na Portaria */}
-            <Link
-              href="/painel/encomendas"
-              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                  residentStats.myParcels > 0 ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-400"
-                }`}>
-                  <Icon name="package" size={15} />
-                </span>
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
-                    {residentStats.myParcels > 0
-                      ? `${residentStats.myParcels} ${residentStats.myParcels === 1 ? "encomenda para retirar" : "encomendas para retirar"}`
-                      : "Nenhuma encomenda pendente"}
-                  </span>
-                  <span className="text-[11px] text-slate-500 block truncate">
-                    {residentStats.myParcels > 0
-                      ? "Disponível na portaria"
-                      : "Notificaremos você quando chegar"}
-                  </span>
-                </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
-            </Link>
+              {/* Ocorrências em andamento */}
+              {hasOccurrences && (
+                <Link
+                  href="/painel/ocorrencias"
+                  className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
+                      <Icon name="clipboard" size={15} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                        {residentStats.myOccurrences} {residentStats.myOccurrences === 1 ? "ocorrência em andamento" : "ocorrências em andamento"}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        Acompanhe o andamento da sua solicitação
+                      </p>
+                    </div>
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0"
+                  />
+                </Link>
+              )}
 
-            {/* Bloco 3: Próxima Reserva */}
-            <Link
-              href="/painel/reservas"
-              className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all shadow-2xs group cursor-pointer"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                  nextReservation ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"
-                }`}>
-                  <Icon name="calendar" size={15} />
-                </span>
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors block truncate">
-                    {nextReservation
-                      ? `${nextReservation.amenityName}`
-                      : "Nenhuma reserva agendada"}
-                  </span>
-                  <span className="text-[11px] text-slate-500 block truncate">
-                    {nextReservation
-                      ? `${nextReservation.date} · ${nextReservation.time}`
-                      : "Espaços disponíveis para reserva"}
-                  </span>
-                </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0" />
-            </Link>
-          </div>
-        </section>
-
-        {/* 4. SEÇÃO EM DUAS COLUNAS: PENDÊNCIAS + AVISOS RECENTES (Sem excesso de bordas, listas limpas) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-          {/* Coluna 1: Precisa da sua atenção */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                Precisa da sua atenção
-              </h3>
-              {totalPending > 0 && (
-                <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full">
-                  {totalPending} {totalPending === 1 ? "pendência" : "pendências"}
-                </span>
+              {/* Próxima Reserva */}
+              {hasReservation && nextReservation && (
+                <Link
+                  href="/painel/reservas"
+                  className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                      <Icon name="calendar" size={15} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                        {nextReservation.amenityName}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {nextReservation.date === "Hoje" ? "Hoje" : nextReservation.date} · {nextReservation.time}
+                      </p>
+                    </div>
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0"
+                  />
+                </Link>
               )}
             </div>
+          )}
+        </section>
 
-            {activeAttention.length === 0 ? (
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 flex items-center gap-3 text-xs text-slate-600">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Icon name="check" size={14} />
-                </span>
-                <span>Tudo certo por aqui. Nenhuma pendência no momento.</span>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
-                {activeAttention.map((item) => (
+        {/* 4. AVISOS RECENTES (Máximo 3 avisos, lista limpa com divisores) */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+              Avisos recentes
+            </h2>
+            <Link
+              href="/painel/comunicados"
+              className="text-xs font-semibold text-[#1355FF] hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+
+          {notices.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 flex items-center gap-3 text-xs text-slate-600 shadow-2xs">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                <Icon name="mail" size={14} />
+              </span>
+              <span>Nenhum aviso recente no condomínio.</span>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
+              {notices.slice(0, 3).map((n) => {
+                const meta = NOTICE_META[n.kind];
+                const isAlert = n.priority === "alta" || n.kind === "alerta";
+                return (
                   <Link
-                    key={item.id}
-                    href={item.href}
+                    key={n.id}
+                    href={n.href}
                     className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs ${
-                          item.urgent
-                            ? "bg-amber-100 text-amber-900"
+                          isAlert
+                            ? "bg-rose-50 text-rose-600 border border-rose-200/60"
                             : "bg-blue-50 text-[#1355FF]"
                         }`}
                       >
-                        <Icon name={item.urgent ? "package" : "clipboard"} size={15} />
+                        <Icon name={meta.icon} size={14} />
                       </span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
-                          {item.count} {item.label}
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                            {n.title}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                              isAlert
+                                ? "bg-rose-100 text-rose-800"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {meta.label}
+                          </span>
+                          <span className="text-[11px] text-slate-400 hidden sm:inline">
+                            · {n.date}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 leading-relaxed">
+                          {n.detail}
                         </p>
-                        {item.detail && (
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                            {item.detail}
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -709,164 +713,53 @@ export function DashboardClient({
                       className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0"
                     />
                   </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Coluna 2: Avisos recentes */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                Avisos recentes
-              </h3>
-              <Link
-                href="/painel/comunicados"
-                className="text-xs font-semibold text-[#1355FF] hover:underline"
-              >
-                Ver todos
-              </Link>
+                );
+              })}
             </div>
-
-            {notices.length === 0 ? (
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 flex items-center gap-3 text-xs text-slate-600">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                  <Icon name="mail" size={14} />
-                </span>
-                <span>Nenhum aviso recente no condomínio.</span>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs divide-y divide-slate-100 overflow-hidden">
-                {notices.slice(0, 4).map((n) => {
-                  const meta = NOTICE_META[n.kind];
-                  const isAlert = n.priority === "alta" || n.kind === "alerta";
-                  return (
-                    <Link
-                      key={n.id}
-                      href={n.href}
-                      className="p-3.5 flex items-start justify-between gap-3 hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3 min-w-0">
-                        <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs mt-0.5 ${
-                            isAlert
-                              ? "bg-rose-50 text-rose-600 border border-rose-200/60"
-                              : "bg-blue-50 text-[#1355FF]"
-                          }`}
-                        >
-                          <Icon name={meta.icon} size={14} />
-                        </span>
-                        <div className="min-w-0 space-y-0.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors">
-                              {n.title}
-                            </span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
-                              isAlert ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-600"
-                            }`}>
-                              {meta.label}
-                            </span>
-                            <span className="text-[11px] text-slate-400">
-                              · {n.date}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 line-clamp-1 leading-relaxed">
-                            {n.detail}
-                          </p>
-                        </div>
-                      </div>
-
-                      <Icon
-                        name="chevron-right"
-                        size={14}
-                        className="text-slate-300 group-hover:text-slate-600 transition-colors shrink-0 mt-1"
-                      />
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          )}
         </section>
 
-        {/* 5. TIÃO ZELADOR — Banner Institucional da Submarca de Serviços */}
-        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-4 sm:p-6 lg:p-7 shadow-xs border border-[#E05F00]">
-          {/* Detalhes geométricos sutis e sólidos sem transparência ou gradiente */}
-          <svg
-            className="pointer-events-none absolute right-0 top-0 h-full w-2/5 sm:w-1/3 select-none"
-            viewBox="0 0 300 200"
-            fill="none"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <circle cx="280" cy="50" r="90" stroke="#E66200" strokeWidth="1.5" />
-            <circle cx="280" cy="50" r="140" stroke="#E66200" strokeWidth="1" strokeDasharray="5 5" />
-            <circle cx="280" cy="50" r="190" stroke="#E66200" strokeWidth="1" />
-            <path d="M150 0 L180 200" stroke="#E66200" strokeWidth="1" strokeDasharray="6 6" />
-            <path d="M210 0 L240 200" stroke="#E66200" strokeWidth="1" />
-          </svg>
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5 sm:gap-5">
-            <div className="space-y-2.5 sm:space-y-3.5 max-w-2xl">
-              {/* Mascote Tião e Identidade alinhados horizontalmente para compacidade no mobile */}
-              <div className="flex items-start gap-3 sm:gap-4.5">
-                <div className="shrink-0 flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-[#E05F00] p-1.5 sm:p-2 shadow-2xs border border-[#FF8429]">
-                  <img
-                    src="/brands/tiao/mascot-white.png"
-                    alt="Tião Zelador"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <h3 className="text-base sm:text-xl font-black text-white tracking-tight leading-snug">
-                      Tião Zelador
-                    </h3>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[#FB6B01] text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-2xs">
-                      <Icon name="shield" size={10} className="text-[#FB6B01]" />
-                      Marketplace Verificado
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] sm:text-sm text-white/95 font-medium leading-relaxed">
-                    Encontre o profissional certo para o que você precisa. Serviços e reparos com pagamento seguro e garantia pelo Zeladoria Pay.
-                  </p>
-                </div>
+        {/* 5. TIÃO ZELADOR — Banner Compacto */}
+        <section className="relative overflow-hidden rounded-2xl bg-[#FB6B01] p-4 sm:p-5 shadow-xs border border-[#E05F00] text-white">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-[#E05F00] p-1.5 shadow-2xs border border-[#FF8429]">
+                <img
+                  src="/brands/tiao/mascot-white.png"
+                  alt="Tião Zelador"
+                  className="h-full w-full object-contain"
+                />
               </div>
 
-              {/* Categorias Rápidas como chips brancos sólidos com scroll horizontal suave no mobile */}
-              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap pb-0.5">
-                {[
-                  { label: "Elétrica", icon: "zap" as IconName, href: "/painel/servicos?categoria=Eletricista" },
-                  { label: "Hidráulica", icon: "droplet" as IconName, href: "/painel/servicos?categoria=Encanador" },
-                  { label: "Climatização", icon: "wind" as IconName, href: "/painel/servicos?categoria=Climatização" },
-                  { label: "Pintura", icon: "palette" as IconName, href: "/painel/servicos?categoria=Pintura" },
-                  { label: "Reparos gerais", icon: "hammer" as IconName, href: "/painel/servicos?categoria=Reformas" },
-                ].map((cat) => (
-                  <Link
-                    key={cat.label}
-                    href={cat.href}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 hover:text-[#FB6B01] px-2.5 py-1 text-[11px] sm:text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95"
-                  >
-                    <Icon name={cat.icon} size={11} className="text-[#FB6B01] shrink-0" />
-                    <span>{cat.label}</span>
-                  </Link>
-                ))}
+              <div className="space-y-0.5 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h3 className="text-sm sm:text-base font-black text-white tracking-tight">
+                    Tião Zelador
+                  </h3>
+                  <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-full bg-white text-[#FB6B01] text-[9px] font-black uppercase tracking-wider">
+                    <Icon name="shield" size={9} className="text-[#FB6B01]" />
+                    Verificado
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-white">
+                  Precisando de uma mão?
+                </p>
+                <p className="text-[11px] sm:text-xs text-white/90 font-normal leading-snug">
+                  Encontre profissionais avaliados que atendem seu condomínio.
+                </p>
               </div>
             </div>
 
-            {/* Botão Branco com Texto em Laranja otimizado para celular */}
-            <div className="shrink-0 flex items-center justify-start lg:justify-end w-full lg:w-auto pt-0.5 lg:pt-0">
+            <div className="shrink-0">
               <Link
                 href="/painel/servicos"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-4.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-black transition-all shadow-xs hover:shadow-md group cursor-pointer whitespace-nowrap active:scale-[0.99]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-white hover:bg-slate-50 text-[#FB6B01] px-4 py-2 sm:py-2.5 text-xs font-black transition-all shadow-xs active:scale-95 group cursor-pointer whitespace-nowrap"
               >
                 <span>Encontrar profissional</span>
                 <Icon
                   name="arrow-right"
-                  size={14}
-                  className="text-[#FB6B01] transition-transform duration-200 group-hover:translate-x-1 shrink-0"
+                  size={13}
+                  className="text-[#FB6B01] transition-transform duration-200 group-hover:translate-x-0.5 shrink-0"
                 />
               </Link>
             </div>

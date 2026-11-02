@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/components/icon";
 
 interface EmergencySosProps {
@@ -12,8 +13,12 @@ export function EmergencySos({
   condoName = "Residencial Parque das Águas",
   condoAddress = "Curitiba - PR",
 }: EmergencySosProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+
+  // Na Home (/painel), o botão SOS já fica visível no topo, evitando duplicação visual
+  const isHome = pathname === "/painel";
 
   // Escuta evento global para permitir abertura de qualquer botão na página (ex: header do dashboard)
   useEffect(() => {
@@ -42,18 +47,20 @@ export function EmergencySos({
 
   return (
     <>
-      {/* Botão Flutuante de SOS — Visível em Celular e Desktop (Apenas Ícone Minimalista) */}
-      <aside aria-label="Ações de emergência e segurança">
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="fixed right-4 bottom-20 z-40 lg:bottom-6 lg:right-6 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-xl hover:shadow-red-600/30 border border-white/20 transition-all duration-200 active:scale-95 cursor-pointer select-none"
-          aria-label="Abrir Central de Emergência e SOS 24h"
-          title="Central de Emergência e SOS 24h"
-        >
-          <Icon name="siren" size={21} className="text-white shrink-0" />
-        </button>
-      </aside>
+      {/* Botão Flutuante de SOS — Visível em Celular e Desktop (Oculto na Home para evitar duplicação com o botão do topo) */}
+      {!isHome && (
+        <aside aria-label="Ações de emergência e segurança">
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="fixed right-4 bottom-20 z-40 lg:bottom-6 lg:right-6 flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-xl hover:shadow-red-600/30 border border-white/20 transition-all duration-200 active:scale-95 cursor-pointer select-none"
+            aria-label="Abrir Central de Emergência e SOS 24h"
+            title="Central de Emergência e SOS 24h"
+          >
+            <Icon name="siren" size={21} className="text-white shrink-0" />
+          </button>
+        </aside>
+      )}
 
       {/* Modal Central de Emergência e SOS */}
       {isOpen && (
