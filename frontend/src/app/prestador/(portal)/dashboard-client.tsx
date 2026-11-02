@@ -150,10 +150,10 @@ export function ProviderDashboardClient({
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/prestador/chamados"
-            className="inline-flex items-center gap-1.5 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-[8px] bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
           >
-            <Icon name="clipboard" size={14} />
-            <span>Ver chamados</span>
+            <Icon name="zap" size={14} />
+            <span>Oportunidades ({newRequests.length})</span>
           </Link>
           <Link
             href="/prestador/perfil"
@@ -165,21 +165,138 @@ export function ProviderDashboardClient({
         </div>
       </div>
 
-      {/* 2. 4 Cards de Métricas Essenciais */}
+      {/* 2. HERO CENTRAL DE OPORTUNIDADES (Aberto imediatamente ao entrar no Tião) */}
+      <section className="rounded-2xl border border-orange-200/90 bg-linear-to-b from-orange-50/70 to-white p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FB6B01] text-white shadow-2xs">
+              <Icon name="zap" size={18} />
+            </span>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                  {newRequests.length > 0
+                    ? `${newRequests.length} ${newRequests.length === 1 ? "novo chamado perto de você" : "novos chamados perto de você"}`
+                    : "Oportunidades perto de você"}
+                </h2>
+                {newRequests.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FB6B01] text-white text-[10px] font-black uppercase tracking-wider animate-pulse">
+                    Aguardando resposta
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 font-medium mt-0.5">
+                {newRequests.length > 0
+                  ? `Moradores no seu raio de atuação (${vendor.serviceRadiusKm || 15} km) solicitando ${vendor.category || "serviços"}.`
+                  : `Nenhum chamado pendente no seu raio (${vendor.serviceRadiusKm || 15} km) no momento.`}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href="/prestador/chamados"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#FB6B01] hover:bg-[#E05F00] text-white px-4 py-2 text-xs font-black transition-all shadow-2xs shrink-0 self-start sm:self-auto cursor-pointer"
+          >
+            <span>Ver todas ({newRequests.length})</span>
+            <Icon name="arrow-right" size={13} />
+          </Link>
+        </div>
+
+        {/* Lista de Chamados / Oportunidades com Ação Rápida */}
+        {newRequests.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {newRequests.slice(0, 4).map((req) => (
+              <div
+                key={`hero-opp-${req.id}`}
+                className="p-3.5 rounded-xl border border-slate-200/90 bg-white hover:border-[#FB6B01] transition-all shadow-2xs flex flex-col justify-between gap-3 group"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-black text-[#FB6B01] bg-orange-50 border border-orange-200/80 px-2 py-0.5 rounded-md font-mono">
+                      {req.code}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 truncate max-w-[180px]">
+                      <Icon name="map-pin" size={12} className="text-[#FB6B01] shrink-0" />
+                      <span className="truncate">{req.condoName || "Condomínio da região"}</span>
+                    </span>
+                  </div>
+
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#FB6B01] transition-colors line-clamp-1">
+                    {req.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed bg-slate-50/70 p-2 rounded-lg border border-slate-100">
+                    {req.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    {req.mode === "on_demand" ? "⚡ Sob Demanda" : "📄 Orçamento"}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleReject(req.id)}
+                      disabled={isPending}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Recusar
+                    </button>
+                    {req.mode === "orcamento" ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuoteRequest(req)}
+                        className="px-3 py-1.5 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                      >
+                        <span>Montar proposta</span>
+                        <Icon name="arrow-right" size={11} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleAccept(req.id)}
+                        disabled={isPending}
+                        className="px-3.5 py-1.5 rounded-lg bg-[#FB6B01] hover:bg-[#E05F00] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                      >
+                        <span>Aceitar</span>
+                        <Icon name="check" size={11} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-3.5 rounded-xl border border-dashed border-orange-200 bg-white flex items-center gap-3 text-xs text-slate-600">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-[#FB6B01]">
+              <Icon name="bell" size={15} />
+            </span>
+            <div className="flex-1">
+              <span className="font-bold text-slate-800">Pronto para receber chamados:</span>{" "}
+              Mantenha o status <strong>&ldquo;Disponível agora: ON&rdquo;</strong> para receber notificações com som e prioridade nos condomínios da região.
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 3. 4 Cards de Métricas Essenciais */}
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Novos Chamados */}
+        {/* Oportunidades */}
         <Link
           href="/prestador/chamados"
-          className="rounded-[14px] border border-slate-200/80 bg-white p-4 shadow-2xs hover:border-[#1355FF] transition-all block group"
+          className="rounded-[14px] border border-orange-200/90 bg-white p-4 shadow-2xs hover:border-[#FB6B01] transition-all block group relative overflow-hidden"
         >
-          <div className="flex items-center justify-between text-xs text-slate-400 font-bold uppercase">
-            <span>Novos Chamados</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-blue-50 text-[#1355FF] group-hover:scale-105 transition-transform">
-              <Icon name="bell" size={14} />
+          <div className="flex items-center justify-between text-xs text-orange-600 font-bold uppercase">
+            <span>Oportunidades</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-orange-50 text-[#FB6B01] group-hover:scale-105 transition-transform">
+              <Icon name="zap" size={14} />
             </span>
           </div>
-          <div className="text-2xl font-black text-[#0F172A] mt-2">{newRequests.length}</div>
-          <div className="text-[11px] text-slate-500 font-medium">Aguardando seu aceite</div>
+          <div className="text-2xl font-black text-slate-900 mt-2">{newRequests.length}</div>
+          <div className="text-[11px] text-slate-500 font-medium">Novos chamados no seu raio</div>
         </Link>
 
         {/* Em Andamento */}

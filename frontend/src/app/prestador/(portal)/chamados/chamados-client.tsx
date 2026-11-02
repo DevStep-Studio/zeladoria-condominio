@@ -169,7 +169,7 @@ export function ProviderChamadosClient({
   };
 
   const tabs = [
-    { id: "novos", label: "Novos", count: counts.novos },
+    { id: "novos", label: "Oportunidades", count: counts.novos },
     { id: "orcamentos_enviados", label: "Orçamentos enviados", count: counts.orcamentos_enviados },
     { id: "contratados", label: "Contratados", count: counts.contratados },
     { id: "em_andamento", label: "Em andamento", count: counts.em_andamento },
@@ -181,11 +181,16 @@ export function ProviderChamadosClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Chamados & Serviços
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <span>Oportunidades & Chamados</span>
+            {counts.novos > 0 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#FB6B01] text-white text-[11px] font-black">
+                {counts.novos} {counts.novos === 1 ? "nova" : "novas"}
+              </span>
+            )}
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Olá, {vendor.name}. Veja chamados compatíveis na sua categoria, envie orçamentos e acompanhe suas execuções.
+            Olá, {vendor.name}. Veja novas oportunidades na sua região, envie propostas e acompanhe seus serviços em andamento.
           </p>
         </div>
 

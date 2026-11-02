@@ -45,10 +45,10 @@ export function ProviderShell({
     });
   };
 
-  // 5 Abas Principais (Sem poluição visual)
+  // 5 Abas Principais (Sem poluição visual) — Oportunidades como função central
   const primaryNavItems: Array<{ href: string; label: string; icon: IconName }> = [
     { href: "/prestador", label: "Início", icon: "grid" },
-    { href: "/prestador/chamados", label: "Chamados", icon: "clipboard" },
+    { href: "/prestador/chamados", label: "Oportunidades", icon: "zap" },
     { href: "/prestador/servicos", label: "Serviços", icon: "wrench" },
     { href: "/prestador/portfolio", label: "Portfólio", icon: "camera" },
     { href: "/prestador/avaliacoes", label: "Avaliações", icon: "star" },
@@ -63,13 +63,13 @@ export function ProviderShell({
     { href: "/prestador/ganhos", label: "Ganhos & Finanças", icon: "wallet", desc: "Histórico de faturamento e extrato" },
   ];
 
-  // Mobile Bottom Navigation (5 itens essenciais)
+  // Mobile Bottom Navigation — Oportunidades no CENTRO em destaque absoluto
   const mobileNav = [
-    { href: "/prestador", label: "Início", icon: "grid" as const },
-    { href: "/prestador/chamados", label: "Chamados", icon: "clipboard" as const },
-    { href: "/prestador/servicos", label: "Serviços", icon: "wrench" as const },
-    { href: "/prestador/avaliacoes", label: "Avaliações", icon: "star" as const },
-    { href: "/prestador/perfil", label: "Perfil", icon: "user" as const },
+    { href: "/prestador", label: "Início", icon: "grid" as const, isCenter: false },
+    { href: "/prestador/servicos", label: "Serviços", icon: "wrench" as const, isCenter: false },
+    { href: "/prestador/chamados", label: "Oportunidades", icon: "zap" as const, isCenter: true },
+    { href: "/prestador/agenda", label: "Agenda", icon: "calendar" as const, isCenter: false },
+    { href: "/prestador/perfil", label: "Perfil", icon: "user" as const, isCenter: false },
   ];
 
   const isOnline = vendor?.isOnline ?? true;
@@ -308,10 +308,35 @@ export function ProviderShell({
         {children}
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION (Fixed at bottom on small screens) */}
+      {/* MOBILE BOTTOM NAVIGATION (Fixed at bottom on small screens — Oportunidades em Destaque Central) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 px-2 py-1.5 flex justify-around items-center shadow-lg pb-[max(env(safe-area-inset-bottom),0.4rem)]">
         {mobileNav.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href) && (item.href !== "/prestador" || pathname === "/prestador");
+
+          if (item.isCenter) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative -top-3 flex flex-col items-center group cursor-pointer"
+                title="Central de Oportunidades"
+              >
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-full shadow-md transition-all active:scale-95 ${
+                    isActive
+                      ? "bg-[#FB6B01] text-white ring-4 ring-orange-200"
+                      : "bg-[#FB6B01] text-white hover:bg-[#E05F00] ring-3 ring-white"
+                  }`}
+                >
+                  <Icon name="zap" size={21} strokeWidth={2.4} />
+                </div>
+                <span className="mt-0.5 text-[10px] font-black text-[#FB6B01] tracking-tight">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
+
           return (
             <Link
               key={item.href}
