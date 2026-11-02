@@ -1170,12 +1170,37 @@ export function Shell({
                   );
                 }
 
+                if (isTiaoItem) {
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl bg-[#FB6B01] text-white hover:bg-[#E05F00] text-[10px] font-black transition-all shadow-xs my-0.5 mx-1 active:scale-95 cursor-pointer ${
+                        active
+                          ? isTiaoRoute
+                            ? "ring-2 ring-orange-400 shadow-md brightness-105"
+                            : "ring-2 ring-white/80 shadow-md brightness-105"
+                          : ""
+                      }`}
+                    >
+                      <div className="relative flex items-center justify-center">
+                        <Icon
+                          name={item.icon}
+                          size={18}
+                          strokeWidth={2.2}
+                          className="text-white"
+                        />
+                        {active && (
+                          <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-white shadow-2xs" />
+                        )}
+                      </div>
+                      <span className="text-white tracking-tight">{item.label}</span>
+                    </Link>
+                  );
+                }
+
                 const activeColor = isTiaoRoute
-                  ? isTiaoItem
-                    ? "text-[#FB6B01]"
-                    : "text-slate-900"
-                  : isTiaoItem
-                  ? "text-[#FFD000]"
+                  ? "text-slate-900"
                   : "text-[#FFD000]";
 
                 const inactiveColor = isTiaoRoute ? "text-slate-400 hover:text-slate-600" : "text-blue-100/80 hover:text-white";
@@ -1193,7 +1218,6 @@ export function Shell({
                         name={item.icon}
                         size={17}
                         strokeWidth={active ? 2.2 : 1.8}
-                        className={!isTiaoRoute && item.icon === "tiao" ? "text-white" : ""}
                       />
                       {active && (
                         <span
