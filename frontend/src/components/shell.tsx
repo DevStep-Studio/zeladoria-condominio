@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { BrandLogo } from "@/components/brand-logo";
+import { EmergencySos } from "@/components/emergency-sos";
 import type { Role } from "@/lib/auth";
 
 export type ShellCondo = { id: number; name: string };
@@ -1234,6 +1235,9 @@ export function Shell({
             </nav>
           );
         })()}
+
+        {/* Botão Flutuante de SOS e Central de Emergência 24h (Celular e Desktop) */}
+        <EmergencySos condoName={condoName} />
       </div>
     </div>
   );

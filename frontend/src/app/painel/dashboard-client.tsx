@@ -445,7 +445,12 @@ export function DashboardClient({
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => setEmergencyModalOpen(true)}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("open-emergency-sos"));
+                }
+                setEmergencyModalOpen(true);
+              }}
               title="Central de Emergência e Telefones Úteis 24h"
               className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200/90 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
             >
@@ -887,7 +892,12 @@ export function DashboardClient({
           {/* Botão de Emergência Compacto */}
           <button
             type="button"
-            onClick={() => setEmergencyModalOpen(true)}
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-emergency-sos"));
+              }
+              setEmergencyModalOpen(true);
+            }}
             title="Central de Emergência e Telefones Úteis 24h"
             className="inline-flex min-h-9 items-center gap-1.5 rounded-[8px] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
           >
