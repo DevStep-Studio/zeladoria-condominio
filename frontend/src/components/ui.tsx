@@ -66,29 +66,38 @@ export function PageHeader({
   const textDescription = description || subtitle;
 
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4 mb-6 ${className}`}>
-      <div>
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-600 shrink-0">
-            <Icon name={resolvedIcon} size={15} />
-          </span>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>{title}</span>
+    <header className={`border-b border-slate-200/70 pb-3.5 sm:pb-4 mb-5 sm:mb-6 ${className}`}>
+      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+        {/* Lado Esquerdo: Ícone + Título + Badge */}
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          {resolvedIcon && (
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/90 text-slate-700 shrink-0 border border-slate-200/60 shadow-2xs">
+              <Icon name={resolvedIcon} size={16} />
+            </span>
+          )}
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+              {title}
+            </h1>
             {badge}
-          </h1>
+          </div>
         </div>
-        {textDescription ? (
-          <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
-            {textDescription}
-          </p>
-        ) : null}
+
+        {/* Lado Direito: Ações */}
+        {actions && (
+          <div className="flex shrink-0 items-center gap-2 no-print self-center">
+            {actions}
+          </div>
+        )}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end no-print">
-          {actions}
-        </div>
-      ) : null}
-    </div>
+
+      {/* Subtítulo / Descrição */}
+      {textDescription && (
+        <p className="text-xs sm:text-sm text-slate-500 font-normal leading-relaxed mt-1.5 sm:mt-1 max-w-3xl">
+          {textDescription}
+        </p>
+      )}
+    </header>
   );
 }
 

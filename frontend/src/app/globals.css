@@ -167,7 +167,7 @@ summary::-webkit-details-marker {
   .btn-dark,
   .btn-danger,
   .btn-success {
-    @apply inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-semibold
+    @apply inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-semibold
       transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {

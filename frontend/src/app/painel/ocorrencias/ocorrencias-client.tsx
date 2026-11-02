@@ -532,7 +532,7 @@ export function OcorrenciasClient({
         title="Ocorrências"
         description="Acompanhamento e registro de demandas prediais e convivência."
         badge={
-          <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/60">
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-200/70 shadow-2xs">
             {occurrences.length} {occurrences.length === 1 ? "registro" : "registros"}
           </span>
         }
