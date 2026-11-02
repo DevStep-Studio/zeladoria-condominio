@@ -429,20 +429,30 @@ export function DashboardClient({
     const nextReservation = upcomingReservations.length > 0 ? upcomingReservations[0] : null;
 
     return (
-      <div className="space-y-7 max-w-7xl mx-auto pb-10">
-        {/* 1. CABEÇALHO LIMPO (Saudação sobre fundo claro, sem hero azul grande) */}
-        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Olá, {userName}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              {condoName} {unitLabel ? `· Unidade ${unitLabel}` : ""}
+      <div className="space-y-5 sm:space-y-7 max-w-7xl mx-auto pb-10">
+        {/* 1. CABEÇALHO DO MORADOR (Compacto, elegante e com ações na mesma linha no mobile) */}
+        <section className="flex items-center justify-between gap-3 pt-1 pb-0.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl md:text-[26px] font-black tracking-tight text-slate-900 leading-tight">
+                Olá, {userName}
+              </h1>
+              {unitLabel && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200/80 text-[#1355FF] text-[11px] font-bold">
+                  <Icon name="home" size={10} className="text-[#1355FF]" />
+                  <span>Unidade {unitLabel}</span>
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5 truncate flex items-center gap-1">
+              <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
+              <span className="truncate">{condoName}</span>
             </p>
           </div>
 
-          {/* Ações Secundárias: Emergência 24h e Zeladoria IA */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Ações Rápidas no Topo */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Botão de Emergência 24h */}
             <button
               type="button"
               onClick={() => {
@@ -451,21 +461,25 @@ export function DashboardClient({
                 }
                 setEmergencyModalOpen(true);
               }}
-              title="Central de Emergência e Telefones Úteis 24h"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200/90 bg-rose-50/70 hover:bg-rose-100/80 text-rose-700 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              title="Central de Emergência e SOS 24h"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-700 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+              aria-label="Central de Emergência e SOS 24h"
             >
-              <Icon name="phone" size={13} className="text-rose-600" />
-              <span>Emergência 24h</span>
+              <Icon name="phone" size={13} className="text-red-600 animate-pulse shrink-0" />
+              <span className="hidden sm:inline">Emergência 24h</span>
+              <span className="sm:hidden font-black text-[11px]">SOS</span>
             </button>
 
+            {/* Botão Zeladoria IA */}
             <button
               type="button"
               onClick={() => setAssistantOpen(true)}
               title="Assistente de Dúvidas e Regras do Condomínio"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 active:bg-blue-100 text-[#1355FF] px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+              aria-label="Assistente Virtual Zeladoria IA"
             >
-              <Icon name="sparkles" size={13} className="text-[#1355FF]" />
-              <span>Zeladoria IA</span>
+              <Icon name="sparkles" size={13} className="text-[#1355FF] shrink-0" />
+              <span className="text-xs">Zeladoria IA</span>
             </button>
           </div>
         </section>
