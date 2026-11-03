@@ -412,6 +412,8 @@ export function NovaOcorrenciaFlow({
           description={description}
           category={category}
           locationSummary={locationSummaryDisplay}
+          locationString={locationString}
+          locationDetail={locationDetail}
           photos={photos}
           severity={severity}
           isSubmitting={isPending}

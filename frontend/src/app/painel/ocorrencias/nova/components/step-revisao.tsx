@@ -10,6 +10,8 @@ interface StepRevisaoProps {
   description: string;
   category: CategoryDefinition;
   locationSummary: string;
+  locationString?: string;
+  locationDetail?: string;
   photos: string[];
   severity: "baixa" | "media" | "alta" | "urgente";
   isSubmitting: boolean;
@@ -20,7 +22,7 @@ interface StepRevisaoProps {
 }
 
 const SEVERITY_LABEL_MAP: Record<string, { label: string; color: string }> = {
-  baixa: { label: "Baixa (Ajuste rotineiro)", color: "text-slate-600 bg-slate-100" },
+  baixa: { label: "Baixa (Ajuste rotineiro)", color: "text-slate-600 bg-slate-100 border-slate-200" },
   media: { label: "Normal (Prioridade padrão)", color: "text-blue-700 bg-blue-50 border-blue-200" },
   alta: { label: "Alta (Atenção prioritária)", color: "text-amber-800 bg-amber-50 border-amber-200" },
   urgente: { label: "Urgente (Ação imediata)", color: "text-red-700 bg-red-50 border-red-200" },
@@ -32,6 +34,8 @@ export function StepRevisao({
   description,
   category,
   locationSummary,
+  locationString,
+  locationDetail,
   photos,
   severity,
   isSubmitting,
@@ -43,6 +47,20 @@ export function StepRevisao({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const severityInfo = SEVERITY_LABEL_MAP[severity] || SEVERITY_LABEL_MAP.media;
+
+  // Extração inteligente de localização principal e ponto de referência
+  let mainLocation = locationString?.trim() || "";
+  let detailText = locationDetail?.trim() || "";
+
+  if (!mainLocation) {
+    const match = locationSummary.match(/^(.*?)\s*\((.*)\)$/);
+    if (match) {
+      mainLocation = match[1].trim();
+      detailText = detailText || match[2].trim();
+    } else {
+      mainLocation = locationSummary;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -73,7 +91,7 @@ export function StepRevisao({
             <button
               type="button"
               onClick={() => setIsEditingTitle(!isEditingTitle)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline cursor-pointer"
             >
               <Icon name="pencil" size={12} />
               <span>{isEditingTitle ? "Concluir edição" : "Editar título"}</span>
@@ -95,42 +113,71 @@ export function StepRevisao({
           )}
         </div>
 
-        {/* Metadados Essenciais: Categoria, Localização e Prioridade */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+        {/* Metadados Essenciais: Categoria e Localização com layout robusto */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-slate-100">
           {/* Categoria */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div>
-              <span className="text-[11px] text-slate-400 block font-medium">Categoria</span>
-              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mt-0.5">
-                <Icon name={category.icon as IconName} size={15} className="text-[#1355FF]" />
-                {category.label}
+          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300">
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Categoria
               </span>
+              <button
+                type="button"
+                onClick={onEditStep1}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors"
+              >
+                <Icon name="pencil" size={11} />
+                <span>Alterar</span>
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={onEditStep1}
-              className="text-[11px] font-bold text-[#0070F3] hover:underline"
-            >
-              Alterar
-            </button>
+
+            <div className="flex items-center gap-2.5 pt-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] border border-blue-100/80 shadow-2xs shrink-0">
+                <Icon name={category.icon as IconName} size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">
+                  {category.label}
+                </p>
+                <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                  Classificação sugerida
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Localização */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div className="min-w-0 pr-2">
-              <span className="text-[11px] text-slate-400 block font-medium">Localização</span>
-              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 mt-0.5 truncate">
-                <Icon name="map-pin" size={15} className="text-[#1355FF] shrink-0" />
-                <span className="truncate">{locationSummary}</span>
+          {/* Localização (com proteção total contra estouro e separação elegante do ponto de referência) */}
+          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300">
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Localização
               </span>
+              <button
+                type="button"
+                onClick={onEditStep2}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors"
+              >
+                <Icon name="pencil" size={11} />
+                <span>Alterar</span>
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={onEditStep2}
-              className="text-[11px] font-bold text-[#0070F3] hover:underline shrink-0"
-            >
-              Alterar
-            </button>
+
+            <div className="flex items-start gap-2.5 pt-2.5 min-w-0">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/80 shadow-2xs shrink-0 mt-0.5">
+                <Icon name="map-pin" size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                  {mainLocation}
+                </p>
+                {detailText ? (
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed mt-1.5 break-words bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <span className="text-slate-400 font-bold uppercase text-[9px] mr-1.5 tracking-wider">Ponto de ref.:</span>
+                    <span className="text-slate-700">{detailText}</span>
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -143,7 +190,7 @@ export function StepRevisao({
             <button
               type="button"
               onClick={onEditStep1}
-              className="text-[11px] font-bold text-[#0070F3] hover:underline"
+              className="text-[11px] font-bold text-[#0070F3] hover:underline cursor-pointer"
             >
               Editar texto
             </button>
@@ -198,7 +245,7 @@ export function StepRevisao({
           type="button"
           onClick={onEditStep2}
           disabled={isSubmitting}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
         >
           <Icon name="arrow-left" size={15} />
           <span>Voltar e ajustar</span>
@@ -208,7 +255,7 @@ export function StepRevisao({
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
         >
           {isSubmitting ? (
             <>
