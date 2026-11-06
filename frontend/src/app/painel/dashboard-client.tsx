@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { CondoMap, type CondoMapOccurrence, type CondoCoordinates } from "@/components/condo-map";
@@ -174,6 +175,46 @@ export function DashboardClient({
       setCopiedPhone((cur) => (cur === phone ? null : cur));
     }, 2200);
   }, []);
+
+  const router = useRouter();
+
+  // Sincronização em tempo real para avisos e contadores de encomendas
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("zc_encomendas_sync");
+      bc.onmessage = () => {
+        router.refresh();
+      };
+    } catch {}
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "zc_encomendas_last_update") {
+        router.refresh();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", () => router.refresh());
+
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 15000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", () => router.refresh());
+      if (bc) bc.close();
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!emergencyModalOpen && !fullMapModalOpen) return;

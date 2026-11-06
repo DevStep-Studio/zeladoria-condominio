@@ -301,4 +301,49 @@ describe("Navegação por Perfil e RBAC — Auditoria e Matrizes de Acesso", () 
     assert.equal(can("superadmin", "platform.admin" as Permission), true);
     assert.equal(can("superadmin", "platform.marketplace.manage" as Permission), true);
   });
+
+  // -------------------------------------------------------------
+  // 6. FUNCIONALIDADE ACHADOS E PERDIDOS (Sidebar & Acesso Multiperfil)
+  // -------------------------------------------------------------
+  test("Achados e Perdidos: Acessível para Morador, Síndico, Portaria e Zelador, posicionado após Sugestões", () => {
+    // 1. Morador
+    const moradorGroups = getNavigationGroups("morador");
+    const moradorCondoGroup = moradorGroups.find((g) => g.id === "condominio");
+    assert.ok(moradorCondoGroup, "Morador deve possuir seção Condomínio");
+    const moradorItems = moradorCondoGroup.items;
+    const sugestoesIndex = moradorItems.findIndex((i) => i.id === "sugestoes");
+    const achadosIndex = moradorItems.findIndex((i) => i.id === "achados_perdidos");
+    assert.ok(sugestoesIndex >= 0, "Deve conter Sugestões");
+    assert.ok(achadosIndex >= 0, "Deve conter Achados e Perdidos");
+    assert.equal(achadosIndex, sugestoesIndex + 1, "Achados e Perdidos deve vir logo após Sugestões");
+    assert.equal(moradorItems[achadosIndex].href, "/painel/achados-e-perdidos");
+
+    // 2. Síndico
+    const sindicoGroups = getNavigationGroups("sindico");
+    const sindicoHrefs = sindicoGroups.flatMap((g) => g.items.map((i) => i.href));
+    assert.ok(sindicoHrefs.includes("/painel/achados-e-perdidos"), "Síndico deve ter acesso a Achados e Perdidos");
+
+    // 3. Portaria
+    const porteiroGroups = getNavigationGroups("porteiro");
+    const porteiroHrefs = porteiroGroups.flatMap((g) => g.items.map((i) => i.href));
+    assert.ok(porteiroHrefs.includes("/painel/achados-e-perdidos"), "Portaria deve ter acesso a Achados e Perdidos");
+
+    // 4. Zelador
+    const zeladorGroups = getNavigationGroups("zelador");
+    const zeladorHrefs = zeladorGroups.flatMap((g) => g.items.map((i) => i.href));
+    assert.ok(zeladorHrefs.includes("/painel/achados-e-perdidos"), "Zelador deve ter acesso a Achados e Perdidos");
+    assert.ok(zeladorHrefs.includes("/painel/sugestoes"), "Zelador deve ter acesso ao painel de Sugestões");
+
+    // 5. Prestador NÃO deve ter acesso a Achados e Perdidos interno
+    const prestadorGroups = getNavigationGroups("prestador");
+    const prestadorHrefs = prestadorGroups.flatMap((g) => g.items.map((i) => i.href));
+    assert.equal(prestadorHrefs.includes("/painel/achados-e-perdidos"), false, "Prestador não deve ver Achados e Perdidos");
+  });
+
+  test("Zelador possui permissões de visualização e gestão de Sugestões", () => {
+    assert.equal(can("zelador", "suggestion.view_all"), true, "Zelador deve visualizar todas as sugestões");
+    assert.equal(can("zelador", "suggestion.manage"), true, "Zelador deve poder gerenciar e responder sugestões");
+    assert.equal(can("morador", "suggestion.view_own"), true);
+    assert.equal(can("morador", "suggestion.create"), true);
+  });
 });

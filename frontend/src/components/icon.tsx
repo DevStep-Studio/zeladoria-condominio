@@ -91,6 +91,8 @@ export type IconName =
   | "trash"
   | "navigation"
   | "palette"
+  | "tag"
+  | "umbrella"
   | "eye-off";
 
 const PATHS: Record<Exclude<IconName, "tiao">, ReactElement> = {
@@ -579,6 +581,17 @@ const PATHS: Record<Exclude<IconName, "tiao">, ReactElement> = {
       <path d="M17.64 15 22 10.64" />
       <path d="m20.91 3.26-6.36 6.36" />
       <path d="m9 2 4.24 4.24" />
+    </>
+  ),
+  tag: (
+    <>
+      <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" />
+    </>
+  ),
+  umbrella: (
+    <>
+      <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7" />
     </>
   ),
 };

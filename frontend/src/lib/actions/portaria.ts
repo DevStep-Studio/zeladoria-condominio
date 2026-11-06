@@ -424,9 +424,11 @@ export async function registerParcelAction(formData: FormData): Promise<any> {
     receivedById: session.user.id,
   }]);
 
+  const residents = await unitResidents(condoId, unitId);
+
   await notify(
     condoId,
-    await unitResidents(condoId, unitId),
+    residents,
     "Nova encomenda na portaria",
     `${parcel.carrier ?? "Encomenda"} recebida. Código de retirada: ${parcel.pickupCode}. Local: ${parcel.shelf ?? "portaria"}.`,
     "/painel/encomendas",
@@ -442,7 +444,68 @@ export async function registerParcelAction(formData: FormData): Promise<any> {
   });
   revalidatePath("/painel/encomendas");
   revalidatePath("/painel/portaria");
-  return { success: true, message: `Encomenda ${parcel.code} registrada com sucesso!`, parcel };
+  revalidatePath("/painel");
+  revalidatePath("/painel/notificacoes");
+  return {
+    success: true,
+    message: `Encomenda ${parcel.code} registrada com sucesso!`,
+    parcel,
+    notifiedCount: residents.length,
+  };
+}
+
+export async function updateParcelUnitAction(formData: FormData): Promise<any> {
+  const { session, condoId } = await requireRole(GATE);
+  const parcelId = num(formData, "parcelId");
+  const unitId = num(formData, "unitId");
+
+  if (!parcelId || !unitId) {
+    return { success: false, error: "Identificação da encomenda e nova unidade são obrigatórias." };
+  }
+
+  const [parcel] = await apiOperation("lib.actions.portaria.019", [parcelId]);
+  if (!parcel || parcel.condoId !== condoId) {
+    return { success: false, error: "Encomenda não encontrada no condomínio." };
+  }
+
+  const [unit] = await apiOperation("lib.actions.portaria.018", [unitId]);
+  if (!unit || unit.condoId !== condoId) {
+    return { success: false, error: "Unidade selecionada inválida." };
+  }
+
+  await apiOperation("lib.actions.portaria.020", [{ unitId }, parcelId]);
+
+  const residents = await unitResidents(condoId, unitId);
+
+  // Notifica os novos moradores da unidade
+  await notify(
+    condoId,
+    residents,
+    "Nova encomenda na portaria",
+    `${parcel.carrier ?? "Encomenda"} ${parcel.code} disponível para retirada. Código: ${parcel.pickupCode}. Local: ${parcel.shelf ?? "portaria"}.`,
+    "/painel/encomendas",
+  );
+
+  await logAudit({
+    session,
+    condoId,
+    action: "atualizar",
+    entity: "encomenda",
+    entityId: parcelId,
+    summary: `Alterou a unidade da encomenda ${parcel.code} para ${unit.number}`,
+    origin: "portaria",
+  });
+
+  revalidatePath("/painel/encomendas");
+  revalidatePath("/painel/portaria");
+  revalidatePath("/painel");
+  revalidatePath("/painel/notificacoes");
+
+  return {
+    success: true,
+    message: `Unidade da encomenda ${parcel.code} alterada para ${unit.number} com sucesso!`,
+    notifiedCount: residents.length,
+  };
 }
 
 export async function lookupParcelForDeliveryAction(codeOrPin: string) {
@@ -565,6 +628,8 @@ export async function deliverParcelAction(formData: FormData): Promise<any> {
   });
   revalidatePath("/painel/encomendas");
   revalidatePath("/painel/portaria");
+  revalidatePath("/painel");
+  revalidatePath("/painel/notificacoes");
   return { success: true, message: `Retirada da encomenda ${parcel.code} confirmada com sucesso!` };
 }
 

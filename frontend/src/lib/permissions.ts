@@ -69,6 +69,10 @@ export type Permission =
   | "suggestion.create"
   | "suggestion.manage"
 
+  // Achados e Perdidos
+  | "lost_and_found.view"
+  | "lost_and_found.manage"
+
   // Prestadores & Serviços
   | "provider.view"
   | "provider.request"
@@ -149,6 +153,7 @@ const MORADOR_PERMISSIONS: Permission[] = [
   "document.view",
   "suggestion.view_own",
   "suggestion.create",
+  "lost_and_found.view",
   "provider.view",
   "provider.request",
   "marketplace.request.create",
@@ -203,6 +208,8 @@ const SINDICO_PERMISSIONS: Permission[] = [
   "suggestion.view_all",
   "suggestion.create",
   "suggestion.manage",
+  "lost_and_found.view",
+  "lost_and_found.manage",
   "provider.view",
   "provider.request",
   "provider.access_control",
@@ -244,6 +251,7 @@ const CONSELHO_PERMISSIONS: Permission[] = [
   "assembly.participate",
   "document.view",
   "suggestion.view_all",
+  "lost_and_found.view",
   "provider.view",
   "service_order.view",
   "maintenance.view",
@@ -277,6 +285,12 @@ const ZELADOR_PERMISSIONS: Permission[] = [
   "logbook.view",
   "logbook.create",
   "announcement.view",
+  "suggestion.view_own",
+  "suggestion.view_all",
+  "suggestion.create",
+  "suggestion.manage",
+  "lost_and_found.view",
+  "lost_and_found.manage",
   "provider.view",
   "provider.access_control",
 ];
@@ -302,6 +316,12 @@ const PORTEIRO_PERMISSIONS: Permission[] = [
   "logbook.view",
   "logbook.create",
   "announcement.view",
+  "suggestion.view_own",
+  "suggestion.view_all",
+  "suggestion.create",
+  "suggestion.manage",
+  "lost_and_found.view",
+  "lost_and_found.manage",
   "provider.view",
   "provider.access_control",
   "maintenance.view",

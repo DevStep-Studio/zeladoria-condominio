@@ -44,6 +44,7 @@ export const MORADOR_NAVIGATION: NavGroup[] = [
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
       { id: "documentos", label: "Documentos", href: "/painel/documentos", icon: "folder", permission: "document.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_own" },
+      { id: "achados_perdidos", label: "Achados e Perdidos", href: "/painel/achados-e-perdidos", icon: "tag", permission: "lost_and_found.view" },
     ],
   },
   {
@@ -96,6 +97,7 @@ export const SINDICO_NAVIGATION: NavGroup[] = [
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_all" },
+      { id: "achados_perdidos", label: "Achados e Perdidos", href: "/painel/achados-e-perdidos", icon: "tag", permission: "lost_and_found.view" },
       { id: "documentos", label: "Documentos", href: "/painel/documentos", icon: "folder", permission: "document.view" },
     ],
   },
@@ -280,6 +282,8 @@ const PORTEIRO_NAVIGATION: NavGroup[] = [
       { id: "ocorrencias", label: "Ocorrência Rápida", href: "/painel/ocorrencias", icon: "clipboard", permission: "occurrence.view_all" },
       { id: "reservas", label: "Reservas de Hoje", href: "/painel/reservas", icon: "calendar", permission: "reservation.view_all" },
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
+      { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_all" },
+      { id: "achados_perdidos", label: "Achados e Perdidos", href: "/painel/achados-e-perdidos", icon: "tag", permission: "lost_and_found.view" },
     ],
   },
 ];
@@ -303,6 +307,8 @@ const ZELADOR_NAVIGATION: NavGroup[] = [
       { id: "encomendas", label: "Encomendas", href: "/painel/encomendas", icon: "package", permission: "package.view_all" },
       { id: "turnos", label: "Turnos", href: "/painel/turnos", icon: "refresh", permission: "shift.view" },
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
+      { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_all" },
+      { id: "achados_perdidos", label: "Achados e Perdidos", href: "/painel/achados-e-perdidos", icon: "tag", permission: "lost_and_found.view" },
     ],
   },
 ];
@@ -325,6 +331,7 @@ const CONSELHO_NAVIGATION: NavGroup[] = [
     items: [
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
       { id: "assembleias", label: "Assembleias", href: "/painel/assembleias", icon: "scale", permission: "assembly.view" },
+      { id: "achados_perdidos", label: "Achados e Perdidos", href: "/painel/achados-e-perdidos", icon: "tag", permission: "lost_and_found.view" },
     ],
   },
   {

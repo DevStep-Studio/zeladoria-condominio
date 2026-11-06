@@ -501,10 +501,11 @@ final class PanelController
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
         $isResident = $ctx['role'] === 'morador';
+        $residentUnitId = $request->integer('residentUnitId') ?: ($request->integer('unitId') ?: $ctx['unitId']);
         $staleBefore = ['$date' => now()->subDays(7)->toIso8601String()];
 
         return response()->json(['data' => [
-            'rows' => $this->operations->execute('app.painel.encomendas.page.001', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId']]),
+            'rows' => $this->operations->execute('app.painel.encomendas.page.001', [$condoId, $isResident && $residentUnitId, $residentUnitId]),
             'stale' => $this->operations->execute('app.painel.encomendas.page.002', [$condoId, $staleBefore])[0] ?? ['id' => 0],
         ]]);
     }

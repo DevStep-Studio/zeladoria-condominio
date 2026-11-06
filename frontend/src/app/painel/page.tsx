@@ -2,6 +2,7 @@ import { domainRequest } from "@/lib/api/server";
 
 import { redirect } from "next/navigation";
 import { requireCondo } from "@/lib/auth";
+import { unitOptions } from "@/lib/queries";
 import { getMarketplaceProviders } from "@/lib/services/providers-query";
 import { dateBR, dateTimeBR, timeAgoBR } from "@/lib/utils";
 import {
@@ -96,10 +97,18 @@ export default async function PainelHome() {
   // 2. Units list for quick lookup modal
   const allUnitsRaw = dashboardData.allUnitsRaw;
 
-  const allUnits = allUnitsRaw.map((u) => ({
+  let allUnits = (allUnitsRaw ?? []).map((u) => ({
     id: u.id,
     label: `${u.blockName ? `${u.blockName} - ` : ""}Unidade ${u.number}`,
   }));
+
+  if (isPorteiro) {
+    try {
+      allUnits = await unitOptions(condoId);
+    } catch {
+      // Fallback
+    }
+  }
 
   // 3. Role-specific data structures
   let attentionItems: AttentionItem[] = [];

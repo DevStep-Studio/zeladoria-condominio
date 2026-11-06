@@ -17,11 +17,20 @@ export default async function EncomendasPage({
   const currentStatus = status ?? "todas";
   const isGate = GATE.includes(session.role);
   const isResident = session.role === "morador";
+  const activeMembership = session.memberships.find((m) => m.condoId === condoId);
+  const residentUnitId = activeMembership?.unitId ?? session.unitId;
 
   const { rows } = await domainRequest<{
     rows: ParcelItem[];
     stale: { id: number };
-  }>("/painel/encomendas", { query: { condoId, role: session.role } });
+  }>("/painel/encomendas", {
+    query: {
+      condoId,
+      role: session.role,
+      residentUnitId: residentUnitId ?? undefined,
+      unitId: residentUnitId ?? undefined,
+    },
+  });
 
   const parcelRows = rows ?? [];
   const unitList = isGate ? await unitOptions(condoId) : [];

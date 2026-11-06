@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useTransition, useMemo, useEffect, useRef } from "react";
+import { useState, useTransition, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, Card, EmptyState, InfoNote, PageHeader, TableWrap } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
-import { deliverParcelAction, registerParcelAction, lookupParcelForDeliveryAction } from "@/lib/actions/portaria";
+import {
+  deliverParcelAction,
+  registerParcelAction,
+  lookupParcelForDeliveryAction,
+  updateParcelUnitAction,
+} from "@/lib/actions/portaria";
 import { qrDataUrl } from "@/lib/qr";
 
 export type ParcelItem = {
@@ -35,6 +40,9 @@ export type ParcelItem = {
 export type UnitOption = {
   id: number;
   label: string;
+  block?: string | null;
+  number?: string;
+  residents?: string[];
 };
 
 type Props = {
@@ -87,10 +95,121 @@ export function EncomendasClient({
   // Transitions
   const [isPending, startTransition] = useTransition();
 
+  // Sincronização em tempo real
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
+
+  // Modal para reatribuir / corrigir unidade da encomenda (portaria/zelador)
+  const [reassignParcel, setReassignParcel] = useState<ParcelItem | null>(null);
+  const [reassignUnitId, setReassignUnitId] = useState<string>("");
+
+  // Busca rápida de morador/unidade no form de cadastro
+  const [unitFilterQuery, setUnitFilterQuery] = useState("");
+  const [selectedFormUnitId, setSelectedFormUnitId] = useState<string>("");
+
+  const previousRowsCountRef = useRef(rows.length);
+
+  function broadcastParcelsUpdate() {
+    if (typeof window !== "undefined") {
+      try {
+        const bc = new BroadcastChannel("zc_encomendas_sync");
+        bc.postMessage({ type: "PARCEL_UPDATED", timestamp: Date.now() });
+        bc.close();
+      } catch {}
+      try {
+        localStorage.setItem("zc_encomendas_last_update", String(Date.now()));
+      } catch {}
+    }
+  }
+
+  const fetchLatestParcels = useCallback(async (showIndicator = false) => {
+    if (showIndicator) setIsRefreshing(true);
+    try {
+      const res = await fetch("/api/encomendas", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.rows)) {
+        if (isResident && data.rows.length > previousRowsCountRef.current) {
+          const diff = data.rows.length - previousRowsCountRef.current;
+          setActionFeedback({
+            tone: "green",
+            message: `📦 ${diff === 1 ? "Nova encomenda recebida" : `${diff} novas encomendas recebidas`} na portaria para sua unidade!`,
+          });
+        }
+        previousRowsCountRef.current = data.rows.length;
+        setRows(data.rows);
+        if (data.qrMap) {
+          setQrMap((prev) => ({ ...prev, ...data.qrMap }));
+        }
+        setLastSyncedAt(new Date());
+      }
+    } catch {
+      // Silencioso em caso de erro temporário
+    } finally {
+      if (showIndicator) setIsRefreshing(false);
+    }
+  }, [isResident]);
+
+  // Sincronização em tempo real: BroadcastChannel, storage, visibilitychange, focus e polling (6s)
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("zc_encomendas_sync");
+      bc.onmessage = () => {
+        fetchLatestParcels();
+      };
+    } catch {}
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "zc_encomendas_last_update") {
+        fetchLatestParcels();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchLatestParcels();
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", () => fetchLatestParcels());
+
+    const pollInterval = setInterval(() => {
+      fetchLatestParcels();
+    }, 6000);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", () => fetchLatestParcels());
+      if (bc) bc.close();
+    };
+  }, [fetchLatestParcels]);
+
   // Sincroniza rows se initialRows mudar
   useEffect(() => {
     setRows(initialRows);
+    previousRowsCountRef.current = initialRows.length;
   }, [initialRows]);
+
+  // Filtro inteligente de unidades com moradores para cadastro rápido
+  const filteredUnitList = useMemo(() => {
+    if (!unitFilterQuery.trim()) return unitList;
+    const q = unitFilterQuery.toLowerCase().trim();
+    return unitList.filter((u) => {
+      const matchLabel = u.label.toLowerCase().includes(q);
+      const matchNumber = u.number ? u.number.toLowerCase().includes(q) : false;
+      const matchResidents = u.residents ? u.residents.some((r) => r.toLowerCase().includes(q)) : false;
+      return matchLabel || matchNumber || matchResidents;
+    });
+  }, [unitList, unitFilterQuery]);
+
+  const selectedUnitObj = useMemo(() => {
+    if (!selectedFormUnitId) return null;
+    return unitList.find((u) => String(u.id) === selectedFormUnitId) || null;
+  }, [unitList, selectedFormUnitId]);
 
   // Sincroniza currentStatus se initialStatus mudar via navegação
   useEffect(() => {
@@ -293,6 +412,8 @@ export function EncomendasClient({
           setIsScannerModalOpen(false);
           setMatchedParcel(null);
           setCodeOrPinInput("");
+          broadcastParcelsUpdate();
+          fetchLatestParcels();
           router.refresh();
         } else {
           setLookupError(res.error || "Não foi possível confirmar a entrega.");
@@ -314,10 +435,17 @@ export function EncomendasClient({
         const res = await registerParcelAction(formData);
         if (res.success && res.parcel) {
           form.reset();
+          setSelectedFormUnitId("");
+          setUnitFilterQuery("");
+          const notifiedMsg = res.notifiedCount
+            ? ` (${res.notifiedCount} morador(es) notificado(s) no app)`
+            : " (⚠️ Nenhum morador vinculado a esta unidade)";
           setActionFeedback({
-            tone: "green",
-            message: `Encomenda ${res.parcel.code} registrada com sucesso na portaria! Notificação disparada ao morador.`,
+            tone: res.notifiedCount ? "green" : "amber",
+            message: `Encomenda ${res.parcel.code} registrada com sucesso na portaria!${notifiedMsg}`,
           });
+          broadcastParcelsUpdate();
+          fetchLatestParcels();
           router.refresh();
         } else {
           setActionFeedback({
@@ -329,6 +457,46 @@ export function EncomendasClient({
         setActionFeedback({
           tone: "rose",
           message: err.message || "Erro inesperado ao registrar encomenda.",
+        });
+      }
+    });
+  }
+
+  // Correção de unidade da encomenda
+  async function handleUpdateParcelUnit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!reassignParcel || !reassignUnitId) return;
+
+    const formData = new FormData();
+    formData.append("parcelId", String(reassignParcel.id));
+    formData.append("unitId", reassignUnitId);
+
+    startTransition(async () => {
+      try {
+        const res = await updateParcelUnitAction(formData);
+        if (res.success) {
+          const notifiedMsg = res.notifiedCount
+            ? ` (${res.notifiedCount} morador(es) notificado(s) da nova unidade)`
+            : "";
+          setActionFeedback({
+            tone: "green",
+            message: `${res.message}${notifiedMsg}`,
+          });
+          setReassignParcel(null);
+          setReassignUnitId("");
+          broadcastParcelsUpdate();
+          fetchLatestParcels();
+          router.refresh();
+        } else {
+          setActionFeedback({
+            tone: "rose",
+            message: res.error || "Erro ao alterar unidade da encomenda.",
+          });
+        }
+      } catch (err: any) {
+        setActionFeedback({
+          tone: "rose",
+          message: err.message || "Erro inesperado ao alterar unidade.",
         });
       }
     });
@@ -380,8 +548,23 @@ export function EncomendasClient({
           title="Encomendas e correspondências"
           subtitle="Registro na portaria, notificação automática ao morador, código/QR de retirada e confirmação digital de quem retirou."
         />
-        {isGate && (
-          <div className="shrink-0 pt-1 sm:pt-0">
+        <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
+          <button
+            type="button"
+            onClick={() => fetchLatestParcels(true)}
+            disabled={isRefreshing}
+            title={`Sincronização em tempo real ativa. Última atualização às ${lastSyncedAt.toLocaleTimeString()}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all cursor-pointer"
+          >
+            <span className={`inline-block ${isRefreshing ? "animate-spin text-[#1355FF]" : "text-emerald-500"}`}>
+              <Icon name="refresh" size={14} />
+            </span>
+            <span className="hidden sm:inline">
+              {isRefreshing ? "Sincronizando..." : "Ao vivo"}
+            </span>
+          </button>
+
+          {isGate && (
             <button
               type="button"
               id="btn-validar-retirada"
@@ -392,13 +575,13 @@ export function EncomendasClient({
                 setLookupSuccess(null);
                 setIsScannerModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
             >
               <Icon name="camera" size={16} strokeWidth={2.2} className="text-amber-400" />
               <span>Validar Retirada (QR / Código)</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Alerta de Feedback Global */}
@@ -734,11 +917,23 @@ export function EncomendasClient({
 
                       {/* Botão de Operação para Portaria */}
                       {isGate && p.status === "pendente" && (
-                        <div className="w-full sm:w-auto shrink-0 pt-2 sm:pt-0">
+                        <div className="w-full sm:w-auto shrink-0 pt-2 sm:pt-0 flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReassignParcel(p);
+                              setReassignUnitId("");
+                            }}
+                            title="Corrigir o morador ou unidade de destino desta encomenda"
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition-all cursor-pointer"
+                          >
+                            <Icon name="pencil" size={13} />
+                            <span>Corrigir unidade</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => openDeliveryModalForParcel(p)}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-all"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
                           >
                             <Icon name="check" size={14} strokeWidth={2.5} />
                             <span>Confirmar entrega</span>
@@ -847,15 +1042,71 @@ export function EncomendasClient({
           {isGate ? (
             <Card title="Registrar encomenda">
               <form onSubmit={handleRegisterParcel} className="space-y-3">
-                <label className="block">
-                  <span className="label">Unidade destinatária *</span>
-                  <select name="unitId" className="input" required defaultValue="">
-                    <option value="" disabled>Selecione a unidade</option>
-                    {unitList.map((u) => (
-                      <option key={u.id} value={u.id}>{u.label}</option>
-                    ))}
-                  </select>
-                </label>
+                <div className="space-y-1.5">
+                  <label className="block">
+                    <span className="label">Unidade destinatária *</span>
+                    {/* Campo de busca rápida de morador ou unidade */}
+                    <div className="relative mb-2">
+                      <input
+                        type="text"
+                        placeholder="Filtrar morador ou unidade... (Ex: Eduarda, 302)"
+                        value={unitFilterQuery}
+                        onChange={(e) => setUnitFilterQuery(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-[#1355FF] focus:outline-none transition-all"
+                      />
+                      <span className="absolute left-2.5 top-2 text-slate-400">
+                        <Icon name="search" size={13} />
+                      </span>
+                      {unitFilterQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setUnitFilterQuery("")}
+                          className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+                        >
+                          <Icon name="x" size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    <select
+                      name="unitId"
+                      className="input"
+                      required
+                      value={selectedFormUnitId}
+                      onChange={(e) => setSelectedFormUnitId(e.target.value)}
+                    >
+                      <option value="" disabled>Selecione a unidade</option>
+                      {filteredUnitList.map((u) => (
+                        <option key={u.id} value={u.id}>{u.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {/* Informação sobre os moradores vinculados à unidade selecionada */}
+                  {selectedUnitObj && (
+                    <div className={`p-2.5 rounded-xl border text-xs ${
+                      selectedUnitObj.residents && selectedUnitObj.residents.length > 0
+                        ? "bg-emerald-50/90 border-emerald-200 text-emerald-900"
+                        : "bg-amber-50/90 border-amber-200 text-amber-900"
+                    }`}>
+                      {selectedUnitObj.residents && selectedUnitObj.residents.length > 0 ? (
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <Icon name="check-circle" size={14} className="text-emerald-600 shrink-0" />
+                          <span>
+                            Morador(es): <strong>{selectedUnitObj.residents.join(", ")}</strong> (receberão notificação e QR no app)
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-start gap-1.5 font-medium">
+                          <Icon name="alert-triangle" size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                          <span>
+                            Atenção: Esta unidade não possui moradores vinculados. Nenhum morador receberá notificação no app.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <label className="block">
@@ -1262,6 +1513,97 @@ export function EncomendasClient({
             >
               Fechar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Correção de Unidade / Destinatário */}
+      {reassignParcel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-blue-50 text-[#1355FF]">
+                  <Icon name="pencil" size={18} />
+                </span>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Corrigir Unidade / Destinatário</h3>
+                  <p className="text-[11px] text-slate-500 font-mono">{reassignParcel.code}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassignParcel(null)}
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              >
+                <Icon name="x" size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateParcelUnit} className="space-y-4 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 space-y-1">
+                <p><strong>Unidade atual:</strong> {reassignParcel.block} {reassignParcel.unit}</p>
+                <p><strong>Transportadora:</strong> {reassignParcel.carrier || "Não informada"}</p>
+                <p><strong>Código de retirada:</strong> <span className="font-mono font-bold text-slate-900">{reassignParcel.pickupCode}</span></p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Nova Unidade de Destino *
+                </label>
+                <select
+                  required
+                  value={reassignUnitId}
+                  onChange={(e) => setReassignUnitId(e.target.value)}
+                  className="w-full input text-sm"
+                >
+                  <option value="">Selecione a nova unidade</option>
+                  {unitList.map((u) => (
+                    <option key={u.id} value={u.id}>{u.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {reassignUnitId && (() => {
+                const uObj = unitList.find((u) => String(u.id) === reassignUnitId);
+                return uObj ? (
+                  <div className={`p-2.5 rounded-xl border text-xs ${
+                    uObj.residents && uObj.residents.length > 0
+                      ? "bg-emerald-50/90 border-emerald-200 text-emerald-900"
+                      : "bg-amber-50/90 border-amber-200 text-amber-900"
+                  }`}>
+                    {uObj.residents && uObj.residents.length > 0 ? (
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <Icon name="check-circle" size={14} className="text-emerald-600 shrink-0" />
+                        <span>Morador(es): <strong>{uObj.residents.join(", ")}</strong> (receberão aviso e QR no app)</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <Icon name="alert-triangle" size={14} className="text-amber-600 shrink-0" />
+                        <span>Atenção: Esta unidade não possui moradores vinculados.</span>
+                      </div>
+                    )}
+                  </div>
+                ) : null;
+              })()}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setReassignParcel(null)}
+                  className="px-4 py-2 border rounded-xl font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending || !reassignUnitId}
+                  className="px-4 py-2 bg-[#1355FF] text-white rounded-xl font-bold hover:bg-blue-600 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {isPending ? "Salvando..." : "Confirmar Alteração"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

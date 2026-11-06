@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
 import {
@@ -156,13 +157,33 @@ export function PorteiroDashboard({
     });
   };
 
+  const router = useRouter();
+
   const handleParcelSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      await registerParcelAction(formData);
-      setFeedback({ type: "success", msg: "Encomenda cadastrada e morador notificado automaticamente!" });
-      setModal(null);
+      const res = await registerParcelAction(formData);
+      if (typeof window !== "undefined") {
+        try {
+          const bc = new BroadcastChannel("zc_encomendas_sync");
+          bc.postMessage({ type: "PARCEL_UPDATED", timestamp: Date.now() });
+          bc.close();
+        } catch {}
+        try {
+          localStorage.setItem("zc_encomendas_last_update", String(Date.now()));
+        } catch {}
+      }
+      setFeedback({
+        type: res.success ? "success" : "error",
+        msg: res.success
+          ? `Encomenda cadastrada com sucesso!${res.notifiedCount ? ` Notificação enviada para ${res.notifiedCount} morador(es).` : ""}`
+          : (res.error || "Erro ao cadastrar encomenda."),
+      });
+      if (res.success) {
+        setModal(null);
+        router.refresh();
+      }
       setTimeout(() => setFeedback(null), 3500);
     });
   };
@@ -648,6 +669,12 @@ export function PorteiroDashboard({
               </Link>
               <Link href="/painel/reservas" className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 font-bold text-slate-800 text-center">
                 Reservas de Hoje
+              </Link>
+              <Link href="/painel/sugestoes" className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 font-bold text-slate-800 text-center">
+                Sugestões
+              </Link>
+              <Link href="/painel/achados-e-perdidos" className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 font-bold text-slate-800 text-center">
+                Achados & Perdidos
               </Link>
             </div>
           </div>
