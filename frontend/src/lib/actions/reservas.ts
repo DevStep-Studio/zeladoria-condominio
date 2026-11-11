@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireCondo, requireRole } from "@/lib/auth";
 import { logAudit, notify } from "@/lib/audit";
+import { peopleOptions } from "@/lib/queries";
 import { ALL_STAFF } from "@/lib/rbac";
 import { bool, cents, isoDate, num, str, token } from "@/lib/utils";
 
@@ -191,13 +192,22 @@ export async function createReservationAction(formData: FormData) {
 
   // Notifications
   if (!autoApprove) {
-    const sindicos = await apiOperation("lib.actions.reservas.006", [condoId]);
+    let staffToNotify: number[] = [];
+    try {
+      const staffPeople = await peopleOptions(condoId, ["sindico", "zelador", "superadmin"]);
+      staffToNotify = (staffPeople ?? []).map((p: any) => p.id);
+    } catch {}
+
+    if (staffToNotify.length === 0) {
+      const sindicos = await apiOperation("lib.actions.reservas.006", [condoId]);
+      staffToNotify = sindicos.map((s) => s.userId);
+    }
 
     await notify(
       condoId,
-      sindicos.map((s) => s.userId),
+      staffToNotify,
       `Nova solicitação de reserva: ${amenity.name}`,
-      `Data: ${date} (${startTime}-${endTime}) por ${session.user.name}`,
+      `Data: ${date} (${startTime}-${endTime}) solicitada por ${session.user.name}. Acesse para aprovar ou recusar.`,
       "/painel/reservas",
     );
   } else {
@@ -222,6 +232,7 @@ export async function createReservationAction(formData: FormData) {
   revalidatePath("/painel/reservas");
   revalidatePath("/painel/agenda");
   revalidatePath("/painel");
+  revalidatePath("/painel/notificacoes");
   return { success: true, id: reservation.id, status };
 }
 

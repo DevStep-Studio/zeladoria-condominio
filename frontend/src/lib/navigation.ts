@@ -305,6 +305,7 @@ const ZELADOR_NAVIGATION: NavGroup[] = [
     items: [
       { id: "visitantes", label: "Visitantes", href: "/painel/visitantes", icon: "users", permission: "visitor.view_all" },
       { id: "encomendas", label: "Encomendas", href: "/painel/encomendas", icon: "package", permission: "package.view_all" },
+      { id: "reservas", label: "Reservas & Espaços", href: "/painel/reservas", icon: "calendar", permission: "reservation.view_all" },
       { id: "turnos", label: "Turnos", href: "/painel/turnos", icon: "refresh", permission: "shift.view" },
       { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail", permission: "announcement.view" },
       { id: "sugestoes", label: "Sugestões", href: "/painel/sugestoes", icon: "megaphone", permission: "suggestion.view_all" },

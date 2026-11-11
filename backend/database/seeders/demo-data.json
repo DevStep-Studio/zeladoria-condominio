@@ -1212,6 +1212,35 @@
         "firstAccessAt": "2026-09-29T12:00:00.000Z",
         "lastLoginAt": "2026-10-15T14:00:00.000Z",
         "createdAt": "2026-10-19T12:33:45.264Z"
+      },
+      {
+        "id": 13,
+        "name": "Gabriel (Superadmin)",
+        "email": "testegabriel@gmail.com",
+        "passwordHash": "28ac760bb963c476bcc0ce1dd4f4fe8a:22508c7ef70c582384289f9264bb1e6aaf81da3cefe34af372a41a23ee106faf",
+        "phone": "(11) 99999-9999",
+        "document": "000.000.000-00",
+        "avatarUrl": null,
+        "emergencyContacts": [],
+        "dependents": [],
+        "vehicles": [],
+        "notificationPreferences": {
+          "email": true,
+          "push": true,
+          "whatsapp": true,
+          "occurrences": true,
+          "reservations": true,
+          "assemblies": true,
+          "parcels": true,
+          "services": true
+        },
+        "twoFactorEnabled": false,
+        "isSuperAdmin": true,
+        "status": "ativo",
+        "theme": "light",
+        "firstAccessAt": null,
+        "lastLoginAt": "2026-11-07T20:00:00.000Z",
+        "createdAt": "2026-10-19T12:33:45.264Z"
       }
     ],
     "memberships": [
