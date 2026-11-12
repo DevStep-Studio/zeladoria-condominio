@@ -114,19 +114,17 @@ export function StepLocalizacao({
         <button
           type="button"
           onClick={handleSelectUnit}
-          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
-            locationType === "unidade"
+          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "unidade"
               ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                locationType === "unidade"
+              className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "unidade"
                   ? "bg-[#0070F3] text-white"
                   : "bg-slate-100 text-slate-600"
-              }`}
+                }`}
             >
               <Icon name="home" size={17} />
             </span>
@@ -148,19 +146,17 @@ export function StepLocalizacao({
               onChangeLocationString(COMMON_AREAS_PRESETS[0]);
             }
           }}
-          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
-            locationType === "area_comum"
+          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "area_comum"
               ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                locationType === "area_comum"
+              className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "area_comum"
                   ? "bg-[#0070F3] text-white"
                   : "bg-slate-100 text-slate-600"
-              }`}
+                }`}
             >
               <Icon name="building" size={17} />
             </span>
@@ -178,19 +174,17 @@ export function StepLocalizacao({
             onChangeLocationType("outro");
             if (locationType !== "outro") onChangeLocationString("");
           }}
-          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${
-            locationType === "outro"
+          className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "outro"
               ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                locationType === "outro"
+              className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "outro"
                   ? "bg-[#0070F3] text-white"
                   : "bg-slate-100 text-slate-600"
-              }`}
+                }`}
             >
               <Icon name="map-pin" size={17} />
             </span>
@@ -316,11 +310,10 @@ export function StepLocalizacao({
                     key={amenity.id}
                     type="button"
                     onClick={() => handleSelectAreaPreset(amenity.name)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                      isSelected
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${isSelected
                         ? "border-[#0070F3] bg-[#0070F3] text-white font-bold"
                         : "border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
-                    }`}
+                      }`}
                   >
                     {amenity.name}
                   </button>
@@ -335,11 +328,10 @@ export function StepLocalizacao({
                     key={area}
                     type="button"
                     onClick={() => handleSelectAreaPreset(area)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                      isSelected
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${isSelected
                         ? "border-[#0070F3] bg-[#0070F3] text-white font-bold"
                         : "border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
-                    }`}
+                      }`}
                   >
                     {area}
                   </button>
@@ -386,12 +378,16 @@ export function StepLocalizacao({
 
       {/* Resumo visual da localização */}
       {locationString && (
-        <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200 flex items-center gap-2">
-          <Icon name="map-pin" size={16} className="text-[#1355FF] shrink-0" />
-          <p className="text-xs font-bold text-[#1355FF] truncate">
-            {locationString}
-            {locationDetail ? ` (${locationDetail})` : ""}
-          </p>
+        <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200 flex items-start gap-2.5 min-w-0 overflow-hidden shadow-2xs">
+          <Icon name="map-pin" size={16} className="text-[#1355FF] shrink-0 mt-0.5" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-[#1355FF] leading-snug break-words [overflow-wrap:anywhere] [word-break:break-word]">
+              {locationString}
+              {locationDetail.trim() ? (
+                <span className="font-semibold text-blue-900/80"> ({locationDetail.trim()})</span>
+              ) : null}
+            </p>
+          </div>
         </div>
       )}
 

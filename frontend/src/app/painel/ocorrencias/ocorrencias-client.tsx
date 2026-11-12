@@ -467,12 +467,12 @@ export function OcorrenciasClient({
         setActiveOccurrence((prev) =>
           prev
             ? {
-                ...prev,
-                status: adminStatus,
-                severity: adminSeverity,
-                assignedToId: adminAssignedId === "none" ? null : Number(adminAssignedId),
-                actionsTaken: adminActionsTaken,
-              }
+              ...prev,
+              status: adminStatus,
+              severity: adminSeverity,
+              assignedToId: adminAssignedId === "none" ? null : Number(adminAssignedId),
+              actionsTaken: adminActionsTaken,
+            }
             : null
         );
       } else {
@@ -550,11 +550,10 @@ export function OcorrenciasClient({
       {/* Alerta de Feedback Global */}
       {feedback && (
         <div
-          className={`p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${
-            feedback.type === "success"
+          className={`p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-red-50 text-red-800 border-red-200"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2">
             <Icon
@@ -590,17 +589,15 @@ export function OcorrenciasClient({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
-                  isActive
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer shrink-0 ${isActive
                     ? "bg-white text-slate-900 shadow-2xs font-semibold"
                     : "text-slate-600 hover:text-slate-900 font-medium"
-                }`}
+                  }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`flex h-4 min-w-[18px] items-center justify-center rounded px-1 text-[10px] tabular-nums font-semibold ${
-                    isActive ? "bg-blue-50 text-[#1355FF]" : "bg-slate-200/80 text-slate-600"
-                  }`}
+                  className={`flex h-4 min-w-[18px] items-center justify-center rounded px-1 text-[10px] tabular-nums font-semibold ${isActive ? "bg-blue-50 text-[#1355FF]" : "bg-slate-200/80 text-slate-600"
+                    }`}
                 >
                   {tab.count}
                 </span>
@@ -640,11 +637,10 @@ export function OcorrenciasClient({
           <button
             type="button"
             onClick={() => setFilterModalOpen(true)}
-            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
-              selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
+            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
                 ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+              }`}
           >
             <Icon name="filter" size={12} />
             <span>Filtros</span>
@@ -657,11 +653,10 @@ export function OcorrenciasClient({
           <button
             type="button"
             onClick={() => setOnlyWithPhotos((prev) => !prev)}
-            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
-              onlyWithPhotos
+            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${onlyWithPhotos
                 ? "border-[#1355FF] bg-blue-50 text-[#1355FF] font-semibold"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+              }`}
             title="Filtrar ocorrências que possuem fotos anexadas"
           >
             <Icon name="camera" size={13} className={onlyWithPhotos ? "text-[#1355FF]" : "text-slate-400"} />
@@ -674,11 +669,10 @@ export function OcorrenciasClient({
             <button
               type="button"
               onClick={() => setNeedsAttentionOnly((prev) => !prev)}
-              className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${
-                needsAttentionOnly
+              className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${needsAttentionOnly
                   ? "border-amber-300 bg-amber-50 text-amber-800"
                   : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
+                }`}
               title="Filtrar ocorrências com atenção prioritária"
             >
               <Icon name="alert-triangle" size={12} className={needsAttentionOnly ? "text-amber-700" : "text-slate-400"} />
@@ -692,9 +686,8 @@ export function OcorrenciasClient({
               <button
                 type="button"
                 onClick={() => setViewMode("cards")}
-                className={`p-1.5 rounded text-xs transition-colors ${
-                  viewMode === "cards" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
-                }`}
+                className={`p-1.5 rounded text-xs transition-colors ${viewMode === "cards" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
+                  }`}
                 title="Visualização em Cards com Fotos"
               >
                 <Icon name="grid" size={13} />
@@ -702,9 +695,8 @@ export function OcorrenciasClient({
               <button
                 type="button"
                 onClick={() => setViewMode("tabela")}
-                className={`p-1.5 rounded text-xs transition-colors ${
-                  viewMode === "tabela" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
-                }`}
+                className={`p-1.5 rounded text-xs transition-colors ${viewMode === "tabela" ? "bg-slate-100 text-[#1355FF] font-bold" : "text-slate-400 hover:text-slate-700"
+                  }`}
                 title="Visualização em Tabela"
               >
                 <Icon name="menu" size={13} />
@@ -956,12 +948,12 @@ export function OcorrenciasClient({
                     </div>
 
                     {/* Linha 2: Título Principal e Trecho da Descrição (Itens 10, 11) */}
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight">
+                    <div className="min-w-0">
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
                         {occ.title}
                       </h3>
                       {occ.description && (
-                        <p className="text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mt-1 font-normal leading-relaxed">
+                        <p className="text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mt-1 font-normal leading-relaxed break-words [overflow-wrap:anywhere]">
                           {occ.description}
                         </p>
                       )}
@@ -1062,12 +1054,12 @@ export function OcorrenciasClient({
                   </div>
 
                   {/* Linha 2: Título Principal e Trecho da Descrição */}
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight">
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
                       {occ.title}
                     </h3>
                     {occ.description && (
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-normal leading-relaxed">
+                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-normal leading-relaxed break-words [overflow-wrap:anywhere]">
                         {occ.description}
                       </p>
                     )}
@@ -1143,14 +1135,12 @@ export function OcorrenciasClient({
                     {activeOccurrence.code}
                   </span>
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      (STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeBg
-                    } ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeText}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeBg
+                      } ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeText}`}
                   >
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        (STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).dotColor
-                      }`}
+                      className={`h-1.5 w-1.5 rounded-full ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).dotColor
+                        }`}
                     />
                     {(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).label}
                   </span>
@@ -1282,13 +1272,12 @@ export function OcorrenciasClient({
                     <div key={idx} className="flex items-start gap-3 text-xs">
                       <div className="flex flex-col items-center mt-0.5">
                         <div
-                          className={`flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold ${
-                            step.isDone
+                          className={`flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold ${step.isDone
                               ? "bg-emerald-500 text-white"
                               : step.isCurrent
-                              ? "bg-[#1355FF] text-white ring-4 ring-blue-100"
-                              : "bg-slate-200 text-slate-500"
-                          }`}
+                                ? "bg-[#1355FF] text-white ring-4 ring-blue-100"
+                                : "bg-slate-200 text-slate-500"
+                            }`}
                         >
                           {step.isDone ? "✓" : step.isCurrent ? "●" : "○"}
                         </div>
@@ -1297,9 +1286,8 @@ export function OcorrenciasClient({
 
                       <div className="flex-1">
                         <p
-                          className={`font-bold ${
-                            step.isDone || step.isCurrent ? "text-slate-900" : "text-slate-400"
-                          }`}
+                          className={`font-bold ${step.isDone || step.isCurrent ? "text-slate-900" : "text-slate-400"
+                            }`}
                         >
                           {step.label}
                         </p>
@@ -1315,7 +1303,7 @@ export function OcorrenciasClient({
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Descrição detalhada
                 </span>
-                <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
+                <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word] min-w-0 overflow-hidden">
                   {activeOccurrence.description}
                 </div>
               </div>
@@ -1498,16 +1486,14 @@ export function OcorrenciasClient({
                         className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-xs shadow-2xs ${
-                            isCurrentUser
+                          className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-xs shadow-2xs ${isCurrentUser
                               ? "bg-[#1355FF] text-white rounded-br-xs"
                               : "bg-slate-100 text-slate-800 rounded-bl-xs"
-                          }`}
+                            }`}
                         >
                           <div
-                            className={`flex items-center gap-2 text-[10px] font-bold mb-1 ${
-                              isCurrentUser ? "text-blue-100" : "text-slate-500"
-                            }`}
+                            className={`flex items-center gap-2 text-[10px] font-bold mb-1 ${isCurrentUser ? "text-blue-100" : "text-slate-500"
+                              }`}
                           >
                             <span>{c.userName || "Usuário"}</span>
                             <span>•</span>
@@ -1841,11 +1827,10 @@ export function OcorrenciasClient({
                   key={i}
                   type="button"
                   onClick={() => setLightboxData({ ...lightboxData, index: i })}
-                  className={`relative h-14 w-16 sm:h-16 sm:w-20 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                    i === lightboxData.index
+                  className={`relative h-14 w-16 sm:h-16 sm:w-20 rounded-lg overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${i === lightboxData.index
                       ? "border-[#1355FF] ring-2 ring-blue-500/50 scale-105 opacity-100"
                       : "border-white/20 opacity-60 hover:opacity-100"
-                  }`}
+                    }`}
                 >
                   <img
                     src={photo}

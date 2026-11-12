@@ -17,10 +17,26 @@ final class SessionService
             $user->is_super_admin = true;
             $user->setAttribute('is_super_admin', true);
         }
+
+        // Auto-activate invited memberships on authenticated session access
+        if ($user->status !== 'bloqueado') {
+            DB::table('memberships')
+                ->where('user_id', $user->id)
+                ->where('status', 'convidado')
+                ->update(['status' => 'ativo']);
+
+            if ($user->status === 'convidado') {
+                DB::table('users')->where('id', $user->id)->update(['status' => 'ativo']);
+                $user->status = 'ativo';
+                $user->setAttribute('status', 'ativo');
+            }
+        }
+
         $memberships = DB::table('memberships as m')
             ->join('condominiums as c', 'c.id', '=', 'm.condo_id')
             ->leftJoin('units as u', 'u.id', '=', 'm.unit_id')
-            ->where('m.user_id', $user->id)->where('m.status', 'ativo')
+            ->where('m.user_id', $user->id)
+            ->whereIn('m.status', ['ativo', 'convidado'])
             ->select('m.id', 'm.condo_id as condoId', 'm.role', 'm.unit_id as unitId', 'm.status', 'c.name as condoName', 'c.slug as condoSlug', 'c.plan', 'u.number as unitLabel')->get()
             ->map(fn ($m) => (array) $m)->all();
         $vendor = DB::table('vendors')->where('user_id', $user->id)->first();
@@ -39,6 +55,35 @@ final class SessionService
         $defaultRole = $user->is_super_admin ? 'superadmin' : ($active['role'] ?? ($vendor ? 'prestador' : 'morador'));
         $role = in_array($requestedRole, $allowedHere, true) ? $requestedRole : $defaultRole;
 
-        return ['user' => $this->serializer->serialize('users', $user->getAttributes()), 'memberships' => $memberships, 'condo' => $condo ? $this->serializer->serialize('condominiums', $condo) : null, 'role' => $role, 'availableRoles' => $roles, 'unitId' => $active['unitId'] ?? null, 'vendorId' => $vendor->id ?? null];
+        $condoUnitIds = collect($memberships)
+            ->where('condoId', $condo?->id)
+            ->pluck('unitId')
+            ->filter()
+            ->values()
+            ->all();
+
+        $resolvedUnitId = $active['unitId'] ?? ($condoUnitIds[0] ?? null);
+
+        // Fallback for superadmin testing as morador without linked unit
+        if (! $resolvedUnitId && $user->is_super_admin && $role === 'morador' && $condo) {
+            $firstUnit = DB::table('units')->where('condo_id', $condo->id)->first();
+            if ($firstUnit) {
+                $resolvedUnitId = $firstUnit->id;
+                if (! in_array($firstUnit->id, $condoUnitIds, true)) {
+                    $condoUnitIds[] = $firstUnit->id;
+                }
+            }
+        }
+
+        return [
+            'user' => $this->serializer->serialize('users', $user->getAttributes()),
+            'memberships' => $memberships,
+            'condo' => $condo ? $this->serializer->serialize('condominiums', $condo) : null,
+            'role' => $role,
+            'availableRoles' => $roles,
+            'unitId' => $resolvedUnitId,
+            'unitIds' => $condoUnitIds,
+            'vendorId' => $vendor->id ?? null,
+        ];
     }
 }

@@ -190,22 +190,32 @@ export async function createReservationAction(formData: FormData) {
       notes,
     }]);
 
-  // Notifications
-  if (!autoApprove) {
-    let staffToNotify: number[] = [];
-    try {
-      const staffPeople = await peopleOptions(condoId, ["sindico", "zelador", "superadmin"]);
-      staffToNotify = (staffPeople ?? []).map((p: any) => p.id);
-    } catch {}
+  // Notifications - Gather staff recipients (Síndico, Zelador, Superadmin)
+  let staffToNotify: number[] = [];
+  try {
+    const staffPeople = await peopleOptions(condoId, ["sindico", "zelador", "superadmin"]);
+    staffToNotify = (staffPeople ?? []).map((p: any) => p.id);
+  } catch {}
 
-    if (staffToNotify.length === 0) {
+  if (staffToNotify.length === 0) {
+    try {
       const sindicos = await apiOperation("lib.actions.reservas.006", [condoId]);
       staffToNotify = sindicos.map((s) => s.userId);
-    }
+    } catch {}
+  }
 
+  try {
+    const superadmins = await apiOperation("app.painel.admin.administradores.page.001", []);
+    const superadminIds = (superadmins ?? []).map((s: any) => s.id);
+    staffToNotify = [...new Set([...staffToNotify, ...superadminIds])];
+  } catch {}
+
+  const staffAlertRecipients = staffToNotify.filter((id) => id !== session.user.id);
+
+  if (!autoApprove) {
     await notify(
       condoId,
-      staffToNotify,
+      staffAlertRecipients,
       `Nova solicitação de reserva: ${amenity.name}`,
       `Data: ${date} (${startTime}-${endTime}) solicitada por ${session.user.name}. Acesse para aprovar ou recusar.`,
       "/painel/reservas",
@@ -218,6 +228,15 @@ export async function createReservationAction(formData: FormData) {
       `Sua reserva para ${amenity.name} em ${date} (${startTime}-${endTime}) foi confirmada com sucesso.`,
       "/painel/reservas",
     );
+    if (staffAlertRecipients.length > 0) {
+      await notify(
+        condoId,
+        staffAlertRecipients,
+        `Nova reserva confirmada: ${amenity.name}`,
+        `${session.user.name} reservou ${amenity.name} para o dia ${date} (${startTime}-${endTime}).`,
+        "/painel/reservas",
+      );
+    }
   }
 
   await logAudit({

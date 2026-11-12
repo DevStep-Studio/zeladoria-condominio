@@ -251,7 +251,14 @@ export function SpaceDetailsModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              if (step === 4) {
+                onClose();
+                onSuccess(confirmedReservation?.id);
+              } else {
+                onClose();
+              }
+            }}
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
           >
             <Icon name="x" size={20} />
@@ -850,7 +857,10 @@ export function SpaceDetailsModal({
                   </button>
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={() => {
+                      onClose();
+                      onSuccess(confirmedReservation?.id);
+                    }}
                     className="btn-secondary"
                   >
                     Voltar aos Espaços

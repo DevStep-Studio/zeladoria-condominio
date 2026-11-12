@@ -273,7 +273,7 @@ export async function inviteResidentAction(formData: FormData) {
   const { name, email, role, unitId, phone, document } = parsed.data;
 
   if (unitId) {
-    const [unit] = await apiOperation("lib.actions.reservas.005", [unitId]);
+    const [unit] = await apiOperation("lib.actions.portaria.018", [unitId]);
     if (!unit || unit.condoId !== condoId) return;
   }
 
@@ -300,6 +300,8 @@ export async function inviteResidentAction(formData: FormData) {
       status: "convidado",
       invitedAt: new Date(),
     }]);
+  } else if (unitId) {
+    await apiOperation("lib.actions.gestao.028", [{ unitId }, condoId, [user.id]]);
   }
   await logAudit({ session, condoId, action: "convidar", entity: "morador", entityId: user.id, summary: `Convidou ${name} (${email}) como ${role}` });
   revalidatePath("/painel/moradores");
@@ -362,6 +364,8 @@ export async function importResidentsAction(formData: FormData) {
     const exists = await apiOperation("lib.actions.gestao.034", [user.id, condoId]);
     if (exists.length === 0) {
       await apiOperation("lib.actions.gestao.035", [{ userId: user.id, condoId, role: "morador", unitId: unit?.id ?? null, status: "convidado", invitedAt: new Date() }]);
+    } else if (unit?.id) {
+      await apiOperation("lib.actions.gestao.028", [{ unitId: unit.id }, condoId, [user.id]]);
     }
     ok += 1;
   }

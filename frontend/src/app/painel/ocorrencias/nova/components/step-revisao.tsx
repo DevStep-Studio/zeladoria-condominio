@@ -81,17 +81,17 @@ export function StepRevisao({
       )}
 
       {/* Cartão de Resumo sem Poluição */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 space-y-5 shadow-xs">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 space-y-5 shadow-xs overflow-hidden">
         {/* Título da Ocorrência (com edição rápida) */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between mb-1.5 gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
               Título gerado
             </span>
             <button
               type="button"
               onClick={() => setIsEditingTitle(!isEditingTitle)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline cursor-pointer shrink-0"
             >
               <Icon name="pencil" size={12} />
               <span>{isEditingTitle ? "Concluir edição" : "Editar título"}</span>
@@ -107,7 +107,7 @@ export function StepRevisao({
               autoFocus
             />
           ) : (
-            <p className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+            <p className="text-base sm:text-lg font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere] [word-break:break-word]">
               {title}
             </p>
           )}
@@ -116,22 +116,22 @@ export function StepRevisao({
         {/* Metadados Essenciais: Categoria e Localização com layout robusto */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-slate-100">
           {/* Categoria */}
-          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300">
+          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/60">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
                 Categoria
               </span>
               <button
                 type="button"
                 onClick={onEditStep1}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
               >
                 <Icon name="pencil" size={11} />
                 <span>Alterar</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-2.5 pt-2.5">
+            <div className="flex items-center gap-2.5 pt-2.5 min-w-0">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] border border-blue-100/80 shadow-2xs shrink-0">
                 <Icon name={category.icon as IconName} size={16} />
               </span>
@@ -147,15 +147,15 @@ export function StepRevisao({
           </div>
 
           {/* Localização (com proteção total contra estouro e separação elegante do ponto de referência) */}
-          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300">
+          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-col justify-between transition-colors hover:border-slate-300 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/60">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
                 Localização
               </span>
               <button
                 type="button"
                 onClick={onEditStep2}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
               >
                 <Icon name="pencil" size={11} />
                 <span>Alterar</span>
@@ -167,14 +167,16 @@ export function StepRevisao({
                 <Icon name="map-pin" size={16} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere] [word-break:break-word]">
                   {mainLocation}
                 </p>
                 {detailText ? (
-                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed mt-1.5 break-words bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] mr-1.5 tracking-wider">Ponto de ref.:</span>
-                    <span className="text-slate-700">{detailText}</span>
-                  </p>
+                  <div className="mt-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/80 shadow-2xs min-w-0 overflow-hidden">
+                    <p className="text-[11px] text-slate-600 font-medium leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                      <span className="text-slate-400 font-bold uppercase text-[9px] mr-1.5 tracking-wider inline-block">Ponto de ref.:</span>
+                      <span className="text-slate-700">{detailText}</span>
+                    </p>
+                  </div>
                 ) : null}
               </div>
             </div>
@@ -182,22 +184,24 @@ export function StepRevisao({
         </div>
 
         {/* Descrição Informada */}
-        <div className="pt-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="pt-2 min-w-0">
+          <div className="flex items-center justify-between mb-1 gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
               O que você relatou
             </span>
             <button
               type="button"
               onClick={onEditStep1}
-              className="text-[11px] font-bold text-[#0070F3] hover:underline cursor-pointer"
+              className="text-[11px] font-bold text-[#0070F3] hover:underline cursor-pointer shrink-0"
             >
               Editar texto
             </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-700 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200 leading-relaxed whitespace-pre-wrap">
-            {description}
-          </p>
+          <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200 min-w-0 overflow-hidden">
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] [word-break:break-word]">
+              {description}
+            </p>
+          </div>
         </div>
 
         {/* Prioridade Sugerida pelo Sistema */}

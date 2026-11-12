@@ -78,10 +78,25 @@ final class PanelController
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
         $isResident = $ctx['role'] === 'morador';
+        $unitId = $ctx['unitId'] ?? null;
+
+        if ($isResident && ! $unitId) {
+            $membershipUnit = DB::table('memberships')->where('user_id', $request->user()->id)->where('condo_id', $condoId)->whereNotNull('unit_id')->value('unit_id');
+            if ($membershipUnit) {
+                $unitId = (int) $membershipUnit;
+            } elseif (! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin' || $request->user()->is_super_admin) {
+                $firstUnit = DB::table('units')->where('condo_id', $condoId)->value('id');
+                $unitId = $firstUnit ? (int) $firstUnit : null;
+            }
+        }
+
+        $parcelRows = ($isResident && ! $unitId)
+            ? []
+            : $this->operations->execute('app.painel.portaria.page.002', [$condoId, (bool) ($isResident && $unitId), $unitId]);
 
         return response()->json(['data' => [
             'visitRows' => $this->operations->execute('app.painel.portaria.page.001', [$condoId, $isResident, $request->user()->id]),
-            'parcelRows' => $this->operations->execute('app.painel.portaria.page.002', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId']]),
+            'parcelRows' => $parcelRows,
         ]]);
     }
 
@@ -501,11 +516,26 @@ final class PanelController
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
         $isResident = $ctx['role'] === 'morador';
-        $residentUnitId = $request->integer('residentUnitId') ?: ($request->integer('unitId') ?: $ctx['unitId']);
+        $residentUnitId = $request->integer('residentUnitId') ?: ($request->integer('unitId') ?: ($ctx['unitId'] ?? null));
         $staleBefore = ['$date' => now()->subDays(7)->toIso8601String()];
 
+        if ($isResident && ! $residentUnitId) {
+            $membershipUnit = DB::table('memberships')->where('user_id', $request->user()->id)->where('condo_id', $condoId)->whereNotNull('unit_id')->value('unit_id');
+            if ($membershipUnit) {
+                $residentUnitId = (int) $membershipUnit;
+            } elseif (! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin' || $request->user()->is_super_admin) {
+                $firstUnit = DB::table('units')->where('condo_id', $condoId)->value('id');
+                $residentUnitId = $firstUnit ? (int) $firstUnit : null;
+            }
+        }
+
+        $filterByUnit = $isResident && (bool) $residentUnitId;
+        $rows = ($isResident && ! $residentUnitId)
+            ? []
+            : $this->operations->execute('app.painel.encomendas.page.001', [$condoId, $filterByUnit, $residentUnitId]);
+
         return response()->json(['data' => [
-            'rows' => $this->operations->execute('app.painel.encomendas.page.001', [$condoId, $isResident && $residentUnitId, $residentUnitId]),
+            'rows' => $rows,
             'stale' => $this->operations->execute('app.painel.encomendas.page.002', [$condoId, $staleBefore])[0] ?? ['id' => 0],
         ]]);
     }
@@ -752,7 +782,16 @@ final class PanelController
         $isSindico = in_array($ctx['role'], ['sindico', 'superadmin', 'conselho'], true);
         $todayStr = (string) $request->query('todayStr', now()->format('Y-m-d'));
         $in7DaysStr = (string) $request->query('in7DaysStr', now()->addDays(7)->format('Y-m-d'));
-        $residentUnitId = $request->integer('residentUnitId') ?: $ctx['unitId'];
+        $residentUnitId = $request->integer('residentUnitId') ?: ($ctx['unitId'] ?? null);
+        if ($isResident && ! $residentUnitId) {
+            $membershipUnit = DB::table('memberships')->where('user_id', $request->user()->id)->where('condo_id', $condoId)->whereNotNull('unit_id')->value('unit_id');
+            if ($membershipUnit) {
+                $residentUnitId = (int) $membershipUnit;
+            } elseif (! empty($ctx['user']['isSuperAdmin']) || $ctx['role'] === 'superadmin' || $request->user()->is_super_admin) {
+                $firstUnit = DB::table('units')->where('condo_id', $condoId)->value('id');
+                $residentUnitId = $firstUnit ? (int) $firstUnit : null;
+            }
+        }
         $nowIso = ['$date' => now()->toIso8601String()];
 
         $payload = [

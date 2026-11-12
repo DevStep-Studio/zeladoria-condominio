@@ -62,8 +62,13 @@ final class PasswordResetController extends Controller
         ]);
         $status = Password::reset($data, function (User $user, string $password) use ($passwords): void {
             abort_if($user->status === 'bloqueado', 422, 'Este link não pode ser utilizado.');
-            $user->forceFill(['password_hash' => $passwords->hash($password)])->save();
+            $fields = ['password_hash' => $passwords->hash($password)];
+            if ($user->status === 'convidado') {
+                $fields['status'] = 'ativo';
+            }
+            $user->forceFill($fields)->save();
             $user->tokens()->delete();
+            \Illuminate\Support\Facades\DB::table('memberships')->where('user_id', $user->id)->where('status', 'convidado')->update(['status' => 'ativo']);
         });
         if ($status !== Password::PASSWORD_RESET) {
             return response()->json(['message' => 'Link inválido ou expirado. Solicite uma nova recuperação de senha.'], 422);

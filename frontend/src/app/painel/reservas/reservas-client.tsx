@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { PageHeader } from "@/components/page-header";
 import { SpaceCard } from "./components/space-card";
@@ -27,7 +28,13 @@ export function ReservasClient({
   role,
   currentUser,
 }: ReservasClientProps) {
+  const router = useRouter();
   const isStaff = ["superadmin", "sindico", "conselho", "zelador"].includes(role);
+
+  // Reactive state with instant sync
+  const [amenities, setAmenities] = useState<Amenity[]>(initialAmenities);
+  const [reservations, setReservations] = useState<ReservationItem[]>(initialReservations);
+  const [blocks, setBlocks] = useState<AmenityBlock[]>(initialBlocks);
 
   // Active Tab:
   // Morador: "areas" | "minhas"
@@ -45,18 +52,101 @@ export function ReservasClient({
   const [wizardModal, setWizardModal] = useState<{ open: boolean; space?: Amenity | null }>({ open: false });
   const [blockModalOpen, setBlockModalOpen] = useState(false);
 
-  // Pending requests count for Síndico badge
-  const pendingRequests = useMemo(() => {
-    return initialReservations.filter((r) => r.status === "pendente");
+  function broadcastReservasUpdate() {
+    if (typeof window !== "undefined") {
+      try {
+        const bc = new BroadcastChannel("zc_reservas_sync");
+        bc.postMessage({ type: "RESERVATION_UPDATED", timestamp: Date.now() });
+        bc.close();
+      } catch {}
+      try {
+        localStorage.setItem("zc_reservas_last_update", String(Date.now()));
+      } catch {}
+    }
+  }
+
+  const fetchLatestReservas = useCallback(async () => {
+    try {
+      const res = await fetch("/api/reservas", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.reservations)) {
+        setReservations(data.reservations);
+      }
+      if (Array.isArray(data.amenities)) {
+        setAmenities(data.amenities);
+      }
+      if (Array.isArray(data.blocks)) {
+        setBlocks(data.blocks);
+      }
+    } catch {
+      // Silencioso em caso de falha transitória
+    }
+  }, []);
+
+  // Sync state if props change from server
+  useEffect(() => {
+    setReservations(initialReservations);
   }, [initialReservations]);
 
+  useEffect(() => {
+    setAmenities(initialAmenities);
+  }, [initialAmenities]);
+
+  useEffect(() => {
+    setBlocks(initialBlocks);
+  }, [initialBlocks]);
+
+  // Real-time synchronization
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("zc_reservas_sync");
+      bc.onmessage = () => {
+        fetchLatestReservas();
+      };
+    } catch {}
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "zc_reservas_last_update") {
+        fetchLatestReservas();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchLatestReservas();
+      }
+    };
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", () => fetchLatestReservas());
+
+    const pollInterval = setInterval(() => {
+      fetchLatestReservas();
+    }, 6000);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", () => fetchLatestReservas());
+      if (bc) bc.close();
+    };
+  }, [fetchLatestReservas]);
+
+  // Pending requests count for Síndico badge
+  const pendingRequests = useMemo(() => {
+    return reservations.filter((r) => r.status === "pendente");
+  }, [reservations]);
+
   const myReservationsCount = useMemo(() => {
-    return initialReservations.filter((r) => r.userId === currentUser.id).length;
-  }, [initialReservations, currentUser.id]);
+    return reservations.filter((r) => r.userId === currentUser.id).length;
+  }, [reservations, currentUser.id]);
 
   // Filtered spaces
   const filteredAmenities = useMemo(() => {
-    return initialAmenities.filter((space) => {
+    return amenities.filter((space) => {
       // Search
       const matchesSearch =
         space.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,12 +163,12 @@ export function ReservasClient({
 
       return true;
     });
-  }, [initialAmenities, searchQuery, pricingFilter, categoryFilter]);
+  }, [amenities, searchQuery, pricingFilter, categoryFilter]);
 
   const categories = useMemo(() => {
-    const set = new Set(initialAmenities.map((a) => a.category).filter(Boolean) as string[]);
+    const set = new Set(amenities.map((a) => a.category).filter(Boolean) as string[]);
     return Array.from(set);
-  }, [initialAmenities]);
+  }, [amenities]);
 
   const handleOpenSpaceModal = (space: Amenity, action: "details" | "reserve") => {
     setSelectedSpace(space);
@@ -165,14 +255,22 @@ export function ReservasClient({
               }`}
             >
               <Icon name="clipboard" size={14} className={activeTab === "requests" ? "text-white" : "text-slate-400"} />
-              <span>Solicitações</span>
-              {pendingRequests.length > 0 && (
+              <span>Solicitações & Reservas</span>
+              {pendingRequests.length > 0 ? (
                 <span
                   className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums ${
                     activeTab === "requests" ? "bg-amber-400 text-slate-950" : "bg-amber-100 text-amber-900"
                   }`}
                 >
                   {pendingRequests.length}
+                </span>
+              ) : (
+                <span
+                  className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums ${
+                    activeTab === "requests" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {reservations.length}
                 </span>
               )}
             </button>
@@ -328,18 +426,23 @@ export function ReservasClient({
           ========================================================================= */}
       {activeTab === "calendar" && isStaff && (
         <AdminCalendar
-          reservations={initialReservations}
-          amenities={initialAmenities}
-          blocks={initialBlocks}
+          reservations={reservations}
+          amenities={amenities}
+          blocks={blocks}
           onOpenBlockModal={() => setBlockModalOpen(true)}
         />
       )}
 
       {/* =========================================================================
-          TAB 3: SOLICITAÇÕES PENDENTES (Síndico / Staff)
+          TAB 3: SOLICITAÇÕES & GESTÃO DE RESERVAS (Síndico / Staff)
           ========================================================================= */}
       {activeTab === "requests" && isStaff && (
-        <AdminRequests requests={pendingRequests} />
+        <AdminRequests
+          requests={pendingRequests}
+          allReservations={reservations}
+          amenities={amenities}
+          onRefresh={fetchLatestReservas}
+        />
       )}
 
       {/* =========================================================================
@@ -347,8 +450,8 @@ export function ReservasClient({
           ========================================================================= */}
       {activeTab === "minhas" && (
         <MyReservations
-          reservations={initialReservations}
-          amenities={initialAmenities}
+          reservations={reservations}
+          amenities={amenities}
           currentUserId={currentUser.id}
         />
       )}
@@ -361,13 +464,16 @@ export function ReservasClient({
         <SpaceDetailsModal
           space={selectedSpace}
           initialAction={modalInitialAction}
-          reservations={initialReservations}
-          blocks={initialBlocks}
+          reservations={reservations}
+          blocks={blocks}
           currentUser={currentUser}
           onClose={() => setSelectedSpace(null)}
           onSuccess={() => {
             setSelectedSpace(null);
             setActiveTab("minhas");
+            broadcastReservasUpdate();
+            fetchLatestReservas();
+            router.refresh();
           }}
         />
       )}
@@ -377,16 +483,26 @@ export function ReservasClient({
         <SpaceWizardModal
           space={wizardModal.space}
           onClose={() => setWizardModal({ open: false, space: null })}
-          onSuccess={() => setWizardModal({ open: false, space: null })}
+          onSuccess={() => {
+            setWizardModal({ open: false, space: null });
+            broadcastReservasUpdate();
+            fetchLatestReservas();
+            router.refresh();
+          }}
         />
       )}
 
       {/* 3. Block Period Modal */}
       {blockModalOpen && (
         <BlockModal
-          amenities={initialAmenities}
+          amenities={amenities}
           onClose={() => setBlockModalOpen(false)}
-          onSuccess={() => setBlockModalOpen(false)}
+          onSuccess={() => {
+            setBlockModalOpen(false);
+            broadcastReservasUpdate();
+            fetchLatestReservas();
+            router.refresh();
+          }}
         />
       )}
     </div>

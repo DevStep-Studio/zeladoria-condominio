@@ -47,21 +47,23 @@ export function SuccessScreen({
           </span>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <span className="text-[11px] text-slate-400 block font-medium uppercase tracking-wider">
             Ocorrência
           </span>
-          <p className="text-sm font-bold text-slate-900 mt-0.5">{title}</p>
+          <p className="text-sm font-bold text-slate-900 mt-0.5 break-words [overflow-wrap:anywhere] [word-break:break-word]">
+            {title}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div>
+        <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+          <div className="min-w-0">
             <span className="text-[11px] text-slate-400 block font-medium">Categoria</span>
-            <span className="font-semibold text-slate-700">{categoryLabel}</span>
+            <span className="font-semibold text-slate-700 truncate block">{categoryLabel}</span>
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="text-[11px] text-slate-400 block font-medium">Local</span>
-            <span className="font-semibold text-slate-700 truncate block">{location}</span>
+            <span className="font-semibold text-slate-700 break-words [overflow-wrap:anywhere] [word-break:break-word] block">{location}</span>
           </div>
         </div>
       </div>

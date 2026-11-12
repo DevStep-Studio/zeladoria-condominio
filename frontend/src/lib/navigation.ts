@@ -240,9 +240,11 @@ export const ADMIN_NAVIGATION: NavGroup[] = [
     id: "operacao",
     title: "Operação",
     items: [
+      { id: "reservas", label: "Reservas", href: "/painel/reservas", icon: "calendar", permission: "reservation.view_all" },
+      { id: "encomendas", label: "Encomendas", href: "/painel/encomendas", icon: "package", permission: "package.view_all" },
+      { id: "ocorrencias", label: "Ocorrências", href: "/painel/ocorrencias", icon: "clipboard", permission: "occurrence.view_all" },
       { id: "chamados", label: "Chamados", href: "/painel/chamados", icon: "clipboard" },
       { id: "contratacoes", label: "Contratações", href: "/painel/admin/zeladoria-pay?tab=contratos", icon: "sparkles", permission: "platform.finance.manage" },
-      { id: "ocorrencias_criticas", label: "Ocorrências críticas", href: "/painel/ocorrencias?criticas=1", icon: "alert", permission: "occurrence.view_all" },
       { id: "suporte", label: "Suporte", href: "/painel/ajuda", icon: "help" },
     ],
   },
