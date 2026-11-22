@@ -635,12 +635,12 @@ export function DashboardClient({
               </p>
 
               {/* Botões Principais Fiéis à Referência 2 */}
-              <div className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-2.5 sm:gap-4 mt-4.5 sm:mt-5 lg:mt-[18px] flex-wrap">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-3.5 lg:gap-4 mt-4.5 sm:mt-5 lg:mt-[18px] w-full max-w-[380px] min-[440px]:max-w-[420px] lg:max-w-none">
                 <Link
                   href="/painel/ocorrencias?nova=1"
-                  className="inline-flex items-center justify-center gap-3.5 h-[48px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14.5px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap w-full min-[480px]:w-auto"
+                  className="inline-flex items-center justify-center gap-3.5 h-[48px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[15px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-[0.98] group whitespace-nowrap w-full lg:w-auto"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0 shadow-2xs">
                     <Icon name="plus" size={14} strokeWidth={3} />
                   </span>
                   <span>Registrar ocorrência</span>
@@ -655,7 +655,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={handleFocusProtocol}
-                  className="inline-flex items-center justify-center gap-2.5 h-[48px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14.5px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap w-full min-[480px]:w-auto"
+                  className="inline-flex items-center justify-center gap-2.5 h-[48px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/75 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 hover:border-white text-white text-[15px] sm:text-[16px] font-semibold backdrop-blur-xs transition-all cursor-pointer active:scale-[0.98] whitespace-nowrap w-full lg:w-auto"
                 >
                   <Icon name="search" size={18} strokeWidth={2.1} />
                   <span>Acompanhar solicitação</span>
@@ -918,9 +918,9 @@ export function DashboardClient({
 
               {/* Card Inferior: Acesse também pelo celular */}
               <div className="flex-1 rounded-[20px] border border-[#D8E4F8] bg-gradient-to-r from-[#E3ECFA] to-[#ECF2FE] px-5 py-3 sm:px-6 shadow-[0_4px_16px_rgba(7,26,56,0.035)] relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 min-h-[118px] min-w-0">
-                <div className="flex items-center gap-4 sm:gap-5 flex-1 min-w-0 w-full">
-                  {/* Mockup de Smartphone inclinado com enquadramento fiel à referência */}
-                  <div className="hidden min-[440px]:flex relative w-[110px] h-[146px] ml-1 -mb-11 -rotate-10 bg-[#0B1426] rounded-t-[18px] border-[4px] border-[#0B1426] shadow-xl shrink-0 overflow-hidden flex-col select-none">
+                <div className="flex items-center gap-3.5 sm:gap-5 flex-1 min-w-0 w-full">
+                  {/* Mockup de Smartphone inclinado com enquadramento fiel à referência (Apenas sm: e acima, onde há espaço lateral sem colisão) */}
+                  <div className="hidden sm:flex relative w-[110px] h-[146px] ml-1 -mb-11 -rotate-10 bg-[#0B1426] rounded-t-[18px] border-[4px] border-[#0B1426] shadow-xl shrink-0 overflow-hidden flex-col select-none">
                     <div className="w-10 h-1.5 bg-[#0B1426] rounded-b-md mx-auto relative z-10" />
                     <div className="flex-1 bg-gradient-to-b from-[#1455FF] to-[#0B43DA] rounded-t-[13px] px-2 pt-3 pb-7 flex flex-col items-center justify-center text-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -932,12 +932,17 @@ export function DashboardClient({
                     </div>
                   </div>
 
+                  {/* Ícone smartphone alternativo elegante para mobile (< sm) onde o mockup 3D causava sobreposição */}
+                  <div className="sm:hidden flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#1455FF]/15 text-[#0052F5] shrink-0">
+                    <Icon name="smartphone" size={22} strokeWidth={2.2} />
+                  </div>
+
                   {/* Textos centralizados verticalmente */}
-                  <div className="min-w-0 flex-1 text-center sm:text-left">
-                    <h3 className="text-[18px] sm:text-[19px] font-extrabold text-[#101828] leading-tight tracking-[-0.01em]">
+                  <div className="min-w-0 flex-1 text-left">
+                    <h3 className="text-[17.5px] sm:text-[19px] font-extrabold text-[#101828] leading-tight tracking-[-0.01em]">
                       Acesse também pelo celular
                     </h3>
-                    <p className="text-xs sm:text-[13.5px] text-[#475569] mt-1 leading-snug max-w-[340px] mx-auto sm:mx-0">
+                    <p className="text-xs sm:text-[13.5px] text-[#475569] mt-0.5 sm:mt-1 leading-snug max-w-[340px]">
                       Gerencie ocorrências, reservas, visitantes e muito mais, onde estiver.
                     </p>
                     {appStoreHint && (
@@ -948,8 +953,8 @@ export function DashboardClient({
                   </div>
                 </div>
 
-                {/* Coluna Direita: Badges Google Play e App Store empilhados verticalmente */}
-                <div className="flex flex-wrap justify-center sm:flex-col gap-1.5 shrink-0 max-w-full">
+                {/* Coluna Direita: Badges Google Play e App Store */}
+                <div className="flex flex-row sm:flex-col gap-2 sm:gap-1.5 shrink-0 max-w-full justify-start sm:justify-center w-full sm:w-auto">
                   {androidAppUrl ? (
                     <a
                       href={androidAppUrl}
