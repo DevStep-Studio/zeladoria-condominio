@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireCondo } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getOperationalEfficiencyMetrics } from "@/lib/services/metrics/efficiency-metrics";
 import { Badge, Card, StatCard } from "@/components/ui";
 import { Icon } from "@/components/icon";
@@ -12,7 +12,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function EficienciaOperacionalPage() {
-  const { condoId } = await requireCondo();
+  const { condoId } = await requirePermission("report.view");
   const metrics = await getOperationalEfficiencyMetrics(condoId);
 
   return (

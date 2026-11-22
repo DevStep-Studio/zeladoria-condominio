@@ -288,7 +288,16 @@ final class CondoController
         $ctx = $this->context($request);
         $data = $request->validate(['body' => 'required|string|max:5000']);
         $condoId = $ctx['condo']['id'];
-        $this->operations->execute('lib.actions.ocorrencias.007', [$occurrence, $condoId])[0] ?? abort(404, 'Ocorrência não encontrada.');
+        $existing = $this->operations->execute('lib.actions.ocorrencias.007', [$occurrence, $condoId])[0] ?? abort(404, 'Ocorrência não encontrada.');
+
+        if ($ctx['role'] === 'morador') {
+            $userUnitIds = $ctx['unitIds'] ?: ($ctx['unitId'] ? [$ctx['unitId']] : []);
+            $isPublic = ($existing['visibility'] ?? '') === 'publica';
+            $isReporter = ($existing['reportedById'] ?? null) === $request->user()->id;
+            $isUnitResident = ! empty($existing['unitId']) && in_array($existing['unitId'], $userUnitIds, true);
+            abort_unless($isPublic || $isReporter || $isUnitResident, 403, 'Você não tem permissão para comentar nesta ocorrência.');
+        }
+
         $this->operations->execute('lib.actions.ocorrencias.008', [[
             'occurrenceId' => $occurrence,
             'userId' => $request->user()->id,
@@ -308,6 +317,12 @@ final class CondoController
         ]);
         $condoId = $ctx['condo']['id'];
         $existing = $this->operations->execute('lib.actions.ocorrencias.009', [$occurrence, $condoId])[0] ?? abort(404, 'Ocorrência não encontrada.');
+
+        $userUnitIds = $ctx['unitIds'] ?: ($ctx['unitId'] ? [$ctx['unitId']] : []);
+        $isReporter = ($existing['reportedById'] ?? null) === $request->user()->id;
+        $isUnitResident = ! empty($existing['unitId']) && in_array($existing['unitId'], $userUnitIds, true);
+        abort_unless($isReporter || $isUnitResident, 403, 'Apenas o morador solicitante pode avaliar a resolução.');
+
         $this->operations->execute('lib.actions.ocorrencias.010', [[
             'residentRating' => $data['rating'],
             'residentComment' => $data['residentComment'] ?? '',

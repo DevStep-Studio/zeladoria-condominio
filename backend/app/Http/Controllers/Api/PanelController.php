@@ -14,7 +14,12 @@ final class PanelController
 
     private function context(Request $request): array
     {
-        return $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
+        $ctx = $this->sessions->context($request->user(), $request->integer('condoId') ?: null, $request->query('role'));
+        if ($request->integer('condoId') && (! $request->user()->is_super_admin && ($ctx['role'] ?? '') !== 'superadmin')) {
+            abort_unless(($ctx['condo']['id'] ?? null) === $request->integer('condoId'), 403, 'Acesso não autorizado a este condomínio.');
+        }
+
+        return $ctx;
     }
 
     private function condoId(array $ctx): int
@@ -43,16 +48,26 @@ final class PanelController
 
     public function documentos(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        $condoId = $this->condoId($ctx);
+        $rows = $this->operations->execute('app.painel.documentos.page.001', [$condoId]);
+        if (in_array($ctx['role'], ['morador', 'porteiro'], true)) {
+            $rows = array_values(array_filter($rows, fn ($d) => ($d['visibility'] ?? '') !== 'administrativo'));
+        }
 
-        return response()->json(['data' => $this->operations->execute('app.painel.documentos.page.001', [$condoId])]);
+        return response()->json(['data' => $rows]);
     }
 
     public function mudancas(Request $request): JsonResponse
     {
-        $condoId = $this->condoId($this->context($request));
+        $ctx = $this->context($request);
+        $condoId = $this->condoId($ctx);
+        $rows = $this->operations->execute('app.painel.mudancas.page.001', [$condoId]);
+        if ($ctx['role'] === 'morador') {
+            $rows = array_values(array_filter($rows, fn ($r) => ($r['requestedById'] ?? null) === $request->user()->id));
+        }
 
-        return response()->json(['data' => $this->operations->execute('app.painel.mudancas.page.001', [$condoId])]);
+        return response()->json(['data' => $rows]);
     }
 
     public function notificacoes(Request $request): JsonResponse
@@ -205,8 +220,37 @@ final class PanelController
         }
         $comments = $commentsQuery->select('oc.*')->get()->map(fn ($c) => (array) $c)->all();
 
+        $occurrenceRows = $this->operations->execute('app.painel.ocorrencias.page.001', [$condoId]);
+        if ($ctx['role'] === 'morador') {
+            $userUnitIds = $ctx['unitIds'] ?: ($ctx['unitId'] ? [$ctx['unitId']] : []);
+            $occurrenceRows = array_values(array_filter($occurrenceRows, function ($occ) use ($request, $userUnitIds) {
+                if (($occ['visibility'] ?? '') === 'interna') {
+                    return false;
+                }
+                if (($occ['visibility'] ?? '') === 'publica') {
+                    return true;
+                }
+                if (($occ['reportedById'] ?? null) === $request->user()->id) {
+                    return true;
+                }
+                if (! empty($occ['unitId']) && in_array($occ['unitId'], $userUnitIds, true)) {
+                    return true;
+                }
+
+                return false;
+            }));
+        } elseif ($ctx['role'] === 'porteiro') {
+            $occurrenceRows = array_values(array_filter($occurrenceRows, function ($occ) use ($request) {
+                if (($occ['visibility'] ?? '') === 'interna' && ($occ['assignedToId'] ?? null) !== $request->user()->id) {
+                    return false;
+                }
+
+                return true;
+            }));
+        }
+
         return response()->json(['data' => [
-            'occurrenceRows' => $this->operations->execute('app.painel.ocorrencias.page.001', [$condoId]),
+            'occurrenceRows' => $occurrenceRows,
             'comments' => $comments,
             'staffMembers' => $canManage ? $this->operations->execute('app.painel.ocorrencias.page.003', [$condoId, ['sindico', 'superadmin', 'zelador', 'porteiro', 'conselho']]) : [],
         ]]);
@@ -516,8 +560,21 @@ final class PanelController
         $ctx = $this->context($request);
         $condoId = $this->condoId($ctx);
         $isResident = $ctx['role'] === 'morador';
-        $residentUnitId = $request->integer('residentUnitId') ?: ($request->integer('unitId') ?: ($ctx['unitId'] ?? null));
         $staleBefore = ['$date' => now()->subDays(7)->toIso8601String()];
+
+        $allowedUnitIds = $ctx['unitIds'] ?: ($ctx['unitId'] ? [$ctx['unitId']] : []);
+        $requestedUnitId = $request->integer('residentUnitId') ?: $request->integer('unitId');
+
+        if ($isResident) {
+            // Previne IDOR horizontal: morador só pode consultar suas próprias unidades
+            if ($requestedUnitId && in_array($requestedUnitId, $allowedUnitIds, true)) {
+                $residentUnitId = $requestedUnitId;
+            } else {
+                $residentUnitId = $ctx['unitId'] ?? ($allowedUnitIds[0] ?? null);
+            }
+        } else {
+            $residentUnitId = $requestedUnitId ?: ($ctx['unitId'] ?? null);
+        }
 
         if ($isResident && ! $residentUnitId) {
             $membershipUnit = DB::table('memberships')->where('user_id', $request->user()->id)->where('condo_id', $condoId)->whereNotNull('unit_id')->value('unit_id');
@@ -547,10 +604,30 @@ final class PanelController
         $isResident = $ctx['role'] === 'morador';
         $status = $request->query('status');
 
+        $rows = $this->operations->execute('app.painel.visitantes.page.001', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId'], $status && $status !== 'todos', $status]);
+        $recurring = $this->operations->execute('app.painel.visitantes.page.002', [$condoId]);
+        $allVisitsInScope = $this->operations->execute('app.painel.visitantes.page.003', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId']]);
+
+        if ($isResident) {
+            $allowedUnitIds = $ctx['unitIds'] ?: ($ctx['unitId'] ? [$ctx['unitId']] : []);
+            $myVisitorIds = DB::table('visits')
+                ->where('condo_id', $condoId)
+                ->where(function ($q) use ($request, $allowedUnitIds) {
+                    $q->where('host_user_id', $request->user()->id)
+                        ->orWhereIn('unit_id', $allowedUnitIds);
+                })
+                ->pluck('visitor_id')
+                ->all();
+
+            $recurring = array_values(array_filter($recurring, function ($v) use ($myVisitorIds) {
+                return in_array($v['id'], $myVisitorIds, true) && ! ($v['blocked'] ?? false);
+            }));
+        }
+
         return response()->json(['data' => [
-            'rows' => $this->operations->execute('app.painel.visitantes.page.001', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId'], $status && $status !== 'todos', $status]),
-            'recurring' => $this->operations->execute('app.painel.visitantes.page.002', [$condoId]),
-            'allVisitsInScope' => $this->operations->execute('app.painel.visitantes.page.003', [$condoId, $isResident && $ctx['unitId'], $ctx['unitId']]),
+            'rows' => $rows,
+            'recurring' => $recurring,
+            'allVisitsInScope' => $allVisitsInScope,
         ]]);
     }
 

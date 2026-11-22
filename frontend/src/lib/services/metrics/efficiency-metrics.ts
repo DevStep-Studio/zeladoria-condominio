@@ -37,7 +37,8 @@ export async function getOperationalEfficiencyMetrics(
   condoId: number
 ): Promise<EfficiencyMetricsResult> {
   // 1. Busca todas as solicitações do condomínio
-  const requests = await apiOperation("lib.services.metrics.efficiency-metrics.001", [condoId]);
+  const rawRequests = await apiOperation("lib.services.metrics.efficiency-metrics.001", [condoId]);
+  const requests = Array.isArray(rawRequests) ? rawRequests : [];
 
   const totalRequests = requests.length;
   const completed = requests.filter((r) => r.status === "concluido" || r.completedAt !== null);
@@ -78,7 +79,8 @@ export async function getOperationalEfficiencyMetrics(
     : 100;
 
   // 3. Avaliações (CSAT) dos chamados do condomínio
-  const reviews = await apiOperation("lib.services.metrics.efficiency-metrics.002", [condoId]);
+  const rawReviews = await apiOperation("lib.services.metrics.efficiency-metrics.002", [condoId]);
+  const reviews = Array.isArray(rawReviews) ? rawReviews : [];
 
   const totalReviews = reviews.length;
   const averageCsat = totalReviews > 0

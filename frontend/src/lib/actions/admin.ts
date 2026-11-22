@@ -795,6 +795,11 @@ export async function inviteUserAction(formData: FormData) {
     return { success: false, error: "Nome e e-mail são obrigatórios." };
   }
 
+  // Previne escalonamento de privilégios: apenas superadmin pode conceder perfil superadmin
+  if (role === "superadmin" && !session.user.isSuperAdmin && session.role !== "superadmin") {
+    return { success: false, error: "Apenas Administradores da Plataforma podem conceder o perfil de Administrador Global." };
+  }
+
   // 1. Check if user already exists
   let [existingUser] = await apiOperation("lib.actions.admin.058", [email]);
   let userId = existingUser?.id;

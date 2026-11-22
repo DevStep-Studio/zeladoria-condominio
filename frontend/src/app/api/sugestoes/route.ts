@@ -93,6 +93,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 });
     }
 
+    const condoId = session.condo?.id ?? null;
+    const isSuperAdmin = session.role === "superadmin" || session.user.isSuperAdmin;
+    const all = getAllSuggestions(condoId);
+    const existing = all.find((s) => s.id === Number(id));
+
+    if (!existing) {
+      return NextResponse.json({ error: "Sugestão não encontrada neste condomínio." }, { status: 404 });
+    }
+
     if (isUpvote) {
       const upvoted = upvoteSuggestion(Number(id));
       if (!upvoted) {

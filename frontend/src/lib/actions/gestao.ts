@@ -261,10 +261,14 @@ export async function saveUnitAction(formData: FormData) {
 
 export async function inviteResidentAction(formData: FormData) {
   const { session, condoId } = await requireRole(["superadmin", "sindico"]);
+  const rawRole = str(formData, "role", "morador");
+  if ((rawRole as string) === "superadmin" && !session.user.isSuperAdmin && session.role !== "superadmin") {
+    return;
+  }
   const parsed = InviteResidentSchema.safeParse({
     name: str(formData, "name"),
     email: str(formData, "email").toLowerCase(),
-    role: str(formData, "role", "morador"),
+    role: rawRole,
     unitId: num(formData, "unitId") || null,
     phone: str(formData, "phone") || null,
     document: str(formData, "document") || null,

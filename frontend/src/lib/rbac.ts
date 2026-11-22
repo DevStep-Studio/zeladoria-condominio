@@ -34,7 +34,7 @@ const PRIMARY_NAV: NavItem[] = [
   { href: "/painel/reservas", label: "Reservas", icon: "building", roles: EVERYONE, primary: true },
   { href: "/painel/ocorrencias", label: "Ocorrências", icon: "book", roles: EVERYONE, primary: true },
   { href: "/painel/assembleias", label: "Assembleias", icon: "scale", roles: EVERYONE, primary: true },
-  { href: "/painel/portaria", label: "Portaria", icon: "shield", roles: EVERYONE, primary: true },
+  { href: "/painel/portaria", label: "Portaria", icon: "shield", roles: GATE, primary: true },
   { href: "/painel/perfil", label: "Perfil", icon: "user", roles: EVERYONE, primary: true },
 ];
 
