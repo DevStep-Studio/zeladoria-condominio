@@ -635,12 +635,12 @@ export function DashboardClient({
               </p>
 
               {/* Botões Principais Fiéis à Referência 2 */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-3.5 lg:gap-4 mt-4.5 sm:mt-5 lg:mt-[18px] w-full max-w-[380px] min-[440px]:max-w-[420px] lg:max-w-none">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4 mt-5 lg:mt-[18px] w-full max-w-[380px] min-[440px]:max-w-[420px] lg:max-w-none">
                 <Link
                   href="/painel/ocorrencias?nova=1"
-                  className="inline-flex items-center justify-center gap-3.5 h-[48px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[15px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-[0.98] group whitespace-nowrap w-full lg:w-auto"
+                  className="inline-flex items-center justify-center gap-3.5 h-[46px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap w-full lg:w-auto"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0 shadow-2xs">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
                     <Icon name="plus" size={14} strokeWidth={3} />
                   </span>
                   <span>Registrar ocorrência</span>
@@ -655,7 +655,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={handleFocusProtocol}
-                  className="inline-flex items-center justify-center gap-2.5 h-[48px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/75 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 hover:border-white text-white text-[15px] sm:text-[16px] font-semibold backdrop-blur-xs transition-all cursor-pointer active:scale-[0.98] whitespace-nowrap w-full lg:w-auto"
+                  className="inline-flex items-center justify-center gap-2.5 h-[46px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap w-full lg:w-auto"
                 >
                   <Icon name="search" size={18} strokeWidth={2.1} />
                   <span>Acompanhar solicitação</span>
