@@ -937,51 +937,46 @@ export function DashboardClient({
         </section>
 
         {/* ================================================================= */}
-        {/* 4. BANNER INFERIOR DO TIÃO ZELADOR (FIEL À IMAGEM)                */}
+        {/* 4. BANNER INFERIOR: SEU CONDOMÍNIO MAIS CONECTADO                 */}
         {/* ================================================================= */}
-        <section className="rounded-2xl bg-gradient-to-r from-[#1455FF] to-[#0A47D0] p-5 sm:p-6 text-white shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-          <div className="flex items-start gap-4">
-            {/* Avatar do Tião com anel branco */}
-            <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full bg-white/15 p-1 border-2 border-white/30 flex items-center justify-center">
+        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#0048E8] via-[#0038C8] to-[#0028A0] p-4 sm:p-5 lg:px-7 lg:py-5 text-white shadow-md shadow-blue-950/15 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6 border border-blue-400/20">
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            {/* Ícone oficial do condomínio conectado */}
+            <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full flex items-center justify-center">
               <img
-                src="/brands/tiao/mascot-white.png"
-                alt="Tião Zelador"
+                src="/condominio-icon-badge.png"
+                alt="Condomínio Conectado"
                 className="h-full w-full object-contain"
               />
             </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
-                  Tião Zelador
-                </h3>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider">
-                  <Icon name="check" size={10} strokeWidth={3} />
-                  Verificado
-                </span>
-              </div>
-              <h4 className="text-xs sm:text-sm font-bold text-white">
-                Precisa de uma mão no seu condomínio?
-              </h4>
-              <p className="text-[11px] sm:text-xs text-white/90 font-normal leading-relaxed max-w-2xl">
-                Converse com o Tião Zelador, o assistente de IA da Zeladoria, e resolva dúvidas, gere solicitações e receba orientações.
+            {/* Linha divisória vertical */}
+            <div className="hidden sm:block h-10 w-[1.5px] bg-white/25 shrink-0" />
+
+            {/* Textos */}
+            <div className="min-w-0 space-y-0.5">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold sm:font-black text-white tracking-tight">
+                Seu condomínio, mais conectado.
+              </h3>
+              <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
+                Acompanhe comunicados, solicitações e novidades em um só lugar.
               </p>
             </div>
           </div>
 
-          <div className="shrink-0">
-            <button
-              type="button"
-              onClick={() => setAssistantOpen(true)}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-white/95 text-[#1455FF] px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold shadow-sm transition-all active:scale-95 group cursor-pointer whitespace-nowrap"
+          <div className="shrink-0 self-start md:self-auto">
+            <Link
+              href="/painel/comunicados"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white hover:bg-slate-50 text-[#0038C8] px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-95 group cursor-pointer whitespace-nowrap"
             >
-              <span>Conversar com o Tião Zelador</span>
+              <span>Ver comunicados</span>
               <Icon
-                name="chevron-right"
-                size={14}
-                className="transition-transform group-hover:translate-x-0.5"
+                name="arrow-right"
+                size={15}
+                strokeWidth={2.8}
+                className="transition-transform group-hover:translate-x-1"
               />
-            </button>
+            </Link>
           </div>
         </section>
 
