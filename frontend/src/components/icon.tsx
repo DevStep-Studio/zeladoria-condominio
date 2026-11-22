@@ -93,7 +93,11 @@ export type IconName =
   | "palette"
   | "tag"
   | "umbrella"
-  | "eye-off";
+  | "eye-off"
+  | "plus-circle"
+  | "layers"
+  | "info"
+  | "gavel";
 
 const PATHS: Record<Exclude<IconName, "tiao">, ReactElement> = {
   palette: (
@@ -592,6 +596,35 @@ const PATHS: Record<Exclude<IconName, "tiao">, ReactElement> = {
   umbrella: (
     <>
       <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7" />
+    </>
+  ),
+  "plus-circle": (
+    <>
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M12 8v8M8 12h8" />
+    </>
+  ),
+  layers: (
+    <>
+      <path d="m12 3 9 4.5-9 4.5-9-4.5Z" />
+      <path d="m3 12 9 4.5 9-4.5" />
+      <path d="m3 16.5 9 4.5 9-4.5" />
+    </>
+  ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </>
+  ),
+  gavel: (
+    <>
+      <path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8" />
+      <path d="m16 16 6-6" />
+      <path d="m8 8 6-6" />
+      <path d="m9 7 8 8" />
+      <path d="m21 11-8-8" />
     </>
   ),
 };

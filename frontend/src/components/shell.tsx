@@ -154,11 +154,11 @@ export function Shell({
     }
     // Padrão Morador (fiel à referência visual)
     return [
-      { id: "inicio", label: "Início", href: "/painel", icon: "grid" as IconName },
-      { id: "registrar", label: "Registrar ocorrência", href: "/painel/ocorrencias?nova=1", icon: "plus" as IconName },
-      { id: "acompanhar", label: "Acompanhar", href: "/painel/ocorrencias", icon: "clipboard" as IconName },
+      { id: "inicio", label: "Início", href: "/painel", icon: "home" as IconName },
+      { id: "registrar", label: "Registrar ocorrência", href: "/painel/ocorrencias?nova=1", icon: "plus-circle" as IconName },
+      { id: "acompanhar", label: "Acompanhar", href: "/painel/ocorrencias", icon: "layers" as IconName },
       { id: "servicos", label: "Serviços", href: "/painel/servicos", icon: "grid" as IconName },
-      { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail" as IconName },
+      { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "file-text" as IconName },
       { id: "transparencia", label: "Transparência", href: "/painel/documentos", icon: "info" as IconName },
     ];
   }, [role]);
@@ -236,11 +236,11 @@ export function Shell({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        const searchInput = document.getElementById("global-search-input");
-        if (searchInput) {
-          searchInput.focus();
-          setSearchFocused(true);
-        }
+        setSearchMobileOpen((prev) => !prev);
+      } else if (e.key === "Escape") {
+        setSearchMobileOpen(false);
+        setProfileMenuOpen(false);
+        setNotificationsOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -392,6 +392,9 @@ export function Shell({
         }
       }
       return true;
+    }
+    if (targetPath === "/painel/ocorrencias" && pathname === "/painel/ocorrencias") {
+      return searchParams.get("nova") !== "1";
     }
     if (targetPath === "/painel/servicos" && pathname === "/painel/servicos") {
       return !searchParams.get("tab") && !searchParams.get("aba");
@@ -629,17 +632,19 @@ export function Shell({
     </div>
   );
 
+  const isHomeRoute = pathname === "/painel";
+
   return (
-    <div className="min-h-screen bg-[#F5F8FC] flex flex-col selection:bg-blue-100 selection:text-[#1455FF]">
-      {/* Top Navbar: Horizontal Dark Navy (#071A38) inspirado na referência visual */}
-      <header className="sticky top-0 z-40 w-full bg-[#071A38] text-white border-b border-white/10 shadow-[0_2px_12px_rgba(7,26,56,0.18)] select-none">
-        <div className="w-full max-w-[1480px] mx-auto h-16 px-3 sm:px-6 flex items-center justify-between gap-3">
-          {/* Lado Esquerdo: Menu / Drawer + Logo Branca + Seletor de Condomínio */}
-          <div className="flex items-center gap-3 shrink-0 min-w-0">
+    <div className="min-h-screen bg-[#F3F6FB] flex flex-col selection:bg-blue-100 selection:text-[#1455FF]">
+      {/* Top Navbar: Horizontal Dark Navy (#09162B), altura ~69px fiel à imagem aprovada */}
+      <header className="sticky top-0 z-40 w-full bg-[#09162B] text-white border-b border-white/10 select-none">
+        <div className="w-full max-w-[1648px] mx-auto h-16 lg:h-[69px] px-3 sm:px-6 lg:px-5 xl:px-[52px] flex items-center justify-between gap-2 sm:gap-3">
+          {/* Esquerda: Hamburger (apenas mobile/tablet) + Logotipo Branca */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
               title="Menu completo de serviços"
               aria-label="Abrir menu"
             >
@@ -648,183 +653,72 @@ export function Shell({
 
             <Link
               href={topItemHref}
-              className="flex items-center gap-2 group min-w-0 shrink-0"
+              className="flex items-center shrink-0 group focus-visible:outline-none"
               title="Zeladoria Condomínio"
             >
-              <BrandLogo size="md" variant="white" showText={true} />
+              <BrandLogo
+                size="lg"
+                variant="white"
+                showText={true}
+                imgClassName="h-[26px] min-[375px]:h-[30px] lg:h-[34px] xl:h-[47px] w-auto"
+              />
             </Link>
-
-            {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio) */}
-            {role !== "prestador" && role !== "superadmin" && (
-              <div ref={condoRef} className="relative min-w-0 hidden md:block">
-                <button
-                  type="button"
-                  onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
-                  disabled={isSwitchingCondo}
-                  className={`group flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/15 px-2.5 py-1 text-xs font-semibold text-white/90 transition-colors ${
-                    condos.length > 1 ? "cursor-pointer" : "cursor-default"
-                  }`}
-                  title={condos.length > 1 ? "Trocar condomínio" : condoName}
-                >
-                  <span className="flex h-4 w-4 items-center justify-center rounded-[4px] bg-[#1455FF] text-white shrink-0">
-                    {isSwitchingCondo ? (
-                      <Icon name="refresh" size={10} className="animate-spin text-white" />
-                    ) : (
-                      <Icon name="building" size={10} strokeWidth={2} />
-                    )}
-                  </span>
-                  <span className="truncate max-w-[120px] xl:max-w-[180px]">
-                    {condoName || "Residencial Parque das Águas"}
-                  </span>
-                  {condos.length > 1 && (
-                    <Icon
-                      name="chevron-down"
-                      size={10}
-                      className={`text-white/60 group-hover:text-white transition-transform shrink-0 ${
-                        condoDropdownOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  )}
-                </button>
-
-                {condoDropdownOpen && (
-                  <div className="absolute left-0 z-50 mt-1.5 w-64 shadow-2xl rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 animate-in fade-in-50 duration-100">
-                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Selecione o Condomínio
-                    </div>
-                    <div className="space-y-0.5 mt-1 max-h-60 overflow-y-auto">
-                      {condos.map((c) => {
-                        const isActive = c.id === activeCondoId;
-                        const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            disabled={isSwitchingCondo}
-                            onClick={() => handleCondoSwitch(c.id)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-left transition-colors cursor-pointer ${
-                              isActive
-                                ? "font-bold text-[#1455FF] bg-blue-50"
-                                : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                            }`}
-                          >
-                            <span className="truncate">{c.name}</span>
-                            {isSwitchingThis ? (
-                              <Icon name="refresh" size={13} className="animate-spin text-[#1455FF]" />
-                            ) : isActive ? (
-                              <Icon name="check" size={13} className="text-[#1455FF]" />
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Centro: Links de Navegação Horizontal (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+          {/* Centro: Menus horizontais distribuídos uniformemente sem quebras (Desktop) */}
+          <nav
+            aria-label="Navegação principal"
+            className="hidden lg:flex items-center justify-center gap-1 xl:gap-4 2xl:gap-6 min-w-0"
+          >
             {topNavItems.map((item) => {
               const active = isRouteActive(item.href);
               return (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 ${
+                  className={`inline-flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-4.5 py-1.5 xl:py-2 text-[12px] xl:text-[15px] rounded-[10px] transition-colors duration-150 whitespace-nowrap shrink-0 ${
                     active
-                      ? "bg-white/15 text-white border border-white/20 shadow-xs"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
+                      ? "bg-[#23324B] text-white font-semibold"
+                      : "text-white/90 hover:text-white hover:bg-white/10 font-medium"
                   }`}
                 >
-                  <Icon name={item.icon} size={15} className={active ? "text-white" : "text-white/70"} />
+                  <Icon
+                    name={item.icon}
+                    size={15}
+                    strokeWidth={active ? 2.1 : 1.8}
+                    className={`${active ? "text-white" : "text-white/85"} shrink-0 xl:w-[17px] xl:h-[17px]`}
+                  />
                   <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Lado Direito: Busca + Notificações + Botão "Meu perfil" */}
+          {/* Direita: Ações Mobile/Tablet + Botão branco "Meu perfil" */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Global Search Trigger (Desktop) */}
-            <div ref={searchRef} className="relative hidden xl:block w-44">
-              <Icon name="search" size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/50" />
-              <input
-                id="global-search-input"
-                type="text"
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onFocus={() => setSearchFocused(true)}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 w-full rounded-lg border border-white/15 bg-white/10 hover:bg-white/15 pl-8 pr-9 text-xs text-white placeholder:text-white/50 outline-none focus:border-white/30 focus:bg-white/20 transition-all"
-              />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                <kbd className="text-[9px] font-mono font-bold text-white/60 bg-white/10 border border-white/20 px-1 py-0.5 rounded">⌘K</kbd>
-              </span>
-
-              {/* Search dropdown desktop */}
-              {searchFocused && searchQuery.trim().length > 0 && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-72 max-h-80 overflow-y-auto shadow-2xl rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800">
-                  {searchResults.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-slate-400">
-                      Nenhum resultado para &quot;{searchQuery}&quot;
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {Object.entries(groupedSearchResults).map(([cat, items]) => {
-                        if (items.length === 0) return null;
-                        return (
-                          <div key={cat} className="space-y-0.5">
-                            <div className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-[4px]">
-                              {cat}
-                            </div>
-                            {items.map((item) => (
-                              <Link
-                                key={item.title}
-                                href={item.href}
-                                onClick={() => {
-                                  setSearchFocused(false);
-                                  setSearchQuery("");
-                                }}
-                                className="block p-2 rounded-lg hover:bg-blue-50/70 transition-colors"
-                              >
-                                <p className="text-xs font-bold text-slate-900">{item.title}</p>
-                                <p className="text-[11px] text-slate-500">{item.subtitle}</p>
-                              </Link>
-                            ))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Search Button */}
+            {/* Mobile/Tablet Search Button */}
             <button
               type="button"
               onClick={() => setSearchMobileOpen(true)}
               title="Buscar no sistema"
-              className="flex xl:hidden h-8.5 w-8.5 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
+              className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
               aria-label="Abrir busca"
             >
-              <Icon name="search" size={15} />
+              <Icon name="search" size={16} />
             </button>
 
-            {/* Notifications Dropdown */}
-            <div ref={notifRef} className="relative">
+            {/* Mobile/Tablet Notifications Dropdown */}
+            <div ref={notifRef} className="relative lg:hidden">
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 title="Notificações"
-                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
                 aria-label="Abrir notificações"
               >
-                <Icon name="bell" size={15} />
+                <Icon name="bell" size={16} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#1455FF] ring-2 ring-[#071A38]" />
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#1455FF] ring-2 ring-[#09162B]" />
                 )}
               </button>
 
@@ -909,26 +803,32 @@ export function Shell({
               )}
             </div>
 
-            {/* BOTÃO "MEU PERFIL" — FIEL À REFERÊNCIA VISUAL */}
+            {/* BOTÃO "MEU PERFIL" — Branco com texto escuro (#0B1528), fiel à imagem aprovada */}
             <div ref={profileContainerRef} className="relative">
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-100 text-[#071A38] px-3 py-1.5 text-xs font-bold shadow-sm transition-all cursor-pointer"
-                title="Abrir opções de perfil"
+                className="inline-flex items-center justify-center gap-1.5 lg:gap-2 xl:gap-2.5 h-9 lg:h-[36px] xl:h-[42px] px-3 sm:px-4 lg:px-3.5 xl:px-5 rounded-[10px] bg-white hover:bg-slate-100 text-[#0B1528] text-xs lg:text-[12.5px] xl:text-[14.5px] font-bold shadow-xs transition-colors whitespace-nowrap cursor-pointer shrink-0"
+                title="Abrir opções de perfil e condomínio"
               >
-                <Icon name="user" size={14} className="text-[#071A38]" />
+                <Icon name="user" size={16} strokeWidth={2.1} className="text-[#0B1528] shrink-0" />
                 <span className="hidden sm:inline">Meu perfil</span>
               </button>
 
-              {/* Profile Popup Menu */}
+              {/* Profile Contextual Menu (inclui Seletor de Condomínio, Pesquisa, Notificações e Drawer completo) */}
               {profileMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 text-slate-800 shadow-2xl animate-in fade-in-50 duration-100">
-                  <div className="px-3 py-2 border-b border-slate-100">
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-2 text-slate-800 shadow-2xl animate-in fade-in-50 duration-100">
+                  <div className="px-3 py-2.5 border-b border-slate-100">
                     <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
-                    <p className="text-[10px] text-slate-500">
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
                       {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
                     </p>
+                    {condoName && role !== "prestador" && role !== "superadmin" && (
+                      <p className="text-[11px] font-semibold text-[#1455FF] truncate mt-1 flex items-center gap-1">
+                        <Icon name="building" size={11} />
+                        <span className="truncate">{condoName}</span>
+                      </p>
+                    )}
                   </div>
                   <div className="py-1 space-y-0.5">
                     <Link
@@ -940,12 +840,71 @@ export function Shell({
                       <span>Meu Perfil</span>
                     </Link>
 
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        setSearchMobileOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1455FF] transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Icon name="search" size={14} className="text-slate-500" />
+                        <span>Buscar no sistema</span>
+                      </span>
+                      <kbd className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                        ⌘K
+                      </kbd>
+                    </button>
+
+                    <Link
+                      href="/painel/notificacoes"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center justify-between gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1455FF] transition-colors"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Icon name="bell" size={14} className="text-slate-500" />
+                        <span>Notificações</span>
+                      </span>
+                      {unreadCount > 0 && (
+                        <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-[#1455FF]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        setMobileOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1455FF] transition-colors cursor-pointer"
+                    >
+                      <Icon name="menu" size={14} className="text-slate-500" />
+                      <span>Todos os módulos</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(new CustomEvent("open-emergency-sos"));
+                        }
+                      }}
+                      className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    >
+                      <Icon name="siren" size={14} className="text-rose-600" />
+                      <span>Emergência &amp; SOS 24h</span>
+                    </button>
+
                     {condos.length > 1 && (
                       <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                           Trocar Condomínio
                         </span>
-                        <div className="mt-1 space-y-0.5">
+                        <div className="mt-1 space-y-0.5 max-h-40 overflow-y-auto">
                           {condos.map((c) => {
                             const isActive = c.id === activeCondoId;
                             const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
@@ -1033,39 +992,86 @@ export function Shell({
           </div>
         </div>
 
-        {/* Mobile Full-width Search Bar Overlay */}
+        {/* Contextual Global Search Bar Overlay (Mobile & Desktop via ⌘K / Perfil) */}
         {searchMobileOpen && (
-          <div className="absolute inset-0 z-50 flex items-center bg-[#071A38] px-3 sm:px-6 shadow-md animate-in fade-in duration-150">
-            <div className="relative flex-1 flex items-center">
-              <Icon name="search" size={15} className="absolute left-3 text-white/50" />
-              <input
-                type="text"
-                autoFocus
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-xl border border-white/20 bg-white/10 pl-9 pr-8 text-xs text-white placeholder:text-white/50 outline-none focus:bg-white/20"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 text-white/60 hover:text-white p-1"
-                >
-                  <Icon name="x" size={13} />
-                </button>
+          <div className="absolute inset-x-0 top-0 z-50 bg-[#09162B] px-4 sm:px-6 lg:px-[44px] shadow-xl animate-in fade-in duration-150 border-b border-white/15">
+            <div className="max-w-[1648px] mx-auto h-16 lg:h-[69px] flex items-center gap-3 relative">
+              <div className="relative flex-1 flex items-center">
+                <Icon name="search" size={16} className="absolute left-3.5 text-white/60" />
+                <input
+                  id="global-search-input"
+                  type="text"
+                  autoFocus
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-10 lg:h-11 w-full rounded-xl border border-white/20 bg-white/10 pl-10 pr-9 text-xs sm:text-sm text-white placeholder:text-white/55 outline-none focus:bg-white/15 focus:border-white/35"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 text-white/60 hover:text-white p-1 cursor-pointer"
+                  >
+                    <Icon name="x" size={14} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchMobileOpen(false);
+                  setSearchQuery("");
+                }}
+                className="text-xs sm:text-sm font-semibold text-white/85 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 cursor-pointer shrink-0"
+              >
+                Fechar
+              </button>
+
+              {searchQuery.trim().length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-2 max-h-80 overflow-y-auto shadow-2xl rounded-2xl border border-slate-200 bg-white p-2 text-slate-800 z-50">
+                  {searchResults.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400">
+                      Nenhum resultado para &quot;{searchQuery}&quot;
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {Object.entries(groupedSearchResults).map(([cat, items]) => {
+                        if (items.length === 0) return null;
+                        return (
+                          <div key={cat} className="space-y-0.5">
+                            <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-md">
+                              {cat}
+                            </div>
+                            {items.map((item) => (
+                              <Link
+                                key={item.title}
+                                href={item.href}
+                                onClick={() => {
+                                  setSearchMobileOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-blue-50/70 transition-colors"
+                              >
+                                {item.icon && (
+                                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EAF1FF] text-[#1455FF] shrink-0">
+                                    <Icon name={item.icon} size={14} />
+                                  </span>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-900 truncate">{item.title}</p>
+                                  <p className="text-[11px] text-slate-500 truncate">{item.subtitle}</p>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchMobileOpen(false);
-                setSearchQuery("");
-              }}
-              className="ml-2 text-xs font-semibold text-white/80 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/10 cursor-pointer shrink-0"
-            >
-              Cancelar
-            </button>
           </div>
         )}
       </header>
@@ -1084,8 +1090,14 @@ export function Shell({
         </div>
       )}
 
-      {/* Main Content Body */}
-      <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12 max-w-[1480px] mx-auto min-w-0">
+      {/* Main Content Body (Full-bleed on /painel so Hero spans 100% width; constrained container elsewhere) */}
+      <main
+        className={
+          isHomeRoute
+            ? "w-full flex-1 pb-24 lg:pb-8 min-w-0"
+            : "w-full flex-1 px-4 sm:px-6 lg:px-[44px] py-6 pb-24 lg:pb-12 max-w-[1648px] mx-auto min-w-0"
+        }
+      >
         {children}
       </main>
 
@@ -1140,7 +1152,13 @@ export function Shell({
                       name={item.icon}
                       size={17}
                       strokeWidth={active ? 2.2 : 1.8}
-                      className={active ? "text-[#1455FF]" : ""}
+                      className={
+                        item.icon === "tiao"
+                          ? "text-white"
+                          : active
+                          ? "text-[#1455FF]"
+                          : "text-white/80"
+                      }
                     />
                     {active && (
                       <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#1455FF]" />

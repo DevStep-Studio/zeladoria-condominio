@@ -492,24 +492,30 @@ export default async function PainelHome() {
           : a.kind === "extraordinaria"
             ? "Assembleia extraordinária"
             : "Assembleia ordinária",
-      date: dateTimeBR(a.firstCallAt),
+      date: dateBR(a.firstCallAt),
       href: "/painel/assembleias",
       priority: "alta" as const,
+      _ts: new Date(a.firstCallAt).getTime() || 0,
     })),
     ...announcementRows.map((c) => {
       const isAlert =
         c.category === "alerta" || c.priority === "urgente" || c.priority === "alta";
+      const rawDate = c.publishedAt ?? c.createdAt;
       return {
         id: `comunicado-${c.id}`,
         kind: (isAlert ? "alerta" : "comunicado") as "alerta" | "comunicado",
         title: c.title,
         detail: c.body.replace(/\s+/g, " ").trim().slice(0, 120),
-        date: dateBR(c.publishedAt ?? c.createdAt),
+        date: dateBR(rawDate),
         href: "/painel/comunicados",
         priority: (isAlert ? "alta" : "normal") as "alta" | "normal",
+        _ts: new Date(rawDate).getTime() || 0,
       };
     }),
-  ].slice(0, 4);
+  ]
+    .sort((a, b) => b._ts - a._ts)
+    .slice(0, 4)
+    .map(({ _ts: _, ...rest }) => rest);
 
   return (
     <DashboardClient

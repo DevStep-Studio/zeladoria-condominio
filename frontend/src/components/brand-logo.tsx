@@ -3,12 +3,14 @@ import React from "react";
 export function BrandLogo({
   size = "md",
   className = "",
+  imgClassName = "",
   showText = true,
   variant = "default",
   height,
 }: {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  imgClassName?: string;
   showText?: boolean;
   variant?: "default" | "white" | "black" | "icon-only";
   height?: number;
@@ -34,6 +36,7 @@ export function BrandLogo({
 
   const isIconOnly = !showText || variant === "icon-only";
   const finalHeight = height ?? (isIconOnly ? sizeStyles.iconHeight : sizeStyles.imgHeight);
+  const inlineHeightStyle = imgClassName ? undefined : { height: finalHeight, width: "auto" as const };
 
   // Se for apenas o ícone
   if (isIconOnly) {
@@ -44,8 +47,8 @@ export function BrandLogo({
         <img
           src={iconSrc}
           alt="Zeladoria Condomínio"
-          style={{ height: finalHeight, width: "auto" }}
-          className="object-contain shrink-0"
+          style={inlineHeightStyle}
+          className={`object-contain shrink-0 ${imgClassName}`}
           loading="eager"
         />
       </div>
@@ -60,8 +63,8 @@ export function BrandLogo({
         <img
           src="/logo-white.png?v=5"
           alt="Zeladoria Condomínio"
-          style={{ height: finalHeight, width: "auto" }}
-          className="object-contain shrink-0"
+          style={inlineHeightStyle}
+          className={`object-contain shrink-0 ${imgClassName}`}
           loading="eager"
         />
       </div>
@@ -75,8 +78,8 @@ export function BrandLogo({
       <img
         src="/logo-principal.png?v=5"
         alt="Zeladoria Condomínio"
-        style={{ height: finalHeight, width: "auto" }}
-        className="object-contain shrink-0"
+        style={inlineHeightStyle}
+        className={`object-contain shrink-0 ${imgClassName}`}
         loading="eager"
       />
     </div>
