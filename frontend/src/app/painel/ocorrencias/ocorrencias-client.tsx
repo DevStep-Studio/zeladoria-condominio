@@ -680,7 +680,7 @@ export function OcorrenciasClient({
               value={search}
               onChange={setSearch}
               placeholder="Buscar ocorrência, código ou local..."
-              className="sm:w-56 md:w-64"
+              className="w-full sm:w-64"
             />
 
             <button
@@ -730,7 +730,7 @@ export function OcorrenciasClient({
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "recentes" | "antigas" | "prioridade")}
               aria-label="Ordenar ocorrências"
-              className="h-9.5 rounded-xl border border-[#E2E8F0] bg-white pl-3 pr-8 text-xs font-bold text-[#101828] outline-none focus:border-[#1455FF] cursor-pointer shrink-0"
+              className="h-9.5 w-auto rounded-xl border border-[#E2E8F0] bg-white pl-3 pr-8 text-xs font-bold text-[#101828] outline-none focus:border-[#1455FF] cursor-pointer shrink-0"
             >
               <option value="recentes">Mais recentes</option>
               <option value="antigas">Mais antigas</option>

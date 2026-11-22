@@ -60,8 +60,8 @@ export default async function MoradoresPage() {
         <Stat label="Taxa de primeiro acesso" value={`${adoption}%`} hint={`${active.length} ativos`} icon="trending" tone="blue" />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3 min-w-0">
+        <div className="space-y-4 lg:col-span-2 min-w-0">
           <Card title={`Pessoas (${people.length})`}>
             {people.length === 0 ? (
               <EmptyState title="Nenhum morador cadastrado" icon="users" />
@@ -127,7 +127,7 @@ export default async function MoradoresPage() {
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           {canEdit ? (
             <>
               <Card title="Convidar morador">

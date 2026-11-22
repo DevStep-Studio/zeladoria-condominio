@@ -56,8 +56,8 @@ export default async function ConfiguracoesPage() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-12 items-start">
-        <div className="lg:col-span-8 space-y-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-start min-w-0">
+        <div className="lg:col-span-8 space-y-5 min-w-0">
           <InternalSectionCard
             title="Dados do condomínio"
             subtitle="Identificação institucional, localização e visibilidade pública."
@@ -143,7 +143,7 @@ export default async function ConfiguracoesPage() {
           </InternalSectionCard>
         </div>
 
-        <div className="lg:col-span-4 space-y-5">
+        <div className="lg:col-span-4 space-y-5 min-w-0">
           <InternalSectionCard
             title="Status da implantação"
             subtitle="Acompanhe a etapa de ativação e uso de armazenamento."
@@ -190,17 +190,17 @@ export default async function ConfiguracoesPage() {
           </InternalSectionCard>
 
           <InternalSectionCard title="Minha conta">
-            <div className="space-y-2.5 text-sm">
-              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0]">
-                <span className="text-xs font-medium text-[#526079]">Nome</span>
-                <span className="font-bold text-[#101828] text-right truncate">{session.user.name}</span>
+            <div className="space-y-2.5 text-sm min-w-0">
+              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0] min-w-0">
+                <span className="text-xs font-medium text-[#526079] shrink-0">Nome</span>
+                <span className="font-bold text-[#101828] text-right truncate min-w-0">{session.user.name}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0]">
-                <span className="text-xs font-medium text-[#526079]">E-mail</span>
-                <span className="font-medium text-[#101828] text-right truncate">{session.user.email}</span>
+              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0] min-w-0">
+                <span className="text-xs font-medium text-[#526079] shrink-0">E-mail</span>
+                <span className="font-medium text-[#101828] text-right truncate min-w-0">{session.user.email}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <span className="text-xs font-medium text-[#526079]">Perfil</span>
+              <div className="flex items-center justify-between gap-3 pt-1 min-w-0">
+                <span className="text-xs font-medium text-[#526079] shrink-0">Perfil</span>
                 <InternalStatusBadge label={ROLE_LABEL[session.role as Role] ?? session.role} tone="blue" />
               </div>
             </div>

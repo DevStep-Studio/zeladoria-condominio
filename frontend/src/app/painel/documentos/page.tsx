@@ -199,11 +199,11 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
             })}
           </div>
 
-          <form className="flex items-center gap-2 w-full lg:w-auto">
+          <form className="flex items-center gap-2 w-full lg:w-auto min-w-0">
             {currentCategory !== "todos" && (
               <input type="hidden" name="categoria" value={currentCategory} />
             )}
-            <div className="relative flex-1 lg:w-72">
+            <div className="relative flex-1 min-w-0 lg:w-72">
               <Icon name="search" size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8996A9]" />
               <input
                 id="document-search"
@@ -237,7 +237,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
       </section>
 
       {/* 4. Biblioteca de Arquivos + Upload / Governança */}
-      <div className="grid gap-5 items-start xl:grid-cols-[minmax(0,1fr)_390px]">
+      <div className="grid grid-cols-1 gap-5 items-start xl:grid-cols-[minmax(0,1fr)_390px] min-w-0">
         <InternalSectionCard
           title="Acervo de documentos"
           subtitle={`${list.length} arquivos visíveis para este perfil${latest ? ` · Última publicação: ${latest.title}` : ""}`}
@@ -357,7 +357,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
           )}
         </InternalSectionCard>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 min-w-0">
           {canUpload && (
             <div id="publicar-documento">
               <InternalSectionCard

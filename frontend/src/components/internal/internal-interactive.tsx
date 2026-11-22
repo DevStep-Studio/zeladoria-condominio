@@ -216,11 +216,11 @@ export function InternalFilterBar({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-[#E2E8F0] bg-white p-3 sm:p-3.5 shadow-[0_2px_8px_rgba(7,26,56,0.03)] space-y-3 no-print ${className}`}
+      className={`rounded-2xl border border-[#E2E8F0] bg-white p-3 sm:p-3.5 shadow-[0_2px_8px_rgba(7,26,56,0.03)] space-y-3 no-print min-w-0 ${className}`}
     >
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3 min-w-0">
         {left ? <div className="flex items-center gap-2 overflow-x-auto max-w-full min-w-0">{left}</div> : null}
-        {right ? <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">{right}</div> : null}
+        {right ? <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">{right}</div> : null}
       </div>
       {bottom && <div className="border-t border-[#EDF1F7] pt-3">{bottom}</div>}
     </section>
