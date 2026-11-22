@@ -186,7 +186,7 @@ export function NotificacoesClient({
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <span>Central de Notificações</span>
             {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-[#1355FF] text-white text-xs font-black">
+              <span className="px-2 py-0.5 rounded-full bg-[#1455FF] text-white text-xs font-black">
                 {unreadCount} nova{unreadCount === 1 ? "" : "s"}
               </span>
             )}
@@ -220,7 +220,7 @@ export function NotificacoesClient({
           }}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
             statusTab === "todas"
-              ? "bg-[#1355FF] text-white shadow-xs"
+              ? "bg-[#1455FF] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
@@ -238,12 +238,12 @@ export function NotificacoesClient({
           }}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
             statusTab === "nao_lidas"
-              ? "bg-[#1355FF] text-white shadow-xs"
+              ? "bg-[#1455FF] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
           <span>Não lidas</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusTab === "nao_lidas" ? "bg-white/20 text-white" : "bg-blue-50 text-[#1355FF] font-black"}`}>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusTab === "nao_lidas" ? "bg-white/20 text-white" : "bg-blue-50 text-[#1455FF] font-black"}`}>
             {unreadCount}
           </span>
         </button>
@@ -256,7 +256,7 @@ export function NotificacoesClient({
           }}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
             statusTab === "lidas"
-              ? "bg-[#1355FF] text-white shadow-xs"
+              ? "bg-[#1455FF] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
@@ -369,7 +369,7 @@ export function NotificacoesClient({
                   <div
                     className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
                       isUnread
-                        ? "bg-[#1355FF] text-white shadow-xs"
+                        ? "bg-[#1455FF] text-white shadow-xs"
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
@@ -387,7 +387,7 @@ export function NotificacoesClient({
                       </h4>
 
                       {isUnread && (
-                        <span className="h-2 w-2 rounded-full bg-[#1355FF] shrink-0" title="Nova notificação" />
+                        <span className="h-2 w-2 rounded-full bg-[#1455FF] shrink-0" title="Nova notificação" />
                       )}
 
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">
@@ -421,7 +421,7 @@ export function NotificacoesClient({
                       onClick={() => {
                         if (isUnread) handleMarkAsRead(n.id);
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#1355FF] hover:text-[#1355FF] text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#1455FF] hover:text-[#1455FF] text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
                     >
                       <span>{meta.actionLabel}</span>
                       <Icon name="arrow-right" size={12} />

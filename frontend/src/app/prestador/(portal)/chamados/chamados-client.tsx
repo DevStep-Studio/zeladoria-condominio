@@ -292,7 +292,7 @@ export function ProviderChamadosClient({
                 {/* Header do Card */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 font-mono">
+                    <span className="text-xs font-black text-[#1455FF] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/60 font-mono">
                       {req.code}
                     </span>
                     <span className="rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-2 py-1">
@@ -411,7 +411,7 @@ export function ProviderChamadosClient({
                       }`}
                     >
                       <div>
-                        <span className="text-[10px] font-black uppercase text-[#1355FF] block">
+                        <span className="text-[10px] font-black uppercase text-[#1455FF] block">
                           Seu Orçamento Enviado:
                         </span>
                         <strong className="text-slate-900 text-sm">
@@ -750,7 +750,7 @@ function OpportunityDetailModal({
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs font-black text-[#1355FF] bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200/60 font-mono">
+              <span className="text-xs font-black text-[#1455FF] bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200/60 font-mono">
                 {request.code}
               </span>
               <span className="rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-2 py-0.5">
@@ -845,7 +845,7 @@ function OpportunityDetailModal({
         {/* Garantias & Proteções */}
         <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 text-xs space-y-1">
           <p className="font-bold flex items-center gap-1.5">
-            <Icon name="shield" size={14} className="text-[#1355FF]" />
+            <Icon name="shield" size={14} className="text-[#1455FF]" />
             <span>Garantias da Zeladoria</span>
           </p>
           <ul className="text-[11px] text-blue-800 list-disc list-inside space-y-0.5">
@@ -895,7 +895,7 @@ function OpportunityDetailModal({
                   onOpenProposal(request);
                 }}
                 disabled={isPending}
-                className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Icon name="send" size={14} />
                 <span>Enviar Orçamento</span>

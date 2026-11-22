@@ -85,7 +85,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
           href="/painel/comunicados?status=todos"
           className={`group relative flex flex-col justify-between rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
             currentStatus === "todos"
-              ? "border-[#1355FF] bg-blue-50/20 ring-2 ring-blue-500/10"
+              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
               : "border-slate-200/80 bg-white hover:border-slate-300"
           }`}
         >
@@ -104,7 +104,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {rows.length}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
               Publicados
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -117,12 +117,12 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
           href="/painel/comunicados?status=fixados"
           className={`group relative flex flex-col justify-between rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
             currentStatus === "fixados"
-              ? "border-[#1355FF] bg-blue-50/20 ring-2 ring-blue-500/10"
+              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
               : "border-slate-200/80 bg-white hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] transition-transform group-hover:scale-110">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] transition-transform group-hover:scale-110">
               <Icon name="pin" size={18} strokeWidth={2.2} />
             </span>
             <Icon
@@ -136,7 +136,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {pinnedCount}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
               Fixados
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -220,7 +220,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
               href={`/painel/comunicados?status=${tab.key}`}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 isActive
-                  ? "bg-[#1355FF] text-white shadow-xs"
+                  ? "bg-[#1455FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -249,7 +249,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
         <div className="space-y-4">
           <section className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#1355FF] shadow-xs border border-blue-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#1455FF] shadow-xs border border-blue-100">
                 <Icon name="bell" size={18} />
               </span>
               <div>
@@ -272,7 +272,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
               <article key={a.id} className="surface-hover overflow-hidden rounded-[16px] border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md transition-all">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3.5">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
                       <Icon name={categoryIcon(a.category)} size={18} />
                     </span>
                     <div className="min-w-0">

@@ -28,7 +28,7 @@ export default async function PrestadorCadastroPage() {
 
           <Link
             href="/prestador/login"
-            className="text-xs font-bold text-[#1355FF] hover:underline"
+            className="text-xs font-bold text-[#1455FF] hover:underline"
           >
             Já é parceiro? Entrar
           </Link>

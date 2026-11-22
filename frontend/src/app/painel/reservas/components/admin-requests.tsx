@@ -191,7 +191,7 @@ export function AdminRequests({
             onClick={() => setActiveFilter("aprovadas")}
             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
               activeFilter === "aprovadas"
-                ? "bg-[#1355FF] text-white shadow-xs"
+                ? "bg-[#1455FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-white"
             }`}
           >
@@ -288,7 +288,7 @@ export function AdminRequests({
                     <h4 className="text-sm font-bold text-slate-900 leading-snug">
                       {item.userName || "Morador"}
                     </h4>
-                    <p className="text-xs font-semibold text-[#1355FF]">
+                    <p className="text-xs font-semibold text-[#1455FF]">
                       {item.unitNumber ? `Apto ${item.unitNumber}` : "Unidade vinculada"}
                       {item.blockName ? ` (${item.blockName})` : ""}
                     </p>
@@ -369,7 +369,7 @@ export function AdminRequests({
 
                     <td className="px-4 py-3">
                       <div className="font-semibold text-slate-800">{item.userName || "Morador"}</div>
-                      <div className="text-[11px] text-[#1355FF]">
+                      <div className="text-[11px] text-[#1455FF]">
                         {item.unitNumber ? `Apto ${item.unitNumber}` : "Unidade vinculada"}
                         {item.blockName ? ` (${item.blockName})` : ""}
                       </div>

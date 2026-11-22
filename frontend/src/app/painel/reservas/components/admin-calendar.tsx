@@ -232,7 +232,7 @@ export function AdminCalendar({
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                       cell.isToday
-                        ? "bg-[#1355FF] text-white font-black"
+                        ? "bg-[#1455FF] text-white font-black"
                         : cell.isCurrentMonth
                         ? "text-slate-800"
                         : "text-slate-400"
@@ -269,7 +269,7 @@ export function AdminCalendar({
                         onClick={() => setActiveReservation(res)}
                         className={`w-full text-left truncate rounded-md px-1.5 py-0.5 text-[10px] font-semibold border transition-all ${
                           isApproved
-                            ? "bg-blue-50 border-blue-200 text-[#1355FF] hover:bg-blue-100"
+                            ? "bg-blue-50 border-blue-200 text-[#1455FF] hover:bg-blue-100"
                             : isPendingApproval
                             ? "bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100"
                             : "bg-slate-100 border-slate-200 text-slate-500"

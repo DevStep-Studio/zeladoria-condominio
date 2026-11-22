@@ -248,7 +248,7 @@ export function PorteiroDashboard({
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="px-2.5 py-1 bg-[#1355FF] text-white text-xs font-black rounded-lg uppercase tracking-wider">
+            <span className="px-2.5 py-1 bg-[#1455FF] text-white text-xs font-black rounded-lg uppercase tracking-wider">
               Portaria
             </span>
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -286,7 +286,7 @@ export function PorteiroDashboard({
             <button
               id="btn-abrir-turno"
               onClick={() => setModal("turno_abrir")}
-              className="px-4 py-2.5 bg-[#1355FF] hover:bg-[#0044AA] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-xs"
+              className="px-4 py-2.5 bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-xs"
             >
               <Icon name="check" size={16} />
               Iniciar Turno
@@ -317,7 +317,7 @@ export function PorteiroDashboard({
         <button
           id="btn-autorizar-visitante"
           onClick={() => setModal("autorizar")}
-          className="flex flex-col items-start justify-between p-4 bg-[#1355FF] hover:bg-[#0044AA] text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group"
+          className="flex flex-col items-start justify-between p-4 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group"
         >
           <div className="flex items-center justify-between w-full">
             <span className="p-2 bg-white/10 rounded-xl text-white">
@@ -334,7 +334,7 @@ export function PorteiroDashboard({
         <button
           id="btn-registrar-encomenda"
           onClick={() => setModal("encomenda")}
-          className="flex flex-col items-start justify-between p-4 bg-[#1355FF] hover:bg-[#0044AA] text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group cursor-pointer"
+          className="flex flex-col items-start justify-between p-4 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-2xl shadow-xs transition-all text-left min-h-[108px] group cursor-pointer"
         >
           <div className="flex items-center justify-between w-full">
             <span className="p-2 bg-white/10 rounded-xl text-white">
@@ -387,7 +387,7 @@ export function PorteiroDashboard({
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="clock" size={18} className="text-[#1355FF]" />
+            <Icon name="clock" size={18} className="text-[#1455FF]" />
             <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
               Agora na Portaria
             </h2>
@@ -400,7 +400,7 @@ export function PorteiroDashboard({
             onClick={() => setActiveTab("dentro")}
             className={`p-3.5 rounded-xl border text-left transition-all ${
               activeTab === "dentro"
-                ? "bg-blue-50 border-[#1355FF] text-[#1355FF]"
+                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
                 : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -413,7 +413,7 @@ export function PorteiroDashboard({
             onClick={() => setActiveTab("esperados")}
             className={`p-3.5 rounded-xl border text-left transition-all ${
               activeTab === "esperados"
-                ? "bg-blue-50 border-[#1355FF] text-[#1355FF]"
+                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
                 : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -426,7 +426,7 @@ export function PorteiroDashboard({
             onClick={() => setActiveTab("encomendas")}
             className={`p-3.5 rounded-xl border text-left transition-all ${
               activeTab === "encomendas"
-                ? "bg-blue-50 border-[#1355FF] text-[#1355FF]"
+                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
                 : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -502,7 +502,7 @@ export function PorteiroDashboard({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-slate-900">{v.name}</span>
-                          <span className="px-2 py-0.5 bg-blue-50 text-[#1355FF] text-[10px] font-bold rounded">
+                          <span className="px-2 py-0.5 bg-blue-50 text-[#1455FF] text-[10px] font-bold rounded">
                             {v.kind}
                           </span>
                           {v.plate && (
@@ -519,7 +519,7 @@ export function PorteiroDashboard({
                       <button
                         onClick={() => handleGateMove(v.id, "checkout")}
                         disabled={isPending}
-                        className="px-3 py-1.5 bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+                        className="px-3 py-1.5 bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
                       >
                         <Icon name="logout" size={14} />
                         Registrar Saída
@@ -568,7 +568,7 @@ export function PorteiroDashboard({
                       <button
                         onClick={() => handleGateMove(v.id, "checkin")}
                         disabled={isPending}
-                        className="px-3.5 py-1.5 bg-[#1355FF] hover:bg-[#0044AA] text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1.5"
                       >
                         <Icon name="check" size={14} />
                         Confirmar Entrada
@@ -600,7 +600,7 @@ export function PorteiroDashboard({
                     <div key={p.id} className="py-3 flex items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-black text-[#1355FF]">{p.code}</span>
+                          <span className="font-mono text-xs font-black text-[#1455FF]">{p.code}</span>
                           <span className="text-sm font-bold text-slate-900">{p.unit}</span>
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-semibold rounded">
                             {p.carrier}
@@ -633,7 +633,7 @@ export function PorteiroDashboard({
           {/* Contatos Rápidos */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
             <h3 className="text-sm font-black text-slate-900 mb-3 flex items-center gap-2">
-              <Icon name="phone" size={16} className="text-[#1355FF]" />
+              <Icon name="phone" size={16} className="text-[#1455FF]" />
               Contatos de Emergência & Apoio
             </h3>
             <div className="space-y-2">
@@ -645,7 +645,7 @@ export function PorteiroDashboard({
                   </div>
                   <a
                     href={`tel:${c.phone.replace(/\D/g, "")}`}
-                    className="font-mono font-bold text-[#1355FF] bg-white px-2.5 py-1 rounded-lg border border-slate-200 hover:border-[#1355FF]"
+                    className="font-mono font-bold text-[#1455FF] bg-white px-2.5 py-1 rounded-lg border border-slate-200 hover:border-[#1455FF]"
                   >
                     {c.phone}
                   </a>
@@ -688,7 +688,7 @@ export function PorteiroDashboard({
           <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                <Icon name="users" size={20} className="text-[#1355FF]" />
+                <Icon name="users" size={20} className="text-[#1455FF]" />
                 Autorizar Visitante / Prestador
               </h3>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
@@ -742,7 +742,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0044AA] text-white rounded-xl font-bold cursor-pointer">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Gravando..." : "Confirmar & Liberar Entrada"}
                 </button>
               </div>
@@ -757,7 +757,7 @@ export function PorteiroDashboard({
           <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                <Icon name="package" size={20} className="text-[#1355FF]" />
+                <Icon name="package" size={20} className="text-[#1455FF]" />
                 Registrar Encomenda na Portaria
               </h3>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
@@ -796,7 +796,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Cadastrando..." : "Registrar & Notificar Morador"}
                 </button>
               </div>
@@ -857,7 +857,7 @@ export function PorteiroDashboard({
           <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
               <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                <Icon name="search" size={20} className="text-[#1355FF]" />
+                <Icon name="search" size={20} className="text-[#1455FF]" />
                 Consulta Rápida de Unidades & Moradores
               </h3>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
@@ -889,7 +889,7 @@ export function PorteiroDashboard({
                       onClick={() => {
                         setModal("autorizar");
                       }}
-                      className="px-3 py-1 bg-[#1355FF] text-white text-xs font-bold rounded-lg cursor-pointer"
+                      className="px-3 py-1 bg-[#1455FF] text-white text-xs font-bold rounded-lg cursor-pointer"
                     >
                       + Acesso
                     </button>
@@ -951,7 +951,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Salvando..." : "Registrar no Livro"}
                 </button>
               </div>
@@ -966,7 +966,7 @@ export function PorteiroDashboard({
           <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                <Icon name="refresh" size={20} className="text-[#1355FF]" />
+                <Icon name="refresh" size={20} className="text-[#1455FF]" />
                 Encerrar Turno & Passagem de Serviço
               </h3>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
@@ -1004,7 +1004,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Gravando..." : "Confirmar Encerramento"}
                 </button>
               </div>
@@ -1054,7 +1054,7 @@ export function PorteiroDashboard({
                 <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                   Cancelar
                 </button>
-                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl font-bold cursor-pointer">
+                <button type="submit" disabled={isPending} className="px-5 py-2 bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl font-bold cursor-pointer">
                   {isPending ? "Iniciando..." : "Iniciar Turno"}
                 </button>
               </div>

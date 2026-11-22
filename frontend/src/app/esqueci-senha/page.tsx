@@ -57,7 +57,7 @@ export default function EsqueciSenhaPage() {
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={13} />
           <span>Voltar ao Login</span>
@@ -72,7 +72,7 @@ export default function EsqueciSenhaPage() {
             <div className="text-center space-y-5 animate-in fade-in-50 duration-200">
               {/* Success Badge */}
               <div className="flex justify-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#1355FF] border border-blue-100 shadow-2xs">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
                   <Icon name="mail" size={28} />
                 </span>
               </div>
@@ -85,7 +85,7 @@ export default function EsqueciSenhaPage() {
                   Se houver uma conta ativa com este e-mail, você receberá um link seguro para redefinir sua senha:
                 </p>
                 <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/80 text-xs font-bold text-slate-800">
-                  <Icon name="user" size={13} className="text-[#1355FF]" />
+                  <Icon name="user" size={13} className="text-[#1455FF]" />
                   <span>{email}</span>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function EsqueciSenhaPage() {
                       type="button"
                       onClick={handleResend}
                       disabled={isPending}
-                      className="font-bold text-[#1355FF] hover:underline cursor-pointer"
+                      className="font-bold text-[#1455FF] hover:underline cursor-pointer"
                     >
                       {isPending ? "Reenviando..." : "Clique para reenviar"}
                     </button>
@@ -155,14 +155,14 @@ export default function EsqueciSenhaPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu.email@exemplo.com.br"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1455FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 {/* Security info pill */}
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600">
-                  <Icon name="shield" size={15} className="text-[#1355FF] shrink-0 mt-0.5" />
+                  <Icon name="shield" size={15} className="text-[#1455FF] shrink-0 mt-0.5" />
                   <span>
                     Por motivos de segurança, o link expira em <strong>30 minutos</strong> e só pode ser utilizado uma única vez.
                   </span>
@@ -171,7 +171,7 @@ export default function EsqueciSenhaPage() {
                 <button
                   type="submit"
                   disabled={isPending || !email.trim()}
-                  className="w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-12 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isPending ? (
                     <>
@@ -189,7 +189,7 @@ export default function EsqueciSenhaPage() {
                 <div className="pt-2 text-center">
                   <Link
                     href="/login"
-                    className="text-xs font-semibold text-slate-500 hover:text-[#1355FF] transition-colors inline-flex items-center gap-1.5"
+                    className="text-xs font-semibold text-slate-500 hover:text-[#1455FF] transition-colors inline-flex items-center gap-1.5"
                   >
                     <Icon name="arrow-left" size={13} />
                     <span>Lembrou a senha? Voltar ao Login</span>

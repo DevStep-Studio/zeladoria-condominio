@@ -469,13 +469,13 @@ export function OnboardingWizard({
         <div>
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
             <span>
-              Etapa {step} de 9 — <strong className="text-[#1355FF]">{stepLabels[step]}</strong>
+              Etapa {step} de 9 — <strong className="text-[#1455FF]">{stepLabels[step]}</strong>
             </span>
             <span>{Math.round((step / 9) * 100)}% concluído</span>
           </div>
           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
             <div
-              className="bg-[#1355FF] transition-all duration-300 rounded-full"
+              className="bg-[#1455FF] transition-all duration-300 rounded-full"
               style={{ width: `${(step / 9) * 100}%` }}
             />
           </div>
@@ -491,7 +491,7 @@ export function OnboardingWizard({
                 disabled={s > step}
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors shrink-0 ${
                   s === step
-                    ? "bg-blue-50 text-[#1355FF] border border-blue-200"
+                    ? "bg-blue-50 text-[#1455FF] border border-blue-200"
                     : s < step
                     ? "text-slate-600 hover:text-slate-900 cursor-pointer"
                     : "text-slate-300 cursor-not-allowed"
@@ -532,21 +532,21 @@ export function OnboardingWizard({
           {/* Destaques / Vantagens */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto text-left pt-2">
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                 <Icon name="shield" size={14} />
               </span>
               <p className="text-xs font-bold text-slate-900">Zeladoria Protege</p>
               <p className="text-[11px] text-slate-500">Repasses pontuais via PIX e segurança contratual.</p>
             </div>
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                 <Icon name="calendar" size={14} />
               </span>
               <p className="text-xs font-bold text-slate-900">Agenda Flexível</p>
               <p className="text-[11px] text-slate-500">Defina seu raio e horários de disponibilidade.</p>
             </div>
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                 <Icon name="wallet" size={14} />
               </span>
               <p className="text-xs font-bold text-slate-900">Zero Mensalidade</p>
@@ -556,7 +556,7 @@ export function OnboardingWizard({
 
           {isExistingUser && (
             <div className="max-w-md mx-auto p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-left flex items-start gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1355FF] text-white shrink-0 mt-0.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1455FF] text-white shrink-0 mt-0.5">
                 <Icon name="user" size={16} />
               </span>
               <div>
@@ -574,7 +574,7 @@ export function OnboardingWizard({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="w-full h-11 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 rounded-xl bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isExistingUser ? "Ativar Perfil Profissional" : "Cadastrar como Prestador"}</span>
               <Icon name="arrow-right" size={14} />
@@ -582,7 +582,7 @@ export function OnboardingWizard({
 
             {!isExistingUser && (
               <div className="flex items-center justify-between text-xs pt-2">
-                <Link href="/prestador/login" className="font-semibold text-slate-600 hover:text-[#1355FF]">
+                <Link href="/prestador/login" className="font-semibold text-slate-600 hover:text-[#1455FF]">
                   Já é parceiro? Entrar
                 </Link>
                 <Link href="/esqueci-senha" className="text-slate-400 hover:text-slate-600">
@@ -624,7 +624,7 @@ export function OnboardingWizard({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Carlos"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
             <div>
@@ -633,7 +633,7 @@ export function OnboardingWizard({
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Ex: Silva"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
           </div>
@@ -648,7 +648,7 @@ export function OnboardingWizard({
                 readOnly={isExistingUser}
                 placeholder="carlos@exemplo.com.br"
                 className={`w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none ${
-                  isExistingUser ? "bg-slate-50 text-slate-500 cursor-not-allowed" : "focus:border-[#1355FF]"
+                  isExistingUser ? "bg-slate-50 text-slate-500 cursor-not-allowed" : "focus:border-[#1455FF]"
                 }`}
               />
             </div>
@@ -658,7 +658,7 @@ export function OnboardingWizard({
                 value={phone}
                 onChange={(e) => setPhone(maskPhone(e.target.value))}
                 placeholder="(11) 98765-4321"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
           </div>
@@ -670,7 +670,7 @@ export function OnboardingWizard({
                 value={cpf}
                 onChange={(e) => setCpf(maskCpf(e.target.value))}
                 placeholder="000.000.000-00"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1455FF]"
               />
             </div>
             <div>
@@ -679,7 +679,7 @@ export function OnboardingWizard({
                 value={photoUrl}
                 onChange={(e) => setPhotoUrl(e.target.value)}
                 placeholder="https://... ou deixe em branco"
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
           </div>
@@ -693,7 +693,7 @@ export function OnboardingWizard({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo de 6 caracteres"
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
                 />
               </div>
               <div>
@@ -703,7 +703,7 @@ export function OnboardingWizard({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a senha"
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
                 />
               </div>
             </div>
@@ -727,16 +727,16 @@ export function OnboardingWizard({
               onClick={() => setProviderType("autonomo")}
               className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                 providerType === "autonomo"
-                  ? "border-[#1355FF] bg-blue-50/50 ring-2 ring-blue-500/10"
+                  ? "border-[#1455FF] bg-blue-50/50 ring-2 ring-blue-500/10"
                   : "border-slate-200 hover:border-slate-300 bg-white"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                   <Icon name="user" size={16} />
                 </span>
                 {providerType === "autonomo" && (
-                  <span className="h-4 w-4 rounded-full bg-[#1355FF] text-white flex items-center justify-center text-[10px]">✓</span>
+                  <span className="h-4 w-4 rounded-full bg-[#1455FF] text-white flex items-center justify-center text-[10px]">✓</span>
                 )}
               </div>
               <p className="text-xs font-bold text-slate-900">Pessoa Física / Autônomo</p>
@@ -748,16 +748,16 @@ export function OnboardingWizard({
               onClick={() => setProviderType("empresa")}
               className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                 providerType === "empresa"
-                  ? "border-[#1355FF] bg-blue-50/50 ring-2 ring-blue-500/10"
+                  ? "border-[#1455FF] bg-blue-50/50 ring-2 ring-blue-500/10"
                   : "border-slate-200 hover:border-slate-300 bg-white"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                   <Icon name="building" size={16} />
                 </span>
                 {providerType === "empresa" && (
-                  <span className="h-4 w-4 rounded-full bg-[#1355FF] text-white flex items-center justify-center text-[10px]">✓</span>
+                  <span className="h-4 w-4 rounded-full bg-[#1455FF] text-white flex items-center justify-center text-[10px]">✓</span>
                 )}
               </div>
               <p className="text-xs font-bold text-slate-900">MEI ou Empresa com CNPJ</p>
@@ -775,13 +775,13 @@ export function OnboardingWizard({
                       value={cnpj}
                       onChange={(e) => setCnpj(maskCnpj(e.target.value))}
                       placeholder="00.000.000/0001-00"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1355FF] bg-white"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1455FF] bg-white"
                     />
                     <button
                       type="button"
                       onClick={handleCnpjSearch}
                       disabled={isSearchingCnpj}
-                      className="px-3 h-9 rounded-lg bg-[#1355FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                      className="px-3 h-9 rounded-lg bg-[#1455FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 cursor-pointer disabled:opacity-50"
                     >
                       {isSearchingCnpj ? "Consultando..." : "Consultar"}
                     </button>
@@ -793,7 +793,7 @@ export function OnboardingWizard({
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Ex: Carlos Elétrica & Manutenções ME"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white"
                   />
                 </div>
               </div>
@@ -820,7 +820,7 @@ export function OnboardingWizard({
             <select
               value={selectedCondoId}
               onChange={(e) => setSelectedCondoId(Number(e.target.value))}
-              className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+              className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white"
             >
               {condos.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -842,7 +842,7 @@ export function OnboardingWizard({
               <h3 className="text-base font-bold text-slate-900">Catálogo de Especialidades</h3>
               <p className="text-xs text-slate-500">Selecione suas áreas de atuação técnica.</p>
             </div>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF]">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#1455FF]">
               {specialties.length} selecionada(s)
             </span>
           </div>
@@ -855,7 +855,7 @@ export function OnboardingWizard({
               value={categorySearch}
               onChange={(e) => setCategorySearch(e.target.value)}
               placeholder="Buscar especialidade (ex: Eletricista, Encanador, Diarista, Pintura, Instalações...)"
-              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1455FF] bg-white"
             />
           </div>
 
@@ -882,13 +882,13 @@ export function OnboardingWizard({
                     }}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                       isSelected
-                        ? "border-[#1355FF] bg-blue-50/40 shadow-xs"
+                        ? "border-[#1455FF] bg-blue-50/40 shadow-xs"
                         : "border-slate-200 hover:border-slate-300 bg-white"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                        isSelected ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-600"
+                        isSelected ? "bg-[#1455FF] text-white" : "bg-slate-100 text-slate-600"
                       }`}>
                         <Icon name={cat.icon} size={14} />
                       </span>
@@ -898,7 +898,7 @@ export function OnboardingWizard({
                           {selectedInCat}/{cat.services.length} svcs
                         </span>
                         {isSelected && (
-                          <span className="h-4 w-4 rounded-full bg-[#1355FF] text-white flex items-center justify-center text-[10px]">
+                          <span className="h-4 w-4 rounded-full bg-[#1455FF] text-white flex items-center justify-center text-[10px]">
                             ✓
                           </span>
                         )}
@@ -926,7 +926,7 @@ export function OnboardingWizard({
                 Ative ou desative cada serviço específico que você executa. Garantia legal sugerida: 90 dias.
               </p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#1355FF]">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#1455FF]">
               {selectedServices.length} serviço(s) ativo(s)
             </span>
           </div>
@@ -939,7 +939,7 @@ export function OnboardingWizard({
               value={serviceSearch}
               onChange={(e) => setServiceSearch(e.target.value)}
               placeholder="Buscar serviço no catálogo (ex: lâmpada, persiana, chuveiro, vazamento, estofados...)"
-              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+              className="w-full h-9 rounded-lg border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1455FF] bg-white"
             />
           </div>
 
@@ -957,7 +957,7 @@ export function OnboardingWizard({
               return (
                 <div key={cat.id} className="space-y-2">
                   <div className="flex items-center gap-2 pt-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-[#1355FF]">
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-blue-100 text-[#1455FF]">
                       <Icon name={cat.icon} size={12} />
                     </span>
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
@@ -975,7 +975,7 @@ export function OnboardingWizard({
                           onClick={() => toggleService(svc)}
                           className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                             isSelected
-                              ? "border-[#1355FF] bg-blue-50/30"
+                              ? "border-[#1455FF] bg-blue-50/30"
                               : "border-slate-200 hover:border-slate-300 bg-white"
                           }`}
                         >
@@ -985,7 +985,7 @@ export function OnboardingWizard({
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => {}}
-                                className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                                className="rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]"
                               />
                               <p className="text-xs font-bold text-slate-900">{svc.name}</p>
                             </div>
@@ -1030,7 +1030,7 @@ export function OnboardingWizard({
           {/* Botão de Localização Automática via GPS */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-100">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
                 <Icon name="map-pin" size={14} />
               </span>
               <div>
@@ -1042,7 +1042,7 @@ export function OnboardingWizard({
               type="button"
               onClick={handleGpsLocation}
               disabled={isLocatingGps}
-              className="px-3 py-1.5 rounded-lg bg-[#1355FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg bg-[#1455FF] hover:bg-blue-700 text-white text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <Icon name="navigation" size={13} />
               <span>{isLocatingGps ? "Detectando..." : "Usar meu GPS"}</span>
@@ -1057,7 +1057,7 @@ export function OnboardingWizard({
                   value={cep}
                   onChange={(e) => setCep(maskCep(e.target.value))}
                   placeholder="00000-000"
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1355FF]"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono outline-none focus:border-[#1455FF]"
                 />
                 <button
                   type="button"
@@ -1075,7 +1075,7 @@ export function OnboardingWizard({
               <input
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
           </div>
@@ -1086,7 +1086,7 @@ export function OnboardingWizard({
               <input
                 value={number}
                 onChange={(e) => setNumber(e.target.value)}
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
             <div>
@@ -1094,7 +1094,7 @@ export function OnboardingWizard({
               <input
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value)}
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF]"
+                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF]"
               />
             </div>
             <div>
@@ -1111,7 +1111,7 @@ export function OnboardingWizard({
           <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-slate-800">Raio de Cobertura de Atendimento (em metros)</span>
-              <span className="text-[#1355FF] bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full font-mono font-bold">
+              <span className="text-[#1455FF] bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full font-mono font-bold">
                 {formatRadiusLabel(serviceRadiusMeters)}
               </span>
             </div>
@@ -1125,7 +1125,7 @@ export function OnboardingWizard({
                   onClick={() => setServiceRadiusMeters(presetMeters)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     serviceRadiusMeters === presetMeters
-                      ? "bg-[#1355FF] text-white shadow-xs"
+                      ? "bg-[#1455FF] text-white shadow-xs"
                       : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300"
                   }`}
                 >
@@ -1144,7 +1144,7 @@ export function OnboardingWizard({
                   step="1000"
                   value={serviceRadiusMeters}
                   onChange={(e) => setServiceRadiusMeters(Number(e.target.value))}
-                  className="w-full accent-[#1355FF] cursor-pointer"
+                  className="w-full accent-[#1455FF] cursor-pointer"
                 />
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
                   <span>1.000 m (1 km)</span>
@@ -1167,7 +1167,7 @@ export function OnboardingWizard({
                       setServiceRadiusMeters(val);
                     }
                   }}
-                  className="w-full h-8 rounded-lg border border-slate-200 px-2 text-xs font-mono outline-none focus:border-[#1355FF] bg-white"
+                  className="w-full h-8 rounded-lg border border-slate-200 px-2 text-xs font-mono outline-none focus:border-[#1455FF] bg-white"
                 />
               </div>
             </div>
@@ -1205,7 +1205,7 @@ export function OnboardingWizard({
               onClick={() => setPayoutMethod("pix")}
               className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer ${
                 payoutMethod === "pix"
-                  ? "border-[#1355FF] bg-blue-50/50 text-[#1355FF] font-bold"
+                  ? "border-[#1455FF] bg-blue-50/50 text-[#1455FF] font-bold"
                   : "border-slate-200 text-slate-600 bg-white"
               }`}
             >
@@ -1216,7 +1216,7 @@ export function OnboardingWizard({
               onClick={() => setPayoutMethod("bank")}
               className={`p-3.5 rounded-xl border text-center transition-all cursor-pointer ${
                 payoutMethod === "bank"
-                  ? "border-[#1355FF] bg-blue-50/50 text-[#1355FF] font-bold"
+                  ? "border-[#1455FF] bg-blue-50/50 text-[#1455FF] font-bold"
                   : "border-slate-200 text-slate-600 bg-white"
               }`}
             >
@@ -1236,7 +1236,7 @@ export function OnboardingWizard({
                       onClick={() => setPixKeyType(t)}
                       className={`py-1.5 px-2 rounded-lg text-xs font-bold uppercase transition-colors ${
                         pixKeyType === t
-                          ? "bg-[#1355FF] text-white"
+                          ? "bg-[#1455FF] text-white"
                           : "bg-white border border-slate-200 text-slate-600"
                       }`}
                     >
@@ -1252,7 +1252,7 @@ export function OnboardingWizard({
                   value={pixKey}
                   onChange={(e) => setPixKey(e.target.value)}
                   placeholder={pixKeyType === "cpf" ? cpf : "Digite sua chave..."}
-                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white font-mono"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white font-mono"
                 />
               </div>
             </div>
@@ -1268,7 +1268,7 @@ export function OnboardingWizard({
                       const opt = e.target.selectedOptions[0]?.text;
                       if (opt) setBankName(opt);
                     }}
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white"
                   >
                     <option value="001">001 — Banco do Brasil</option>
                     <option value="237">237 — Bradesco</option>
@@ -1284,7 +1284,7 @@ export function OnboardingWizard({
                   <select
                     value={bankAccountType}
                     onChange={(e) => setBankAccountType(e.target.value as any)}
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white"
                   >
                     <option value="corrente">Conta Corrente</option>
                     <option value="poupanca">Conta Poupança</option>
@@ -1299,7 +1299,7 @@ export function OnboardingWizard({
                     value={bankAgency}
                     onChange={(e) => setBankAgency(e.target.value)}
                     placeholder="Ex: 1234"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white font-mono"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white font-mono"
                   />
                 </div>
                 <div>
@@ -1308,7 +1308,7 @@ export function OnboardingWizard({
                     value={bankAccount}
                     onChange={(e) => setBankAccount(e.target.value)}
                     placeholder="Ex: 12345-6"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] bg-white font-mono"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] bg-white font-mono"
                   />
                 </div>
               </div>
@@ -1343,7 +1343,7 @@ export function OnboardingWizard({
           </div>
 
           <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200 text-blue-900 text-xs flex items-center gap-2">
-            <Icon name="shield" size={16} className="text-[#1355FF] shrink-0" />
+            <Icon name="shield" size={16} className="text-[#1455FF] shrink-0" />
             <span>
               Seus documentos são criptografados e utilizados exclusivamente para análise de credenciamento, em conformidade com a LGPD.
             </span>
@@ -1379,7 +1379,7 @@ export function OnboardingWizard({
               <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                    <Icon name="file-text" size={14} className="text-[#1455FF]" />
                     <span>Frente do Documento (ou PDF)</span>
                   </label>
                   {docFrontUrl ? (
@@ -1411,7 +1411,7 @@ export function OnboardingWizard({
                       <button
                         type="button"
                         onClick={() => setActiveCameraModal("document_front")}
-                        className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                        className="text-xs text-[#1455FF] hover:underline font-semibold cursor-pointer"
                       >
                         Tirar outra foto
                       </button>
@@ -1431,7 +1431,7 @@ export function OnboardingWizard({
                       <button
                         type="button"
                         onClick={() => setActiveCameraModal("document_front")}
-                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Icon name="camera" size={14} />
                         <span>Tirar Foto com a Câmera</span>
@@ -1456,7 +1456,7 @@ export function OnboardingWizard({
               <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                    <Icon name="file-text" size={14} className="text-[#1455FF]" />
                     <span>Verso do Documento</span>
                   </label>
                   {docBackUrl ? (
@@ -1488,7 +1488,7 @@ export function OnboardingWizard({
                       <button
                         type="button"
                         onClick={() => setActiveCameraModal("document_back")}
-                        className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                        className="text-xs text-[#1455FF] hover:underline font-semibold cursor-pointer"
                       >
                         Tirar outra foto
                       </button>
@@ -1508,7 +1508,7 @@ export function OnboardingWizard({
                       <button
                         type="button"
                         onClick={() => setActiveCameraModal("document_back")}
-                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        className="w-full h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Icon name="camera" size={14} />
                         <span>Tirar Foto com a Câmera</span>
@@ -1534,7 +1534,7 @@ export function OnboardingWizard({
             <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Icon name="user" size={14} className="text-[#1355FF]" />
+                  <Icon name="user" size={14} className="text-[#1455FF]" />
                   <span>Selfie Segurando o Documento</span>
                 </label>
                 {selfieUrl ? (
@@ -1548,7 +1548,7 @@ export function OnboardingWizard({
 
               {selfieUrl ? (
                 <div className="space-y-2">
-                  <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-slate-100 border-2 border-[#1355FF]">
+                  <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-slate-100 border-2 border-[#1455FF]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={selfieUrl}
@@ -1560,7 +1560,7 @@ export function OnboardingWizard({
                     <button
                       type="button"
                       onClick={() => setActiveCameraModal("selfie")}
-                      className="text-xs text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                      className="text-xs text-[#1455FF] hover:underline font-semibold cursor-pointer"
                     >
                       Tirar outra selfie
                     </button>
@@ -1580,7 +1580,7 @@ export function OnboardingWizard({
                     <button
                       type="button"
                       onClick={() => setActiveCameraModal("selfie")}
-                      className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Icon name="camera" size={14} />
                       <span>Abrir Câmera Frontal</span>
@@ -1629,7 +1629,7 @@ export function OnboardingWizard({
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
               <p className="text-[10px] font-bold text-slate-400 uppercase">Região & Cobertura</p>
               <p className="text-xs font-bold text-slate-900">{neighborhood}, {city} - {state}</p>
-              <p className="text-[11px] text-[#1355FF] font-bold">{serviceRadiusKm} km de raio de atendimento</p>
+              <p className="text-[11px] text-[#1455FF] font-bold">{serviceRadiusKm} km de raio de atendimento</p>
               <p className="text-[10px] text-slate-400 font-mono">
                 {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
               </p>
@@ -1707,7 +1707,7 @@ export function OnboardingWizard({
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-5 py-2 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Continuar</span>
                 <Icon name="chevron-right" size={14} />
@@ -1718,7 +1718,7 @@ export function OnboardingWizard({
               type="button"
               onClick={handleFinalSubmit}
               disabled={isPending}
-              className="px-6 py-2.5 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isPending ? (
                 <span>Enviando cadastro...</span>

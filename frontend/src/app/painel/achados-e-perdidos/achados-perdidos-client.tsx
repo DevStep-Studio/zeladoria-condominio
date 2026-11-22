@@ -239,7 +239,7 @@ export function AchadosPerdidosClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0070F3] border border-blue-100 shadow-2xs">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
               <Icon name="tag" size={16} />
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
@@ -270,7 +270,7 @@ export function AchadosPerdidosClient({
           <button
             type="button"
             onClick={() => setIsRegisterOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer"
           >
             <Icon name="plus" size={15} />
             <span>+ Registrar Item</span>
@@ -322,11 +322,11 @@ export function AchadosPerdidosClient({
         <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-blue-900">Devolvidos</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#0070F3]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
               <Icon name="check" size={14} />
             </span>
           </div>
-          <p className="mt-2 text-2xl font-black text-[#0070F3] tracking-tight">
+          <p className="mt-2 text-2xl font-black text-[#1455FF] tracking-tight">
             {counts.resolved}
           </p>
           <span className="text-[11px] text-blue-600 font-medium">Finalizados com sucesso</span>
@@ -352,7 +352,7 @@ export function AchadosPerdidosClient({
               <span
                 className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
                   activeTab === "todos"
-                    ? "bg-blue-50 text-[#0070F3]"
+                    ? "bg-blue-50 text-[#1455FF]"
                     : "bg-slate-200 text-slate-600"
                 }`}
               >
@@ -412,7 +412,7 @@ export function AchadosPerdidosClient({
               onClick={() => setViewMode("grid")}
               className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs transition-colors cursor-pointer ${
                 viewMode === "grid"
-                  ? "border-[#0070F3] bg-blue-50 text-[#0070F3]"
+                  ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
                   : "border-slate-200 text-slate-500 hover:bg-slate-50"
               }`}
               title="Visualização em Grade de Cards"
@@ -424,7 +424,7 @@ export function AchadosPerdidosClient({
               onClick={() => setViewMode("list")}
               className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs transition-colors cursor-pointer ${
                 viewMode === "list"
-                  ? "border-[#0070F3] bg-blue-50 text-[#0070F3]"
+                  ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
                   : "border-slate-200 text-slate-500 hover:bg-slate-50"
               }`}
               title="Visualização em Lista"
@@ -446,7 +446,7 @@ export function AchadosPerdidosClient({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por nome, objeto, local ou descrição..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-9 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-9 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             {searchQuery && (
               <button
@@ -465,7 +465,7 @@ export function AchadosPerdidosClient({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0070F3] focus:bg-white cursor-pointer"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#1455FF] focus:bg-white cursor-pointer"
             >
               <option value="todas">Todas as categorias</option>
               {CATEGORIES_LIST.map((cat) => (
@@ -481,7 +481,7 @@ export function AchadosPerdidosClient({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#0070F3] focus:bg-white cursor-pointer"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#1455FF] focus:bg-white cursor-pointer"
             >
               <option value="TODOS">Todos os status</option>
               <option value="OPEN">Apenas Abertos</option>
@@ -495,7 +495,7 @@ export function AchadosPerdidosClient({
       {filteredItems.length === 0 ? (
         /* Empty State */
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0070F3] border border-blue-100 mb-3">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#1455FF] border border-blue-100 mb-3">
             <Icon name="tag" size={26} />
           </div>
           <h3 className="text-base font-bold text-slate-900">
@@ -523,7 +523,7 @@ export function AchadosPerdidosClient({
             <button
               type="button"
               onClick={() => setIsRegisterOpen(true)}
-              className="px-4 py-2 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               + Registrar Novo Item
             </button>
@@ -595,7 +595,7 @@ export function AchadosPerdidosClient({
                       </span>
                     </div>
 
-                    <h4 className="mt-1 text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#0070F3] transition-colors">
+                    <h4 className="mt-1 text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#1455FF] transition-colors">
                       {item.title}
                     </h4>
 
@@ -617,7 +617,7 @@ export function AchadosPerdidosClient({
                   <span className="text-xs text-slate-500 font-medium sm:hidden">
                     Por {item.reportedBy}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] group-hover:translate-x-1 transition-transform">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#1455FF] group-hover:translate-x-1 transition-transform">
                     <span>Ver detalhes</span>
                     <Icon name="arrow-right" size={13} />
                   </span>

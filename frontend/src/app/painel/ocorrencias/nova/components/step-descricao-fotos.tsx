@@ -151,7 +151,7 @@ export function StepDescricaoFotos({
           value={description}
           onChange={(e) => onChangeDescription(e.target.value)}
           placeholder="Ex.: A lâmpada do corredor está queimada desde ontem e o local está muito escuro."
-          className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0070F3] transition-colors leading-relaxed shadow-2xs resize-y"
+          className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1455FF] transition-colors leading-relaxed shadow-2xs resize-y"
           autoFocus
         />
       </div>
@@ -162,8 +162,8 @@ export function StepDescricaoFotos({
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
             Categoria sugerida:
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-[#1355FF] shadow-2xs truncate">
-            <Icon name={category.icon as IconName} size={14} className="text-[#1355FF]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-[#1455FF] shadow-2xs truncate">
+            <Icon name={category.icon as IconName} size={14} className="text-[#1455FF]" />
             <span>{category.label}</span>
           </span>
         </div>
@@ -171,7 +171,7 @@ export function StepDescricaoFotos({
         <button
           type="button"
           onClick={onOpenCategoryPicker}
-          className="text-xs font-bold text-[#0070F3] hover:text-[#1355FF] hover:underline px-2 py-1 shrink-0 transition-colors"
+          className="text-xs font-bold text-[#1455FF] hover:text-[#1455FF] hover:underline px-2 py-1 shrink-0 transition-colors"
         >
           Alterar
         </button>
@@ -224,7 +224,7 @@ export function StepDescricaoFotos({
               disabled={photoBusy}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-2xs disabled:opacity-50"
             >
-              <Icon name="camera" size={18} className="text-[#1355FF]" />
+              <Icon name="camera" size={18} className="text-[#1455FF]" />
               <span>Tirar foto</span>
             </button>
 
@@ -242,7 +242,7 @@ export function StepDescricaoFotos({
 
         {photoBusy && (
           <p className="mt-2 text-xs text-slate-500 flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full border-2 border-[#0070F3] border-t-transparent animate-spin" />
+            <span className="h-3 w-3 rounded-full border-2 border-[#1455FF] border-t-transparent animate-spin" />
             Otimizando imagem...
           </p>
         )}
@@ -282,7 +282,7 @@ export function StepDescricaoFotos({
           type="button"
           onClick={onNext}
           disabled={!canProceed || photoBusy}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-sm font-bold shadow-xs transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-sm font-bold shadow-xs transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           <span>Continuar para localização</span>
           <Icon name="arrow-right" size={16} />

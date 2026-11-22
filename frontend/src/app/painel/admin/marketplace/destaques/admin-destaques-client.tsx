@@ -127,7 +127,7 @@ export function AdminDestaquesClient({
             <button
               type="button"
               onClick={() => setIsNewPlanModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
             >
               <Icon name="plus" size={13} />
               <span>Novo Plano</span>
@@ -155,7 +155,7 @@ export function AdminDestaquesClient({
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-1">
           <span className="text-[11px] font-bold text-slate-400 uppercase">Campanhas Ativas</span>
-          <div className="text-2xl font-black text-[#1355FF]">{activeCount}</div>
+          <div className="text-2xl font-black text-[#1455FF]">{activeCount}</div>
           <span className="text-xs text-slate-500">Prestadores com destaque no ar</span>
         </div>
 
@@ -333,7 +333,7 @@ export function AdminDestaquesClient({
                   value={planName}
                   onChange={(e) => setPlanName(e.target.value)}
                   placeholder="Ex.: Destaque Quinzenal na Categoria"
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
                   required
                 />
               </div>
@@ -349,7 +349,7 @@ export function AdminDestaquesClient({
                     max={365}
                     value={planDays}
                     onChange={(e) => setPlanDays(parseInt(e.target.value, 10) || 7)}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
                     required
                   />
                 </div>
@@ -363,7 +363,7 @@ export function AdminDestaquesClient({
                     value={planPrice}
                     onChange={(e) => setPlanPrice(e.target.value)}
                     placeholder="29,90"
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
                     required
                   />
                 </div>
@@ -376,7 +376,7 @@ export function AdminDestaquesClient({
                 <select
                   value={planType}
                   onChange={(e) => setPlanType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
                 >
                   <option value="categoria">Por Especialidade / Categoria</option>
                   <option value="regiao">Local / Condomínio</option>
@@ -393,7 +393,7 @@ export function AdminDestaquesClient({
                   value={planDesc}
                   onChange={(e) => setPlanDesc(e.target.value)}
                   placeholder="Ex.: Posição garantida nos blocos patrocinados da categoria."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#0070F3]"
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
                 />
               </div>
 
@@ -408,7 +408,7 @@ export function AdminDestaquesClient({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 text-xs font-bold bg-[#1355FF] hover:bg-[#0D47E6] text-white rounded-xl shadow-xs"
+                  className="px-4 py-2 text-xs font-bold bg-[#1455FF] hover:bg-[#0048E8] text-white rounded-xl shadow-xs"
                 >
                   Criar plano
                 </button>

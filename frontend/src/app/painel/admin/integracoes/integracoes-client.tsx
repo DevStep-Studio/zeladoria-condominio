@@ -115,7 +115,7 @@ export function IntegracoesClient({
       {/* Alerta de Custo Zero e Boas Práticas */}
       <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-[#1355FF] shrink-0">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-[#1455FF] shrink-0">
             <Icon name="shield" size={18} />
           </span>
           <div>
@@ -152,7 +152,7 @@ export function IntegracoesClient({
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#1355FF]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#1455FF]">
                       <Icon name={getServiceIcon(item.id)} size={20} />
                     </span>
                     <div>
@@ -184,7 +184,7 @@ export function IntegracoesClient({
                           ? "bg-amber-500"
                           : percentage >= 70
                           ? "bg-yellow-500"
-                          : "bg-[#1355FF]"
+                          : "bg-[#1455FF]"
                       }`}
                       style={{ width: `${percentage}%` }}
                     />
@@ -201,7 +201,7 @@ export function IntegracoesClient({
                   type="button"
                   onClick={() => handleRunTest(item.id)}
                   disabled={isPending}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-[#1355FF] hover:bg-blue-50 text-slate-700 hover:text-[#1355FF] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-[#1455FF] hover:bg-blue-50 text-slate-700 hover:text-[#1455FF] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Icon name="check-circle" size={13} />
                   <span>Testar</span>
@@ -216,7 +216,7 @@ export function IntegracoesClient({
                     onClick={() => handleToggle(item.id, item.enabled)}
                     disabled={isPending}
                     className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer ${
-                      item.enabled ? "bg-[#1355FF]" : "bg-slate-300"
+                      item.enabled ? "bg-[#1455FF]" : "bg-slate-300"
                     }`}
                   >
                     <div
@@ -236,7 +236,7 @@ export function IntegracoesClient({
       <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
               <Icon name="settings" size={16} />
             </span>
             <div>
@@ -245,7 +245,7 @@ export function IntegracoesClient({
             </div>
           </div>
           {activeTestService && (
-            <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#1355FF] text-xs font-mono font-bold">
+            <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#1455FF] text-xs font-mono font-bold">
               Serviço: {activeTestService.toUpperCase()}
             </span>
           )}
@@ -256,7 +256,7 @@ export function IntegracoesClient({
             value={testParam}
             onChange={(e) => setTestParam(e.target.value)}
             placeholder="Parâmetro de teste opcional (ex: CEP, CNPJ, endereço ou e-mail)..."
-            className="flex-1 h-10 rounded-xl border border-slate-200 px-3.5 text-xs outline-none focus:border-[#1355FF]"
+            className="flex-1 h-10 rounded-xl border border-slate-200 px-3.5 text-xs outline-none focus:border-[#1455FF]"
           />
           <div className="flex flex-wrap gap-1.5">
             <button
@@ -295,7 +295,7 @@ export function IntegracoesClient({
               type="button"
               onClick={() => handleRunTest("resend")}
               disabled={isPending}
-              className="px-3 h-10 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1355FF] text-xs font-bold transition-colors cursor-pointer"
+              className="px-3 h-10 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1455FF] text-xs font-bold transition-colors cursor-pointer"
             >
               Resend E-mail
             </button>

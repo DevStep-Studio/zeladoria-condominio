@@ -539,7 +539,7 @@ export function CentralAvisosErrosClient({
         );
       case "em_analise":
         return (
-          <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-[#1355FF] border border-blue-200/60">
+          <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-[#1455FF] border border-blue-200/60">
             Em análise
           </span>
         );
@@ -601,7 +601,7 @@ export function CentralAvisosErrosClient({
             type="button"
             onClick={fetchIncidents}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 cursor-pointer disabled:opacity-50"
           >
             <Icon name="refresh" size={13} className={`text-slate-500 ${isLoading ? "animate-spin" : ""}`} />
             <span>Atualizar</span>
@@ -611,7 +611,7 @@ export function CentralAvisosErrosClient({
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1355FF] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1455FF] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 cursor-pointer"
             >
               <Icon name="plus" size={13} />
               <span>Registrar aviso</span>
@@ -626,13 +626,13 @@ export function CentralAvisosErrosClient({
         <button
           type="button"
           onClick={() => handleKpiCardClick("ativos")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-[#1355FF] hover:shadow cursor-pointer ${
-            activeKpiFilter === "ativos" ? "border-[#1355FF] ring-2 ring-[#1355FF]/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-[#1455FF] hover:shadow cursor-pointer ${
+            activeKpiFilter === "ativos" ? "border-[#1455FF] ring-2 ring-[#1455FF]/20" : "border-slate-200/80"
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Avisos ativos</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[#1355FF]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[#1455FF]">
               <Icon name="bell" size={14} />
             </div>
           </div>
@@ -724,7 +724,7 @@ export function CentralAvisosErrosClient({
             }}
             className={`flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === "visao-geral"
-                ? "border-[#1355FF] text-[#1355FF]"
+                ? "border-[#1455FF] text-[#1455FF]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -739,7 +739,7 @@ export function CentralAvisosErrosClient({
             }}
             className={`flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === "operacionais"
-                ? "border-[#1355FF] text-[#1355FF]"
+                ? "border-[#1455FF] text-[#1455FF]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -754,7 +754,7 @@ export function CentralAvisosErrosClient({
             }}
             className={`flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === "tecnicos"
-                ? "border-[#1355FF] text-[#1355FF]"
+                ? "border-[#1455FF] text-[#1455FF]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -769,7 +769,7 @@ export function CentralAvisosErrosClient({
             }}
             className={`flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === "historico"
-                ? "border-[#1355FF] text-[#1355FF]"
+                ? "border-[#1455FF] text-[#1455FF]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -784,7 +784,7 @@ export function CentralAvisosErrosClient({
             }}
             className={`flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === "regras"
-                ? "border-[#1355FF] text-[#1355FF]"
+                ? "border-[#1455FF] text-[#1455FF]"
                 : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -817,7 +817,7 @@ export function CentralAvisosErrosClient({
                 Regras automatizadas avaliam a telemetria do sistema e criam incidentes proativos antes de impactos na operação.
               </p>
             </div>
-            {isRulesLoading && <Icon name="refresh" size={14} className="animate-spin text-[#1355FF]" />}
+            {isRulesLoading && <Icon name="refresh" size={14} className="animate-spin text-[#1455FF]" />}
           </div>
 
           <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-lg overflow-hidden">
@@ -845,7 +845,7 @@ export function CentralAvisosErrosClient({
                     disabled={!isSuperAdmin}
                     onClick={() => handleToggleRule(rule.id, rule.active)}
                     className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      rule.active ? "bg-[#1355FF]" : "bg-slate-200"
+                      rule.active ? "bg-[#1455FF]" : "bg-slate-200"
                     } ${!isSuperAdmin ? "opacity-60 cursor-not-allowed" : ""}`}
                     title={isSuperAdmin ? "Ativar/desativar regra" : "Apenas superadmin pode alterar regras"}
                   >
@@ -877,14 +877,14 @@ export function CentralAvisosErrosClient({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && fetchIncidents()}
-                  className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#1355FF] focus:outline-none focus:ring-2 focus:ring-[#1355FF]/10 transition-colors"
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#1455FF] focus:outline-none focus:ring-2 focus:ring-[#1455FF]/10 transition-colors"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={fetchIncidents}
-                className="h-9 rounded-lg bg-[#1355FF] px-4 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer shrink-0"
+                className="h-9 rounded-lg bg-[#1455FF] px-4 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer shrink-0"
               >
                 Buscar
               </button>
@@ -898,7 +898,7 @@ export function CentralAvisosErrosClient({
                   setPriorityFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
               >
                 <option value="">Todas as prioridades</option>
                 <option value="P0">P0 — Crítico</option>
@@ -914,7 +914,7 @@ export function CentralAvisosErrosClient({
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
               >
                 <option value="">Todos os status</option>
                 <option value="ativos">Apenas ativos</option>
@@ -932,7 +932,7 @@ export function CentralAvisosErrosClient({
                   setModuleFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
               >
                 <option value="">Todos os módulos</option>
                 {data.modules.map((m) => (
@@ -949,7 +949,7 @@ export function CentralAvisosErrosClient({
                   setAssigneeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
               >
                 <option value="">Todos os responsáveis</option>
                 <option value="sem_responsavel">Sem responsável</option>
@@ -963,7 +963,7 @@ export function CentralAvisosErrosClient({
                   setStartDateFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
                 title="Data inicial"
               />
 
@@ -975,7 +975,7 @@ export function CentralAvisosErrosClient({
                   setEndDateFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-[#1355FF] focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-[#1455FF] focus:outline-none"
                 title="Data final"
               />
 
@@ -1016,7 +1016,7 @@ export function CentralAvisosErrosClient({
                 <button
                   type="button"
                   onClick={fetchIncidents}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1355FF] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1455FF] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
                 >
                   Tentar novamente
                 </button>
@@ -1056,7 +1056,7 @@ export function CentralAvisosErrosClient({
                           type="checkbox"
                           checked={isAllSelected}
                           onChange={toggleSelectAll}
-                          className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]/20"
+                          className="rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]/20"
                         />
                       </th>
                       <th className="py-3 px-3 w-28">ID</th>
@@ -1092,7 +1092,7 @@ export function CentralAvisosErrosClient({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelectOne(incident.id)}
-                              className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]/20"
+                              className="rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]/20"
                             />
                           </td>
                           <td className="py-3.5 px-3 font-mono font-semibold text-slate-800">
@@ -1154,7 +1154,7 @@ export function CentralAvisosErrosClient({
                                 e.stopPropagation();
                                 openIncidentDrawer(incident.id);
                               }}
-                              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 group-hover:border-[#1355FF] group-hover:text-[#1355FF] transition-colors"
+                              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 group-hover:border-[#1455FF] group-hover:text-[#1455FF] transition-colors"
                             >
                               Detalhes
                             </button>
@@ -1240,7 +1240,7 @@ export function CentralAvisosErrosClient({
                   type="button"
                   onClick={() => setDrawerTab("geral")}
                   className={`py-3 border-b-2 transition-colors cursor-pointer ${
-                    drawerTab === "geral" ? "border-[#1355FF] text-[#1355FF]" : "border-transparent text-slate-500"
+                    drawerTab === "geral" ? "border-[#1455FF] text-[#1455FF]" : "border-transparent text-slate-500"
                   }`}
                 >
                   Geral
@@ -1249,7 +1249,7 @@ export function CentralAvisosErrosClient({
                   type="button"
                   onClick={() => setDrawerTab("historico")}
                   className={`py-3 border-b-2 transition-colors cursor-pointer ${
-                    drawerTab === "historico" ? "border-[#1355FF] text-[#1355FF]" : "border-transparent text-slate-500"
+                    drawerTab === "historico" ? "border-[#1455FF] text-[#1455FF]" : "border-transparent text-slate-500"
                   }`}
                 >
                   Histórico ({selectedIncidentDetail?.activities.length ?? 0})
@@ -1258,7 +1258,7 @@ export function CentralAvisosErrosClient({
                   type="button"
                   onClick={() => setDrawerTab("diagnostico")}
                   className={`py-3 border-b-2 transition-colors cursor-pointer ${
-                    drawerTab === "diagnostico" ? "border-[#1355FF] text-[#1355FF]" : "border-transparent text-slate-500"
+                    drawerTab === "diagnostico" ? "border-[#1455FF] text-[#1455FF]" : "border-transparent text-slate-500"
                   }`}
                 >
                   Diagnóstico / Origem
@@ -1267,7 +1267,7 @@ export function CentralAvisosErrosClient({
                   type="button"
                   onClick={() => setDrawerTab("acoes")}
                   className={`py-3 border-b-2 transition-colors cursor-pointer ${
-                    drawerTab === "acoes" ? "border-[#1355FF] text-[#1355FF]" : "border-transparent text-slate-500"
+                    drawerTab === "acoes" ? "border-[#1455FF] text-[#1455FF]" : "border-transparent text-slate-500"
                   }`}
                 >
                   Ações de Resolução
@@ -1278,7 +1278,7 @@ export function CentralAvisosErrosClient({
               <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs text-slate-700">
                 {isDetailLoading ? (
                   <div className="py-12 text-center space-y-2">
-                    <Icon name="refresh" size={18} className="animate-spin text-[#1355FF] mx-auto" />
+                    <Icon name="refresh" size={18} className="animate-spin text-[#1455FF] mx-auto" />
                     <span className="text-slate-500">Buscando dados em tempo real...</span>
                   </div>
                 ) : selectedIncidentDetail ? (
@@ -1334,7 +1334,7 @@ export function CentralAvisosErrosClient({
 
                         {selectedIncidentDetail.incident.recommendedAction && (
                           <div className="rounded-lg bg-blue-50/70 p-3.5 border border-blue-200/80 text-blue-900 space-y-1">
-                            <span className="font-bold flex items-center gap-1.5 text-xs text-[#1355FF]">
+                            <span className="font-bold flex items-center gap-1.5 text-xs text-[#1455FF]">
                               <Icon name="check-circle" size={13} />
                               Ação Recomendada:
                             </span>
@@ -1360,7 +1360,7 @@ export function CentralAvisosErrosClient({
                         <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                           {selectedIncidentDetail.activities.map((act) => (
                             <div key={act.id} className="relative">
-                              <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-white bg-[#1355FF] shadow-xs" />
+                              <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-white bg-[#1455FF] shadow-xs" />
                               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 space-y-1">
                                 <div className="flex items-center justify-between text-[11px]">
                                   <span className="font-semibold text-slate-900">{act.userName}</span>
@@ -1385,12 +1385,12 @@ export function CentralAvisosErrosClient({
                             onChange={(e) => setCommentText(e.target.value)}
                             placeholder="Descreva detalhes da investigação, contato com terceiros ou observações..."
                             rows={3}
-                            className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                            className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 focus:border-[#1455FF] focus:outline-none"
                           />
                           <button
                             type="submit"
                             disabled={!commentText.trim()}
-                            className="rounded-lg bg-[#1355FF] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40 cursor-pointer"
+                            className="rounded-lg bg-[#1455FF] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40 cursor-pointer"
                           >
                             Salvar comentário
                           </button>
@@ -1412,7 +1412,7 @@ export function CentralAvisosErrosClient({
                             </div>
                             <Link
                               href={selectedIncidentDetail.incident.relatedUrl}
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1355FF] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1455FF] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
                             >
                               <span>Ir para o registro</span>
                               <Icon name="external-link" size={12} />
@@ -1456,7 +1456,7 @@ export function CentralAvisosErrosClient({
                                   navigator.clipboard.writeText(selectedIncidentDetail.incident.stackTrace || "");
                                   alert("Stack trace copiado para a área de transferência!");
                                 }}
-                                className="text-[10px] font-semibold text-[#1355FF] hover:underline"
+                                className="text-[10px] font-semibold text-[#1455FF] hover:underline"
                               >
                                 Copiar trace
                               </button>
@@ -1520,12 +1520,12 @@ export function CentralAvisosErrosClient({
                                 placeholder="Nome do colaborador ou equipe..."
                                 value={assigneeInput}
                                 onChange={(e) => setAssigneeInput(e.target.value)}
-                                className="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                                className="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-[#1455FF] focus:outline-none"
                               />
                               <button
                                 type="button"
                                 onClick={handleAssigneeSubmit}
-                                className="rounded-lg bg-[#1355FF] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 cursor-pointer"
+                                className="rounded-lg bg-[#1455FF] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 cursor-pointer"
                               >
                                 Atribuir
                               </button>
@@ -1545,7 +1545,7 @@ export function CentralAvisosErrosClient({
                                   onClick={() => handlePriorityChange(p)}
                                   className={`flex-1 rounded-lg py-1 text-xs font-bold transition-all border ${
                                     priorityInput === p
-                                      ? "bg-[#1355FF] text-white border-[#1355FF]"
+                                      ? "bg-[#1455FF] text-white border-[#1455FF]"
                                       : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                                   }`}
                                 >
@@ -1577,7 +1577,7 @@ export function CentralAvisosErrosClient({
                                   <button
                                     type="button"
                                     onClick={() => handleStatusChange("em_analise")}
-                                    className="rounded-lg bg-white border border-blue-200 text-[#1355FF] py-1.5 text-xs font-semibold hover:bg-blue-50"
+                                    className="rounded-lg bg-white border border-blue-200 text-[#1455FF] py-1.5 text-xs font-semibold hover:bg-blue-50"
                                   >
                                     Colocar em análise
                                   </button>
@@ -1699,7 +1699,7 @@ export function CentralAvisosErrosClient({
                   placeholder="Ex: Manutenção emergencial da rede elétrica Torre B"
                   value={createForm.title}
                   onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                 />
               </div>
 
@@ -1713,7 +1713,7 @@ export function CentralAvisosErrosClient({
                   placeholder="Descreva a situação, impactos esperados e procedimentos adotados..."
                   value={createForm.description}
                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 p-2.5 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                 />
               </div>
 
@@ -1723,7 +1723,7 @@ export function CentralAvisosErrosClient({
                   <select
                     value={createForm.type}
                     onChange={(e) => setCreateForm({ ...createForm, type: e.target.value as IncidentType })}
-                    className="w-full rounded-lg border border-slate-200 bg-white p-2 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white p-2 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                   >
                     <option value="aviso">Aviso operacional</option>
                     <option value="erro">Falha técnica</option>
@@ -1735,7 +1735,7 @@ export function CentralAvisosErrosClient({
                   <select
                     value={createForm.priority}
                     onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value as IncidentPriority })}
-                    className="w-full rounded-lg border border-slate-200 bg-white p-2 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white p-2 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                   >
                     <option value="P0">P0 — Crítico</option>
                     <option value="P1">P1 — Alto</option>
@@ -1752,7 +1752,7 @@ export function CentralAvisosErrosClient({
                     type="text"
                     value={createForm.sourceModule}
                     onChange={(e) => setCreateForm({ ...createForm, sourceModule: e.target.value })}
-                    className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                   />
                 </div>
 
@@ -1763,7 +1763,7 @@ export function CentralAvisosErrosClient({
                     placeholder="Nome do colaborador..."
                     value={createForm.assigneeName}
                     onChange={(e) => setCreateForm({ ...createForm, assigneeName: e.target.value })}
-                    className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                   />
                 </div>
               </div>
@@ -1775,7 +1775,7 @@ export function CentralAvisosErrosClient({
                   placeholder="Ex: Manter disjuntor desligado e acionar engenharia."
                   value={createForm.recommendedAction}
                   onChange={(e) => setCreateForm({ ...createForm, recommendedAction: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1355FF] focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 p-2 text-slate-900 focus:border-[#1455FF] focus:outline-none"
                 />
               </div>
 
@@ -1785,7 +1785,7 @@ export function CentralAvisosErrosClient({
                   id="notifyToggle"
                   checked={createForm.notify}
                   onChange={(e) => setCreateForm({ ...createForm, notify: e.target.checked })}
-                  className="rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]/20"
+                  className="rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]/20"
                 />
                 <label htmlFor="notifyToggle" className="text-slate-700 cursor-pointer font-medium">
                   Disparar notificação imediata para usuários do condomínio
@@ -1803,7 +1803,7 @@ export function CentralAvisosErrosClient({
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="rounded-lg bg-[#1355FF] px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+                  className="rounded-lg bg-[#1455FF] px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
                 >
                   {isCreating ? "Registrando..." : "Registrar aviso"}
                 </button>

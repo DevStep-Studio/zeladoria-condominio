@@ -255,7 +255,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               value={photoUrl}
               onChange={(e) => setPhotoUrl(e.target.value)}
               placeholder="https://exemplo.com/minha-foto.jpg"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
             />
           </div>
 
@@ -268,7 +268,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               value={coverUrl}
               onChange={(e) => setCoverUrl(e.target.value)}
               placeholder="https://exemplo.com/banner-capa.jpg"
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
             />
           </div>
         </div>
@@ -282,7 +282,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
             />
           </div>
 
@@ -294,7 +294,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               type="text"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
             />
           </div>
         </div>
@@ -307,7 +307,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-[8px] border border-slate-200/80 p-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+            className="w-full rounded-[8px] border border-slate-200/80 p-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
           />
         </div>
 
@@ -343,7 +343,7 @@ export function ProviderPerfilEditorClient({ vendor, condos }: { vendor: any; co
               type="text"
               value={serviceArea}
               onChange={(e) => setServiceArea(e.target.value)}
-              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1355FF] shadow-2xs"
+              className="h-10 w-full rounded-[8px] border border-slate-200/80 px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] shadow-2xs"
             />
           </div>
 

@@ -103,7 +103,7 @@ export function ProviderCoverageMap({
         className: "custom-provider-pin",
         html: `
           <div style="
-            background-color: #1355FF;
+            background-color: #1455FF;
             color: #FFFFFF;
             width: 36px;
             height: 36px;
@@ -150,10 +150,10 @@ export function ProviderCoverageMap({
       if (!circleRef.current) {
         const circle = L.circle([lat, lng], {
           radius: effectiveRadiusMeters,
-          color: "#1355FF",
+          color: "#1455FF",
           weight: 2,
           opacity: 0.8,
-          fillColor: "#1355FF",
+          fillColor: "#1455FF",
           fillOpacity: 0.12,
         }).addTo(map);
 
@@ -177,7 +177,7 @@ export function ProviderCoverageMap({
     <div className="relative">
       <div ref={mapContainerRef} className={className} />
       <div className="absolute top-2 left-2 z-[400] bg-white/95 backdrop-blur-xs border border-slate-200 shadow-xs px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-700 flex items-center gap-1.5 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-[#1355FF] animate-pulse" />
+        <span className="w-2 h-2 rounded-full bg-[#1455FF] animate-pulse" />
         <span>{readOnly ? "Área de atendimento" : "Arraste o pin ou clique no mapa para calibrar"}</span>
       </div>
 

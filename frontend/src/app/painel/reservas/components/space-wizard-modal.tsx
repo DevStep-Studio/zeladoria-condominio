@@ -234,7 +234,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                       onClick={() => setCategory(cat.id)}
                       className={`flex items-center gap-2 rounded-xl border p-2.5 text-xs font-semibold transition-all ${
                         category === cat.id
-                          ? "border-[#1355FF] bg-blue-50 text-[#1355FF] shadow-xs"
+                          ? "border-[#1455FF] bg-blue-50 text-[#1455FF] shadow-xs"
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                       }`}
                     >
@@ -367,7 +367,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                     key={m.id}
                     className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-all ${
                       reservationModel === m.id
-                        ? "border-[#1355FF] bg-blue-50/50 shadow-xs"
+                        ? "border-[#1455FF] bg-blue-50/50 shadow-xs"
                         : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
@@ -376,7 +376,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                       name="reservationModel"
                       checked={reservationModel === m.id}
                       onChange={() => setReservationModel(m.id)}
-                      className="mt-1 h-4 w-4 text-[#1355FF]"
+                      className="mt-1 h-4 w-4 text-[#1455FF]"
                     />
                     <div>
                       <p className="text-xs font-bold text-slate-900">{m.title}</p>
@@ -411,7 +411,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                     onClick={() => setPricingType("gratis")}
                     className={`rounded-xl border p-3 text-xs font-bold ${
                       pricingType === "gratis"
-                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
+                        ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
                         : "border-slate-200 bg-white text-slate-700"
                     }`}
                   >
@@ -422,7 +422,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                     onClick={() => setPricingType("fixo")}
                     className={`rounded-xl border p-3 text-xs font-bold ${
                       pricingType === "fixo"
-                        ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
+                        ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
                         : "border-slate-200 bg-white text-slate-700"
                     }`}
                   >
@@ -468,7 +468,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
               <label
                 className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-all ${
                   !requiresApproval
-                    ? "border-[#1355FF] bg-blue-50/50 shadow-xs"
+                    ? "border-[#1455FF] bg-blue-50/50 shadow-xs"
                     : "border-slate-200 bg-white"
                 }`}
               >
@@ -477,7 +477,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                   name="approval"
                   checked={!requiresApproval}
                   onChange={() => setRequiresApproval(false)}
-                  className="mt-1 h-4 w-4 text-[#1355FF]"
+                  className="mt-1 h-4 w-4 text-[#1455FF]"
                 />
                 <div>
                   <p className="text-xs font-bold text-slate-900">Confirmação Automática Imediata</p>
@@ -490,7 +490,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
               <label
                 className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-all ${
                   requiresApproval
-                    ? "border-[#1355FF] bg-blue-50/50 shadow-xs"
+                    ? "border-[#1455FF] bg-blue-50/50 shadow-xs"
                     : "border-slate-200 bg-white"
                 }`}
               >
@@ -499,7 +499,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                   name="approval"
                   checked={requiresApproval}
                   onChange={() => setRequiresApproval(true)}
-                  className="mt-1 h-4 w-4 text-[#1355FF]"
+                  className="mt-1 h-4 w-4 text-[#1455FF]"
                 />
                 <div>
                   <p className="text-xs font-bold text-slate-900">Exige Aprovação do Síndico / Gestão</p>
@@ -571,7 +571,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                   type="checkbox"
                   checked={requestGuestList}
                   onChange={(e) => setRequestGuestList(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1455FF]"
                 />
                 <span className="text-xs font-semibold text-slate-700">
                   Solicitar lista nominal de convidados na reserva
@@ -595,7 +595,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
                         onClick={() => toggleFeature(feat.id)}
                         className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-left transition-all ${
                           isChecked
-                            ? "bg-blue-50 text-[#1355FF] font-bold"
+                            ? "bg-blue-50 text-[#1455FF] font-bold"
                             : "bg-slate-50 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
@@ -626,7 +626,7 @@ export function SpaceWizardModal({ space, onClose, onSuccess }: SpaceWizardModal
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
                 <div className="flex items-start justify-between border-b border-slate-200 pb-2">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-[#1355FF]">
+                    <span className="text-[10px] font-bold uppercase text-[#1455FF]">
                       {category.toUpperCase()}
                     </span>
                     <h3 className="text-base font-bold text-slate-900">{name || "Nome do Espaço"}</h3>

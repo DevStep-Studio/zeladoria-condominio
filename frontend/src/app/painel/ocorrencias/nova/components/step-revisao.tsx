@@ -91,7 +91,7 @@ export function StepRevisao({
             <button
               type="button"
               onClick={() => setIsEditingTitle(!isEditingTitle)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0070F3] hover:underline cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#1455FF] hover:underline cursor-pointer shrink-0"
             >
               <Icon name="pencil" size={12} />
               <span>{isEditingTitle ? "Concluir edição" : "Editar título"}</span>
@@ -103,7 +103,7 @@ export function StepRevisao({
               type="text"
               value={title}
               onChange={(e) => onChangeTitle(e.target.value)}
-              className="w-full text-base font-bold text-slate-900 border border-[#0070F3] rounded-lg p-2 outline-none"
+              className="w-full text-base font-bold text-slate-900 border border-[#1455FF] rounded-lg p-2 outline-none"
               autoFocus
             />
           ) : (
@@ -124,7 +124,7 @@ export function StepRevisao({
               <button
                 type="button"
                 onClick={onEditStep1}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
               >
                 <Icon name="pencil" size={11} />
                 <span>Alterar</span>
@@ -132,7 +132,7 @@ export function StepRevisao({
             </div>
 
             <div className="flex items-center gap-2.5 pt-2.5 min-w-0">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] border border-blue-100/80 shadow-2xs shrink-0">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100/80 shadow-2xs shrink-0">
                 <Icon name={category.icon as IconName} size={16} />
               </span>
               <div className="min-w-0 flex-1">
@@ -155,7 +155,7 @@ export function StepRevisao({
               <button
                 type="button"
                 onClick={onEditStep2}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070F3] hover:text-[#005FD6] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline cursor-pointer py-0.5 px-1.5 rounded-md hover:bg-blue-50/60 transition-colors shrink-0"
               >
                 <Icon name="pencil" size={11} />
                 <span>Alterar</span>
@@ -192,7 +192,7 @@ export function StepRevisao({
             <button
               type="button"
               onClick={onEditStep1}
-              className="text-[11px] font-bold text-[#0070F3] hover:underline cursor-pointer shrink-0"
+              className="text-[11px] font-bold text-[#1455FF] hover:underline cursor-pointer shrink-0"
             >
               Editar texto
             </button>
@@ -259,7 +259,7 @@ export function StepRevisao({
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
         >
           {isSubmitting ? (
             <>

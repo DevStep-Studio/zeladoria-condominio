@@ -87,7 +87,7 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
         {/* Conteúdo Principal */}
         <div className="p-4 space-y-2.5">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-[#0070F3] transition-colors">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-[#1455FF] transition-colors">
               {item.title}
             </h3>
             <p className="mt-1 text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
@@ -123,7 +123,7 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
           </span>
         </div>
 
-        <span className="inline-flex items-center gap-1 font-bold text-[#0070F3] group-hover:translate-x-0.5 transition-transform shrink-0">
+        <span className="inline-flex items-center gap-1 font-bold text-[#1455FF] group-hover:translate-x-0.5 transition-transform shrink-0">
           <span>Detalhes</span>
           <Icon name="arrow-right" size={12} />
         </span>

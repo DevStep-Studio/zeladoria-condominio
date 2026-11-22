@@ -770,7 +770,7 @@ export function PortariaClient({
                 maxLength={6}
                 required
                 autoFocus
-                className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white font-mono text-center text-lg font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20 focus:border-[#1355FF]"
+                className="w-full h-10 px-3 rounded-[8px] border border-slate-200 bg-white font-mono text-center text-lg font-bold tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 focus:border-[#1455FF]"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 O morador encontra este PIN na seção "Minhas encomendas" do aplicativo.

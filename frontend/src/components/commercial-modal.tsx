@@ -162,7 +162,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
           {isSuccess ? (
             <div className="py-6 text-center space-y-5 animate-in fade-in duration-200">
               <div className="flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#1355FF] border border-blue-100 shadow-2xs">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
                   <Icon name="check-circle" size={36} strokeWidth={2.2} />
                 </div>
               </div>
@@ -188,7 +188,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 </div>
                 <div className="flex justify-between pt-0.5">
                   <span className="text-slate-400 font-medium">Assunto:</span>
-                  <span className="font-bold text-[#1355FF]">{assunto}</span>
+                  <span className="font-bold text-[#1455FF]">{assunto}</span>
                 </div>
               </div>
 
@@ -196,7 +196,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="w-full h-13 rounded-2xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-sm font-bold transition-all shadow-xs active:scale-[0.99] cursor-pointer"
+                  className="w-full h-13 rounded-2xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-sm font-bold transition-all shadow-xs active:scale-[0.99] cursor-pointer"
                 >
                   Concluir e voltar ao Login
                 </button>
@@ -207,7 +207,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
             <div className="space-y-5">
               {/* Cabeçalho */}
               <div className="pr-8 space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#1355FF] text-[11px] font-bold">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#1455FF] text-[11px] font-bold">
                   <Icon name="sparkles" size={12} />
                   <span>Atendimento Comercial</span>
                 </div>
@@ -243,7 +243,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                   role="status"
                   className="flex items-start gap-2.5 rounded-2xl border border-blue-200 bg-blue-50 p-3.5 text-xs text-blue-900 animate-in fade-in"
                 >
-                  <Icon name="help" size={16} className="text-[#1355FF] shrink-0 mt-0.5" />
+                  <Icon name="help" size={16} className="text-[#1455FF] shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="font-semibold text-slate-900">Configuração de Canal Oficial</p>
                     <p className="leading-relaxed text-slate-600">{whatsappAlert}</p>
@@ -271,7 +271,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                     Nome completo
                   </label>
                   <div
-                    className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
+                    className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1455FF]/10 focus-within:border-slate-300 border ${
                       fieldErrors.nome ? "border-red-400 bg-red-50/20" : "border-transparent"
                     }`}
                   >
@@ -314,7 +314,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                     E-mail
                   </label>
                   <div
-                    className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
+                    className={`flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1455FF]/10 focus-within:border-slate-300 border ${
                       fieldErrors.email ? "border-red-400 bg-red-50/20" : "border-transparent"
                     }`}
                   >
@@ -356,7 +356,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                     Assunto
                   </label>
                   <div
-                    className={`relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1355FF]/10 focus-within:border-slate-300 border ${
+                    className={`relative flex items-center rounded-2xl bg-[#F3F4F6] transition-all duration-200 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1455FF]/10 focus-within:border-slate-300 border ${
                       fieldErrors.assunto ? "border-red-400 bg-red-50/20" : "border-transparent"
                     }`}
                   >
@@ -410,7 +410,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                     <button
                       type="button"
                       onClick={() => setShowPrivacy(true)}
-                      className="text-[#1355FF] underline hover:text-[#0D47E6] font-semibold transition-colors cursor-pointer"
+                      className="text-[#1455FF] underline hover:text-[#0048E8] font-semibold transition-colors cursor-pointer"
                     >
                       Política de Privacidade
                     </button>
@@ -422,7 +422,7 @@ export function CommercialModal({ isOpen, onClose }: CommercialModalProps) {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="group relative flex h-13 sm:h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#1355FF] hover:bg-[#0D47E6] px-6 text-sm sm:text-base font-bold text-white shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  className="group relative flex h-13 sm:h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#1455FF] hover:bg-[#0048E8] px-6 text-sm sm:text-base font-bold text-white shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isPending ? (
                     <div className="flex items-center gap-2">

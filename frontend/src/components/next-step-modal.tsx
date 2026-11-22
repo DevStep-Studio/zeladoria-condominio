@@ -18,7 +18,7 @@ export function NextStepModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
       <div className="w-full max-w-sm rounded-[16px] border border-[var(--color-line)] bg-white p-6 shadow-xl">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#0070F3] mb-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#1455FF] mb-4">
           <Icon name="sparkles" size={22} />
         </div>
         <h3 className="text-base font-bold text-[var(--color-ink)]">{title}</h3>

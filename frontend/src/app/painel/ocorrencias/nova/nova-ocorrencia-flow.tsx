@@ -285,7 +285,7 @@ export function NovaOcorrenciaFlow({
 
       {/* Aviso Discreto de Rascunho Recuperado */}
       {hasDraftNotice && currentStep !== 4 && (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-[#1355FF]">
+        <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-[#1455FF]">
           <div className="flex items-center gap-2">
             <Icon name="file-text" size={15} />
             <span>Seu rascunho anterior foi recuperado automaticamente.</span>
@@ -307,7 +307,7 @@ export function NovaOcorrenciaFlow({
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                 currentStep === 1
-                  ? "bg-[#0070F3] text-white shadow-2xs"
+                  ? "bg-[#1455FF] text-white shadow-2xs"
                   : currentStep > 1
                   ? "bg-emerald-600 text-white"
                   : "bg-slate-100 text-slate-500"
@@ -330,7 +330,7 @@ export function NovaOcorrenciaFlow({
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                 currentStep === 2
-                  ? "bg-[#0070F3] text-white shadow-2xs"
+                  ? "bg-[#1455FF] text-white shadow-2xs"
                   : currentStep > 2
                   ? "bg-emerald-600 text-white"
                   : "bg-slate-100 text-slate-500"
@@ -353,7 +353,7 @@ export function NovaOcorrenciaFlow({
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                 currentStep === 3
-                  ? "bg-[#0070F3] text-white shadow-2xs"
+                  ? "bg-[#1455FF] text-white shadow-2xs"
                   : "bg-slate-100 text-slate-500"
               }`}
             >

@@ -24,18 +24,18 @@ export default async function AdminIntegracoesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-            <Link href="/painel" className="hover:text-[#1355FF] transition-colors">
+            <Link href="/painel" className="hover:text-[#1455FF] transition-colors">
               Painel
             </Link>
             <span>/</span>
-            <Link href="/painel/admin" className="hover:text-[#1355FF] transition-colors">
+            <Link href="/painel/admin" className="hover:text-[#1455FF] transition-colors">
               Administração
             </Link>
             <span>/</span>
             <span className="text-slate-800 font-semibold">APIs e Integrações</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-[#1355FF]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-[#1455FF]">
               <Icon name="settings" size={20} />
             </span>
             <span>Integrações de APIs Gratuitas</span>

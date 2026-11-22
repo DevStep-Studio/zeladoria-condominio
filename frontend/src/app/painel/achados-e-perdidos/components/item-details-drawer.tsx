@@ -230,7 +230,7 @@ export function ItemDetailsDrawer({
               </h4>
               <div className="flex items-center justify-between text-xs p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-[#0070F3] font-bold text-xs">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-[#1455FF] font-bold text-xs">
                     {item.reportedBy.charAt(0).toUpperCase()}
                   </span>
                   <div>
@@ -270,7 +270,7 @@ export function ItemDetailsDrawer({
             {item.claimedBy && isOpenStatus && (
               <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-1">
                 <div className="flex items-center gap-2 text-blue-800 font-bold text-xs">
-                  <Icon name="bell" size={15} className="text-[#0070F3]" />
+                  <Icon name="bell" size={15} className="text-[#1455FF]" />
                   <span>Reivindicação em Andamento</span>
                 </div>
                 <p className="text-xs text-blue-900 font-medium">
@@ -289,7 +289,7 @@ export function ItemDetailsDrawer({
               <div className="rounded-2xl border-2 border-blue-500 bg-blue-50/40 p-4 space-y-3 animate-in fade-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Icon name="bell" size={14} className="text-[#0070F3]" />
+                    <Icon name="bell" size={14} className="text-[#1455FF]" />
                     Reivindicar Posse do Item
                   </h4>
                   <button
@@ -312,13 +312,13 @@ export function ItemDetailsDrawer({
                     value={claimText}
                     onChange={(e) => setClaimText(e.target.value)}
                     placeholder="Ex: Minha chave tem um chaveiro com o nome 'Ana' gravado atrás..."
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-[#0070F3] resize-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-[#1455FF] resize-none"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleConfirmClaim}
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                 >
                   Confirmar e Notificar Portaria
                 </button>
@@ -393,7 +393,7 @@ export function ItemDetailsDrawer({
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
                     placeholder="Ex: João da Silva (Torre B · Apto 402)"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#0070F3]"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#1455FF]"
                   />
                 </div>
                 <div>
@@ -405,7 +405,7 @@ export function ItemDetailsDrawer({
                     value={resolutionNotes}
                     onChange={(e) => setResolutionNotes(e.target.value)}
                     placeholder="Ex: Documento de identidade conferido na portaria"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#0070F3]"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-[#1455FF]"
                   />
                 </div>
                 <button
@@ -429,7 +429,7 @@ export function ItemDetailsDrawer({
                   <button
                     type="button"
                     onClick={() => setClaimMode("claim_mine")}
-                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer"
                   >
                     <Icon name="check-circle" size={16} />
                     <span>Este item é meu</span>

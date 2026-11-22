@@ -66,17 +66,17 @@ export function PageHeader({
   const textDescription = description || subtitle;
 
   return (
-    <header className={`border-b border-slate-200/70 pb-3.5 sm:pb-4 mb-5 sm:mb-6 ${className}`}>
+    <header className={`border-b border-[#E1E8F2] pb-4 mb-6 ${className}`}>
       <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         {/* Lado Esquerdo: Ícone + Título + Badge */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
           {resolvedIcon && (
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/90 text-slate-700 shrink-0 border border-slate-200/60 shadow-2xs">
-              <Icon name={resolvedIcon} size={16} />
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF] shrink-0 border border-[#1455FF]/20 shadow-xs">
+              <Icon name={resolvedIcon} size={18} strokeWidth={2} />
             </span>
           )}
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+          <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight leading-tight">
               {title}
             </h1>
             {badge}
@@ -93,7 +93,7 @@ export function PageHeader({
 
       {/* Subtítulo / Descrição */}
       {textDescription && (
-        <p className="text-xs sm:text-sm text-slate-500 font-normal leading-relaxed mt-1.5 sm:mt-1 max-w-3xl">
+        <p className="text-xs sm:text-sm text-[#526079] font-normal leading-relaxed mt-1.5 max-w-3xl">
           {textDescription}
         </p>
       )}
@@ -117,12 +117,12 @@ export function Card({
   accent?: boolean;
 }) {
   return (
-    <section className={`rounded-lg border border-slate-200/90 bg-white shadow-2xs ${accent ? "border-l-4 border-l-[#1355FF]" : ""} ${className}`}>
+    <section className={`rounded-2xl border border-[#E1E8F2] bg-white shadow-[0_2px_8px_rgba(7,26,56,0.04)] ${accent ? "border-l-4 border-l-[#1455FF]" : ""} ${className}`}>
       {title ? (
-        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E1E8F2]">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold tracking-tight text-slate-900">{title}</h2>
-            {description ? <p className="mt-0.5 max-w-3xl text-xs text-slate-500">{description}</p> : null}
+            <h2 className="text-sm font-bold tracking-tight text-[#101828]">{title}</h2>
+            {description ? <p className="mt-0.5 max-w-3xl text-xs text-[#526079]">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
@@ -184,21 +184,21 @@ export function StatCard({
     tone === "yellow"
       ? "bg-amber-50 text-amber-700"
       : tone === "green"
-        ? "bg-emerald-50 text-emerald-700"
+        ? "bg-emerald-50 text-[#16A34A]"
         : tone === "purple"
           ? "bg-indigo-50 text-indigo-700"
-          : "bg-blue-50 text-[#1355FF]";
+          : "bg-[#EAF1FF] text-[#1455FF]";
 
   const body = (
-    <div className="flex h-full min-h-[84px] items-start gap-3 rounded-lg border border-slate-200/90 bg-white p-4 shadow-2xs transition-colors hover:border-slate-300">
+    <div className="flex h-full min-h-[84px] items-start gap-3 rounded-2xl border border-[#E1E8F2] bg-white p-4 shadow-[0_2px_8px_rgba(7,26,56,0.04)] transition-all hover:shadow-md hover:border-[#1455FF]/40">
       {icon ? (
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconBox}`}>
-          <Icon name={icon} size={15} strokeWidth={2} />
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBox}`}>
+          <Icon name={icon} size={16} strokeWidth={2} />
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-slate-900">{value}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#526079]">{label}</p>
+        <p className="mt-1 text-2xl font-black tabular-nums tracking-tight text-[#101828]">{value}</p>
         {hint ? <p className="mt-0.5 text-[11px] font-normal text-slate-400 truncate">{hint}</p> : null}
       </div>
     </div>

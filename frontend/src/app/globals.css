@@ -3,29 +3,32 @@
 @import "@fullcalendar/react/themes/forma/theme.css";
 @import "@fullcalendar/react/themes/forma/palettes/green.css";
 
-/* ============ Design tokens: Zeladoria Condomínio (Azul #1355FF + Amarelo #FFD000 Corporativo) ============ */
+/* ============ Design tokens: Zeladoria Condomínio (Nova Identidade Visual #1455FF + #071A38) ============ */
 @theme {
-  --color-canvas: #f8fafc;
+  --color-canvas: #f5f8fc;
   --color-surface: #ffffff;
   --color-surface-muted: #f1f5f9;
-  --color-primary: #1355ff;
-  --color-primary-hover: #0d47e6;
-  --color-primary-dark: #0a3bc2;
-  --color-primary-soft: #eff4ff;
+  --color-primary: #1455ff;
+  --color-primary-hover: #0048e8;
+  --color-primary-dark: #071a38;
+  --color-primary-soft: #eaf1ff;
+  --color-navy: #071a38;
+  --color-navy-dark: #05142b;
+  --color-navy-light: #0d2854;
   --color-secondary: #ffd000;
   --color-secondary-hover: #e6bc00;
   --color-secondary-dark: #b8860b;
   --color-secondary-soft: #fffbeb;
-  --color-ink: #0f172a;
-  --color-muted: #64748b;
-  --color-subtle: #94a3b8;
-  --color-line: #e2e8f0;
+  --color-ink: #101828;
+  --color-muted: #526079;
+  --color-subtle: #8996a9;
+  --color-line: #e1e8f2;
   --color-line-strong: #cbd5e1;
-  --color-success: #10b981;
+  --color-success: #16a34a;
   --color-success-soft: #ecfdf5;
   --color-warn: #f59e0b;
   --color-warn-soft: #fffbeb;
-  --color-danger: #dc2626;
+  --color-danger: #ef4444;
   --color-danger-soft: #fef2f2;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -78,7 +81,7 @@ button:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 85, 212, 0.35);
+  box-shadow: 0 0 0 2px rgba(20, 85, 255, 0.35);
   border-radius: 8px;
 }
 
@@ -114,25 +117,28 @@ summary::-webkit-details-marker {
 
 @layer components {
   .card {
-    @apply rounded-lg border border-slate-200/90 bg-white p-5 shadow-2xs;
+    @apply rounded-2xl border border-[#e1e8f2] bg-white p-5 shadow-[0_2px_8px_rgba(7,26,56,0.04)];
   }
   .subtle-card {
-    @apply rounded-lg border border-slate-200/70 bg-white p-4 shadow-2xs;
+    @apply rounded-xl border border-[#e1e8f2] bg-white p-4 shadow-[0_1px_4px_rgba(7,26,56,0.03)];
   }
   .card-flat {
-    @apply rounded-lg border border-slate-200/90 bg-white shadow-none;
+    @apply rounded-2xl border border-[#e1e8f2] bg-white shadow-none;
   }
   .panel-surface {
-    @apply rounded-lg border border-slate-200/90 bg-white shadow-2xs;
+    @apply rounded-2xl border border-[#e1e8f2] bg-white shadow-[0_2px_8px_rgba(7,26,56,0.04)];
+  }
+  .service-card {
+    @apply rounded-2xl border border-[#e1e8f2] bg-white p-5 shadow-[0_2px_8px_rgba(7,26,56,0.04)] hover:shadow-[0_8px_20px_rgba(20,85,255,0.08)] hover:border-[#1455ff]/40 transition-all cursor-pointer;
   }
   .action-tile {
-    @apply flex items-center gap-3 rounded-lg bg-white border border-slate-200/90 p-3 hover:border-slate-300 hover:bg-slate-50/60 transition-all text-left;
+    @apply flex items-center gap-3 rounded-xl bg-white border border-[#e1e8f2] p-3 hover:border-[#1455ff]/40 hover:bg-blue-50/30 transition-all text-left;
   }
   .action-icon-box {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#1355FF];
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eaf1ff] text-[#1455ff];
   }
   .nav-item-active {
-    @apply relative font-semibold text-[#1355FF] bg-blue-50/70 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-[#1355FF] before:rounded-r;
+    @apply relative font-semibold text-[#1455ff] bg-blue-50/70 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-[#1455ff] before:rounded-r;
   }
   .page-grid {
     @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px];
@@ -141,9 +147,9 @@ summary::-webkit-details-marker {
     @apply mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500;
   }
   .input {
-    @apply min-h-9.5 w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-900 outline-none
+    @apply min-h-9.5 w-full rounded-xl border border-[#e1e8f2] bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-900 outline-none
       transition-colors placeholder:text-slate-400
-      focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF]/20
+      focus:border-[#1455ff] focus:ring-1 focus:ring-[#1455ff]/20
       disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400;
   }
   textarea.input {
@@ -151,7 +157,7 @@ summary::-webkit-details-marker {
   }
   select,
   select.input {
-    @apply min-h-9.5 w-full rounded-md border border-slate-200 bg-white pl-3 pr-8 text-xs sm:text-sm text-slate-900 outline-none cursor-pointer transition-colors focus:border-[#1355FF] focus:ring-1 focus:ring-[#1355FF]/20;
+    @apply min-h-9.5 w-full rounded-xl border border-[#e1e8f2] bg-white pl-3 pr-8 text-xs sm:text-sm text-slate-900 outline-none cursor-pointer transition-colors focus:border-[#1455ff] focus:ring-1 focus:ring-[#1455ff]/20;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.65rem center;
@@ -171,10 +177,10 @@ summary::-webkit-details-marker {
       transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply border border-[#1355FF] bg-[#1355FF] text-white hover:bg-[#0d47e6] shadow-2xs;
+    @apply border border-[#1455ff] bg-[#1455ff] text-white hover:bg-[#0048e8] shadow-2xs;
   }
   .btn-secondary {
-    @apply border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-2xs;
+    @apply border border-[#e1e8f2] bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-2xs;
   }
   .btn-yellow {
     @apply border border-[#FFD000] bg-[#FFD000] text-slate-900 hover:bg-[#e6bc00] shadow-2xs;
@@ -183,13 +189,13 @@ summary::-webkit-details-marker {
     @apply border border-transparent bg-transparent text-slate-700 hover:bg-slate-100;
   }
   .btn-dark {
-    @apply border border-slate-900 bg-slate-900 text-white hover:bg-slate-800;
+    @apply border border-[#071a38] bg-[#071a38] text-white hover:bg-[#0d2854];
   }
   .btn-danger {
-    @apply border border-red-600 bg-red-600 text-white hover:bg-red-700 shadow-2xs;
+    @apply border border-[#ef4444] bg-[#ef4444] text-white hover:bg-red-700 shadow-2xs;
   }
   .btn-success {
-    @apply border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs;
+    @apply border border-[#16a34a] bg-[#16a34a] text-white hover:bg-emerald-700 shadow-2xs;
   }
   .btn-sm {
     @apply min-h-7.5 px-2.5 py-1 text-xs rounded-md;

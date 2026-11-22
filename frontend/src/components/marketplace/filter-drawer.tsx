@@ -398,7 +398,7 @@ export function FilterDrawer({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] shrink-0">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] shrink-0">
                       <Icon name="shield" size={15} />
                     </span>
                     <div>
@@ -411,7 +411,7 @@ export function FilterDrawer({
                     </div>
                   </div>
                   <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                    filters.condoHiredOnly ? "bg-[#1355FF] border-[#1355FF] text-white" : "border-slate-300 bg-white"
+                    filters.condoHiredOnly ? "bg-[#1455FF] border-[#1455FF] text-white" : "border-slate-300 bg-white"
                   }`}>
                     {filters.condoHiredOnly && <Icon name="check" size={11} strokeWidth={3} />}
                   </div>

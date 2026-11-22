@@ -694,7 +694,7 @@ export async function createCondominiumAction(formData: FormData): Promise<{ suc
       city,
       state,
       plan,
-      brandColor: "#1355FF",
+      brandColor: "#1455FF",
       onboardingStep: 4,
       onboardingDone: true,
       publicPage: true,

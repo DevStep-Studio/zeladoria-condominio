@@ -556,7 +556,7 @@ export function EncomendasClient({
             title={`Sincronização em tempo real ativa. Última atualização às ${lastSyncedAt.toLocaleTimeString()}`}
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all cursor-pointer"
           >
-            <span className={`inline-block ${isRefreshing ? "animate-spin text-[#1355FF]" : "text-emerald-500"}`}>
+            <span className={`inline-block ${isRefreshing ? "animate-spin text-[#1455FF]" : "text-emerald-500"}`}>
               <Icon name="refresh" size={14} />
             </span>
             <span className="hidden sm:inline">
@@ -623,7 +623,7 @@ export function EncomendasClient({
           }}
           className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
             currentStatus === "pendente"
-              ? "border-[#1355FF] bg-blue-50/20 ring-2 ring-blue-500/10"
+              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
               : "border-slate-200/80 bg-white hover:border-slate-300"
           }`}
         >
@@ -642,7 +642,7 @@ export function EncomendasClient({
             <span className="text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {pendingList.length}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
               Aguardando retirada
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -740,7 +740,7 @@ export function EncomendasClient({
                 }}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-[#1355FF] text-white shadow-xs"
+                    ? "bg-[#1455FF] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
@@ -773,7 +773,7 @@ export function EncomendasClient({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por código, rastreio, unidade..."
-            className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-[#1355FF] focus:outline-none focus:ring-2 focus:ring-blue-500/10 shadow-2xs transition-all"
+            className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-[#1455FF] focus:outline-none focus:ring-2 focus:ring-blue-500/10 shadow-2xs transition-all"
           />
           {searchQuery && (
             <button
@@ -817,7 +817,7 @@ export function EncomendasClient({
                             type="button"
                             onClick={() => setSelectedParcelForQr(p)}
                             title="Clique para ver o QR Code ampliado"
-                            className="relative shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xs hover:border-[#1355FF] hover:ring-2 hover:ring-blue-500/10 transition-all cursor-pointer group-hover:scale-102"
+                            className="relative shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xs hover:border-[#1455FF] hover:ring-2 hover:ring-blue-500/10 transition-all cursor-pointer group-hover:scale-102"
                           >
                             <img
                               src={qrUrl}
@@ -1052,7 +1052,7 @@ export function EncomendasClient({
                         placeholder="Filtrar morador ou unidade... (Ex: Eduarda, 302)"
                         value={unitFilterQuery}
                         onChange={(e) => setUnitFilterQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-[#1355FF] focus:outline-none transition-all"
+                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-[#1455FF] focus:outline-none transition-all"
                       />
                       <span className="absolute left-2.5 top-2 text-slate-400">
                         <Icon name="search" size={13} />
@@ -1306,7 +1306,7 @@ export function EncomendasClient({
                     }
                   }}
                   placeholder="Código de 6 dígitos ou ENC-..."
-                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-900 placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:border-[#1355FF] focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 font-mono text-sm font-bold text-slate-900 placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:border-[#1455FF] focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                 />
                 <button
                   type="button"
@@ -1325,7 +1325,7 @@ export function EncomendasClient({
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="inline-flex items-center gap-1 font-bold text-[#1355FF] hover:underline"
+                    className="inline-flex items-center gap-1 font-bold text-[#1455FF] hover:underline"
                   >
                     <Icon name="camera" size={13} />
                     <span>Ligar câmera</span>
@@ -1523,7 +1523,7 @@ export function EncomendasClient({
           <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-blue-50 text-[#1355FF]">
+                <span className="p-2 rounded-xl bg-blue-50 text-[#1455FF]">
                   <Icon name="pencil" size={18} />
                 </span>
                 <div>
@@ -1598,7 +1598,7 @@ export function EncomendasClient({
                 <button
                   type="submit"
                   disabled={isPending || !reassignUnitId}
-                  className="px-4 py-2 bg-[#1355FF] text-white rounded-xl font-bold hover:bg-blue-600 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-[#1455FF] text-white rounded-xl font-bold hover:bg-blue-600 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {isPending ? "Salvando..." : "Confirmar Alteração"}
                 </button>

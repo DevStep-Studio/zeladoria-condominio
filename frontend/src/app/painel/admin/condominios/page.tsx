@@ -59,7 +59,7 @@ export default async function AdminCondominiosPage() {
                     <p className="font-bold text-slate-900 text-sm">{c.name}</p>
                     <p className="text-[11px] text-slate-400 font-mono">/{c.slug}</p>
                   </div>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1455FF] font-bold text-[10px] capitalize">
                     {c.plan || "Padrão"}
                   </span>
                 </div>
@@ -114,7 +114,7 @@ export default async function AdminCondominiosPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1455FF] font-bold text-[10px] capitalize">
                         {c.plan || "Padrão"}
                       </span>
                     </td>

@@ -16,7 +16,7 @@ export default function PrivacidadePage() {
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={14} />
           <span>Voltar ao Login</span>
@@ -25,7 +25,7 @@ export default function PrivacidadePage() {
 
       <div className="max-w-3xl w-full mx-auto my-8 bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xs space-y-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#1355FF] text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#1455FF] text-xs font-bold">
             <Icon name="shield" size={14} />
             <span>LGPD e Proteção de Dados</span>
           </div>
@@ -64,7 +64,7 @@ export default function PrivacidadePage() {
           <h2 className="text-base font-bold text-slate-900 pt-2">4. Contato do Encarregado (DPO)</h2>
           <p>
             Para exercer seus direitos de titular de dados ou esclarecer dúvidas, entre em contato através do e-mail:{" "}
-            <span className="text-[#1355FF] font-semibold">privacidade@zeladoriacondominio.com.br</span>.
+            <span className="text-[#1455FF] font-semibold">privacidade@zeladoriacondominio.com.br</span>.
           </p>
         </div>
       </div>
@@ -72,11 +72,11 @@ export default function PrivacidadePage() {
       <footer className="max-w-3xl w-full mx-auto pt-6 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
         <span>© 2026 Zeladoria Cidades</span>
         <div className="flex items-center gap-3">
-          <Link href="/termos" className="hover:text-[#1355FF] transition-colors">
+          <Link href="/termos" className="hover:text-[#1455FF] transition-colors">
             Termos
           </Link>
           <span>·</span>
-          <Link href="/login" className="hover:text-[#1355FF] transition-colors">
+          <Link href="/login" className="hover:text-[#1455FF] transition-colors">
             Acessar Sistema
           </Link>
         </div>

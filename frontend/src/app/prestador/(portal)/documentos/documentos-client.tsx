@@ -87,7 +87,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
       {/* Header */}
       <div className="border-b border-slate-200 pb-4">
         <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <Icon name="shield" size={24} className="text-[#1355FF]" />
+          <Icon name="shield" size={24} className="text-[#1455FF]" />
           <span>Documentos & Verificação de Identidade</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -135,7 +135,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
         </div>
       ) : (
         <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-[#1355FF] text-white shrink-0 mt-0.5">
+          <div className="p-2 rounded-xl bg-[#1455FF] text-white shrink-0 mt-0.5">
             <Icon name="shield" size={18} />
           </div>
           <div className="space-y-1">
@@ -179,7 +179,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                <Icon name="file-text" size={14} className="text-[#1455FF]" />
                 <span>Frente do Documento (ou PDF)</span>
               </label>
               {docFrontUrl ? (
@@ -211,7 +211,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("document_front")}
-                    className="text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                    className="text-[#1455FF] hover:underline font-semibold cursor-pointer"
                   >
                     Tirar nova foto
                   </button>
@@ -231,7 +231,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("document_front")}
-                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Icon name="camera" size={14} />
                     <span>Usar Câmera</span>
@@ -256,7 +256,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Icon name="file-text" size={14} className="text-[#1355FF]" />
+                <Icon name="file-text" size={14} className="text-[#1455FF]" />
                 <span>Verso do Documento</span>
               </label>
               {docBackUrl ? (
@@ -288,7 +288,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("document_back")}
-                    className="text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                    className="text-[#1455FF] hover:underline font-semibold cursor-pointer"
                   >
                     Tirar nova foto
                   </button>
@@ -308,7 +308,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("document_back")}
-                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Icon name="camera" size={14} />
                     <span>Usar Câmera</span>
@@ -333,7 +333,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 md:col-span-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Icon name="user" size={14} className="text-[#1355FF]" />
+                <Icon name="user" size={14} className="text-[#1455FF]" />
                 <span>Selfie Segurando o Documento</span>
               </label>
               {selfieUrl ? (
@@ -347,7 +347,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
 
             {selfieUrl ? (
               <div className="space-y-2 text-center">
-                <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-white border-2 border-[#1355FF]">
+                <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-white border-2 border-[#1455FF]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={selfieUrl}
@@ -359,7 +359,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("selfie")}
-                    className="text-[#1355FF] hover:underline font-semibold cursor-pointer"
+                    className="text-[#1455FF] hover:underline font-semibold cursor-pointer"
                   >
                     Tirar outra selfie
                   </button>
@@ -379,7 +379,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
                   <button
                     type="button"
                     onClick={() => setActiveCameraModal("selfie")}
-                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1355FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="flex-1 h-9 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1455FF] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Icon name="camera" size={14} />
                     <span>Abrir Câmera Frontal</span>
@@ -424,7 +424,7 @@ export function ProviderDocumentosClient({ vendor }: { vendor: any }) {
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="px-6 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {isPending ? (
               <span>Enviando documentos...</span>

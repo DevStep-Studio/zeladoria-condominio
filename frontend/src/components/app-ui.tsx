@@ -38,13 +38,13 @@ export function AppButton({
 
   const variantStyles = {
     primary:
-      "bg-[#1355FF] text-white hover:bg-[#0D47E6] focus:ring-[#1355FF]/40 shadow-xs active:bg-[#0935B3]",
+      "bg-[#1455FF] text-white hover:bg-[#0048E8] focus:ring-[#1455FF]/40 shadow-xs active:bg-[#071A38]",
     secondary:
       "bg-slate-100 text-slate-800 hover:bg-slate-200 focus:ring-slate-400 active:bg-slate-300",
     outline:
-      "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-300 active:bg-slate-100",
+      "border border-[#E1E8F2] bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 focus:ring-[#1455FF]/20 active:bg-slate-100",
     danger:
-      "bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500 shadow-xs active:bg-rose-800",
+      "bg-[#EF4444] text-white hover:bg-red-700 focus:ring-red-500 shadow-xs active:bg-red-800",
     ghost:
       "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 focus:ring-slate-200",
   }[variant];
@@ -122,7 +122,7 @@ export function AppInput({
           } ${rightIcon ? "pr-9" : ""} ${
             error
               ? "border-rose-400 focus:border-rose-500 focus:ring-rose-200"
-              : "border-slate-300 focus:border-[#1355FF] focus:ring-[#1355FF]/20"
+              : "border-slate-300 focus:border-[#1455FF] focus:ring-[#1455FF]/20"
           } ${className}`}
           {...props}
         />
@@ -549,7 +549,7 @@ export function AppPagination({
                   onClick={() => onPageChange(p)}
                   className={`h-8 w-8 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                     p === currentPage
-                      ? "bg-[#1355FF] text-white"
+                      ? "bg-[#1455FF] text-white"
                       : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}
                 >
@@ -600,7 +600,7 @@ export function AppSearch({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#1355FF] focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20"
+        className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#1455FF] focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20"
       />
       {value && (
         <button
@@ -647,7 +647,7 @@ export function AppFilter({ options, selectedId, onSelect, className = "" }: App
             onClick={() => onSelect(opt.id)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               isSelected
-                ? "bg-[#1355FF] text-white shadow-xs"
+                ? "bg-[#1455FF] text-white shadow-xs"
                 : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >

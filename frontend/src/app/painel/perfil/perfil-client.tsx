@@ -170,15 +170,15 @@ export function PerfilClient({
       />
 
       {/* Top Banner / Identity */}
-      <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-50 border border-blue-200 text-[#1355FF] text-xl font-black">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 border border-blue-200 text-[#1455FF] text-xl font-black">
             {user.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-base sm:text-lg font-bold text-slate-900">{user.name}</h2>
-              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-bold text-[#1355FF]">
+              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-bold text-[#1455FF]">
                 {roleLabel}
               </span>
             </div>
@@ -187,7 +187,7 @@ export function PerfilClient({
           </div>
         </div>
 
-        <div className="rounded-[10px] bg-slate-50 border border-slate-200/80 p-3 sm:text-right">
+        <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 sm:text-right">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Condomínio Ativo</span>
           <p className="text-xs font-bold text-slate-900">{condoName}</p>
           <p className="text-[11px] text-slate-500">{unitInfo}</p>
@@ -201,7 +201,7 @@ export function PerfilClient({
           onClick={() => setActiveTab("dados")}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === "dados"
-              ? "border-[#1355FF] text-[#1355FF]"
+              ? "border-[#1455FF] text-[#1455FF]"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -213,7 +213,7 @@ export function PerfilClient({
           onClick={() => setActiveTab("seguranca")}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === "seguranca"
-              ? "border-[#1355FF] text-[#1355FF]"
+              ? "border-[#1455FF] text-[#1455FF]"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -225,7 +225,7 @@ export function PerfilClient({
           onClick={() => setActiveTab("preferencias")}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === "preferencias"
-              ? "border-[#1355FF] text-[#1355FF]"
+              ? "border-[#1455FF] text-[#1455FF]"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -236,7 +236,7 @@ export function PerfilClient({
 
       {/* Tab 1: Dados Pessoais */}
       {activeTab === "dados" && (
-        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Informações Cadastrais</h3>
             <p className="text-xs text-slate-500 mt-0.5">Mantenha seus dados atualizados para contato da portaria e administração.</p>
@@ -300,7 +300,7 @@ export function PerfilClient({
 
       {/* Tab 2: Segurança & Senha */}
       {activeTab === "seguranca" && (
-        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Alterar Senha de Acesso</h3>
             <p className="text-xs text-slate-500 mt-0.5">Defina uma senha segura com no mínimo 8 caracteres para proteger sua conta.</p>
@@ -355,7 +355,7 @@ export function PerfilClient({
 
       {/* Tab 3: Preferências de Notificações */}
       {activeTab === "preferencias" && (
-        <div className="rounded-[12px] border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Canais de Notificação</h3>
             <p className="text-xs text-slate-500 mt-0.5">Escolha como prefere receber avisos de encomendas, comunicados e ocorrências.</p>
@@ -384,7 +384,7 @@ export function PerfilClient({
                   type="checkbox"
                   checked={emailNotif}
                   onChange={(e) => setEmailNotif(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]"
                 />
               </label>
 
@@ -397,7 +397,7 @@ export function PerfilClient({
                   type="checkbox"
                   checked={pushNotif}
                   onChange={(e) => setPushNotif(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]"
                 />
               </label>
 
@@ -410,7 +410,7 @@ export function PerfilClient({
                   type="checkbox"
                   checked={whatsappNotif}
                   onChange={(e) => setWhatsappNotif(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]"
                 />
               </label>
             </div>
@@ -432,20 +432,20 @@ export function PerfilClient({
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center justify-between p-3.5 rounded-[12px] border border-slate-200/80 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group shadow-2xs"
+              className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200/80 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group shadow-2xs"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#1355FF] transition-colors">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#1455FF] transition-colors">
                   <Icon name={item.icon} size={17} />
                 </span>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#1355FF] transition-colors truncate">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#1455FF] transition-colors truncate">
                     {item.label}
                   </h4>
                   <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
                 </div>
               </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-[#1355FF] shrink-0 ml-2" />
+              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-[#1455FF] shrink-0 ml-2" />
             </Link>
           ))}
         </div>
@@ -456,7 +456,7 @@ export function PerfilClient({
         <button
           type="button"
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-[12px] border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 p-3.5 text-xs sm:text-sm font-bold text-rose-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 p-3.5 text-xs sm:text-sm font-bold text-rose-600 transition-colors"
         >
           <Icon name="logout" size={16} />
           <span>Sair da conta</span>
@@ -466,7 +466,7 @@ export function PerfilClient({
       {/* Modal de Confirmação de Logout */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="w-full max-w-sm rounded-[14px] border border-slate-200 bg-white p-6 shadow-xl space-y-4 text-center">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
               <Icon name="logout" size={22} />
             </div>

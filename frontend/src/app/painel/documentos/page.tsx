@@ -101,7 +101,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
         subtitle="Convenção, regimento, atas, laudos e prestações de contas com controle de visibilidade e versão."
         actions={
           canUpload ? (
-            <a href="#publicar-documento" className="inline-flex items-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs">
+            <a href="#publicar-documento" className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs">
               <Icon name="plus" size={15} />
               Novo documento
             </a>
@@ -115,7 +115,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
           href="/painel/documentos?categoria=todos"
           className={`group relative flex flex-col justify-between rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
             currentCategory === "todos"
-              ? "border-[#1355FF] bg-blue-50/20 ring-2 ring-blue-500/10"
+              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
               : "border-slate-200/80 bg-white hover:border-slate-300"
           }`}
         >
@@ -134,7 +134,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {visible.length}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
               Documentos
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -170,7 +170,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
 
         <div className="group relative flex flex-col justify-between rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF] transition-transform group-hover:scale-110">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] transition-transform group-hover:scale-110">
               <Icon name="grid" size={18} strokeWidth={2.2} />
             </span>
             <Icon
@@ -184,7 +184,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
             <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
               {categories.length}
             </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1355FF] transition-colors">
+            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
               Categorias
             </p>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
@@ -229,7 +229,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
               href={`/painel/documentos?categoria=${tab.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                 isActive
-                  ? "bg-[#1355FF] text-white shadow-xs"
+                  ? "bg-[#1455FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -259,7 +259,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
           <section className="rounded-[20px] border border-slate-200/80 bg-white shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 p-5 sm:flex sm:items-start sm:justify-between sm:gap-5">
               <div className="flex items-start gap-3.5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
                   <Icon name="search" size={18} />
                 </span>
                 <div>
@@ -271,7 +271,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
               </div>
               {latest ? (
                 <div className="mt-3 sm:mt-0 rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs text-slate-700 sm:w-56 shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#1355FF]">Última publicação</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#1455FF]">Última publicação</p>
                   <p className="mt-0.5 font-bold text-slate-900 truncate">{latest.title}</p>
                 </div>
               ) : null}
@@ -286,7 +286,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
                   className="input"
                   placeholder="ex.: ata assembleia fachada"
                 />
-                <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-5 py-2.5 text-xs font-bold shadow-xs transition-all">
+                <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-5 py-2.5 text-xs font-bold shadow-xs transition-all">
                   <Icon name="search" size={15} />
                   Buscar
                 </button>
@@ -306,7 +306,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
                       href={`/painel/documentos?categoria=${category}`}
                       className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
                         currentCategory === category
-                          ? "border-[#1355FF] bg-blue-50 text-[#1355FF]"
+                          ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
                           : "border-slate-200/80 bg-slate-50/60 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
@@ -377,7 +377,7 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
                         <a
                           href={d.fileUrl || `data:text/plain;charset=utf-8,${encodeURIComponent(`Documento: ${d.title}\nCategoria: ${d.category}\nVersão: ${d.version}\nData: ${dateBR(d.createdAt)}\nDescrição: ${d.description || "Documento oficial do condomínio."}`)}`}
                           download={d.fileName || `${d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.txt`}
-                          className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-blue-50 border border-blue-200 text-[#1355FF] hover:bg-blue-100/60 px-3 py-1.5 text-xs font-bold transition-colors"
+                          className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-blue-50 border border-blue-200 text-[#1455FF] hover:bg-blue-100/60 px-3 py-1.5 text-xs font-bold transition-colors"
                         >
                           <Icon name="download" size={14} />
                           <span>Baixar {d.fileName ? d.fileName.split(".").pop()?.toUpperCase() : "Documento"}</span>

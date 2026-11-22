@@ -154,7 +154,7 @@ export function CameraCaptureModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-50">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1355FF]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
               <Icon name={mode === "selfie" ? "user" : "camera"} size={16} />
             </span>
             <div>
@@ -176,7 +176,7 @@ export function CameraCaptureModal({
         {/* Body Viewport */}
         <div className="p-4 space-y-3">
           <p className="text-xs text-slate-600 leading-relaxed bg-blue-50/60 p-2.5 rounded-xl border border-blue-100 flex items-start gap-2">
-            <Icon name="alert-triangle" size={14} className="shrink-0 text-[#1355FF] mt-0.5" />
+            <Icon name="alert-triangle" size={14} className="shrink-0 text-[#1455FF] mt-0.5" />
             <span>{instructionsMap[mode]}</span>
           </p>
 
@@ -281,7 +281,7 @@ export function CameraCaptureModal({
                     type="button"
                     onClick={handleCapture}
                     disabled={!!cameraError}
-                    className="h-10 px-5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                    className="h-10 px-5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
                   >
                     <Icon name="camera" size={16} />
                     <span>Fotografar</span>

@@ -68,7 +68,7 @@ export function CategoryPickerSheet({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar categoria (ex: lâmpada, cano, portão)..."
-              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#0070F3] focus:bg-white transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[#1455FF] focus:bg-white transition-colors"
               autoFocus
             />
             {search && (
@@ -102,7 +102,7 @@ export function CategoryPickerSheet({
                   }}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-2xs"
+                      ? "border-[#1455FF] bg-blue-50/70 text-[#1455FF] shadow-2xs"
                       : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
                   }`}
                 >
@@ -110,7 +110,7 @@ export function CategoryPickerSheet({
                     <div
                       className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
                         isSelected
-                          ? "bg-[#0070F3] text-white"
+                          ? "bg-[#1455FF] text-white"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
@@ -126,7 +126,7 @@ export function CategoryPickerSheet({
                     </div>
                   </div>
                   {isSelected && (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0070F3] text-white shrink-0 ml-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1455FF] text-white shrink-0 ml-2">
                       <Icon name="check" size={13} strokeWidth={3} />
                     </span>
                   )}

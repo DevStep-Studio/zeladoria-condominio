@@ -41,7 +41,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#1355FF] border border-blue-100">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#1455FF] border border-blue-100">
               <Icon name="shield" size={20} />
             </span>
             <div>
@@ -96,7 +96,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             <h3 className="font-bold text-slate-900 text-xs mb-1">4. Seus Direitos</h3>
             <p>
               Você pode solicitar a confirmação, correção ou exclusão dos seus dados de contato a qualquer momento pelo
-              e-mail <span className="text-[#1355FF] font-semibold">privacidade@zeladoriacondominio.com.br</span>.
+              e-mail <span className="text-[#1455FF] font-semibold">privacidade@zeladoriacondominio.com.br</span>.
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             Entendido
           </button>

@@ -112,6 +112,57 @@ export function Shell({
   const topItemLabel = role === "superadmin" ? "Dashboard" : role === "sindico" ? "Visão Geral" : "Início";
   const isTopActive = pathname === topItemHref;
 
+  // Horizontal top navigation items inspired by the reference image
+  const topNavItems = useMemo(() => {
+    if (role === "prestador") {
+      return [
+        { id: "inicio", label: "Início", href: "/prestador", icon: "grid" as IconName },
+        { id: "oportunidades", label: "Oportunidades", href: "/prestador/chamados?tab=oportunidades", icon: "search" as IconName },
+        { id: "atendimentos", label: "Atendimentos", href: "/prestador/chamados?tab=atendimentos", icon: "clipboard" as IconName },
+        { id: "agenda", label: "Agenda", href: "/prestador/agenda", icon: "calendar" as IconName },
+        { id: "ganhos", label: "Ganhos", href: "/prestador/ganhos", icon: "wallet" as IconName },
+      ];
+    }
+    if (role === "porteiro" || role === "zelador") {
+      return [
+        { id: "inicio", label: "Início", href: "/painel", icon: "grid" as IconName },
+        { id: "visitantes", label: "Visitantes", href: "/painel/visitantes", icon: "users" as IconName },
+        { id: "encomendas", label: "Encomendas", href: "/painel/encomendas", icon: "package" as IconName },
+        { id: "turnos", label: "Passagem de Turno", href: "/painel/turnos", icon: "refresh" as IconName },
+        { id: "portaria", label: "Livro de Portaria", href: "/painel/portaria", icon: "book" as IconName },
+      ];
+    }
+    if (role === "superadmin") {
+      return [
+        { id: "inicio", label: "Início", href: "/painel/admin", icon: "grid" as IconName },
+        { id: "marketplace", label: "Marketplace", href: "/painel/admin/marketplace", icon: "briefcase" as IconName },
+        { id: "zeladoria-pay", label: "Zeladoria Pay", href: "/painel/admin/zeladoria-pay", icon: "wallet" as IconName },
+        { id: "condominios", label: "Condomínios", href: "/painel/admin/condominios", icon: "building" as IconName },
+        { id: "sistema", label: "Avisos & Incidentes", href: "/painel/sistema/avisos-erros", icon: "alert-triangle" as IconName },
+      ];
+    }
+    if (role === "sindico" || role === "conselho") {
+      return [
+        { id: "inicio", label: "Início", href: "/painel", icon: "grid" as IconName },
+        { id: "ocorrencias", label: "Ocorrências", href: "/painel/ocorrencias", icon: "clipboard" as IconName },
+        { id: "reservas", label: "Reservas", href: "/painel/reservas", icon: "calendar" as IconName },
+        { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail" as IconName },
+        { id: "servicos", label: "Serviços", href: "/painel/servicos", icon: "briefcase" as IconName },
+        { id: "moradores", label: "Moradores", href: "/painel/moradores", icon: "users" as IconName },
+        { id: "financeiro", label: "Financeiro", href: "/painel/financeiro", icon: "wallet" as IconName },
+      ];
+    }
+    // Padrão Morador (fiel à referência visual)
+    return [
+      { id: "inicio", label: "Início", href: "/painel", icon: "grid" as IconName },
+      { id: "registrar", label: "Registrar ocorrência", href: "/painel/ocorrencias?nova=1", icon: "plus" as IconName },
+      { id: "acompanhar", label: "Acompanhar", href: "/painel/ocorrencias", icon: "clipboard" as IconName },
+      { id: "servicos", label: "Serviços", href: "/painel/servicos", icon: "grid" as IconName },
+      { id: "comunicados", label: "Comunicados", href: "/painel/comunicados", icon: "mail" as IconName },
+      { id: "transparencia", label: "Transparência", href: "/painel/documentos", icon: "info" as IconName },
+    ];
+  }, [role]);
+
   const searchPlaceholder =
     role === "prestador"
       ? "Buscar oportunidades e chamados..."
@@ -353,80 +404,48 @@ export function Shell({
 
   const SidebarContent = (
     <div className="flex h-full flex-col bg-white text-slate-800 select-none relative">
-      {/* Brand Header */}
-      <div
-        className={`flex items-center h-14 border-b border-slate-200/80 ${
-          collapsed ? "justify-center px-2" : "justify-between px-4"
-        }`}
-      >
-        {!collapsed ? (
-          <>
-            <Link
-              href="/painel"
-              className="flex items-center gap-2 group min-w-0"
-              title="Zeladoria Condomínio"
-            >
-              <BrandLogo size="md" variant="default" showText={true} />
-            </Link>
-            <button
-              type="button"
-              onClick={toggleCollapse}
-              className="hidden lg:flex h-7 w-7 items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              title="Recolher menu lateral"
-              aria-label="Recolher menu lateral"
-            >
-              <Icon name="panel" size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="flex lg:hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              title="Fechar menu"
-              aria-label="Fechar menu"
-            >
-              <Icon name="x" size={16} />
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            className="hidden lg:flex h-8.5 w-8.5 items-center justify-center rounded-[8px] hover:bg-blue-50/60 transition-all cursor-pointer group p-1"
-            title="Expandir menu lateral"
-            aria-label="Expandir menu lateral"
-          >
-            <BrandLogo size="sm" showText={false} />
-          </button>
-        )}
+      {/* Brand Header with Dark Navy accent */}
+      <div className="flex items-center justify-between h-14 px-4 bg-[#071A38] text-white border-b border-white/10">
+        <Link
+          href="/painel"
+          onClick={() => setMobileOpen(false)}
+          className="flex items-center gap-2 group min-w-0"
+          title="Zeladoria Condomínio"
+        >
+          <BrandLogo size="md" variant="white" showText={true} />
+        </Link>
+        <button
+          type="button"
+          onClick={() => setMobileOpen(false)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title="Fechar menu"
+          aria-label="Fechar menu"
+        >
+          <Icon name="x" size={16} />
+        </button>
       </div>
 
       {/* Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Dashboard / Início (Primary Top Item) */}
         <div>
           <Link
             href={topItemHref}
             onClick={() => setMobileOpen(false)}
-            className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
+            className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-colors duration-150 ${
               isTopActive
-                ? "bg-blue-50 text-[#1355FF] font-semibold"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
-            } ${collapsed ? "justify-center px-2" : ""}`}
-            title={collapsed ? topItemLabel : undefined}
+                ? "bg-[#EAF1FF] text-[#1455FF] font-bold"
+                : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-medium"
+            }`}
+            title={topItemLabel}
           >
             <Icon
               name="grid"
-              size={15}
+              size={16}
               strokeWidth={isTopActive ? 2 : 1.75}
-              className={isTopActive ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
+              className={isTopActive ? "text-[#1455FF]" : "text-slate-400 group-hover:text-slate-600"}
             />
-            {!collapsed && <span className="truncate flex-1">{topItemLabel}</span>}
-
-            {collapsed && (
-              <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
-                {topItemLabel}
-              </span>
-            )}
+            <span className="truncate flex-1">{topItemLabel}</span>
           </Link>
         </div>
 
@@ -440,26 +459,20 @@ export function Shell({
                 <Link
                   href={group.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
+                  className={`group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-colors duration-150 ${
                     active
-                      ? "bg-blue-50 text-[#1355FF] font-semibold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
-                  } ${collapsed ? "justify-center px-2" : ""}`}
-                  title={collapsed ? group.title : undefined}
+                      ? "bg-[#EAF1FF] text-[#1455FF] font-bold"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-medium"
+                  }`}
+                  title={group.title}
                 >
                   <Icon
                     name={group.icon ?? "briefcase"}
-                    size={15}
+                    size={16}
                     strokeWidth={active ? 2 : 1.75}
-                    className={active ? "text-[#1355FF]" : "text-slate-400 group-hover:text-slate-600"}
+                    className={active ? "text-[#1455FF]" : "text-slate-400 group-hover:text-slate-600"}
                   />
-                  {!collapsed && <span className="truncate flex-1">{group.title}</span>}
-
-                  {collapsed && (
-                    <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
-                      {group.title}
-                    </span>
-                  )}
+                  <span className="truncate flex-1">{group.title}</span>
                 </Link>
               </div>
             );
@@ -477,82 +490,56 @@ export function Shell({
 
             return (
               <div key={group.id} className="pt-2.5 pb-1">
-                {!collapsed ? (
-                  <Link
-                    href="/painel/servicos"
-                    onClick={() => setMobileOpen(false)}
-                    className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-all duration-150 shadow-xs cursor-pointer ${
-                      isTiaoActive
-                        ? "bg-[#FB6B01] ring-2 ring-[#FB6B01]/50 shadow-md brightness-95"
-                        : "bg-[#FB6B01] hover:bg-[#E05F00] hover:shadow-md"
-                    }`}
-                    title="Tião Zelador · Encontrar profissional, contratações e favoritos"
-                  >
-                    <img
-                      src="/brands/tiao/mascot-white.png"
-                      alt="Tião Zelador"
-                      className="h-6 w-6 shrink-0 object-contain transition-transform group-hover:scale-105"
-                    />
-                    <div className="flex-1 min-w-0 flex items-center justify-between">
-                      <span className="font-black text-[13px] tracking-tight text-white truncate">
-                        Tião Zelador
-                      </span>
-                      <Icon
-                        name="arrow-right"
-                        size={13}
-                        className="text-white/80 transition-transform group-hover:translate-x-0.5 shrink-0"
-                      />
-                    </div>
-                  </Link>
-                ) : (
-                  <Link
-                    href="/painel/servicos"
-                    onClick={() => setMobileOpen(false)}
-                    className={`group relative flex items-center justify-center h-10 w-10 mx-auto rounded-xl text-white transition-all duration-150 shadow-xs cursor-pointer ${
-                      isTiaoActive
-                        ? "bg-[#FB6B01] ring-2 ring-[#FB6B01]/50 shadow-md brightness-95"
-                        : "bg-[#FB6B01] hover:bg-[#E05F00] hover:shadow-md"
-                    }`}
-                    title="Tião Zelador"
-                  >
-                    <img
-                      src="/brands/tiao/mascot-white.png"
-                      alt="Tião Zelador"
-                      className="h-6 w-6 object-contain transition-transform group-hover:scale-110"
-                    />
-                    <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
+                <Link
+                  href="/painel/servicos"
+                  onClick={() => setMobileOpen(false)}
+                  className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-all duration-150 shadow-xs cursor-pointer ${
+                    isTiaoActive
+                      ? "bg-[#1455FF] ring-2 ring-[#1455FF]/40 shadow-md"
+                      : "bg-[#1455FF] hover:bg-[#0048E8] hover:shadow-md"
+                  }`}
+                  title="Tião Zelador · Encontrar profissional, contratações e favoritos"
+                >
+                  <img
+                    src="/brands/tiao/mascot-white.png"
+                    alt="Tião Zelador"
+                    className="h-6 w-6 shrink-0 object-contain transition-transform group-hover:scale-105"
+                  />
+                  <div className="flex-1 min-w-0 flex items-center justify-between">
+                    <span className="font-black text-[13px] tracking-tight text-white truncate">
                       Tião Zelador
                     </span>
-                  </Link>
-                )}
+                    <Icon
+                      name="arrow-right"
+                      size={13}
+                      className="text-white/80 transition-transform group-hover:translate-x-0.5 shrink-0"
+                    />
+                  </div>
+                </Link>
               </div>
             );
           }
 
           return (
             <div key={group.id} className="pt-2.5">
-              {!collapsed ? (
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className={hasActiveChild ? (isTiaoGroup ? "text-[#FB6B01] font-bold" : "text-[#1355FF] font-bold") : ""}>
-                      {group.title}
-                    </span>
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.id)}
+                className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className={hasActiveChild ? "text-[#1455FF] font-extrabold" : ""}>
+                    {group.title}
                   </span>
-                  <Icon
-                    name="chevron-down"
-                    size={11}
-                    className={`text-slate-400 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
-                  />
-                </button>
-              ) : (
-                <div className="my-1.5 border-t border-slate-100" />
-              )}
+                </span>
+                <Icon
+                  name="chevron-down"
+                  size={11}
+                  className={`text-slate-400 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
+                />
+              </button>
 
-              {(isExpanded || collapsed) && (
+              {isExpanded && (
                 <div className="mt-0.5 space-y-0.5">
                   {group.items.map((item) => {
                     const active = isRouteActive(item.href);
@@ -562,16 +549,12 @@ export function Shell({
                         key={item.id || item.label}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors duration-150 ${
+                        className={`group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors duration-150 ${
                           active
-                            ? isTiaoGroup
-                              ? "bg-[#FB6B01] text-white font-semibold shadow-xs"
-                              : "bg-blue-50 text-[#1355FF] font-semibold"
-                            : isTiaoGroup
-                            ? "text-slate-600 hover:text-[#FB6B01] hover:bg-orange-50/60 font-medium"
+                            ? "bg-[#EAF1FF] text-[#1455FF] font-bold"
                             : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium"
-                        } ${collapsed ? "justify-center px-2" : ""}`}
-                        title={collapsed ? item.label : undefined}
+                        }`}
+                        title={item.label}
                       >
                         <Icon
                           name={item.icon}
@@ -579,36 +562,24 @@ export function Shell({
                           strokeWidth={active ? 2 : 1.75}
                           className={
                             active
-                              ? isTiaoGroup
-                                ? "text-white"
-                                : "text-[#1355FF]"
-                              : isTiaoGroup
-                              ? "text-slate-400 group-hover:text-[#FB6B01]"
+                              ? "text-[#1455FF]"
                               : "text-slate-400 group-hover:text-slate-600"
                           }
                         />
-                        {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+                        <span className="truncate flex-1">{item.label}</span>
 
                         {/* Real dynamic notification badge */}
-                        {!collapsed && item.badge && item.badge > 0 ? (
+                        {item.badge && item.badge > 0 ? (
                           <span
                             className={`ml-auto flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-semibold ${
                               active
-                                ? isTiaoGroup
-                                  ? "bg-white/20 text-white"
-                                  : "bg-blue-100 text-[#1355FF]"
+                                ? "bg-blue-100 text-[#1455FF]"
                                 : "bg-slate-100 text-slate-700"
                             }`}
                           >
                             {item.badge}
                           </span>
                         ) : null}
-
-                        {collapsed && (
-                          <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 hidden whitespace-nowrap rounded-md border border-slate-200 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white shadow-lg group-hover:block">
-                            {item.label}
-                          </span>
-                        )}
                       </Link>
                     );
                   })}
@@ -620,62 +591,108 @@ export function Shell({
       </nav>
 
       {/* Bottom Section: User Profile Footer */}
-      <div className="p-2.5 pt-2 space-y-1 border-t border-slate-200/80 bg-white">
-        {/* User Profile Bar */}
+      <div className="p-3 border-t border-slate-200/80 bg-slate-50/50">
         <div ref={profileContainerRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            className={`w-full flex items-center gap-2 rounded-[8px] p-1.5 text-left hover:bg-slate-100/80 transition-colors ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1355FF] text-xs font-extrabold border border-blue-200/60 shadow-2xs">
+          <div className="flex items-center gap-2.5 p-1.5">
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EAF1FF] text-[#1455FF] text-xs font-black border border-[#1455FF]/20 shadow-xs">
               {userName.slice(0, 1).toUpperCase()}
               <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
             </span>
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-slate-800">{userName}</p>
-                <p className="truncate text-[10px] text-slate-500 font-medium">
-                  {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
-                </p>
-              </div>
-            )}
-            {!collapsed && <Icon name="more" size={14} className="text-slate-400" />}
-          </button>
-
-          {/* Profile Popup Menu */}
-          {profileMenuOpen && (
-            <div
-              className={`absolute z-50 rounded-[14px] border border-slate-200 bg-white p-1.5 text-slate-800 shadow-2xl animate-in fade-in-50 duration-100 max-h-[calc(100vh-120px)] overflow-y-auto [scrollbar-width:thin] ${
-                collapsed
-                  ? "bottom-0 left-[calc(100%+10px)] w-60"
-                  : "bottom-[calc(100%+8px)] left-0 right-0 w-full"
-              }`}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-slate-900">{userName}</p>
+              <p className="truncate text-[10px] text-slate-500 font-medium">
+                {roleLabel} {unitLabel ? `· Unid. ${unitLabel}` : ""}
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
+            <Link
+              href="/painel/perfil"
+              onClick={() => setMobileOpen(false)}
+              className="text-xs font-bold text-[#1455FF] hover:underline flex items-center gap-1"
             >
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
-                <p className="text-[10px] text-slate-500">
-                  {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
-                </p>
-              </div>
-              <div className="py-1 space-y-0.5">
-                <Link
-                  href="/painel/perfil"
-                  onClick={() => setProfileMenuOpen(false)}
-                  className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1355FF] transition-colors"
-                >
-                  <Icon name="user" size={14} className="text-[#1355FF]" />
-                  <span>Meu Perfil</span>
-                </Link>
+              <Icon name="user" size={13} />
+              <span>Meu perfil</span>
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Icon name="logout" size={13} />
+                <span>Sair</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-                {condos.length > 1 && (
-                  <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Trocar Condomínio
-                    </span>
-                    <div className="mt-1 space-y-0.5">
+  return (
+    <div className="min-h-screen bg-[#F5F8FC] flex flex-col selection:bg-blue-100 selection:text-[#1455FF]">
+      {/* Top Navbar: Horizontal Dark Navy (#071A38) inspirado na referência visual */}
+      <header className="sticky top-0 z-40 w-full bg-[#071A38] text-white border-b border-white/10 shadow-[0_2px_12px_rgba(7,26,56,0.18)] select-none">
+        <div className="w-full max-w-[1480px] mx-auto h-16 px-3 sm:px-6 flex items-center justify-between gap-3">
+          {/* Lado Esquerdo: Menu / Drawer + Logo Branca + Seletor de Condomínio */}
+          <div className="flex items-center gap-3 shrink-0 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Menu completo de serviços"
+              aria-label="Abrir menu"
+            >
+              <Icon name="menu" size={20} />
+            </button>
+
+            <Link
+              href={topItemHref}
+              className="flex items-center gap-2 group min-w-0 shrink-0"
+              title="Zeladoria Condomínio"
+            >
+              <BrandLogo size="md" variant="white" showText={true} />
+            </Link>
+
+            {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio) */}
+            {role !== "prestador" && role !== "superadmin" && (
+              <div ref={condoRef} className="relative min-w-0 hidden md:block">
+                <button
+                  type="button"
+                  onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
+                  disabled={isSwitchingCondo}
+                  className={`group flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/15 px-2.5 py-1 text-xs font-semibold text-white/90 transition-colors ${
+                    condos.length > 1 ? "cursor-pointer" : "cursor-default"
+                  }`}
+                  title={condos.length > 1 ? "Trocar condomínio" : condoName}
+                >
+                  <span className="flex h-4 w-4 items-center justify-center rounded-[4px] bg-[#1455FF] text-white shrink-0">
+                    {isSwitchingCondo ? (
+                      <Icon name="refresh" size={10} className="animate-spin text-white" />
+                    ) : (
+                      <Icon name="building" size={10} strokeWidth={2} />
+                    )}
+                  </span>
+                  <span className="truncate max-w-[120px] xl:max-w-[180px]">
+                    {condoName || "Residencial Parque das Águas"}
+                  </span>
+                  {condos.length > 1 && (
+                    <Icon
+                      name="chevron-down"
+                      size={10}
+                      className={`text-white/60 group-hover:text-white transition-transform shrink-0 ${
+                        condoDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
+                </button>
+
+                {condoDropdownOpen && (
+                  <div className="absolute left-0 z-50 mt-1.5 w-64 shadow-2xl rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 animate-in fade-in-50 duration-100">
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Selecione o Condomínio
+                    </div>
+                    <div className="space-y-0.5 mt-1 max-h-60 overflow-y-auto">
                       {condos.map((c) => {
                         const isActive = c.id === activeCondoId;
                         const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
@@ -685,17 +702,17 @@ export function Shell({
                             type="button"
                             disabled={isSwitchingCondo}
                             onClick={() => handleCondoSwitch(c.id)}
-                            className={`w-full text-left rounded-[7px] px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-left transition-colors cursor-pointer ${
                               isActive
-                                ? "bg-blue-50 font-bold text-[#1355FF]"
-                                : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                ? "font-bold text-[#1455FF] bg-blue-50"
+                                : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                             }`}
                           >
-                            <span className="truncate flex-1 text-[11px] leading-snug">{c.name}</span>
+                            <span className="truncate">{c.name}</span>
                             {isSwitchingThis ? (
-                              <Icon name="refresh" size={12} className="animate-spin text-[#1355FF] shrink-0" />
+                              <Icon name="refresh" size={13} className="animate-spin text-[#1455FF]" />
                             ) : isActive ? (
-                              <Icon name="check" size={12} className="text-[#1355FF] shrink-0" />
+                              <Icon name="check" size={13} className="text-[#1455FF]" />
                             ) : null}
                           </button>
                         );
@@ -703,147 +720,63 @@ export function Shell({
                     </div>
                   </div>
                 )}
-
-                {/* Troca de Contexto: Morador vs Tião Parceiros (Prompt Item 54) */}
-                <div className="px-3 py-1.5 border-t border-slate-100 my-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    Usar como:
-                  </span>
-                  <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-slate-100">
-                    <Link
-                      href="/painel"
-                      onClick={() => setProfileMenuOpen(false)}
-                      className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
-                        role !== "prestador"
-                          ? "bg-white text-[#1355FF] shadow-2xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      Morador
-                    </Link>
-                    <Link
-                      href="/prestador"
-                      onClick={() => setProfileMenuOpen(false)}
-                      className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
-                        role === "prestador"
-                          ? "bg-[#FB6B01] text-white shadow-2xs"
-                          : "text-slate-600 hover:text-[#FB6B01]"
-                      }`}
-                    >
-                      Tião Parceiros
-                    </Link>
-                  </div>
-                </div>
-
-                {(role === "sindico" || role === "superadmin") && (
-                  <Link
-                    href="/painel/configuracoes"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1355FF] transition-colors"
-                  >
-                    <Icon name="settings" size={14} className="text-slate-500" />
-                    <span>Configurações</span>
-                  </Link>
-                )}
-
-                <div className="my-1 border-t border-slate-100" />
-                <form action={logout}>
-                  <button
-                    type="submit"
-                    className="w-full flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                  >
-                    <Icon name="logout" size={14} />
-                    <span>Sair da conta</span>
-                  </button>
-                </form>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+            )}
+          </div>
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Desktop Sidebar with clean full-height style */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200/90 bg-white transition-[width] duration-200 lg:block ${
-          collapsed ? "w-[72px]" : "w-[240px]"
-        }`}
-      >
-        {SidebarContent}
-      </aside>
+          {/* Centro: Links de Navegação Horizontal (Desktop) */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+            {topNavItems.map((item) => {
+              const active = isRouteActive(item.href);
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 ${
+                    active
+                      ? "bg-white/15 text-white border border-white/20 shadow-xs"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <Icon name={item.icon} size={15} className={active ? "text-white" : "text-white/70"} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-      {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden
-          />
-          <aside className="absolute inset-y-0 left-0 w-[260px] bg-white shadow-2xl animate-in slide-in-from-left duration-200 border-r border-slate-200">
-            {SidebarContent}
-          </aside>
-        </div>
-      )}
+          {/* Lado Direito: Busca + Notificações + Botão "Meu perfil" */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Global Search Trigger (Desktop) */}
+            <div ref={searchRef} className="relative hidden xl:block w-44">
+              <Icon name="search" size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/50" />
+              <input
+                id="global-search-input"
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onFocus={() => setSearchFocused(true)}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-full rounded-lg border border-white/15 bg-white/10 hover:bg-white/15 pl-8 pr-9 text-xs text-white placeholder:text-white/50 outline-none focus:border-white/30 focus:bg-white/20 transition-all"
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <kbd className="text-[9px] font-mono font-bold text-white/60 bg-white/10 border border-white/20 px-1 py-0.5 rounded">⌘K</kbd>
+              </span>
 
-      {/* Main Column Wrapper */}
-      <div
-        className={`flex min-h-screen flex-col transition-[padding] duration-200 ${
-          collapsed ? "lg:pl-[72px]" : "lg:pl-[240px]"
-        }`}
-      >
-        {/* Global Minimalist Header - Executivo, Compacto e Integrado */}
-        <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-slate-200/80 bg-white px-3 sm:px-6 shadow-[0_1px_2px_rgba(15,23,42,0.02)] relative">
-          {/* Mobile Full-width Search Bar Overlay */}
-          {searchMobileOpen && (
-            <div className="absolute inset-0 z-50 flex items-center bg-white px-3 sm:px-6 shadow-md animate-in fade-in duration-150">
-              <div className="relative flex-1 flex items-center">
-                <Icon name="search" size={15} className="absolute left-3 text-slate-400" />
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder={searchPlaceholder}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10 w-full rounded-[8px] border border-blue-200 bg-slate-50 pl-9 pr-8 text-xs text-slate-900 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 p-1"
-                  >
-                    <Icon name="x" size={13} />
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchMobileOpen(false);
-                  setSearchQuery("");
-                }}
-                className="ml-2 text-xs font-semibold text-slate-600 hover:text-slate-900 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-              >
-                Cancelar
-              </button>
-              {/* Autocomplete dropdown mobile */}
-              {searchQuery.trim().length > 0 && (
-                <div className="absolute left-3 right-3 top-full mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-2xl z-50">
+              {/* Search dropdown desktop */}
+              {searchFocused && searchQuery.trim().length > 0 && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 max-h-80 overflow-y-auto shadow-2xl rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800">
                   {searchResults.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-400">
-                      Nenhum resultado encontrado para &quot;{searchQuery}&quot;
+                      Nenhum resultado para &quot;{searchQuery}&quot;
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {Object.entries(groupedSearchResults).map(([cat, items]) => {
                         if (items.length === 0) return null;
                         return (
-                          <div key={cat}>
-                            <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-md">
+                          <div key={cat} className="space-y-0.5">
+                            <div className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-[4px]">
                               {cat}
                             </div>
                             {items.map((item) => (
@@ -851,7 +784,7 @@ export function Shell({
                                 key={item.title}
                                 href={item.href}
                                 onClick={() => {
-                                  setSearchMobileOpen(false);
+                                  setSearchFocused(false);
                                   setSearchQuery("");
                                 }}
                                 className="block p-2 rounded-lg hover:bg-blue-50/70 transition-colors"
@@ -868,173 +801,13 @@ export function Shell({
                 </div>
               )}
             </div>
-          )}
 
-          {/* Left section: Hamburger (mobile only) + Mobile Logo + Condo Switcher */}
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] text-slate-600 hover:bg-slate-100 lg:hidden shrink-0"
-              aria-label="Abrir menu"
-            >
-              <Icon name="menu" size={18} />
-            </button>
-
-            {/* Mobile logo only */}
-            <div className="lg:hidden shrink-0">
-              <BrandLogo size="md" showText={false} />
-            </div>
-
-            {/* Condo Selector Dropdown (apenas para usuários vinculados a condomínio: morador, síndico, portaria, conselho) */}
-            {role !== "prestador" && role !== "superadmin" && (
-              <div ref={condoRef} className="relative min-w-0">
-                <button
-                  type="button"
-                  onClick={() => condos.length > 1 && setCondoDropdownOpen(!condoDropdownOpen)}
-                  disabled={isSwitchingCondo}
-                  className={`group flex items-center gap-1.5 sm:gap-2 rounded-[8px] border border-slate-200 bg-white hover:bg-slate-50 px-2 sm:px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs transition-colors hover:border-slate-300 ${
-                    condos.length > 1 ? "cursor-pointer" : "cursor-default"
-                  }`}
-                  title={condos.length > 1 ? "Trocar condomínio" : condoName}
-                >
-                  <span className="flex h-4.5 w-4.5 items-center justify-center rounded-[4px] bg-blue-50 text-[#1355FF] shrink-0">
-                    {isSwitchingCondo ? (
-                      <Icon name="refresh" size={12} className="animate-spin text-[#1355FF]" />
-                    ) : (
-                      <Icon name="building" size={12} strokeWidth={2} />
-                    )}
-                  </span>
-                  <span className="truncate max-w-[100px] xs:max-w-[150px] sm:max-w-[240px]">
-                    {condoName || "Residencial Parque das Águas"}
-                  </span>
-                  {condos.length > 1 && (
-                    <Icon
-                      name="chevron-down"
-                      size={11}
-                      className={`text-slate-400 group-hover:text-slate-600 transition-transform shrink-0 ${
-                        condoDropdownOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  )}
-                </button>
-
-                {condoDropdownOpen && (
-                  <div className="menu-surface absolute left-0 z-50 mt-1.5 w-64 shadow-xl rounded-[10px] border border-slate-200 p-1.5 animate-in fade-in-50 duration-100">
-                    <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Selecione o Condomínio
-                    </div>
-                    <div className="space-y-0.5 mt-1">
-                      {condos.map((c) => {
-                        const isActive = c.id === activeCondoId;
-                        const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            disabled={isSwitchingCondo}
-                            onClick={() => handleCondoSwitch(c.id)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs text-left transition-colors cursor-pointer ${
-                              isActive
-                                ? "font-bold text-[#1355FF] bg-blue-50"
-                                : "text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                            }`}
-                          >
-                            <span className="truncate">{c.name}</span>
-                            {isSwitchingThis ? (
-                              <Icon name="refresh" size={13} className="animate-spin text-[#1355FF]" />
-                            ) : isActive ? (
-                              <Icon name="check" size={13} className="text-[#1355FF]" />
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Context Badge for Prestador */}
-            {role === "prestador" && (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-[8px] bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-semibold select-none">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="hidden xs:inline">Online para chamados</span>
-              </div>
-            )}
-
-            {/* Context Badge for Admin */}
-            {role === "superadmin" && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold select-none">
-                <Icon name="shield" size={13} className="text-[#1355FF]" />
-                <span className="hidden xs:inline">Admin da Plataforma</span>
-              </div>
-            )}
-          </div>
-
-          {/* Center: Functional Global Search with command-bar style */}
-          <div ref={searchRef} className="relative hidden md:block flex-1 max-w-md mx-6">
-            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              id="global-search-input"
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onFocus={() => setSearchFocused(true)}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-[8px] border border-slate-200 bg-slate-50/70 hover:bg-white pl-9 pr-12 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1355FF] focus:bg-white focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-              <kbd className="text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-[4px] shadow-2xs">⌘K</kbd>
-            </span>
-
-            {/* Search Autocomplete Results Dropdown */}
-            {searchFocused && searchQuery.trim().length > 0 && (
-              <div className="menu-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto shadow-xl rounded-[10px] border border-slate-200 p-1.5">
-                {searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-slate-400">
-                    Nenhum resultado encontrado para &quot;{searchQuery}&quot;
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {Object.entries(groupedSearchResults).map(([cat, items]) => {
-                      if (items.length === 0) return null;
-                      return (
-                        <div key={cat} className="space-y-0.5">
-                          <div className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 rounded-[4px]">
-                            {cat}
-                          </div>
-                          {items.map((item) => (
-                            <Link
-                              key={item.title}
-                              href={item.href}
-                              onClick={() => {
-                                setSearchFocused(false);
-                                setSearchQuery("");
-                              }}
-                              className="block p-2 rounded-[6px] hover:bg-blue-50/70 transition-colors"
-                            >
-                              <p className="text-xs font-bold text-slate-900">{item.title}</p>
-                              <p className="text-[11px] text-slate-500">{item.subtitle}</p>
-                            </Link>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right: Search Mobile + Notifications Dropdown + User Avatar */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Mobile Search Button (apenas telas < md) */}
+            {/* Mobile Search Button */}
             <button
               type="button"
               onClick={() => setSearchMobileOpen(true)}
               title="Buscar no sistema"
-              className="flex md:hidden h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+              className="flex xl:hidden h-8.5 w-8.5 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
               aria-label="Abrir busca"
             >
               <Icon name="search" size={15} />
@@ -1046,22 +819,22 @@ export function Shell({
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 title="Notificações"
-                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs transition-colors"
+                className="relative flex h-8.5 w-8.5 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-colors cursor-pointer"
                 aria-label="Abrir notificações"
               >
                 <Icon name="bell" size={15} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#FFD000] ring-2 ring-white" />
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#1455FF] ring-2 ring-[#071A38]" />
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="menu-surface absolute right-0 z-50 mt-1.5 w-80 shadow-xl rounded-[10px] border border-slate-200 overflow-hidden">
+                <div className="absolute right-0 z-50 mt-2 w-80 shadow-2xl rounded-xl border border-slate-200 bg-white overflow-hidden text-slate-800">
                   <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/70">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-xs font-bold text-slate-900">Notificações</h4>
                       {unreadCount > 0 && (
-                        <span className="rounded-full bg-amber-100 px-1.5 py-0.2 text-[9px] font-bold text-amber-800">
+                        <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[9px] font-bold text-[#1455FF]">
                           {unreadCount}
                         </span>
                       )}
@@ -1070,7 +843,7 @@ export function Shell({
                       <button
                         type="button"
                         onClick={markAllAsRead}
-                        className="text-[10px] font-bold text-[#1355FF] hover:underline"
+                        className="text-[10px] font-bold text-[#1455FF] hover:underline cursor-pointer"
                       >
                         Marcar lidas
                       </button>
@@ -1099,7 +872,7 @@ export function Shell({
                         >
                           <span
                             className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-[6px] text-xs ${
-                              !notif.read ? "bg-[#1355FF] text-white" : "bg-slate-100 text-slate-500"
+                              !notif.read ? "bg-[#1455FF] text-white" : "bg-slate-100 text-slate-500"
                             }`}
                           >
                             <Icon name={notif.icon} size={13} />
@@ -1116,7 +889,7 @@ export function Shell({
                             </span>
                           </div>
                           {!notif.read && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#1355FF] shrink-0 mt-1" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#1455FF] shrink-0 mt-1" />
                           )}
                         </Link>
                       ))
@@ -1127,7 +900,7 @@ export function Shell({
                     <Link
                       href="/painel/notificacoes"
                       onClick={() => setNotificationsOpen(false)}
-                      className="text-xs font-bold text-[#1355FF] hover:underline block py-1"
+                      className="text-xs font-bold text-[#1455FF] hover:underline block py-1"
                     >
                       Ver todas as notificações →
                     </Link>
@@ -1136,141 +909,253 @@ export function Shell({
               )}
             </div>
 
-            {/* Profile Avatar with Online Status */}
-            <Link
-              href="/painel/perfil"
-              title="Meu Perfil"
-              className="relative flex items-center justify-center rounded-[8px] p-0.5 hover:ring-2 hover:ring-blue-100 transition-all group"
-            >
-              <span className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#1355FF] text-white text-xs font-bold shadow-2xs group-hover:bg-[#0D47E6] transition-colors">
-                {userName.slice(0, 1).toUpperCase()}
-              </span>
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-500/20" />
-            </Link>
-          </div>
-        </header>
+            {/* BOTÃO "MEU PERFIL" — FIEL À REFERÊNCIA VISUAL */}
+            <div ref={profileContainerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-100 text-[#071A38] px-3 py-1.5 text-xs font-bold shadow-sm transition-all cursor-pointer"
+                title="Abrir opções de perfil"
+              >
+                <Icon name="user" size={14} className="text-[#071A38]" />
+                <span className="hidden sm:inline">Meu perfil</span>
+              </button>
 
-        {/* Content Body: Max width 1440px to 1600px, avoiding unbounded stretching on ultra-wide screens */}
-        <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-28 lg:pb-12 max-w-[1440px] mx-auto">
-          {children}
-        </main>
-
-        {/* Mobile Fixed Bottom Navigation (Configured by Role) */}
-        {(() => {
-          const isTiaoRoute =
-            pathname?.startsWith("/painel/servicos") ||
-            pathname?.startsWith("/painel/chamados") ||
-            pathname?.startsWith("/prestador");
-
-          return (
-            <nav
-              className={`fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around px-1 py-1 lg:hidden shadow-lg select-none pb-[max(env(safe-area-inset-bottom),0.35rem)] transition-colors ${
-                isTiaoRoute
-                  ? "bg-white border-t border-slate-200 text-slate-600"
-                  : "bg-[#1355FF] border-t border-white/10 text-white"
-              }`}
-            >
-              {(mobileNav && mobileNav.length > 0
-                ? mobileNav
-                : [
-                    { id: "inicio", href: "/painel", label: "Início", icon: "grid" as IconName },
-                    { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
-                    { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
-                    { id: "servicos", href: "/painel/servicos", label: "Tião", icon: "tiao" as IconName },
-                    { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
-                  ]
-              ).map((item) => {
-                const isDrawerOpener = item.id === "mais" || item.href === "#drawer";
-                const active = !isDrawerOpener && isRouteActive(item.href);
-                const isTiaoItem = item.id === "servicos" || item.label.toLowerCase().includes("tião") || item.icon === "tiao";
-
-                if (isDrawerOpener) {
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setMobileOpen(true)}
-                      className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors cursor-pointer ${
-                        isTiaoRoute ? "text-slate-400 hover:text-slate-600" : "text-blue-100/80 hover:text-white"
-                      }`}
-                    >
-                      <div className="relative flex items-center justify-center">
-                        <Icon name={item.icon} size={17} strokeWidth={1.8} />
-                      </div>
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                }
-
-                if (isTiaoItem) {
-                  return (
+              {/* Profile Popup Menu */}
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 text-slate-800 shadow-2xl animate-in fade-in-50 duration-100">
+                  <div className="px-3 py-2 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
+                    <p className="text-[10px] text-slate-500">
+                      {roleLabel} {unitLabel ? `· Unidade ${unitLabel}` : ""}
+                    </p>
+                  </div>
+                  <div className="py-1 space-y-0.5">
                     <Link
-                      key={item.href}
-                      href={item.href}
-                      className="flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] transition-all cursor-pointer"
+                      href="/painel/perfil"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1455FF] transition-colors"
                     >
-                      <div
-                        className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 rounded-xl transition-all ${
-                          active
-                            ? "bg-[#FB6B01] text-white font-black shadow-2xs"
-                            : isTiaoRoute
-                            ? "text-slate-400 hover:text-slate-700 font-semibold"
-                            : "text-blue-100/80 hover:text-white font-semibold"
-                        }`}
-                      >
-                        <div className="relative flex items-center justify-center">
-                          <Icon
-                            name={item.icon}
-                            size={17}
-                            strokeWidth={active ? 2.2 : 1.8}
-                            className={active || !isTiaoRoute ? "text-white" : ""}
-                          />
-                        </div>
-                        <span className="text-[10px] tracking-tight">{item.label}</span>
-                      </div>
+                      <Icon name="user" size={14} className="text-[#1455FF]" />
+                      <span>Meu Perfil</span>
                     </Link>
-                  );
-                }
 
-                const activeColor = isTiaoRoute
-                  ? "text-slate-900 font-bold"
-                  : "text-[#FFD000] font-black";
+                    {condos.length > 1 && (
+                      <div className="px-3 py-1.5 border-t border-b border-slate-100 my-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Trocar Condomínio
+                        </span>
+                        <div className="mt-1 space-y-0.5">
+                          {condos.map((c) => {
+                            const isActive = c.id === activeCondoId;
+                            const isSwitchingThis = isSwitchingCondo && switchingCondoId === c.id;
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                disabled={isSwitchingCondo}
+                                onClick={() => handleCondoSwitch(c.id)}
+                                className={`w-full text-left rounded-lg px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${
+                                  isActive
+                                    ? "bg-blue-50 font-bold text-[#1455FF]"
+                                    : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                }`}
+                              >
+                                <span className="truncate flex-1 text-[11px] leading-snug">{c.name}</span>
+                                {isSwitchingThis ? (
+                                  <Icon name="refresh" size={12} className="animate-spin text-[#1455FF] shrink-0" />
+                                ) : isActive ? (
+                                  <Icon name="check" size={12} className="text-[#1455FF] shrink-0" />
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
-                const inactiveColor = isTiaoRoute ? "text-slate-400 hover:text-slate-600" : "text-blue-100/80 hover:text-white";
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-[10px] font-semibold transition-colors ${
-                      active ? activeColor : inactiveColor
-                    }`}
-                  >
-                    <div className="relative flex items-center justify-center">
-                      <Icon
-                        name={item.icon}
-                        size={17}
-                        strokeWidth={active ? 2.2 : 1.8}
-                      />
-                      {active && (
-                        <span
-                          className={`absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full ${
-                            isTiaoRoute ? "bg-[#FB6B01]" : "bg-[#FFD000]"
+                    {/* Troca de Contexto: Morador vs Tião Parceiros */}
+                    <div className="px-3 py-1.5 border-t border-slate-100 my-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        Usar como:
+                      </span>
+                      <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-slate-100">
+                        <Link
+                          href="/painel"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
+                            role !== "prestador"
+                              ? "bg-white text-[#1455FF] shadow-2xs"
+                              : "text-slate-600 hover:text-slate-900"
                           }`}
-                        />
-                      )}
+                        >
+                          Morador
+                        </Link>
+                        <Link
+                          href="/prestador"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className={`text-center py-1 rounded-md text-[11px] font-bold transition-all ${
+                            role === "prestador"
+                              ? "bg-[#1455FF] text-white shadow-2xs"
+                              : "text-slate-600 hover:text-[#1455FF]"
+                          }`}
+                        >
+                          Tião Parceiros
+                        </Link>
+                      </div>
                     </div>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          );
-        })()}
 
-        {/* Botão Flutuante de SOS e Central de Emergência 24h (Celular e Desktop) */}
-        <EmergencySos condoName={condoName} />
-      </div>
+                    {(role === "sindico" || role === "superadmin") && (
+                      <Link
+                        href="/painel/configuracoes"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#1455FF] transition-colors"
+                      >
+                        <Icon name="settings" size={14} className="text-slate-500" />
+                        <span>Configurações</span>
+                      </Link>
+                    )}
+
+                    <div className="my-1 border-t border-slate-100" />
+                    <form action={logout}>
+                      <button
+                        type="submit"
+                        className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      >
+                        <Icon name="logout" size={14} />
+                        <span>Sair da conta</span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Full-width Search Bar Overlay */}
+        {searchMobileOpen && (
+          <div className="absolute inset-0 z-50 flex items-center bg-[#071A38] px-3 sm:px-6 shadow-md animate-in fade-in duration-150">
+            <div className="relative flex-1 flex items-center">
+              <Icon name="search" size={15} className="absolute left-3 text-white/50" />
+              <input
+                type="text"
+                autoFocus
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-10 w-full rounded-xl border border-white/20 bg-white/10 pl-9 pr-8 text-xs text-white placeholder:text-white/50 outline-none focus:bg-white/20"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 text-white/60 hover:text-white p-1"
+                >
+                  <Icon name="x" size={13} />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchMobileOpen(false);
+                setSearchQuery("");
+              }}
+              className="ml-2 text-xs font-semibold text-white/80 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/10 cursor-pointer shrink-0"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* Drawer com Menu Completo e Navegação por Grupos */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+          <aside className="absolute inset-y-0 left-0 w-[280px] sm:w-[320px] bg-white shadow-2xl animate-in slide-in-from-left duration-200 border-r border-slate-200 flex flex-col z-50">
+            {SidebarContent}
+          </aside>
+        </div>
+      )}
+
+      {/* Main Content Body */}
+      <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12 max-w-[1480px] mx-auto min-w-0">
+        {children}
+      </main>
+
+      {/* Mobile Fixed Bottom Navigation */}
+      {(() => {
+        const isTiaoRoute =
+          pathname?.startsWith("/painel/servicos") ||
+          pathname?.startsWith("/painel/chamados") ||
+          pathname?.startsWith("/prestador");
+
+        return (
+          <nav
+            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around px-1 py-1 lg:hidden bg-[#071A38] border-t border-white/10 text-white shadow-[0_-4px_16px_rgba(7,26,56,0.25)] select-none pb-[max(env(safe-area-inset-bottom),0.35rem)]"
+          >
+            {(mobileNav && mobileNav.length > 0
+              ? mobileNav
+              : [
+                  { id: "inicio", href: "/painel", label: "Início", icon: "grid" as IconName },
+                  { id: "ocorrencias", href: "/painel/ocorrencias", label: "Ocorrências", icon: "clipboard" as IconName },
+                  { id: "reservas", href: "/painel/reservas", label: "Reservas", icon: "calendar" as IconName },
+                  { id: "servicos", href: "/painel/servicos", label: "Tião", icon: "tiao" as IconName },
+                  { id: "perfil", href: "/painel/perfil", label: "Perfil", icon: "user" as IconName },
+                ]
+            ).map((item) => {
+              const isDrawerOpener = item.id === "mais" || item.href === "#drawer";
+              const active = !isDrawerOpener && isRouteActive(item.href);
+
+              if (isDrawerOpener) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setMobileOpen(true)}
+                    className="flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg text-[10px] font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Icon name={item.icon} size={17} strokeWidth={1.8} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                    active ? "text-white font-bold" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  <div className="relative flex items-center justify-center">
+                    <Icon
+                      name={item.icon}
+                      size={17}
+                      strokeWidth={active ? 2.2 : 1.8}
+                      className={active ? "text-[#1455FF]" : ""}
+                    />
+                    {active && (
+                      <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-[#1455FF]" />
+                    )}
+                  </div>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        );
+      })()}
+
+      {/* Botão Flutuante de SOS e Central de Emergência 24h */}
+      <EmergencySos condoName={condoName} />
     </div>
   );
 }

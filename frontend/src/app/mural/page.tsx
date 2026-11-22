@@ -32,7 +32,7 @@ export default async function MuralPage({ searchParams }: { searchParams: Promis
           </div>
         </div>
         <div className="text-right">
-          <p className="text-4xl font-black tabular-nums text-[#0070F3]">{currentDate}</p>
+          <p className="text-4xl font-black tabular-nums text-[#1455FF]">{currentDate}</p>
           <p className="text-xs text-[var(--color-muted)] font-medium">Mural Digital · Atualização em tempo real</p>
         </div>
       </header>
@@ -53,7 +53,7 @@ export default async function MuralPage({ searchParams }: { searchParams: Promis
                 }`}
               >
                 <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-[var(--color-muted)] font-bold">
-                  <span className="chip bg-blue-50 text-[#0070F3]">{item.category}</span>
+                  <span className="chip bg-blue-50 text-[#1455FF]">{item.category}</span>
                   <span>{dateBR(item.publishedAt)}</span>
                   {item.pinned ? <span className="chip bg-[#FEF3C7] text-[#B45309]">fixado</span> : null}
                 </div>
@@ -74,13 +74,13 @@ export default async function MuralPage({ searchParams }: { searchParams: Promis
             agenda.map((item, index) => (
               <div key={index} className="rounded-[14px] border border-[var(--color-line)] bg-white p-4 shadow-xs">
                 <p className="text-lg font-bold text-[var(--color-ink)]">{item.amenity}</p>
-                <p className="text-sm font-semibold text-[#0070F3]">
+                <p className="text-sm font-semibold text-[#1455FF]">
                   {dateBR(item.date)} · {item.start}–{item.end}
                 </p>
               </div>
             ))
           )}
-          <div className="flex items-center gap-2 rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-semibold text-[#0070F3] leading-relaxed">
+          <div className="flex items-center gap-2 rounded-[16px] border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-semibold text-[#1455FF] leading-relaxed">
             <Icon name="package" size={16} className="shrink-0" />
             <span>Encomendas são retiradas com o código recebido. Visitantes e prestadores devem apresentar documento na portaria.</span>
           </div>

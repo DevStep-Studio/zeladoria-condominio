@@ -78,12 +78,12 @@ export function buildHtmlTemplate(params: {
                   <td>
                     <div style="display: inline-block; vertical-align: middle;">
                       <span style="font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px;">
-                        Zeladoria <span style="color: #1355FF;">Condomínio</span>
+                        Zeladoria <span style="color: #1455FF;">Condomínio</span>
                       </span>
                     </div>
                   </td>
                   <td align="right">
-                    <span style="display: inline-block; padding: 4px 10px; background-color: #EFF6FF; color: #1355FF; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span style="display: inline-block; padding: 4px 10px; background-color: #EFF6FF; color: #1455FF; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                       Notificação
                     </span>
                   </td>
@@ -109,7 +109,7 @@ export function buildHtmlTemplate(params: {
                 buttonText && buttonUrl
                   ? `
                 <div style="margin: 32px 0 20px 0; text-align: left;">
-                  <a href="${buttonUrl}" style="display: inline-block; background-color: #1355FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(19, 85, 255, 0.25);">
+                  <a href="${buttonUrl}" style="display: inline-block; background-color: #1455FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(19, 85, 255, 0.25);">
                     ${buttonText} &rarr;
                   </a>
                 </div>

@@ -48,7 +48,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={13} />
           <span>Voltar ao Login</span>
@@ -78,7 +78,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
               <div className="pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
                 >
                   <span>Fazer Login Agora</span>
                   <Icon name="arrow-right" size={15} />
@@ -129,7 +129,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Mínimo de 8 caracteres"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1455FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                     <button
                       type="button"
@@ -163,7 +163,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                       placeholder="Repita a nova senha"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1355FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-xs sm:text-sm font-medium text-slate-900 outline-none focus:border-[#1455FF] focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
                     />
                     <button
                       type="button"
@@ -213,7 +213,7 @@ export default function RedefinirSenhaForm({ email, token }: { email: string; to
                 <button
                   type="submit"
                   disabled={!email || !token || isPending || !hasMinLength || !hasMatch}
-                  className="w-full h-12 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-12 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isPending ? (
                     <>

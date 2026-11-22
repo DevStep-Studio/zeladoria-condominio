@@ -40,7 +40,7 @@ type Vendor = {
 const STATUS_MAP: Record<string, { label: string; bg: string; text: string; border: string }> = {
   programada: { label: "Programada", bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200" },
   aguardando: { label: "Aguardando", bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200" },
-  em_execucao: { label: "Em execução", bg: "bg-blue-50", text: "text-[#1355FF]", border: "border-blue-200" },
+  em_execucao: { label: "Em execução", bg: "bg-blue-50", text: "text-[#1455FF]", border: "border-blue-200" },
   concluida: { label: "Concluída", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
   cancelada: { label: "Cancelada", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
 };
@@ -89,7 +89,7 @@ export function OrdensClient({
         actions={
           <Link
             href="/painel/manutencao?tab=planos"
-            className="inline-flex items-center gap-2 rounded-[8px] bg-[#1355FF] hover:bg-[#0D47E6] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 rounded-[8px] bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
           >
             <Icon name="plus" size={15} />
             Nova Ordem / Plano
@@ -115,7 +115,7 @@ export function OrdensClient({
                 onClick={() => setFilter(tab.id)}
                 className={`px-3 py-1.5 text-xs font-bold rounded-[8px] transition-colors whitespace-nowrap ${
                   active
-                    ? "bg-[#1355FF] text-white"
+                    ? "bg-[#1455FF] text-white"
                     : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
@@ -131,7 +131,7 @@ export function OrdensClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por serviço, ativo ou técnico..."
-            className="w-full h-9 pl-9 pr-3 rounded-[8px] border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1355FF]/20 focus:border-[#1355FF]"
+            className="w-full h-9 pl-9 pr-3 rounded-[8px] border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 focus:border-[#1455FF]"
           />
           <span className="absolute left-3 top-2.5 text-slate-400 pointer-events-none">
             <Icon name="search" size={14} />
@@ -220,7 +220,7 @@ export function OrdensClient({
                         <button
                           type="button"
                           onClick={() => setSelectedOrder(order)}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1355FF] hover:underline"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1455FF] hover:underline"
                         >
                           <span>Detalhes</span>
                           <Icon name="chevron-right" size={13} />

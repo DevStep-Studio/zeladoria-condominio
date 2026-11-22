@@ -115,14 +115,14 @@ export function StepLocalizacao({
           type="button"
           onClick={handleSelectUnit}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "unidade"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#1455FF] bg-blue-50/70 text-[#1455FF] shadow-xs ring-1 ring-[#1455FF]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
             }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
               className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "unidade"
-                  ? "bg-[#0070F3] text-white"
+                  ? "bg-[#1455FF] text-white"
                   : "bg-slate-100 text-slate-600"
                 }`}
             >
@@ -147,14 +147,14 @@ export function StepLocalizacao({
             }
           }}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "area_comum"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#1455FF] bg-blue-50/70 text-[#1455FF] shadow-xs ring-1 ring-[#1455FF]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
             }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
               className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "area_comum"
-                  ? "bg-[#0070F3] text-white"
+                  ? "bg-[#1455FF] text-white"
                   : "bg-slate-100 text-slate-600"
                 }`}
             >
@@ -175,14 +175,14 @@ export function StepLocalizacao({
             if (locationType !== "outro") onChangeLocationString("");
           }}
           className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${locationType === "outro"
-              ? "border-[#0070F3] bg-blue-50/70 text-[#1355FF] shadow-xs ring-1 ring-[#0070F3]"
+              ? "border-[#1455FF] bg-blue-50/70 text-[#1455FF] shadow-xs ring-1 ring-[#1455FF]"
               : "border-slate-200 bg-white hover:bg-slate-50 text-slate-800"
             }`}
         >
           <div className="flex items-center gap-2 mb-2">
             <span
               className={`flex h-8 w-8 items-center justify-center rounded-lg ${locationType === "outro"
-                  ? "bg-[#0070F3] text-white"
+                  ? "bg-[#1455FF] text-white"
                   : "bg-slate-100 text-slate-600"
                 }`}
             >
@@ -202,7 +202,7 @@ export function StepLocalizacao({
       {locationType === "unidade" && (
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
           <div className="flex items-center gap-2">
-            <Icon name="check-circle" size={16} className="text-[#1355FF]" />
+            <Icon name="check-circle" size={16} className="text-[#1455FF]" />
             <span className="text-xs font-bold text-slate-900">
               Local selecionado: {locationString || `${userUnit?.blockName ? `${userUnit.blockName} • ` : ""}Unidade ${userUnit?.unitNumber || "Não vinculada"}`}
             </span>
@@ -231,7 +231,7 @@ export function StepLocalizacao({
                   <select
                     value={selectedBlockId || ""}
                     onChange={(e) => setSelectedBlockId(Number(e.target.value))}
-                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#0070F3]"
+                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#1455FF]"
                   >
                     {blocks.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -249,7 +249,7 @@ export function StepLocalizacao({
                   <select
                     value={selectedFloor}
                     onChange={(e) => setSelectedFloor(e.target.value)}
-                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#0070F3]"
+                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#1455FF]"
                   >
                     <option value="Subsolo 2">Subsolo 2</option>
                     <option value="Subsolo 1">Subsolo 1</option>
@@ -272,7 +272,7 @@ export function StepLocalizacao({
                   <select
                     value={selectedSubArea}
                     onChange={(e) => setSelectedSubArea(e.target.value)}
-                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#0070F3]"
+                    className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-800 outline-none focus:border-[#1455FF]"
                   >
                     <option value="Corredor">Corredor</option>
                     <option value="Hall de entrada">Hall de entrada</option>
@@ -288,7 +288,7 @@ export function StepLocalizacao({
                 <button
                   type="button"
                   onClick={handleApplyHierarchical}
-                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#0070F3] text-[#1355FF] text-xs font-bold transition-colors shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#1455FF] text-[#1455FF] text-xs font-bold transition-colors shadow-2xs"
                 >
                   Aplicar esta localização
                 </button>
@@ -311,7 +311,7 @@ export function StepLocalizacao({
                     type="button"
                     onClick={() => handleSelectAreaPreset(amenity.name)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${isSelected
-                        ? "border-[#0070F3] bg-[#0070F3] text-white font-bold"
+                        ? "border-[#1455FF] bg-[#1455FF] text-white font-bold"
                         : "border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
                       }`}
                   >
@@ -329,7 +329,7 @@ export function StepLocalizacao({
                     type="button"
                     onClick={() => handleSelectAreaPreset(area)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${isSelected
-                        ? "border-[#0070F3] bg-[#0070F3] text-white font-bold"
+                        ? "border-[#1455FF] bg-[#1455FF] text-white font-bold"
                         : "border-slate-200 bg-white hover:bg-slate-100 text-slate-700"
                       }`}
                   >
@@ -353,7 +353,7 @@ export function StepLocalizacao({
             value={locationString}
             onChange={(e) => onChangeLocationString(e.target.value)}
             placeholder="Ex.: Rampa de acesso ao subsolo, calçada do portão de pedestres"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#0070F3] transition-colors"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#1455FF] transition-colors"
           />
         </div>
       )}
@@ -372,16 +372,16 @@ export function StepLocalizacao({
           value={locationDetail}
           onChange={(e) => onChangeLocationDetail(e.target.value)}
           placeholder="Ex.: Em frente ao apto 34, próximo à lixeira ou à coluna 12."
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#0070F3] transition-colors shadow-2xs"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-[#1455FF] transition-colors shadow-2xs"
         />
       </div>
 
       {/* Resumo visual da localização */}
       {locationString && (
         <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200 flex items-start gap-2.5 min-w-0 overflow-hidden shadow-2xs">
-          <Icon name="map-pin" size={16} className="text-[#1355FF] shrink-0 mt-0.5" />
+          <Icon name="map-pin" size={16} className="text-[#1455FF] shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-[#1355FF] leading-snug break-words [overflow-wrap:anywhere] [word-break:break-word]">
+            <p className="text-xs font-bold text-[#1455FF] leading-snug break-words [overflow-wrap:anywhere] [word-break:break-word]">
               {locationString}
               {locationDetail.trim() ? (
                 <span className="font-semibold text-blue-900/80"> ({locationDetail.trim()})</span>
@@ -406,7 +406,7 @@ export function StepLocalizacao({
           type="button"
           onClick={onNext}
           disabled={!canProceed}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           <span>Revisar ocorrência</span>
           <Icon name="arrow-right" size={16} />

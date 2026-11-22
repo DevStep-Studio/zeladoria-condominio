@@ -588,7 +588,7 @@ export function VisitantesClient({
                 }}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-[#1355FF] text-white shadow-xs"
+                    ? "bg-[#1455FF] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
@@ -880,7 +880,7 @@ export function VisitantesClient({
                         <button
                           type="button"
                           onClick={() => handleOpenQrModal(v)}
-                          className="text-[#1355FF] hover:underline font-semibold text-xs inline-flex items-center gap-1"
+                          className="text-[#1455FF] hover:underline font-semibold text-xs inline-flex items-center gap-1"
                         >
                           <Icon name="search" size={12} />
                           <span>Abrir convite</span>
@@ -1069,7 +1069,7 @@ export function VisitantesClient({
                   name="recurring"
                   checked={formRecurring}
                   onChange={(e) => setFormRecurring(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#1355FF] focus:ring-[#1355FF]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF]"
                 />
                 <span>Prestador recorrente (fica na lista de autorizados)</span>
               </label>
@@ -1077,7 +1077,7 @@ export function VisitantesClient({
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1355FF] hover:bg-[#0D47E6] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
               >
                 {isPending ? (
                   <Icon name="refresh" size={15} className="animate-spin" />
@@ -1101,7 +1101,7 @@ export function VisitantesClient({
                 onClick={() => setLowerTab("recorrentes")}
                 className={`pb-2 px-3 font-bold border-b-2 transition-all ${
                   lowerTab === "recorrentes"
-                    ? "border-[#1355FF] text-[#1355FF]"
+                    ? "border-[#1455FF] text-[#1455FF]"
                     : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -1283,7 +1283,7 @@ export function VisitantesClient({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1355FF]/10 text-[#1355FF]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1455FF]/10 text-[#1455FF]">
                   <Icon name="shield" size={18} />
                 </span>
                 <div>
@@ -1394,7 +1394,7 @@ export function VisitantesClient({
                 <Link
                   href={`/v/${selectedVisitForModal.qrToken}`}
                   target="_blank"
-                  className="text-xs text-[#1355FF] hover:underline font-semibold inline-flex items-center gap-1"
+                  className="text-xs text-[#1455FF] hover:underline font-semibold inline-flex items-center gap-1"
                 >
                   <Icon name="external-link" size={13} />
                   <span>Página pública do passe</span>

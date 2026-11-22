@@ -183,7 +183,7 @@ export function ProviderShell({
             <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-slate-100">
               <Link
                 href="/painel"
-                className="text-center py-1 rounded-md text-[11px] font-bold text-slate-600 hover:text-[#1355FF] transition-all"
+                className="text-center py-1 rounded-md text-[11px] font-bold text-slate-600 hover:text-[#1455FF] transition-all"
               >
                 Morador
               </Link>
@@ -343,7 +343,7 @@ export function ProviderShell({
                           <Link
                             href="/painel"
                             onClick={() => setProfileOpen(false)}
-                            className="text-center py-1 rounded-md text-[11px] font-bold text-slate-600 hover:text-[#1355FF] transition-all"
+                            className="text-center py-1 rounded-md text-[11px] font-bold text-slate-600 hover:text-[#1455FF] transition-all"
                           >
                             Morador
                           </Link>

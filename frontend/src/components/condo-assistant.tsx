@@ -84,7 +84,7 @@ export function CondoAssistant({
   return (
     <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-[16px] border border-[var(--color-line)] bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-5 duration-200">
       {/* Header - Solid Blue without gradient */}
-      <div className="flex items-center justify-between bg-[#0070F3] p-4 text-white">
+      <div className="flex items-center justify-between bg-[#1455FF] p-4 text-white">
         <div className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
             <Icon name="sparkles" size={16} />
@@ -116,7 +116,7 @@ export function CondoAssistant({
             <div
               className={`max-w-[85%] rounded-[12px] px-3.5 py-2.5 text-xs font-medium leading-relaxed ${
                 msg.sender === "user"
-                  ? "bg-[#0070F3] text-white rounded-br-none"
+                  ? "bg-[#1455FF] text-white rounded-br-none"
                   : "bg-white text-[var(--color-ink)] border border-slate-200 rounded-bl-none shadow-2xs"
               }`}
             >
@@ -136,7 +136,7 @@ export function CondoAssistant({
             key={prompt}
             type="button"
             onClick={() => handleSend(prompt)}
-            className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:border-[#0070F3] hover:text-[#0070F3] transition-colors"
+            className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:border-[#1455FF] hover:text-[#1455FF] transition-colors"
           >
             {prompt}
           </button>
@@ -156,11 +156,11 @@ export function CondoAssistant({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Digite sua mensagem..."
-          className="flex-1 rounded-[8px] border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#0070F3] focus:bg-white transition-colors"
+          className="flex-1 rounded-[8px] border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#1455FF] focus:bg-white transition-colors"
         />
         <button
           type="submit"
-          className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#0070F3] hover:bg-[#005FD6] text-white transition-colors shrink-0"
+          className="flex h-8.5 w-8.5 items-center justify-center rounded-[8px] bg-[#1455FF] hover:bg-[#0048E8] text-white transition-colors shrink-0"
           aria-label="Enviar"
         >
           <Icon name="send" size={14} />

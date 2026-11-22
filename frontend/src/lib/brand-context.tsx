@@ -19,8 +19,8 @@ export const TIAO_TOKENS = {
 } as const;
 
 export const ZELADORIA_TOKENS = {
-  primary: "#1355FF",
-  primaryHover: "#0D47E6",
+  primary: "#1455FF",
+  primaryHover: "#0048E8",
   primaryPressed: "#0936B8",
   primarySoft: "#EFF6FF",
   primaryBorder: "#BFDBFE",

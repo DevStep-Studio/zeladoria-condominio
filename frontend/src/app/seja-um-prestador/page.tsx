@@ -50,13 +50,13 @@ export default function SejaUmPrestadorPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/prestador/login"
-              className="text-xs font-bold text-slate-700 hover:text-[#1355FF] px-3 py-2 transition-colors"
+              className="text-xs font-bold text-slate-700 hover:text-[#1455FF] px-3 py-2 transition-colors"
             >
               Já sou parceiro
             </Link>
             <Link
               href="/prestador/cadastro"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] shadow-xs transition-colors"
             >
               <span>Cadastrar Agora</span>
               <Icon name="arrow-right" size={14} />
@@ -67,7 +67,7 @@ export default function SejaUmPrestadorPage() {
 
       {/* Hero Section */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 max-w-5xl mx-auto text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#1355FF] text-xs font-bold">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#1455FF] text-xs font-bold">
           <Icon name="sparkles" size={14} />
           <span>Marketplace Oficial de Condomínios</span>
         </div>
@@ -83,7 +83,7 @@ export default function SejaUmPrestadorPage() {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/prestador/cadastro"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#1355FF] text-white text-sm font-black hover:bg-[#0D47E6] shadow-md transition-all cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#1455FF] text-white text-sm font-black hover:bg-[#0048E8] shadow-md transition-all cursor-pointer"
           >
             <span>Cadastrar como Prestador</span>
             <Icon name="arrow-right" size={16} />
@@ -101,7 +101,7 @@ export default function SejaUmPrestadorPage() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1355FF]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
               <Icon name="shield" size={20} />
             </span>
             <h3 className="text-base font-black text-[#0F172A]">Credibilidade & Selo de Verificação</h3>
@@ -143,9 +143,9 @@ export default function SejaUmPrestadorPage() {
           {CATEGORIES.map((cat) => (
             <div
               key={cat.name}
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#1355FF] transition-all space-y-1.5"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-[#1455FF] transition-all space-y-1.5"
             >
-              <div className="flex items-center gap-2 text-[#1355FF]">
+              <div className="flex items-center gap-2 text-[#1455FF]">
                 <Icon name={cat.icon as any} size={16} />
                 <span className="font-bold text-xs text-[#0F172A]">{cat.name}</span>
               </div>
@@ -165,7 +165,7 @@ export default function SejaUmPrestadorPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {STEPS.map((s) => (
             <div key={s.step} className="p-5 rounded-2xl bg-white border border-slate-200 space-y-3 relative">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1355FF] text-white font-black text-xs">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1455FF] text-white font-black text-xs">
                 {s.step}
               </span>
               <h4 className="text-sm font-bold text-[#0F172A]">{s.title}</h4>
@@ -187,7 +187,7 @@ export default function SejaUmPrestadorPage() {
           <div className="pt-2">
             <Link
               href="/prestador/cadastro"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#1355FF] text-white text-xs font-black hover:bg-[#0D47E6] shadow-xs transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#1455FF] text-white text-xs font-black hover:bg-[#0048E8] shadow-xs transition-colors"
             >
               <span>Preencher Cadastro de Prestador</span>
               <Icon name="arrow-right" size={14} />

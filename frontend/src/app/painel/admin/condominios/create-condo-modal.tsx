@@ -47,7 +47,7 @@ export function CreateCondoModal() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-2xs cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-2xs cursor-pointer"
       >
         <Icon name="plus" size={14} />
         <span>Novo Condomínio</span>
@@ -59,7 +59,7 @@ export function CreateCondoModal() {
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50/70">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#1355FF] border border-blue-200">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#1455FF] border border-blue-200">
                   <Icon name="building" size={16} />
                 </span>
                 <div>
@@ -99,7 +99,7 @@ export function CreateCondoModal() {
                     name="name"
                     required
                     placeholder="Ex: Residencial Parque das Águas"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                   />
                 </div>
 
@@ -111,7 +111,7 @@ export function CreateCondoModal() {
                     <input
                       name="cnpj"
                       placeholder="00.000.000/0000-00"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15 font-mono"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15 font-mono"
                     />
                   </div>
                   <div>
@@ -121,7 +121,7 @@ export function CreateCondoModal() {
                     <select
                       name="plan"
                       defaultValue="pro"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15 bg-white cursor-pointer"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15 bg-white cursor-pointer"
                     >
                       <option value="basico">Básico (Gestão simples)</option>
                       <option value="pro">Profissional (Portaria + Zeladoria)</option>
@@ -137,7 +137,7 @@ export function CreateCondoModal() {
                   <input
                     name="address"
                     placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
-                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                   />
                 </div>
 
@@ -149,7 +149,7 @@ export function CreateCondoModal() {
                     <input
                       name="city"
                       defaultValue="São Paulo"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                   </div>
                   <div>
@@ -160,7 +160,7 @@ export function CreateCondoModal() {
                       name="state"
                       defaultValue="SP"
                       maxLength={2}
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs uppercase outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs uppercase outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export function CreateCondoModal() {
                       defaultValue={1}
                       min={0}
                       max={10}
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                     <p className="text-[10px] text-slate-400 mt-1">Cria Bloco A, Bloco B, etc.</p>
                   </div>
@@ -196,7 +196,7 @@ export function CreateCondoModal() {
                       defaultValue={16}
                       min={0}
                       max={40}
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                     <p className="text-[10px] text-slate-400 mt-1">Gera numeração 101, 102...</p>
                   </div>
@@ -216,7 +216,7 @@ export function CreateCondoModal() {
                     <input
                       name="sindicoName"
                       placeholder="Ex: Carlos Silva"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                   </div>
                   <div>
@@ -227,7 +227,7 @@ export function CreateCondoModal() {
                       type="email"
                       name="sindicoEmail"
                       placeholder="sindico@condominio.com"
-                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1355FF] focus:ring-2 focus:ring-blue-500/15"
+                      className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/15"
                     />
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export function CreateCondoModal() {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {isPending ? (
                     <>

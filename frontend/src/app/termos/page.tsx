@@ -16,7 +16,7 @@ export default function TermosPage() {
         </Link>
         <Link
           href="/login"
-          className="text-xs font-bold text-[#1355FF] hover:text-[#0D47E6] hover:underline flex items-center gap-1.5"
+          className="text-xs font-bold text-[#1455FF] hover:text-[#0048E8] hover:underline flex items-center gap-1.5"
         >
           <Icon name="arrow-left" size={14} />
           <span>Voltar ao Login</span>
@@ -25,7 +25,7 @@ export default function TermosPage() {
 
       <div className="max-w-3xl w-full mx-auto my-8 bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xs space-y-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#1355FF] text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#1455FF] text-xs font-bold">
             <Icon name="file-text" size={14} />
             <span>Condições Gerais</span>
           </div>
@@ -65,11 +65,11 @@ export default function TermosPage() {
       <footer className="max-w-3xl w-full mx-auto pt-6 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
         <span>© 2026 Zeladoria Cidades</span>
         <div className="flex items-center gap-3">
-          <Link href="/privacidade" className="hover:text-[#1355FF] transition-colors">
+          <Link href="/privacidade" className="hover:text-[#1455FF] transition-colors">
             Privacidade
           </Link>
           <span>·</span>
-          <Link href="/login" className="hover:text-[#1355FF] transition-colors">
+          <Link href="/login" className="hover:text-[#1455FF] transition-colors">
             Acessar Sistema
           </Link>
         </div>

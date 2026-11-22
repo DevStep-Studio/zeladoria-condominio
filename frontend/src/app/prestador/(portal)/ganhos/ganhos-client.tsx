@@ -119,9 +119,9 @@ export function ProviderGanhosClient({
                 <div key={o.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="font-bold text-[#1355FF] text-sm block">{o.code}</span>
+                      <span className="font-bold text-[#1455FF] text-sm block">{o.code}</span>
                       <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.5 rounded mt-0.5 ${
-                        o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
+                        o.purpose === "vistoria" ? "bg-blue-50 text-[#1455FF]" : "bg-purple-50 text-purple-700"
                       }`}>
                         {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
                       </span>
@@ -192,9 +192,9 @@ export function ProviderGanhosClient({
                     {orders.map((o) => (
                       <tr key={o.id} className="hover:bg-slate-50/50">
                         <td className="p-3.5">
-                          <span className="font-bold text-[#1355FF] block">{o.code}</span>
+                          <span className="font-bold text-[#1455FF] block">{o.code}</span>
                           <span className={`inline-block text-[10px] font-bold uppercase px-1.5 py-0.2 rounded ${
-                            o.purpose === "vistoria" ? "bg-blue-50 text-[#1355FF]" : "bg-purple-50 text-purple-700"
+                            o.purpose === "vistoria" ? "bg-blue-50 text-[#1455FF]" : "bg-purple-50 text-purple-700"
                           }`}>
                             {o.purpose === "vistoria" ? "Vistoria Técnica" : "Serviço Principal"}
                           </span>
@@ -255,7 +255,7 @@ export function ProviderGanhosClient({
                 <div key={s.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="font-bold text-[#1355FF] text-sm block">{s.code}</span>
+                      <span className="font-bold text-[#1455FF] text-sm block">{s.code}</span>
                       <p className="text-xs text-slate-800 font-semibold">{s.title}</p>
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export function ProviderGanhosClient({
                     {services.map((s) => (
                       <tr key={s.id} className="hover:bg-slate-50/50">
                         <td className="p-3.5">
-                          <span className="font-bold text-[#1355FF] block">{s.code}</span>
+                          <span className="font-bold text-[#1455FF] block">{s.code}</span>
                           <span className="text-slate-600">{s.title}</span>
                         </td>
                         <td className="p-3.5 text-slate-500">

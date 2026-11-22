@@ -92,7 +92,7 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
 
         <Link
           href="/painel/admin/marketplace"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1355FF] text-white text-xs font-bold hover:bg-[#0D47E6] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors"
         >
           <Icon name="sparkles" size={14} />
           <span>Marketplace & Configurações</span>
@@ -124,7 +124,7 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
               onClick={() => setFilter(tab)}
               className={`px-3 py-1.5 text-xs font-bold rounded-[8px] capitalize transition-colors ${
                 filter === tab
-                  ? "bg-[#1355FF] text-white"
+                  ? "bg-[#1455FF] text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -173,7 +173,7 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
                       <p className="text-[11px] text-slate-500">{v.companyName || "Profissional Autônomo"}</p>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1355FF] font-bold text-[10px] capitalize">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-[#1455FF] font-bold text-[10px] capitalize">
                         {v.category || "Geral"}
                       </span>
                     </td>
@@ -200,7 +200,7 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
                       <button
                         type="button"
                         onClick={() => setSelectedVendor(v)}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-[#1355FF] hover:underline"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[#1455FF] hover:underline"
                       >
                         <Icon name="shield" size={13} />
                         <span>Moderar / KYC</span>
@@ -231,7 +231,7 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
             </div>
 
             <div className="bg-blue-50/50 p-3.5 rounded-[10px] border border-blue-100">
-              <h4 className="font-bold text-[#1355FF] mb-1">Diretrizes de Credenciamento</h4>
+              <h4 className="font-bold text-[#1455FF] mb-1">Diretrizes de Credenciamento</h4>
               <p className="text-slate-600 leading-relaxed text-[11px]">
                 A aprovação habilita o profissional a receber chamados diretos de moradores, enviar propostas orçamentárias e transacionar via Zeladoria Pay com custódia e taxa de 10%.
               </p>

@@ -149,7 +149,7 @@ export function RegisterItemModal({
         {/* Header do Modal */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0070F3] border border-blue-100">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100">
               <Icon name="tag" size={18} />
             </span>
             <div>
@@ -271,7 +271,7 @@ export function RegisterItemModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Chave do carro, Óculos de sol, Fone sem fio..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
           </div>
 
@@ -288,7 +288,7 @@ export function RegisterItemModal({
                 id="category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ItemCategory)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100 cursor-pointer"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100 cursor-pointer"
               >
                 {CATEGORIES_LIST.map((cat) => (
                   <option key={cat} value={cat}>
@@ -311,7 +311,7 @@ export function RegisterItemModal({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
             </div>
           </div>
@@ -335,7 +335,7 @@ export function RegisterItemModal({
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: Piscina, Elevador Social Bloco A, Garagem G1 vaga 32..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ export function RegisterItemModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descreva detalhes como cor, marca, marcas de uso, chaveiros ou particularidades que ajudem na identificação inequívoca..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#0070F3] focus:bg-white focus:ring-2 focus:ring-blue-100 resize-none"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100 resize-none"
             />
           </div>
 
@@ -393,7 +393,7 @@ export function RegisterItemModal({
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 p-4 transition-all hover:border-[#0070F3] hover:bg-blue-50/30 cursor-pointer"
+                className="group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 p-4 transition-all hover:border-[#1455FF] hover:bg-blue-50/30 cursor-pointer"
               >
                 <input
                   ref={fileInputRef}
@@ -402,7 +402,7 @@ export function RegisterItemModal({
                   onChange={handleImageFileChange}
                   className="sr-only"
                 />
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-xs border border-slate-200 text-slate-500 group-hover:text-[#0070F3] transition-colors">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-xs border border-slate-200 text-slate-500 group-hover:text-[#1455FF] transition-colors">
                   <Icon name="camera" size={18} />
                 </span>
                 <p className="mt-2 text-xs font-bold text-slate-700">
@@ -445,7 +445,7 @@ export function RegisterItemModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
             >
               <Icon name="check" size={15} />
               <span>{isSubmitting ? "Registrando..." : "Registrar"}</span>

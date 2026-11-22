@@ -42,7 +42,7 @@ export function SuccessScreen({
       <div className="rounded-2xl border border-slate-200 bg-white p-5 text-left space-y-3.5 shadow-xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <span className="text-xs text-slate-500 font-medium">Protocolo gerado</span>
-          <span className="text-sm font-extrabold text-[#1355FF] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 font-mono tracking-wide">
+          <span className="text-sm font-extrabold text-[#1455FF] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 font-mono tracking-wide">
             {code}
           </span>
         </div>
@@ -72,7 +72,7 @@ export function SuccessScreen({
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
         <Link
           href="/painel/ocorrencias"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs sm:text-sm font-bold shadow-xs transition-colors"
         >
           <Icon name="clipboard" size={16} />
           <span>Acompanhar ocorrência</span>

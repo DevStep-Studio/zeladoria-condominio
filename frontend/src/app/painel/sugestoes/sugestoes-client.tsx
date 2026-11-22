@@ -26,7 +26,7 @@ const STATUS_MAP: Record<
   em_analise: {
     label: "Em análise",
     bg: "bg-blue-50",
-    text: "text-[#0070F3]",
+    text: "text-[#1455FF]",
     border: "border-blue-200",
   },
   aceita: {
@@ -278,7 +278,7 @@ export function SugestoesClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0070F3] border border-blue-100 shadow-2xs">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
               <Icon name="megaphone" size={16} />
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
@@ -308,7 +308,7 @@ export function SugestoesClient({
           <button
             type="button"
             onClick={() => setShowNewModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
           >
             <Icon name="plus" size={15} />
             <span>Nova sugestão</span>
@@ -338,7 +338,7 @@ export function SugestoesClient({
       {isStaff && (
         <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0070F3] text-white shadow-xs shrink-0">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1455FF] text-white shadow-xs shrink-0">
               <Icon name="wrench" size={18} />
             </span>
             <div>
@@ -390,7 +390,7 @@ export function SugestoesClient({
               onClick={() => setFilterStatus(f.key)}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? "bg-[#1355FF] text-white shadow-xs"
+                  ? "bg-[#1455FF] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -413,7 +413,7 @@ export function SugestoesClient({
       <div className="space-y-3.5">
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0070F3] mb-3">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#1455FF] mb-3">
               <Icon name="megaphone" size={24} />
             </div>
             <h3 className="text-base font-bold text-slate-900">
@@ -479,7 +479,7 @@ export function SugestoesClient({
                         <button
                           type="button"
                           onClick={() => handleOpenManageModal(sug)}
-                          className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 text-[#0070F3] px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 text-[#1455FF] px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer"
                           title="Atualizar status ou dar retorno da zeladoria"
                         >
                           <Icon name="pencil" size={12} />
@@ -508,7 +508,7 @@ export function SugestoesClient({
                           <div key={step} className="flex items-center gap-1.5">
                             <span
                               className={`h-2 w-2 rounded-full ${
-                                isDone ? "bg-[#0070F3]" : "bg-slate-200"
+                                isDone ? "bg-[#1455FF]" : "bg-slate-200"
                               }`}
                             />
                             <span
@@ -532,7 +532,7 @@ export function SugestoesClient({
                   {sug.feedbackAdmin && (
                     <div className="mt-3 rounded-xl bg-blue-50/70 p-3 border border-blue-100 text-xs text-slate-700 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#0070F3] text-[11px] flex items-center gap-1">
+                        <span className="font-bold text-[#1455FF] text-[11px] flex items-center gap-1">
                           <Icon name="check-circle" size={13} />
                           <span>
                             Retorno da {sug.feedbackAuthor || "Zeladoria / Administração"}:
@@ -562,7 +562,7 @@ export function SugestoesClient({
           <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0070F3]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
                   <Icon name="megaphone" size={16} />
                 </span>
                 <h3 className="text-base font-bold text-[#0F172A]">
@@ -589,7 +589,7 @@ export function SugestoesClient({
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ex.: Instalação de ponto de recarga, horta, lixeira..."
                   required
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#0070F3] focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
@@ -600,7 +600,7 @@ export function SugestoesClient({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#0070F3] cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#1455FF] cursor-pointer"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -620,7 +620,7 @@ export function SugestoesClient({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Explique o motivo, benefícios para a comunidade e sugestão prática de como implementar..."
                   required
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#0070F3] focus:ring-2 focus:ring-blue-100 leading-relaxed resize-none"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-100 leading-relaxed resize-none"
                 />
               </div>
 
@@ -643,7 +643,7 @@ export function SugestoesClient({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60"
                 >
                   {isSubmitting ? "Enviando..." : "Enviar sugestão"}
                 </button>
@@ -659,7 +659,7 @@ export function SugestoesClient({
           <div className="relative w-full max-w-lg rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0070F3]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
                   <Icon name="wrench" size={16} />
                 </span>
                 <div>
@@ -700,7 +700,7 @@ export function SugestoesClient({
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as SuggestionStatus)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-bold outline-none focus:border-[#0070F3] cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-bold outline-none focus:border-[#1455FF] cursor-pointer"
                 >
                   <option value="recebida">Recebida (Aguardando avaliação)</option>
                   <option value="em_analise">Em análise (Zeladoria avaliando viabilidade técnica)</option>
@@ -719,7 +719,7 @@ export function SugestoesClient({
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   placeholder="Ex: A equipe de zeladoria já realizou a cotação e o levantamento elétrico no subsolo..."
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#0070F3] focus:ring-2 focus:ring-blue-100 resize-none leading-relaxed"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-100 resize-none leading-relaxed"
                 />
               </div>
 
@@ -735,7 +735,7 @@ export function SugestoesClient({
                 <button
                   type="submit"
                   disabled={isUpdatingStatus}
-                  className="px-5 py-2 rounded-xl bg-[#0070F3] hover:bg-[#005FD6] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60"
                 >
                   {isUpdatingStatus ? "Salvando..." : "Salvar e Publicar Retorno"}
                 </button>
