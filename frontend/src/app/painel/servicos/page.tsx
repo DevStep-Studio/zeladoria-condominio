@@ -12,7 +12,7 @@ export default async function ServicosPage() {
   const data = await domainRequest<ServicePanel>(`/servicos?condoId=${condoId}`);
   const { services: serviceRows, marketplaceRequests: mpRequests, quotes: quotesList, reviews: reviewsList, messages: messagesList, inspections: inspectionsList, paymentOrders: paymentOrdersList, addendums: addendumsList, evidences: evidencesList, vendors: vendorList, initialFavorites: userFavoriteIds, condoInfo: rawCondoInfo } = data;
 
-  const condoInfo = { ...rawCondoInfo, address: rawCondoInfo.address ?? "", city: rawCondoInfo.city ?? "", state: rawCondoInfo.state ?? "" };
+  const condoInfo = { ...rawCondoInfo, address: rawCondoInfo?.address ?? "", city: rawCondoInfo?.city ?? "", state: rawCondoInfo?.state ?? "" };
 
   const providers = await getMarketplaceProviders(condoId, {
     currentUserId: session.user.id,
@@ -22,7 +22,8 @@ export default async function ServicosPage() {
 
   let hiredProvidersList: any[] = [];
   try {
-    hiredProvidersList = await getCustomerHiredProviders(session.user.id, condoId);
+    const rawHired = await getCustomerHiredProviders(session.user.id, condoId);
+    hiredProvidersList = Array.isArray(rawHired) ? rawHired : [];
   } catch (err) {
     console.warn("Could not query hired providers:", err);
   }

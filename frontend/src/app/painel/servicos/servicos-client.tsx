@@ -500,7 +500,7 @@ export function ServicosClient({
 
   // Seus Profissionais filtrados contextualmente (Seção 56)
   const displayedHiredProviders = useMemo(() => {
-    if (!hiredProviders || hiredProviders.length === 0) return [];
+    if (!Array.isArray(hiredProviders) || hiredProviders.length === 0) return [];
     return hiredProviders.filter((hp: any) => {
       if (
         selectedCategory !== "Todas" &&
