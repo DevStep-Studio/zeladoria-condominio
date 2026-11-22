@@ -580,8 +580,26 @@ export function DashboardClient({
         {/* 1. HERO BACKGROUND — FULL WIDTH (FOTOGRAFIA CLARA ATÉ A BASE)     */}
         {/* ================================================================= */}
         <section className="relative w-full overflow-hidden bg-[#08152A] text-white lg:h-[304px]">
-          {/* Camada Fotográfica à Direita preenchendo 100% da altura do Hero */}
-          <div className="hidden md:block absolute inset-y-0 right-0 w-[62%] lg:w-[59.5%] h-full pointer-events-none select-none overflow-hidden">
+          {/* Camada Fotográfica Mobile (< md): Imagem de fundo com overlay moderno para profundidade visual */}
+          <div className="md:hidden absolute inset-0 pointer-events-none select-none overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/condominio-hero.jpg"
+              alt={condoName || "Condomínio Residencial"}
+              className="w-full h-full object-cover object-[72%_center] brightness-[0.72] contrast-[1.08]"
+            />
+            {/* Gradiente multi-camada escuro para contraste impecável dos textos brancos */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(8,21,42,0.85) 0%, rgba(8,21,42,0.72) 35%, rgba(8,21,42,0.92) 75%, #08152A 100%)",
+              }}
+            />
+          </div>
+
+          {/* Camada Fotográfica Tablet e Desktop (>= md) */}
+          <div className="hidden md:block absolute inset-y-0 right-0 w-[48%] lg:w-[59.5%] h-full pointer-events-none select-none overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/condominio-hero.jpg"
@@ -599,20 +617,28 @@ export function DashboardClient({
           </div>
 
           {/* Container alinhado ao mesmo eixo visual do layout inferior */}
-          <div className="relative z-10 max-w-[1760px] mx-auto px-4 sm:px-6 lg:pl-[56px] lg:pr-[44px] pt-6 pb-14 sm:pt-8 sm:pb-16 lg:pt-[14px] lg:pb-[66px] flex flex-col justify-center h-full">
-            <div className="max-w-[740px]">
-              <h1 className="text-[26px] min-[375px]:text-[29px] sm:text-[38px] lg:text-[46px] min-[1600px]:text-[50px] font-extrabold text-white tracking-[-0.015em] leading-[1.06]">
+          <div className="relative z-10 max-w-[1760px] mx-auto px-4 sm:px-6 lg:pl-[56px] lg:pr-[44px] pt-6 pb-16 sm:pt-8 sm:pb-16 lg:pt-[14px] lg:pb-[66px] flex flex-col justify-center h-full">
+            <div className="max-w-[740px] md:max-w-[54%] lg:max-w-[740px]">
+              {/* Badge de identificação do condomínio para Mobile e Tablet */}
+              <div className="lg:hidden inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-[#E8EFFA] text-[12px] font-semibold mb-2.5 w-fit shadow-xs">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0052F5] text-white">
+                  <Icon name="building" size={10} strokeWidth={2.4} />
+                </span>
+                <span className="tracking-tight">{condoName || "Residencial Parque das Águas"}</span>
+              </div>
+
+              <h1 className="text-[26px] min-[375px]:text-[29px] sm:text-[34px] md:text-[34px] lg:text-[46px] min-[1600px]:text-[50px] font-extrabold text-white tracking-[-0.015em] leading-[1.08] sm:leading-[1.06]">
                 Participe do seu condomínio
               </h1>
-              <p className="text-sm sm:text-[17px] lg:text-[19px] min-[1600px]:text-[20.5px] text-[#E8EFFA] font-normal mt-2 max-w-[540px] leading-[1.32]">
+              <p className="text-sm sm:text-[16px] md:text-[16px] lg:text-[19px] min-[1600px]:text-[20.5px] text-[#E8EFFA] font-normal mt-2 max-w-[540px] leading-[1.32]">
                 Registre ocorrências, acompanhe solicitações e facilite a rotina condominial.
               </p>
 
               {/* Botões Principais Fiéis à Referência 2 */}
-              <div className="flex items-center gap-3 sm:gap-4 mt-5 lg:mt-[18px] flex-wrap">
+              <div className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-2.5 sm:gap-4 mt-4.5 sm:mt-5 lg:mt-[18px] flex-wrap">
                 <Link
                   href="/painel/ocorrencias?nova=1"
-                  className="inline-flex items-center justify-center gap-3.5 h-[46px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap max-w-full"
+                  className="inline-flex items-center justify-center gap-3.5 h-[48px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14.5px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap w-full min-[480px]:w-auto"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
                     <Icon name="plus" size={14} strokeWidth={3} />
@@ -629,7 +655,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={handleFocusProtocol}
-                  className="inline-flex items-center justify-center gap-2.5 h-[46px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap max-w-full"
+                  className="inline-flex items-center justify-center gap-2.5 h-[48px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14.5px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap w-full min-[480px]:w-auto"
                 >
                   <Icon name="search" size={18} strokeWidth={2.1} />
                   <span>Acompanhar solicitação</span>
@@ -648,7 +674,7 @@ export function DashboardClient({
           {/* =============================================================== */}
           <section className="relative z-20 -mt-10 sm:-mt-12 lg:-mt-[51px]">
             <div className="rounded-[24px] bg-white/95 backdrop-blur-xs p-3 sm:p-3.5 lg:p-[15px] shadow-[0_10px_34px_rgba(7,26,56,0.10)] border border-white">
-              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 xl:gap-[16px]">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 xl:gap-[16px]">
                 {serviceCards.map((card) => {
                   const isTiaoCard = card.id === "tiao";
 
