@@ -480,7 +480,7 @@ export default async function PainelHome() {
   const assemblyRows = dashboardData.assemblyRows;
   const announcementRows = dashboardData.announcementRows;
 
-  const notices: CondoNotice[] = [
+  const rawNotices = [
     ...assemblyRows.map((a) => ({
       id: `assembleia-${a.id}`,
       kind: "assembleia" as const,
@@ -498,22 +498,44 @@ export default async function PainelHome() {
       _ts: new Date(a.firstCallAt).getTime() || 0,
     })),
     ...announcementRows.map((c) => {
+      const isAssemblyCategory = c.category === "assembleia";
       const isAlert =
-        c.category === "alerta" || c.priority === "urgente" || c.priority === "alta";
+        !isAssemblyCategory &&
+        (c.category === "alerta" || c.priority === "urgente" || c.priority === "alta");
       const rawDate = c.publishedAt ?? c.createdAt;
       return {
         id: `comunicado-${c.id}`,
-        kind: (isAlert ? "alerta" : "comunicado") as "alerta" | "comunicado",
+        kind: (isAssemblyCategory ? "assembleia" : isAlert ? "alerta" : "comunicado") as
+          | "assembleia"
+          | "alerta"
+          | "comunicado",
         title: c.title,
         detail: c.body.replace(/\s+/g, " ").trim().slice(0, 120),
         date: dateBR(rawDate),
-        href: "/painel/comunicados",
+        href: isAssemblyCategory ? "/painel/assembleias" : "/painel/comunicados",
         priority: (isAlert ? "alta" : "normal") as "alta" | "normal",
         _ts: new Date(rawDate).getTime() || 0,
       };
     }),
-  ]
-    .sort((a, b) => b._ts - a._ts)
+  ].sort((a, b) => b._ts - a._ts);
+
+  // Evita duplicidade caso uma convocação exista simultaneamente em assembleias e comunicados,
+  // preservando o texto descritivo do comunicado quando for mais informativo que "Assembleia ordinária".
+  const dedupedNotices = new Map<string, (typeof rawNotices)[number]>();
+  for (const item of rawNotices) {
+    const key = `${item.kind}:${item.title.trim().toLowerCase()}`;
+    const existing = dedupedNotices.get(key);
+    if (!existing) {
+      dedupedNotices.set(key, item);
+    } else if (item.detail.length > existing.detail.length) {
+      dedupedNotices.set(key, {
+        ...existing,
+        detail: item.detail,
+        href: existing.kind === "assembleia" ? "/painel/assembleias" : item.href,
+      });
+    }
+  }
+  const notices: CondoNotice[] = Array.from(dedupedNotices.values())
     .slice(0, 4)
     .map(({ _ts: _, ...rest }) => rest);
 

@@ -577,44 +577,42 @@ export function DashboardClient({
     return (
       <div className="w-full overflow-x-clip">
         {/* ================================================================= */}
-        {/* 1. HERO BACKGROUND — FULL WIDTH (EDGE-TO-EDGE SEM MARGEM/BORDA)   */}
+        {/* 1. HERO BACKGROUND — FULL WIDTH (FOTOGRAFIA CLARA ATÉ A BASE)     */}
         {/* ================================================================= */}
-        <section className="relative w-full overflow-hidden bg-[#08152A] text-white lg:h-[296px]">
-          {/* Camada Fotográfica à Direita (55.7% largura e 248px altura acima da sobreposição = proporção 1:1 com a referência) */}
-          <div className="hidden md:block absolute top-0 right-0 w-[60%] lg:w-[55.7%] h-full lg:h-[248px] pointer-events-none select-none overflow-hidden">
+        <section className="relative w-full overflow-hidden bg-[#08152A] text-white lg:h-[304px]">
+          {/* Camada Fotográfica à Direita preenchendo 100% da altura do Hero */}
+          <div className="hidden md:block absolute inset-y-0 right-0 w-[62%] lg:w-[59.5%] h-full pointer-events-none select-none overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/condominio-hero.jpg"
               alt={condoName || "Condomínio Residencial"}
-              className="w-full h-full object-cover object-right-top"
+              className="w-full h-full object-cover object-right-top brightness-[1.04] contrast-[1.03]"
             />
-            {/* Degradê horizontal suave do azul-marinho escuro para a foto sem corte rígido */}
+            {/* Degradê suave concentrado na borda esquerda, revelando céu azul, árvores e prédio iluminados */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 background:
-                  "linear-gradient(90deg, #08152A 0%, rgba(8,21,42,0.88) 10%, rgba(8,21,42,0.52) 24%, rgba(8,21,42,0.08) 42%, rgba(8,21,42,0) 60%)",
+                  "linear-gradient(90deg, #08152A 0%, rgba(8,21,42,0.85) 4%, rgba(8,21,42,0.45) 11%, rgba(8,21,42,0.10) 20%, rgba(8,21,42,0) 28%)",
               }}
             />
-            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-[#08152A]/30 to-transparent pointer-events-none" />
-            <div className="hidden lg:block absolute inset-x-0 bottom-0 h-5 bg-gradient-to-t from-[#08152A] to-transparent pointer-events-none" />
           </div>
 
-          {/* Container alinhado ao mesmo eixo do MainContent (com deslocamento de ~68px no desktop fiel à referência) */}
-          <div className="relative z-10 max-w-[1648px] mx-auto px-4 sm:px-6 lg:pl-[68px] lg:pr-[44px] pt-6 pb-14 sm:pt-8 sm:pb-16 lg:pt-[26px] lg:pb-[68px] flex flex-col justify-center h-full">
-            <div className="max-w-[680px]">
-              <h1 className="text-[26px] min-[375px]:text-[29px] sm:text-[38px] lg:text-[49px] font-extrabold text-white tracking-[-0.015em] leading-[1.08]">
+          {/* Container alinhado ao mesmo eixo visual do layout inferior */}
+          <div className="relative z-10 max-w-[1760px] mx-auto px-4 sm:px-6 lg:pl-[56px] lg:pr-[44px] pt-6 pb-14 sm:pt-8 sm:pb-16 lg:pt-[14px] lg:pb-[66px] flex flex-col justify-center h-full">
+            <div className="max-w-[740px]">
+              <h1 className="text-[26px] min-[375px]:text-[29px] sm:text-[38px] lg:text-[46px] min-[1600px]:text-[50px] font-extrabold text-white tracking-[-0.015em] leading-[1.06]">
                 Participe do seu condomínio
               </h1>
-              <p className="text-sm sm:text-[17px] lg:text-[21px] text-[#E2E8F0] font-normal mt-2 lg:mt-2.5 max-w-[540px] leading-[1.36]">
+              <p className="text-sm sm:text-[17px] lg:text-[19px] min-[1600px]:text-[20.5px] text-[#E8EFFA] font-normal mt-2 max-w-[540px] leading-[1.32]">
                 Registre ocorrências, acompanhe solicitações e facilite a rotina condominial.
               </p>
 
               {/* Botões Principais Fiéis à Referência 2 */}
-              <div className="flex items-center gap-3 sm:gap-4 mt-5 lg:mt-[22px] flex-wrap">
+              <div className="flex items-center gap-3 sm:gap-4 mt-5 lg:mt-[18px] flex-wrap">
                 <Link
                   href="/painel/ocorrencias?nova=1"
-                  className="inline-flex items-center justify-center gap-3 h-[44px] sm:h-[52px] px-4 sm:px-6 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[13.5px] sm:text-[16px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap max-w-full"
+                  className="inline-flex items-center justify-center gap-3.5 h-[46px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap max-w-full"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
                     <Icon name="plus" size={14} strokeWidth={3} />
@@ -623,7 +621,7 @@ export function DashboardClient({
                   <Icon
                     name="chevron-right"
                     size={16}
-                    strokeWidth={2.5}
+                    strokeWidth={2.6}
                     className="text-[#0A2563] transition-transform group-hover:translate-x-0.5 shrink-0"
                   />
                 </Link>
@@ -631,9 +629,9 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={handleFocusProtocol}
-                  className="inline-flex items-center justify-center gap-2.5 h-[44px] sm:h-[52px] px-4 sm:px-6 rounded-[12px] bg-[#0B1B36]/80 hover:bg-[#0D2142] border border-white/55 text-white text-[13.5px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap max-w-full"
+                  className="inline-flex items-center justify-center gap-2.5 h-[46px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap max-w-full"
                 >
-                  <Icon name="search" size={17} strokeWidth={2} />
+                  <Icon name="search" size={18} strokeWidth={2.1} />
                   <span>Acompanhar solicitação</span>
                 </button>
               </div>
@@ -642,15 +640,15 @@ export function DashboardClient({
         </section>
 
         {/* ================================================================= */}
-        {/* MAIN CONTENT — CONTAINER CONTROLADO E RESPONSIVO                  */}
+        {/* MAIN CONTENT — CONTAINER RESPONSIVO AMPLO                         */}
         {/* ================================================================= */}
-        <div className="w-full max-w-[1648px] mx-auto px-4 sm:px-6 lg:px-[44px] pb-6 space-y-4 xl:space-y-[14px]">
+        <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-[44px] pb-5 space-y-4 xl:space-y-[16px]">
           {/* =============================================================== */}
           {/* 2. BANDEJA BRANCA SOBREPOSTA AO HERO COM OS 6 CARDS DE SERVIÇOS */}
           {/* =============================================================== */}
-          <section className="relative z-20 -mt-10 sm:-mt-12 lg:-mt-[50px]">
-            <div className="rounded-[22px] sm:rounded-[24px] bg-[#F8FAFE]/95 backdrop-blur-xs p-3 sm:p-3.5 lg:p-[14px] shadow-[0_8px_30px_rgba(7,26,56,0.08)] border border-white">
-              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 xl:gap-[16px]">
+          <section className="relative z-20 -mt-10 sm:-mt-12 lg:-mt-[51px]">
+            <div className="rounded-[24px] bg-white/95 backdrop-blur-xs p-3 sm:p-3.5 lg:p-[15px] shadow-[0_10px_34px_rgba(7,26,56,0.10)] border border-white">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 xl:gap-[16px]">
                 {serviceCards.map((card) => {
                   const isTiaoCard = card.id === "tiao";
 
@@ -658,36 +656,36 @@ export function DashboardClient({
                     <Link
                       key={card.id}
                       href={card.href}
-                      className="group flex flex-col justify-between rounded-[16px] border border-[#E2E8F2] bg-white px-4 py-3 lg:px-[16px] lg:py-[12px] min-h-[122px] lg:min-h-[124px] shadow-[0_2px_8px_rgba(7,26,56,0.03)] hover:shadow-[0_8px_20px_rgba(20,85,255,0.09)] hover:border-[#1455FF]/45 transition-all cursor-pointer"
+                      className="group flex flex-col justify-between rounded-[18px] border border-[#E2E8F0] bg-white px-4 py-3.5 xl:px-[16px] xl:py-[14px] min-h-[120px] xl:min-h-[130px] shadow-[0_3px_12px_rgba(7,26,56,0.045)] hover:shadow-[0_10px_24px_rgba(20,85,255,0.10)] hover:border-[#1455FF]/45 transition-all cursor-pointer"
                     >
-                      {/* Topo do card: Caixa de ícone azul-claro + seta preta */}
+                      {/* Topo do card: Ícone azul proeminente + seta escura */}
                       <div className="flex items-start justify-between w-full">
-                        <span className="flex h-10 w-10 lg:h-[42px] lg:w-[42px] shrink-0 items-center justify-center rounded-[11px] bg-[#EAF1FF] text-[#0D47FF] transition-transform group-hover:scale-105">
+                        <span className="flex h-10.5 w-10.5 xl:h-11.5 xl:w-11.5 shrink-0 items-center justify-center rounded-[12px] bg-[#EAF1FF] text-[#0D47FF] transition-transform group-hover:scale-105">
                           {isTiaoCard ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src="/brands/tiao/mascot-blue.png"
                               alt="Tião Zelador"
-                              className="h-7 w-7 lg:h-8 lg:w-8 object-contain"
+                              className="h-8 w-8 object-contain"
                             />
                           ) : (
-                            <Icon name={card.icon} size={22} strokeWidth={2} />
+                            <Icon name={card.icon} size={23} strokeWidth={2.2} />
                           )}
                         </span>
                         <Icon
                           name="chevron-right"
-                          size={16}
-                          strokeWidth={2.5}
+                          size={18}
+                          strokeWidth={2.6}
                           className="text-[#101828] mt-1 group-hover:text-[#0048E8] group-hover:translate-x-0.5 transition-all shrink-0"
                         />
                       </div>
 
-                      {/* Título forte + Descrição em azul-acinzentado sem cortes */}
-                      <div className="mt-2 min-w-0">
-                        <h3 className="text-[16px] lg:text-[17px] font-extrabold text-[#0B1528] group-hover:text-[#1455FF] transition-colors leading-tight tracking-[-0.01em] truncate">
+                      {/* Título forte + Descrição em azul-acinzentado */}
+                      <div className="mt-2.5 min-w-0">
+                        <h3 className="text-[16px] xl:text-[17.5px] font-extrabold text-[#101828] group-hover:text-[#1455FF] transition-colors leading-tight tracking-[-0.01em] truncate">
                           {card.title}
                         </h3>
-                        <p className="text-[12.5px] lg:text-[13px] text-[#4B5B73] mt-1 leading-[1.3] line-clamp-2">
+                        <p className="text-[12.5px] xl:text-[13px] text-[#526079] mt-0.5 leading-[1.32] line-clamp-2">
                           {card.description}
                         </p>
                       </div>
@@ -701,21 +699,21 @@ export function DashboardClient({
           {/* =============================================================== */}
           {/* 3. LINHA INTERMEDIÁRIA: AVISOS (ESQUERDA) + DIREITA (PROTOCOLO + APP) */}
           {/* =============================================================== */}
-          <section className="grid grid-cols-1 xl:grid-cols-2 gap-5 xl:gap-[22px] items-stretch">
+          <section className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-[20px] items-stretch">
             {/* COLUNA ESQUERDA: Avisos do condomínio */}
-            <div className="h-full rounded-[20px] border border-[#E2E8F2] bg-white px-4 py-3.5 sm:px-6 sm:py-4 shadow-[0_3px_14px_rgba(7,26,56,0.04)] flex flex-col justify-between min-w-0">
+            <div className="h-full rounded-[20px] border border-[#E2E8F0] bg-white px-5 py-3.5 sm:px-6 sm:py-4 shadow-[0_4px_16px_rgba(7,26,56,0.045)] flex flex-col justify-between min-w-0">
               <div className="h-full flex flex-col min-w-0">
                 {/* Cabeçalho da seção */}
                 <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-[#EDF1F7]">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EAF1FF] text-[#0B1528] shrink-0">
-                      <Icon name="megaphone" size={22} strokeWidth={2} />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EAF1FF] text-[#101828] shrink-0">
+                      <Icon name="megaphone" size={22} strokeWidth={2.1} />
                     </span>
                     <div className="min-w-0">
-                      <h2 className="text-[18px] sm:text-[20px] font-extrabold text-[#0B1528] leading-tight tracking-[-0.01em]">
+                      <h2 className="text-[18.5px] sm:text-[20px] font-extrabold text-[#101828] leading-tight tracking-[-0.01em]">
                         Avisos do condomínio
                       </h2>
-                      <p className="text-xs sm:text-[13.5px] text-[#526079] mt-0.5 truncate">
+                      <p className="text-xs sm:text-[13px] text-[#526079] mt-0.5 truncate">
                         Fique por dentro de comunicados, assembleias e novidades.
                       </p>
                     </div>
@@ -723,10 +721,10 @@ export function DashboardClient({
 
                   <Link
                     href="/painel/comunicados"
-                    className="text-xs sm:text-[13.5px] font-bold text-[#0D47FF] hover:underline inline-flex items-center gap-1 shrink-0 mt-1 whitespace-nowrap"
+                    className="text-xs sm:text-[14px] font-bold text-[#0D47FF] hover:underline inline-flex items-center gap-1 shrink-0 mt-1 whitespace-nowrap"
                   >
                     <span>Ver todos</span>
-                    <Icon name="chevron-right" size={14} strokeWidth={2.5} />
+                    <Icon name="chevron-right" size={15} strokeWidth={2.5} />
                   </Link>
                 </div>
 
@@ -736,13 +734,13 @@ export function DashboardClient({
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF] mb-2.5">
                       <Icon name="megaphone" size={18} />
                     </span>
-                    <p className="text-sm font-bold text-[#0B1528]">Nenhum aviso publicado</p>
+                    <p className="text-sm font-bold text-[#101828]">Nenhum aviso publicado</p>
                     <p className="text-xs text-[#526079] mt-0.5 max-w-xs">
                       Comunicados, convocações e notícias do condomínio aparecerão aqui assim que forem publicados.
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-[#EDF1F7] mt-1 flex-1 flex flex-col justify-around">
+                  <div className="divide-y divide-[#EDF1F7] mt-0.5 flex-1 flex flex-col justify-around">
                     {displayNotices.slice(0, 3).map((notice) => {
                       const isAssembly = notice.kind === "assembleia";
                       const isAlert =
@@ -768,7 +766,7 @@ export function DashboardClient({
                         <Link
                           key={notice.id}
                           href={notice.href}
-                          className="py-2.5 px-2 -mx-2 flex items-center justify-between gap-3 hover:bg-slate-50/80 rounded-xl transition-colors group cursor-pointer min-w-0"
+                          className="py-2 px-2 -mx-2 flex items-center justify-between gap-3 hover:bg-slate-50/80 rounded-xl transition-colors group cursor-pointer min-w-0"
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <span
@@ -782,14 +780,14 @@ export function DashboardClient({
                                     ? "users"
                                     : "megaphone"
                                 }
-                                size={18}
-                                strokeWidth={2}
+                                size={19}
+                                strokeWidth={2.2}
                               />
                             </span>
 
                             <div className="min-w-0 space-y-0.5 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[13.5px] sm:text-[14.5px] font-bold text-[#0B1528] group-hover:text-[#1455FF] transition-colors truncate max-w-full">
+                                <span className="text-[14px] sm:text-[14.5px] font-bold text-[#101828] group-hover:text-[#1455FF] transition-colors truncate max-w-full">
                                   {notice.title}
                                 </span>
                                 <span
@@ -804,15 +802,15 @@ export function DashboardClient({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-2.5 shrink-0">
                             <span className="text-xs sm:text-[13px] text-[#526079] font-medium hidden sm:inline tabular-nums">
                               {shortDate}
                             </span>
                             <Icon
                               name="chevron-right"
-                              size={15}
-                              strokeWidth={2.2}
-                              className="text-[#64748B] group-hover:text-[#1455FF] group-hover:translate-x-0.5 transition-all"
+                              size={16}
+                              strokeWidth={2.4}
+                              className="text-[#526079] group-hover:text-[#1455FF] group-hover:translate-x-0.5 transition-all"
                             />
                           </div>
                         </Link>
@@ -824,18 +822,18 @@ export function DashboardClient({
             </div>
 
             {/* COLUNA DIREITA: Acompanhe sua solicitação + Acesse pelo celular */}
-            <div className="flex flex-col justify-between gap-4 xl:gap-[15px] min-w-0">
+            <div className="flex flex-col justify-between gap-4 xl:gap-[16px] min-w-0">
               {/* Card Superior: Acompanhe sua solicitação */}
-              <div className="rounded-[20px] border border-[#E2E8F2] bg-white px-4 py-3.5 sm:px-6 sm:py-4 shadow-[0_3px_14px_rgba(7,26,56,0.04)] min-w-0">
-                <div className="flex items-center gap-3.5">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EAF1FF] text-[#0B1528] shrink-0">
-                    <Icon name="layers" size={22} strokeWidth={2} />
+              <div className="rounded-[20px] border border-[#E2E8F0] bg-white px-5 py-4 sm:px-6 sm:py-4.5 shadow-[0_4px_16px_rgba(7,26,56,0.045)] min-w-0">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#EAF1FF] text-[#101828] shrink-0">
+                    <Icon name="layers" size={22} strokeWidth={2.1} />
                   </span>
                   <div className="min-w-0">
-                    <h2 className="text-[18px] sm:text-[20px] font-extrabold text-[#0B1528] leading-tight tracking-[-0.01em]">
+                    <h2 className="text-[18.5px] sm:text-[20px] font-extrabold text-[#101828] leading-tight tracking-[-0.01em]">
                       Acompanhe sua solicitação
                     </h2>
-                    <p className="text-xs sm:text-[13.5px] text-[#526079] mt-0.5">
+                    <p className="text-xs sm:text-[13px] text-[#526079] mt-0.5">
                       Informe o número do protocolo e veja o andamento.
                     </p>
                   </div>
@@ -858,14 +856,14 @@ export function DashboardClient({
                         if (protocolFeedback) setProtocolFeedback(null);
                       }}
                       placeholder="Ex.: ZEL-20261116-1067"
-                      className="w-full h-[46px] pl-10 pr-3.5 rounded-[10px] border border-[#CBD5E1] bg-white text-sm font-medium text-[#101828] placeholder:text-[#64748B] focus:border-[#1455FF] focus:ring-2 focus:ring-[#1455FF]/20 outline-none transition-all min-w-0"
+                      className="w-full h-[45px] pl-10 pr-3.5 rounded-[11px] border border-[#CBD5E1] bg-white text-[14.5px] font-medium text-[#101828] placeholder:text-[#64748B] focus:border-[#1455FF] focus:ring-2 focus:ring-[#1455FF]/20 outline-none transition-all min-w-0"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="h-[46px] px-5 sm:px-8 rounded-[10px] bg-[#0052F5] hover:bg-[#0044CC] text-white font-bold text-sm sm:text-[15.5px] flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+                    className="h-[45px] px-6 sm:px-7 rounded-[11px] bg-[#0052F5] hover:bg-[#0044CC] text-white font-bold text-sm sm:text-[15px] flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
                   >
-                    <Icon name="search" size={17} strokeWidth={2.2} />
+                    <Icon name="search" size={18} strokeWidth={2.3} />
                     <span>Consultar</span>
                   </button>
                 </form>
@@ -893,27 +891,27 @@ export function DashboardClient({
               </div>
 
               {/* Card Inferior: Acesse também pelo celular */}
-              <div className="flex-1 rounded-[20px] border border-[#D8E4F8] bg-gradient-to-r from-[#E3ECFA] to-[#ECF2FE] px-4 py-3.5 sm:px-6 shadow-[0_3px_14px_rgba(7,26,56,0.03)] relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 min-h-[120px] min-w-0">
+              <div className="flex-1 rounded-[20px] border border-[#D8E4F8] bg-gradient-to-r from-[#E3ECFA] to-[#ECF2FE] px-5 py-3 sm:px-6 shadow-[0_4px_16px_rgba(7,26,56,0.035)] relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 min-h-[118px] min-w-0">
                 <div className="flex items-center gap-4 sm:gap-5 flex-1 min-w-0 w-full">
-                  {/* Mockup de Smartphone inclinado com tela institucional Zeladoria */}
-                  <div className="hidden min-[440px]:flex relative w-[108px] h-[146px] ml-1 -mb-11 -rotate-10 bg-[#0B1426] rounded-t-[20px] border-[4px] border-[#0B1426] shadow-xl shrink-0 overflow-hidden flex-col select-none">
-                    <div className="w-9 h-1.5 bg-[#0B1426] rounded-b-md mx-auto relative z-10" />
-                    <div className="flex-1 bg-gradient-to-b from-[#1455FF] to-[#0B43DA] rounded-t-[14px] px-2 pt-3 pb-6 flex flex-col items-center justify-center text-center">
+                  {/* Mockup de Smartphone inclinado com enquadramento fiel à referência */}
+                  <div className="hidden min-[440px]:flex relative w-[110px] h-[146px] ml-1 -mb-11 -rotate-10 bg-[#0B1426] rounded-t-[18px] border-[4px] border-[#0B1426] shadow-xl shrink-0 overflow-hidden flex-col select-none">
+                    <div className="w-10 h-1.5 bg-[#0B1426] rounded-b-md mx-auto relative z-10" />
+                    <div className="flex-1 bg-gradient-to-b from-[#1455FF] to-[#0B43DA] rounded-t-[13px] px-2 pt-3 pb-7 flex flex-col items-center justify-center text-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/logo-white.png?v=5"
                         alt="Zeladoria Condomínio"
-                        className="w-[78px] h-auto object-contain"
+                        className="w-[76px] h-auto object-contain"
                       />
                     </div>
                   </div>
 
                   {/* Textos centralizados verticalmente */}
                   <div className="min-w-0 flex-1 text-center sm:text-left">
-                    <h3 className="text-[18px] sm:text-[20px] font-extrabold text-[#0B1528] leading-tight tracking-[-0.01em]">
+                    <h3 className="text-[18px] sm:text-[19px] font-extrabold text-[#101828] leading-tight tracking-[-0.01em]">
                       Acesse também pelo celular
                     </h3>
-                    <p className="text-xs sm:text-[14px] text-[#475569] mt-1 leading-snug max-w-[340px] mx-auto sm:mx-0">
+                    <p className="text-xs sm:text-[13.5px] text-[#475569] mt-1 leading-snug max-w-[340px] mx-auto sm:mx-0">
                       Gerencie ocorrências, reservas, visitantes e muito mais, onde estiver.
                     </p>
                     {appStoreHint && (
@@ -925,13 +923,13 @@ export function DashboardClient({
                 </div>
 
                 {/* Coluna Direita: Badges Google Play e App Store empilhados verticalmente */}
-                <div className="flex flex-wrap justify-center sm:flex-col gap-2 shrink-0 max-w-full">
+                <div className="flex flex-wrap justify-center sm:flex-col gap-1.5 shrink-0 max-w-full">
                   {androidAppUrl ? (
                     <a
                       href={androidAppUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[40px] shadow-xs transition-colors"
+                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[39px] shadow-xs transition-colors"
                     >
                       <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M3.6 1.8c-.4.4-.6 1-.6 1.7v17c0 .7.2 1.3.6 1.7l10.2-10.2L3.6 1.8z" />
@@ -948,7 +946,7 @@ export function DashboardClient({
                     <button
                       type="button"
                       onClick={() => setAppStoreHint((v) => !v)}
-                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[40px] shadow-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[39px] shadow-xs transition-colors cursor-pointer"
                     >
                       <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M3.6 1.8c-.4.4-.6 1-.6 1.7v17c0 .7.2 1.3.6 1.7l10.2-10.2L3.6 1.8z" />
@@ -968,7 +966,7 @@ export function DashboardClient({
                       href={iosAppUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[40px] shadow-xs transition-colors"
+                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[39px] shadow-xs transition-colors"
                     >
                       <svg className="w-5 h-5 fill-current text-white shrink-0" viewBox="0 0 24 24">
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.66-.8 1.11-1.92.99-3.04-.96.04-2.12.64-2.8 1.44-.59.68-1.11 1.78-.97 2.87 1.07.08 2.12-.53 2.78-1.27z" />
@@ -982,7 +980,7 @@ export function DashboardClient({
                     <button
                       type="button"
                       onClick={() => setAppStoreHint((v) => !v)}
-                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[40px] shadow-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2.5 rounded-[8px] bg-black hover:bg-neutral-900 text-white px-3.5 py-1.5 w-[138px] h-[39px] shadow-xs transition-colors cursor-pointer"
                     >
                       <svg className="w-5 h-5 fill-current text-white shrink-0" viewBox="0 0 24 24">
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.66-.8 1.11-1.92.99-3.04-.96.04-2.12.64-2.8 1.44-.59.68-1.11 1.78-.97 2.87 1.07.08 2.12-.53 2.78-1.27z" />
@@ -1001,10 +999,10 @@ export function DashboardClient({
           {/* =============================================================== */}
           {/* 4. BANNER INFERIOR DO TIÃO ZELADOR (FIEL À REFERÊNCIA 2)        */}
           {/* =============================================================== */}
-          <section className="rounded-[20px] bg-gradient-to-r from-[#0F65FF] via-[#0B52E6] to-[#083EC4] px-5 py-4 sm:px-7 sm:py-4 text-white shadow-[0_6px_22px_rgba(11,82,230,0.25)] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <section className="rounded-[20px] bg-gradient-to-r from-[#0F65FF] via-[#0B52E6] to-[#083EC4] px-5 py-3.5 sm:px-7 sm:py-4 text-white shadow-[0_6px_22px_rgba(11,82,230,0.25)] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               {/* Mascote real do Tião Zelador */}
-              <div className="h-[68px] w-[68px] sm:h-[74px] sm:w-[74px] shrink-0 rounded-[16px] bg-white/10 border border-white/15 flex items-center justify-center p-1.5">
+              <div className="h-[64px] w-[64px] sm:h-[72px] sm:w-[72px] shrink-0 rounded-[16px] bg-white/10 border border-white/15 flex items-center justify-center p-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/brands/tiao/mascot-white.png"
@@ -1015,7 +1013,7 @@ export function DashboardClient({
 
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="text-lg sm:text-[21px] font-extrabold text-white tracking-tight">
+                  <h3 className="text-lg sm:text-[20px] font-extrabold text-white tracking-tight">
                     Tião Zelador
                   </h3>
                   <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-white text-[#0A47C8] text-[11px] font-extrabold uppercase tracking-wide shadow-2xs">
@@ -1023,10 +1021,10 @@ export function DashboardClient({
                     Verificado
                   </span>
                 </div>
-                <h4 className="text-base sm:text-[19px] font-bold text-white leading-snug">
+                <h4 className="text-base sm:text-[18px] font-bold text-white leading-snug">
                   Precisa de uma mão no seu condomínio?
                 </h4>
-                <p className="text-xs sm:text-[14px] text-white/90 font-normal leading-snug max-w-3xl">
+                <p className="text-xs sm:text-[13.5px] text-white/95 font-normal leading-snug min-[1400px]:whitespace-nowrap">
                   Converse com o Tião Zelador, o assistente de IA da Zeladoria, e resolva dúvidas, gere solicitações e receba orientações.
                 </p>
               </div>
@@ -1036,7 +1034,7 @@ export function DashboardClient({
               <button
                 type="button"
                 onClick={() => setAssistantOpen(true)}
-                className="w-full md:w-auto inline-flex items-center justify-center gap-3 rounded-[12px] bg-white hover:bg-slate-50 text-[#0B2E8A] px-7 py-3.5 text-sm sm:text-[15.5px] font-extrabold shadow-md transition-all active:scale-95 group cursor-pointer whitespace-nowrap"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-3 rounded-[12px] bg-white hover:bg-slate-50 text-[#0B2E8A] px-6.5 py-3 text-sm sm:text-[15.5px] font-extrabold shadow-md transition-all active:scale-95 group cursor-pointer whitespace-nowrap"
               >
                 <span>Conversar com o Tião Zelador</span>
                 <Icon

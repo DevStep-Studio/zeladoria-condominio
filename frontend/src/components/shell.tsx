@@ -636,9 +636,9 @@ export function Shell({
 
   return (
     <div className="min-h-screen bg-[#F3F6FB] flex flex-col selection:bg-blue-100 selection:text-[#1455FF]">
-      {/* Top Navbar: Horizontal Dark Navy (#09162B), altura ~69px fiel à imagem aprovada */}
+      {/* Top Navbar: Horizontal Dark Navy (#09162B), altura ~70px fiel à imagem aprovada */}
       <header className="sticky top-0 z-40 w-full bg-[#09162B] text-white border-b border-white/10 select-none">
-        <div className="w-full max-w-[1648px] mx-auto h-16 lg:h-[69px] px-3 sm:px-6 lg:px-5 xl:px-[52px] flex items-center justify-between gap-2 sm:gap-3">
+        <div className="w-full max-w-[1760px] mx-auto h-16 lg:h-[70px] px-3 sm:px-6 lg:px-6 xl:px-7 min-[1440px]:px-[44px] min-[1600px]:px-[48px] flex items-center justify-between gap-2 sm:gap-3">
           {/* Esquerda: Hamburger (apenas mobile/tablet) + Logotipo Branca */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
             <button
@@ -660,15 +660,15 @@ export function Shell({
                 size="lg"
                 variant="white"
                 showText={true}
-                imgClassName="h-[26px] min-[375px]:h-[30px] lg:h-[34px] xl:h-[47px] w-auto"
+                imgClassName="h-[26px] min-[375px]:h-[30px] lg:h-[32px] xl:h-[36px] min-[1440px]:h-[43px] min-[1600px]:h-[47px] w-auto"
               />
             </Link>
           </div>
 
-          {/* Centro: Menus horizontais distribuídos uniformemente sem quebras (Desktop) */}
+          {/* Centro: Menus horizontais distribuídos uniformemente sem quebras ou colisões */}
           <nav
             aria-label="Navegação principal"
-            className="hidden lg:flex items-center justify-center gap-1 xl:gap-4 2xl:gap-6 min-w-0"
+            className="hidden lg:flex items-center justify-center gap-0.5 xl:gap-1.5 min-[1440px]:gap-3.5 min-[1600px]:gap-5.5 shrink-0"
           >
             {topNavItems.map((item) => {
               const active = isRouteActive(item.href);
@@ -676,7 +676,7 @@ export function Shell({
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`inline-flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-4.5 py-1.5 xl:py-2 text-[12px] xl:text-[15px] rounded-[10px] transition-colors duration-150 whitespace-nowrap shrink-0 ${
+                  className={`inline-flex items-center gap-1.5 xl:gap-1.5 min-[1440px]:gap-2 px-2 xl:px-2.5 min-[1440px]:px-3.5 min-[1600px]:px-4.5 py-1.5 xl:py-2 text-[12px] xl:text-[13.5px] min-[1440px]:text-[15px] min-[1600px]:text-[15.5px] rounded-[10px] transition-colors duration-150 whitespace-nowrap shrink-0 ${
                     active
                       ? "bg-[#23324B] text-white font-semibold"
                       : "text-white/90 hover:text-white hover:bg-white/10 font-medium"
@@ -686,7 +686,7 @@ export function Shell({
                     name={item.icon}
                     size={15}
                     strokeWidth={active ? 2.1 : 1.8}
-                    className={`${active ? "text-white" : "text-white/85"} shrink-0 xl:w-[17px] xl:h-[17px]`}
+                    className={`${active ? "text-white" : "text-white/85"} shrink-0 xl:w-[16px] xl:h-[16px] min-[1440px]:w-[17px] min-[1440px]:h-[17px] min-[1600px]:w-[18px] min-[1600px]:h-[18px]`}
                   />
                   <span>{item.label}</span>
                 </Link>
@@ -808,7 +808,7 @@ export function Shell({
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="inline-flex items-center justify-center gap-1.5 lg:gap-2 xl:gap-2.5 h-9 lg:h-[36px] xl:h-[42px] px-3 sm:px-4 lg:px-3.5 xl:px-5 rounded-[10px] bg-white hover:bg-slate-100 text-[#0B1528] text-xs lg:text-[12.5px] xl:text-[14.5px] font-bold shadow-xs transition-colors whitespace-nowrap cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center gap-1.5 lg:gap-2 xl:gap-2 h-9 lg:h-[36px] min-[1440px]:h-[42px] px-3 sm:px-4 lg:px-3.5 min-[1440px]:px-5 min-[1600px]:px-5.5 rounded-[10px] bg-white hover:bg-slate-100 text-[#0B1528] text-xs lg:text-[12.5px] xl:text-[13.5px] min-[1440px]:text-[14.5px] font-bold shadow-xs transition-colors whitespace-nowrap cursor-pointer shrink-0"
                 title="Abrir opções de perfil e condomínio"
               >
                 <Icon name="user" size={16} strokeWidth={2.1} className="text-[#0B1528] shrink-0" />
@@ -1094,8 +1094,8 @@ export function Shell({
       <main
         className={
           isHomeRoute
-            ? "w-full flex-1 pb-24 lg:pb-8 min-w-0"
-            : "w-full flex-1 px-4 sm:px-6 lg:px-[44px] py-6 pb-24 lg:pb-12 max-w-[1648px] mx-auto min-w-0"
+            ? "w-full flex-1 pb-24 lg:pb-6 min-w-0"
+            : "w-full flex-1 px-4 sm:px-6 lg:px-[40px] py-6 pb-24 lg:pb-12 max-w-[1760px] mx-auto min-w-0"
         }
       >
         {children}
