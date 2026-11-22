@@ -163,8 +163,8 @@ export function ItemDetailsDrawer({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 p-6 text-slate-400">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xs border border-slate-200 text-slate-500">
+                <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F8FC] p-6 text-[#526079]">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xs border border-[#E2E8F0] text-[#1455FF]">
                     <Icon name={categoryIcon} size={32} />
                   </span>
                   <span className="mt-2 text-xs font-bold uppercase tracking-wider text-slate-500">

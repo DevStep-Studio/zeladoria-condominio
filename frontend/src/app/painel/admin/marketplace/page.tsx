@@ -5,6 +5,12 @@ import { requireSession } from "@/lib/auth";
 import { Icon, type IconName } from "@/components/icon";
 import { dateTimeBR, money } from "@/lib/utils";
 import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
+import { InternalTabStrip } from "@/components/internal/internal-interactive";
+import {
   CATEGORY_LABELS,
   SUBCATEGORIES_BY_CATEGORY,
   categoryLabel,
@@ -110,68 +116,40 @@ export default async function AdminMarketplacePage({
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="sparkles"
+        title="Administração do Marketplace"
+        subtitle="Controle de catálogo, aprovação de profissionais e qualidade do serviço."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Marketplace" },
+        ]}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/painel/admin/marketplace/destaques" className={INTERNAL_BTN_SECONDARY_CLS}>
+              <Icon name="sparkles" size={14} className="text-amber-600" />
+              <span>Planos de Destaque</span>
             </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Marketplace</span>
+            <Link href="/painel/admin/zeladoria-pay?tab=comissoes" className={INTERNAL_BTN_SECONDARY_CLS}>
+              <Icon name="chart" size={14} className="text-[#1455FF]" />
+              <span>Comissões & Taxas</span>
+            </Link>
           </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Administração do Marketplace
-          </h1>
-          <p className="text-xs text-slate-500">
-            Controle de catálogo, aprovação de profissionais e qualidade do serviço.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/painel/admin/marketplace/destaques"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-amber-50 text-amber-800 border border-amber-200/80 text-xs font-bold hover:bg-amber-100/70 transition-colors"
-          >
-            <Icon name="sparkles" size={13} />
-            <span>Planos de Destaque</span>
-          </Link>
-          <Link
-            href="/painel/admin/zeladoria-pay?tab=comissoes"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-blue-50 text-[#1455FF] border border-blue-200/80 text-xs font-bold hover:bg-blue-100/70 transition-colors"
-          >
-            <Icon name="chart" size={13} />
-            <span>Comissões & Taxas</span>
-          </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-200 pb-px overflow-x-auto">
-        {tabs.map((t) => {
-          const isActive = tab === t.id;
-          return (
-            <Link
-              key={t.id}
-              href={`/painel/admin/marketplace?tab=${t.id}`}
-              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${
-                isActive
-                  ? "border-[#1455FF] text-[#1455FF]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              <span>{t.label}</span>
-              {t.count !== undefined && (
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                  isActive ? "bg-blue-100 text-[#1455FF]" : "bg-slate-100 text-slate-600"
-                }`}>
-                  {t.count}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+      <InternalTabStrip
+        activeKey={tab}
+        tabs={tabs.map((t) => ({
+          key: t.id,
+          label: t.label,
+          count: t.count,
+          href: `/painel/admin/marketplace?tab=${t.id}`,
+        }))}
+      />
 
       {/* Conteúdo da Aba */}
       {tab === "prestadores" && (
@@ -403,6 +381,6 @@ export default async function AdminMarketplacePage({
           </Link>
         </div>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

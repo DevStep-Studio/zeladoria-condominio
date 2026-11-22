@@ -4,6 +4,12 @@ import { useState, useTransition, useMemo, useEffect, useCallback } from "react"
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/icon";
 import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import {
   type SystemIncidentItem,
   type IncidentKPIs,
   type IncidentPriority,
@@ -576,49 +582,48 @@ export function CentralAvisosErrosClient({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* 4. Cabeçalho da página */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Avisos e erros</h1>
-            {data.kpis.criticalErrors > 0 && (
-              <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
-                {data.kpis.criticalErrors} crítico{data.kpis.criticalErrors > 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-slate-600">
-            Monitore ocorrências, identifique falhas e acompanhe situações que precisam de atenção.
-          </p>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
-            <Icon name="clock" size={12} className="text-slate-400" />
-            <span>Última atualização: {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={fetchIncidents}
-            disabled={isLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 cursor-pointer disabled:opacity-50"
-          >
-            <Icon name="refresh" size={13} className={`text-slate-500 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Atualizar</span>
-          </button>
-
-          {["superadmin", "sindico", "zelador"].includes(currentRole) && (
+      <InternalPageHeader
+        icon="alert-triangle"
+        title="Avisos e erros"
+        subtitle={`Monitore ocorrências, identifique falhas e acompanhe situações que precisam de atenção · Atualizado às ${lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Sistema" },
+          { label: "Avisos e erros" },
+        ]}
+        badge={
+          data.kpis.criticalErrors > 0 ? (
+            <InternalStatusBadge
+              label={`${data.kpis.criticalErrors} crítico${data.kpis.criticalErrors > 1 ? "s" : ""}`}
+              tone="red"
+            />
+          ) : undefined
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1455FF] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#1455FF]/20 cursor-pointer"
+              onClick={fetchIncidents}
+              disabled={isLoading}
+              className={`${INTERNAL_BTN_SECONDARY_CLS} cursor-pointer disabled:opacity-50`}
             >
-              <Icon name="plus" size={13} />
-              <span>Registrar aviso</span>
+              <Icon name="refresh" size={14} className={isLoading ? "animate-spin text-[#1455FF]" : "text-[#526079]"} />
+              <span>Atualizar</span>
             </button>
-          )}
-        </div>
-      </div>
+
+            {["superadmin", "sindico", "zelador"].includes(currentRole) && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className={`${INTERNAL_BTN_PRIMARY_CLS} cursor-pointer`}
+              >
+                <Icon name="plus" size={14} />
+                <span>Registrar aviso</span>
+              </button>
+            )}
+          </div>
+        }
+      />
 
       {/* 5. Indicadores principais (5 cards horizontais reais) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -626,90 +631,90 @@ export function CentralAvisosErrosClient({
         <button
           type="button"
           onClick={() => handleKpiCardClick("ativos")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-[#1455FF] hover:shadow cursor-pointer ${
-            activeKpiFilter === "ativos" ? "border-[#1455FF] ring-2 ring-[#1455FF]/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-2xl border bg-white p-4 transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-[#1455FF] hover:shadow-[0_6px_18px_rgba(20,85,255,0.08)] cursor-pointer ${
+            activeKpiFilter === "ativos" ? "border-[#1455FF] bg-[#EAF1FF]/35 ring-2 ring-[#1455FF]/20" : "border-[#E2E8F0]"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Avisos ativos</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[#1455FF]">
-              <Icon name="bell" size={14} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider">Avisos ativos</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
+              <Icon name="bell" size={15} />
             </div>
           </div>
-          <span className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{data.kpis.activeAlerts}</span>
-          <span className="mt-1 text-[11px] text-slate-500">Operacionais pendentes</span>
+          <span className="mt-2.5 text-2xl font-extrabold tracking-tight text-[#101828] tabular-nums">{data.kpis.activeAlerts}</span>
+          <span className="mt-1 text-[11px] text-[#526079]">Operacionais pendentes</span>
         </button>
 
         {/* Card 2 — Erros críticos */}
         <button
           type="button"
           onClick={() => handleKpiCardClick("criticos")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-red-500 hover:shadow cursor-pointer ${
-            activeKpiFilter === "criticos" ? "border-red-500 ring-2 ring-red-500/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-2xl border bg-white p-4 transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-red-500 hover:shadow-md cursor-pointer ${
+            activeKpiFilter === "criticos" ? "border-red-500 ring-2 ring-red-500/20" : "border-[#E2E8F0]"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Erros críticos</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-600">
-              <Icon name="alert-triangle" size={14} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider">Erros críticos</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <Icon name="alert-triangle" size={15} />
             </div>
           </div>
-          <span className="mt-2 text-2xl font-bold tracking-tight text-red-600">{data.kpis.criticalErrors}</span>
-          <span className="mt-1 text-[11px] text-slate-500">Gravidade P0 não resolvidos</span>
+          <span className="mt-2.5 text-2xl font-extrabold tracking-tight text-red-600 tabular-nums">{data.kpis.criticalErrors}</span>
+          <span className="mt-1 text-[11px] text-[#526079]">Gravidade P0 não resolvidos</span>
         </button>
 
         {/* Card 3 — Em análise */}
         <button
           type="button"
           onClick={() => handleKpiCardClick("analise")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-purple-500 hover:shadow cursor-pointer ${
-            activeKpiFilter === "analise" ? "border-purple-500 ring-2 ring-purple-500/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-2xl border bg-white p-4 transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-[#1455FF] hover:shadow-md cursor-pointer ${
+            activeKpiFilter === "analise" ? "border-[#1455FF] bg-[#EAF1FF]/35 ring-2 ring-[#1455FF]/20" : "border-[#E2E8F0]"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Em análise</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-              <Icon name="search" size={14} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider">Em análise</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
+              <Icon name="search" size={15} />
             </div>
           </div>
-          <span className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{data.kpis.inAnalysis}</span>
-          <span className="mt-1 text-[11px] text-slate-500">Com responsável atribuído</span>
+          <span className="mt-2.5 text-2xl font-extrabold tracking-tight text-[#101828] tabular-nums">{data.kpis.inAnalysis}</span>
+          <span className="mt-1 text-[11px] text-[#526079]">Com responsável atribuído</span>
         </button>
 
         {/* Card 4 — Resolvidos hoje */}
         <button
           type="button"
           onClick={() => handleKpiCardClick("resolvidos")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-emerald-500 hover:shadow cursor-pointer ${
-            activeKpiFilter === "resolvidos" ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-2xl border bg-white p-4 transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-emerald-500 hover:shadow-md cursor-pointer ${
+            activeKpiFilter === "resolvidos" ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-[#E2E8F0]"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Resolvidos hoje</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-              <Icon name="check-circle" size={14} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider">Resolvidos hoje</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <Icon name="check-circle" size={15} />
             </div>
           </div>
-          <span className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{data.kpis.resolvedToday}</span>
-          <span className="mt-1 text-[11px] text-slate-500">Soluções registradas hoje</span>
+          <span className="mt-2.5 text-2xl font-extrabold tracking-tight text-[#101828] tabular-nums">{data.kpis.resolvedToday}</span>
+          <span className="mt-1 text-[11px] text-[#526079]">Soluções registradas hoje</span>
         </button>
 
         {/* Card 5 — Sem responsável */}
         <button
           type="button"
           onClick={() => handleKpiCardClick("sem_resp")}
-          className={`flex flex-col text-left rounded-xl border bg-white p-3.5 transition-all shadow-sm hover:border-amber-500 hover:shadow cursor-pointer col-span-2 sm:col-span-1 ${
-            activeKpiFilter === "sem_resp" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-slate-200/80"
+          className={`flex flex-col text-left rounded-2xl border bg-white p-4 transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-amber-500 hover:shadow-md cursor-pointer col-span-2 sm:col-span-1 ${
+            activeKpiFilter === "sem_resp" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-[#E2E8F0]"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Sem responsável</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-              <Icon name="users" size={14} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider">Sem responsável</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+              <Icon name="users" size={15} />
             </div>
           </div>
-          <span className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{data.kpis.unassigned}</span>
-          <span className="mt-1 text-[11px] text-slate-500">Demandam atribuição</span>
+          <span className="mt-2.5 text-2xl font-extrabold tracking-tight text-[#101828] tabular-nums">{data.kpis.unassigned}</span>
+          <span className="mt-1 text-[11px] text-[#526079]">Demandam atribuição</span>
         </button>
       </div>
 

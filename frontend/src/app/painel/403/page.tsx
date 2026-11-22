@@ -13,18 +13,18 @@ export default function ForbiddenPage() {
         </span>
       </div>
 
-      <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F172A]">
+      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#101828]">
         Acesso não permitido
       </h1>
 
-      <p className="mt-2.5 max-w-md text-sm text-slate-500 leading-relaxed">
+      <p className="mt-2.5 max-w-md text-sm text-[#526079] leading-relaxed">
         Você não possui permissão para acessar esta área. Caso acredite que isto seja um engano, entre em contato com a administração do condomínio.
       </p>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/painel"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-md shadow-blue-500/20"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-5 py-2.5 text-xs font-bold transition-all shadow-sm"
         >
           <Icon name="arrow-right" size={14} className="rotate-180" />
           <span>Voltar ao início</span>

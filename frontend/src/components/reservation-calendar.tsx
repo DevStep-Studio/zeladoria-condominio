@@ -134,48 +134,48 @@ export function ReservationCalendar({
         />
       </div>
 
-      <aside className="rounded-[12px] border border-[#dce9b3] bg-[var(--color-primary-soft)] p-4">
+      <aside className="rounded-2xl border border-[#1455FF]/20 bg-[#EAF1FF]/45 p-4">
         {selected ? (
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-primary-dark)]">Selecionado</p>
-                <h3 className="mt-1 text-lg font-semibold leading-tight text-[var(--color-ink)]">{selected.amenity}</h3>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">{selected.person}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#1455FF]">Selecionado</p>
+                <h3 className="mt-1 text-lg font-bold leading-tight text-[#101828]">{selected.amenity}</h3>
+                <p className="mt-1 text-sm text-[#526079]">{selected.person}</p>
               </div>
               {selectedTone ? <span className={`chip shrink-0 ${selectedTone.className}`}>{selectedTone.label}</span> : null}
             </div>
 
             <dl className="grid gap-2 text-sm">
-              <div className="rounded-[8px] bg-white px-3 py-2">
-                <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Horário</dt>
-                <dd className="mt-1 font-semibold text-[var(--color-ink)]">{selected.dateLabel} · {selected.timeLabel}</dd>
+              <div className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-[#526079]">Horário</dt>
+                <dd className="mt-1 font-semibold text-[#101828]">{selected.dateLabel} · {selected.timeLabel}</dd>
               </div>
-              <div className="rounded-[8px] bg-white px-3 py-2">
-                <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Unidade</dt>
-                <dd className="mt-1 font-semibold text-[var(--color-ink)]">{selected.unitLabel}</dd>
+              <div className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-[#526079]">Unidade</dt>
+                <dd className="mt-1 font-semibold text-[#101828]">{selected.unitLabel}</dd>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-[8px] bg-white px-3 py-2">
-                  <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Taxa</dt>
-                  <dd className="mt-1 font-semibold text-[var(--color-ink)]">{selected.feeLabel}</dd>
+                <div className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-[#526079]">Taxa</dt>
+                  <dd className="mt-1 font-semibold text-[#101828]">{selected.feeLabel}</dd>
                 </div>
-                <div className="rounded-[8px] bg-white px-3 py-2">
-                  <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Convidados</dt>
-                  <dd className="mt-1 font-semibold text-[var(--color-ink)]">{selected.guests}</dd>
+                <div className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-[#526079]">Convidados</dt>
+                  <dd className="mt-1 font-semibold text-[#101828]">{selected.guests}</dd>
                 </div>
               </div>
             </dl>
 
-            {selected.notes ? <p className="rounded-[8px] border border-[#dce9b3] bg-white px-3 py-2 text-sm leading-6 text-[var(--color-muted)]">{selected.notes}</p> : null}
+            {selected.notes ? <p className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm leading-6 text-[#526079]">{selected.notes}</p> : null}
           </div>
         ) : (
           <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-white text-[var(--color-primary-dark)]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white border border-[#E2E8F0] text-[#1455FF]">
               <Icon name="calendar" size={18} />
             </span>
-            <p className="mt-3 text-sm font-semibold text-[var(--color-ink)]">Nenhum agendamento no período</p>
-            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">Use os filtros ou crie uma nova reserva para preencher a agenda.</p>
+            <p className="mt-3 text-sm font-bold text-[#101828]">Nenhum agendamento no período</p>
+            <p className="mt-1 text-sm leading-6 text-[#526079]">Use os filtros ou crie uma nova reserva para preencher a agenda.</p>
           </div>
         )}
       </aside>

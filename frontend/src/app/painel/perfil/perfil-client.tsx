@@ -3,8 +3,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
 import { AppButton, AppInput } from "@/components/app-ui";
+import {
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import { InternalModal, InternalTabStrip } from "@/components/internal/internal-interactive";
 import { logoutAction } from "@/lib/actions/session";
 import {
   updateProfileInfoAction,
@@ -162,81 +167,55 @@ export function PerfilClient({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <PageHeader
+    <InternalPageLayout className="max-w-4xl mx-auto">
+      <InternalPageHeader
         icon="user"
         title="Meu Perfil"
-        description="Gerencie seus dados cadastrais, credenciais de acesso e preferências do condomínio."
+        subtitle="Gerencie seus dados cadastrais, credenciais de acesso e preferências do condomínio."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Meu Perfil" },
+        ]}
+        badge={<InternalStatusBadge label={roleLabel} tone="blue" />}
       />
 
       {/* Top Banner / Identity */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-6 shadow-[0_2px_10px_rgba(8,26,55,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 border border-blue-200 text-[#1455FF] text-xl font-black">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EAF1FF] border border-[#1455FF]/20 text-[#1455FF] text-xl font-black">
             {user.name.slice(0, 1).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">{user.name}</h2>
-              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-bold text-[#1455FF]">
-                {roleLabel}
-              </span>
+              <h2 className="text-base sm:text-lg font-extrabold text-[#101828]">{user.name}</h2>
+              <InternalStatusBadge label={roleLabel} tone="blue" />
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">{user.email}</p>
-            {user.phone && <p className="text-xs text-slate-400 mt-0.5">{user.phone}</p>}
+            <p className="text-xs sm:text-sm text-[#526079] font-medium">{user.email}</p>
+            {user.phone && <p className="text-xs text-[#64748B] mt-0.5">{user.phone}</p>}
           </div>
         </div>
 
-        <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 sm:text-right">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Condomínio Ativo</span>
-          <p className="text-xs font-bold text-slate-900">{condoName}</p>
-          <p className="text-[11px] text-slate-500">{unitInfo}</p>
+        <div className="rounded-xl bg-[#F5F8FC] border border-[#E2E8F0] px-4 py-3 sm:text-right">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#526079]">Condomínio ativo</span>
+          <p className="text-xs font-extrabold text-[#101828] mt-0.5">{condoName}</p>
+          <p className="text-[11px] text-[#526079]">{unitInfo}</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-slate-200 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab("dados")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
-            activeTab === "dados"
-              ? "border-[#1455FF] text-[#1455FF]"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          <Icon name="user" size={15} />
-          Dados Pessoais
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("seguranca")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
-            activeTab === "seguranca"
-              ? "border-[#1455FF] text-[#1455FF]"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          <Icon name="shield" size={15} />
-          Segurança & Senha
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("preferencias")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
-            activeTab === "preferencias"
-              ? "border-[#1455FF] text-[#1455FF]"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          <Icon name="bell" size={15} />
-          Notificações
-        </button>
-      </div>
+      <InternalTabStrip
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as "dados" | "seguranca" | "preferencias")}
+        items={[
+          { id: "dados", label: "Dados Pessoais", icon: "user" },
+          { id: "seguranca", label: "Segurança & Senha", icon: "shield" },
+          { id: "preferencias", label: "Notificações", icon: "bell" },
+        ]}
+      />
 
       {/* Tab 1: Dados Pessoais */}
       {activeTab === "dados" && (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-6 shadow-[0_2px_10px_rgba(8,26,55,0.03)] space-y-5">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Informações Cadastrais</h3>
             <p className="text-xs text-slate-500 mt-0.5">Mantenha seus dados atualizados para contato da portaria e administração.</p>
@@ -426,37 +405,37 @@ export function PerfilClient({
 
       {/* Atalhos Rápidos com Links Reais */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Atalhos do Sistema</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#526079]">Atalhos do Sistema</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {PROFILE_LINKS.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200/80 bg-white hover:border-blue-200 hover:bg-blue-50/20 text-left transition-all group shadow-2xs"
+              className="flex items-center justify-between p-3.5 rounded-2xl border border-[#E2E8F0] bg-white hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/35 text-left transition-all group shadow-[0_2px_8px_rgba(8,26,55,0.02)]"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-slate-50 text-slate-600 group-hover:bg-blue-50 group-hover:text-[#1455FF] transition-colors">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF] group-hover:bg-[#1455FF] group-hover:text-white transition-colors">
                   <Icon name={item.icon} size={17} />
                 </span>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#1455FF] transition-colors truncate">
+                  <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#1455FF] transition-colors truncate">
                     {item.label}
                   </h4>
-                  <p className="text-[11px] text-slate-500 truncate">{item.desc}</p>
+                  <p className="text-[11px] text-[#526079] truncate">{item.desc}</p>
                 </div>
               </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-[#1455FF] shrink-0 ml-2" />
+              <Icon name="chevron-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0 ml-2" />
             </Link>
           ))}
         </div>
       </div>
 
       {/* Sair da Conta */}
-      <div className="pt-4 border-t border-slate-200">
+      <div className="pt-4 border-t border-[#E2E8F0]">
         <button
           type="button"
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/60 p-3.5 text-xs sm:text-sm font-bold text-rose-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100/70 p-3.5 text-xs sm:text-sm font-bold text-rose-600 transition-colors cursor-pointer"
         >
           <Icon name="logout" size={16} />
           <span>Sair da conta</span>
@@ -464,36 +443,36 @@ export function PerfilClient({
       </div>
 
       {/* Modal de Confirmação de Logout */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-              <Icon name="logout" size={22} />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Deseja realmente sair?</h3>
-              <p className="text-xs text-slate-500 mt-1">Sua sessão será encerrada com segurança.</p>
-            </div>
-            <div className="flex items-center gap-2 pt-2">
+      <InternalModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title="Deseja realmente sair?"
+        subtitle="Sua sessão será encerrada com segurança."
+        maxWidth="sm"
+      >
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 border border-rose-200 text-rose-600">
+            <Icon name="logout" size={22} />
+          </div>
+          <div className="flex items-center gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(false)}
+              className="w-1/2 h-10 px-3 text-xs font-bold rounded-xl border border-[#E2E8F0] text-[#101828] hover:bg-[#F5F8FC]"
+            >
+              Cancelar
+            </button>
+            <form action={logoutAction} className="w-1/2">
               <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(false)}
-                className="w-1/2 h-9 px-3 text-xs font-bold rounded-[8px] border border-slate-200 text-slate-700 hover:bg-slate-50"
+                type="submit"
+                className="w-full h-10 px-3 text-xs font-bold rounded-xl bg-rose-600 text-white hover:bg-rose-700"
               >
-                Cancelar
+                Confirmar saída
               </button>
-              <form action={logoutAction} className="w-1/2">
-                <button
-                  type="submit"
-                  className="w-full h-9 px-3 text-xs font-bold rounded-[8px] bg-rose-600 text-white hover:bg-rose-700"
-                >
-                  Confirmar saída
-                </button>
-              </form>
-            </div>
+            </form>
           </div>
         </div>
-      )}
-    </div>
+      </InternalModal>
+    </InternalPageLayout>
   );
 }

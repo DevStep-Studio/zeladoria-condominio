@@ -51,7 +51,7 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
 
   return (
     <div
-      className={`group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all hover:border-slate-300 hover:shadow-md ${
+      className={`group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_10px_rgba(7,26,56,0.035)] transition-all hover:border-[#1455FF]/40 hover:shadow-[0_8px_22px_rgba(20,85,255,0.09)] ${
         !space.active ? "opacity-60" : ""
       }`}
     >
@@ -63,18 +63,18 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
             alt={space.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             priority={false}
           />
 
           {/* Top Right Pricing Badge */}
           <div className="absolute right-3 top-3">
             {isFree ? (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#16A34A] px-3 py-1 text-xs font-bold text-white shadow-xs">
                 Grátis
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-bold text-white shadow-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#081A37] px-3 py-1 text-xs font-bold text-white shadow-xs">
                 {money(space.feeCents)}
                 {space.pricingType === "por_hora" ? "/h" : ""}
               </span>
@@ -84,44 +84,44 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
           {/* Top Left Status (if inactive) */}
           {!space.active && (
             <div className="absolute left-3 top-3">
-              <span className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#EF4444] px-2.5 py-1 text-xs font-bold text-white shadow-xs">
                 Inativo
               </span>
             </div>
           )}
 
           {/* Bottom Bar on Image (Capacity & Hours) */}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-slate-950/80 px-3.5 py-2 text-xs font-medium text-white backdrop-blur-[2px]">
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#081A37]/82 px-3.5 py-2 text-xs font-medium text-white backdrop-blur-[2px]">
             <span className="inline-flex items-center gap-1.5">
-              <Icon name="users" size={13} className="text-slate-300" />
+              <Icon name="users" size={13} className="text-white/80" />
               <span>{space.capacity ? `Até ${space.capacity} pessoas` : "Capacidade livre"}</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Icon name="clock" size={13} className="text-slate-300" />
+              <Icon name="clock" size={13} className="text-white/80" />
               <span>{openTime} – {closeTime}</span>
             </span>
           </div>
         </div>
 
         {/* Card Content */}
-        <div className="p-4 space-y-2.5">
+        <div className="p-4 sm:p-5 space-y-2.5">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-base font-bold text-slate-900 leading-snug tracking-tight">
+            <h3 className="text-base font-extrabold text-[#101828] leading-snug tracking-tight group-hover:text-[#1455FF] transition-colors">
               {space.name}
             </h3>
             {space.requiresApproval ? (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
                 Aprovação prévia
               </span>
             ) : (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-[#1455FF] border border-blue-200">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EAF1FF] px-2.5 py-0.5 text-[11px] font-bold text-[#0D47FF] border border-[#1455FF]/20">
                 Confirmação direta
               </span>
             )}
           </div>
 
           {space.description && (
-            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-[#526079] line-clamp-2 leading-relaxed">
               {space.description}
             </p>
           )}
@@ -134,15 +134,15 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
                 return (
                   <span
                     key={f}
-                    className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                    className="inline-flex items-center gap-1 rounded-lg border border-[#E2E8F0] bg-[#F5F8FC] px-2 py-0.5 text-[11px] font-semibold text-[#526079]"
                   >
-                    <Icon name={feat.icon} size={11} className="text-slate-500" />
+                    <Icon name={feat.icon} size={11} className="text-[#1455FF]" />
                     <span>{feat.label}</span>
                   </span>
                 );
               })}
               {space.features.length > 3 && (
-                <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
+                <span className="inline-flex items-center rounded-lg bg-[#EAF1FF] px-2 py-0.5 text-[10px] font-bold text-[#1455FF]">
                   +{space.features.length - 3}
                 </span>
               )}
@@ -152,11 +152,11 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
       </div>
 
       {/* Card Footer Buttons */}
-      <div className="border-t border-slate-100 p-4 pt-3 flex items-center gap-2">
+      <div className="border-t border-[#EDF1F7] bg-[#F5F8FC]/40 px-4 py-3 sm:px-5 flex items-center gap-2.5">
         <button
           type="button"
           onClick={() => onSelect(space, "details")}
-          className="btn-secondary flex-1 text-xs py-2 text-center inline-flex items-center justify-center gap-1.5"
+          className="inline-flex h-9.5 flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F5F8FC] text-xs font-bold text-[#101828] transition-colors cursor-pointer"
         >
           <Icon name="eye" size={14} />
           <span>Ver detalhes</span>
@@ -166,7 +166,7 @@ export function SpaceCard({ space, onSelect, isStaff }: SpaceCardProps) {
           type="button"
           onClick={() => onSelect(space, "reserve")}
           disabled={!space.active}
-          className="btn-primary flex-1 text-xs py-2 text-center inline-flex items-center justify-center gap-1.5 shadow-xs"
+          className="inline-flex h-9.5 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-xs font-bold text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
         >
           <Icon name="calendar" size={14} />
           <span>Reservar</span>

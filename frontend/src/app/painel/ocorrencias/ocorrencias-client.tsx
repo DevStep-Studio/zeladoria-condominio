@@ -3,7 +3,33 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  INTERNAL_SELECT_CLS,
+  INTERNAL_TEXTAREA_CLS,
+  InternalDataTable,
+  InternalEmptyState,
+  InternalFormField,
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalSectionCard,
+  InternalStatGrid,
+  InternalStatusBadge,
+  InternalTimeline,
+  type InternalTimelineStep,
+  type InternalTone,
+} from "@/components/internal/internal-ui";
+import {
+  InternalDetailPanel,
+  InternalDrawer,
+  InternalFilterBar,
+  InternalModal,
+  InternalSearchInput,
+  InternalStatFilterCard,
+  InternalTabStrip,
+  InternalViewToggle,
+} from "@/components/internal/internal-interactive";
 import { dateTimeBR, timeAgoBR } from "@/lib/utils";
 import {
   updateOccurrenceStatusAction,
@@ -210,8 +236,27 @@ export function OcorrenciasClient({
   const [selectedSeverity, setSelectedSeverity] = useState<string>("todas");
   const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
   const [onlyWithPhotos, setOnlyWithPhotos] = useState(false); // Filtro visual Com fotos (Item 28)
-  const [viewMode, setViewMode] = useState<"cards" | "tabela">("cards"); // Padrão: Cards com foco visual (Item 9, 48)
+  const [viewMode, setViewMode] = useState<"cards" | "tabela">("cards"); // Cards ou Lista/Tabela para todos os perfis
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  // Persistência segura da preferência de visualização no navegador
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("zc_ocorrencias_view_v1");
+      if (saved === "cards" || saved === "tabela") setViewMode(saved);
+    } catch {
+      // ignora restrições de storage
+    }
+  }, []);
+
+  function handleChangeViewMode(nextMode: "cards" | "tabela") {
+    setViewMode(nextMode);
+    try {
+      window.localStorage.setItem("zc_ocorrencias_view_v1", nextMode);
+    } catch {
+      // ignora restrições de storage
+    }
+  }
 
   // Drawer / Detalhes
   const [activeOccurrence, setActiveOccurrence] = useState<OccurrenceItem | null>(null);
@@ -525,1234 +570,1068 @@ export function OcorrenciasClient({
   };
 
   return (
-    <div className="space-y-5">
+    <InternalPageLayout>
       {/* 1. CABEÇALHO DA PÁGINA */}
-      <PageHeader
+      <InternalPageHeader
         icon="clipboard"
         title="Ocorrências"
-        description="Acompanhamento e registro de demandas prediais e convivência."
+        description="Acompanhe solicitações e manutenções do condomínio."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Ocorrências" },
+        ]}
         badge={
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-200/70 shadow-2xs">
+          <InternalStatusBadge tone="blue">
             {occurrences.length} {occurrences.length === 1 ? "registro" : "registros"}
-          </span>
+          </InternalStatusBadge>
         }
         actions={
-          <Link
-            href="/painel/ocorrencias/nova"
-            className="btn-primary min-h-9 px-3.5 py-1.5 text-xs font-semibold"
-          >
-            <Icon name="plus" size={14} />
+          <Link href="/painel/ocorrencias/nova" className={INTERNAL_BTN_PRIMARY_CLS}>
+            <Icon name="plus" size={15} strokeWidth={2.5} />
             <span>Nova ocorrência</span>
           </Link>
         }
       />
 
+      {/* 2. INDICADORES COMPACTOS COM DADOS REAIS */}
+      <InternalStatGrid columns={4}>
+        <InternalStatFilterCard
+          label="Recebidas"
+          value={counts.recebidas}
+          hint="aguardando análise"
+          icon="inbox"
+          tone="amber"
+          active={activeTab === "recebidas"}
+          onClick={() => setActiveTab((prev) => (prev === "recebidas" ? "todas" : "recebidas"))}
+        />
+        <InternalStatFilterCard
+          label="Em atendimento"
+          value={counts.em_atendimento}
+          hint="em andamento"
+          icon="wrench"
+          tone="blue"
+          active={activeTab === "em_atendimento"}
+          onClick={() => setActiveTab((prev) => (prev === "em_atendimento" ? "todas" : "em_atendimento"))}
+        />
+        <InternalStatFilterCard
+          label="Concluídas"
+          value={counts.concluidas}
+          hint="resolvidas"
+          icon="check-circle"
+          tone="green"
+          active={activeTab === "concluidas"}
+          onClick={() => setActiveTab((prev) => (prev === "concluidas" ? "todas" : "concluidas"))}
+        />
+        <InternalStatFilterCard
+          label="Total"
+          value={counts.todas}
+          hint="no condomínio"
+          icon="clipboard"
+          tone="navy"
+          active={activeTab === "todas"}
+          onClick={() => setActiveTab("todas")}
+        />
+      </InternalStatGrid>
+
       {/* Alerta de Feedback Global */}
       {feedback && (
         <div
-          className={`p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${feedback.type === "success"
+          className={`rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold flex items-center justify-between border ${
+            feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-red-50 text-red-800 border-red-200"
-            }`}
+              : "bg-[#FDECEC] text-[#D92D20] border-rose-200"
+          }`}
         >
           <div className="flex items-center gap-2">
             <Icon
-              name={feedback.type === "success" ? "check" : "alert-triangle"}
-              size={14}
-              className={feedback.type === "success" ? "text-emerald-600" : "text-red-600"}
+              name={feedback.type === "success" ? "check-circle" : "alert-triangle"}
+              size={16}
+              className={feedback.type === "success" ? "text-[#16A34A]" : "text-[#EF4444]"}
             />
             <span>{feedback.msg}</span>
           </div>
           <button
             type="button"
             onClick={() => setFeedback(null)}
-            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+            className="text-xs font-bold text-[#526079] hover:text-[#101828] cursor-pointer"
           >
             Dispensar
           </button>
         </div>
       )}
 
-      {/* 2. STATUS SEGMENTADO & BUSCA / FILTROS */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        {/* Segmented Tabs */}
-        <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 border border-slate-200/80 overflow-x-auto max-w-full scrollbar-none">
-          {[
-            { key: "todas" as FilterTab, label: "Todas", count: counts.todas },
-            { key: "recebidas" as FilterTab, label: "Recebidas", count: counts.recebidas },
-            { key: "em_atendimento" as FilterTab, label: "Em atendimento", count: counts.em_atendimento },
-            { key: "concluidas" as FilterTab, label: "Concluídas", count: counts.concluidas },
-          ].map((tab) => {
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors whitespace-nowrap cursor-pointer shrink-0 ${isActive
-                    ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 font-medium"
-                  }`}
-              >
-                <span>{tab.label}</span>
-                <span
-                  className={`flex h-4 min-w-[18px] items-center justify-center rounded px-1 text-[10px] tabular-nums font-semibold ${isActive ? "bg-blue-50 text-[#1455FF]" : "bg-slate-200/80 text-slate-600"
-                    }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Barra de Busca + Botão Filtros + Ordenação */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          {/* Campo de Busca Rápida */}
-          <div className="relative w-full sm:w-60">
-            <Icon
-              name="search"
-              size={13}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              placeholder="Buscar ocorrência..."
+      {/* 3. BARRA DE FILTROS ORGANIZADA + BUSCA + ORDENAÇÃO + ALTERNÂNCIA LISTA/CARDS */}
+      <InternalFilterBar
+        left={
+          <InternalTabStrip
+            tabs={[
+              { key: "todas", label: "Todas", count: counts.todas },
+              { key: "recebidas", label: "Recebidas", count: counts.recebidas },
+              { key: "em_atendimento", label: "Em atendimento", count: counts.em_atendimento },
+              { key: "concluidas", label: "Concluídas", count: counts.concluidas },
+            ]}
+            activeKey={activeTab}
+            onChange={(key) => setActiveTab(key as FilterTab)}
+          />
+        }
+        right={
+          <>
+            <InternalSearchInput
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8.5 w-full rounded-md border border-slate-200 bg-white pl-8.5 pr-8 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1455FF] focus:ring-1 focus:ring-[#1455FF]/20 transition-colors"
+              onChange={setSearch}
+              placeholder="Buscar ocorrência, código ou local..."
+              className="sm:w-56 md:w-64"
             />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-              >
-                <Icon name="x" size={11} />
-              </button>
-            )}
-          </div>
 
-          {/* Botão de Filtros Adicionais */}
-          <button
-            type="button"
-            onClick={() => setFilterModalOpen(true)}
-            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
-                ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-          >
-            <Icon name="filter" size={12} />
-            <span>Filtros</span>
-            {(selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos) && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#1455FF]" />
-            )}
-          </button>
-
-          {/* Filtro Rápido: Somente com Fotos (Item 26, 28) */}
-          <button
-            type="button"
-            onClick={() => setOnlyWithPhotos((prev) => !prev)}
-            className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${onlyWithPhotos
-                ? "border-[#1455FF] bg-blue-50 text-[#1455FF] font-semibold"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-            title="Filtrar ocorrências que possuem fotos anexadas"
-          >
-            <Icon name="camera" size={13} className={onlyWithPhotos ? "text-[#1455FF]" : "text-slate-400"} />
-            <span>Com fotos</span>
-            {onlyWithPhotos && <span className="h-1.5 w-1.5 rounded-full bg-[#1455FF]" />}
-          </button>
-
-          {/* Filtro Rápido para Gestão: Precisa de Atenção */}
-          {isStaff && (
             <button
               type="button"
-              onClick={() => setNeedsAttentionOnly((prev) => !prev)}
-              className={`inline-flex h-8.5 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors cursor-pointer ${needsAttentionOnly
-                  ? "border-amber-300 bg-amber-50 text-amber-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              title="Filtrar ocorrências com atenção prioritária"
+              onClick={() => setOnlyWithPhotos((prev) => !prev)}
+              className={`inline-flex h-9.5 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                onlyWithPhotos
+                  ? "border-[#1455FF] bg-[#EAF1FF] text-[#1455FF]"
+                  : "border-[#E2E8F0] bg-white text-[#526079] hover:text-[#101828] hover:bg-[#F5F8FC]"
+              }`}
+              title="Filtrar ocorrências que possuem fotos anexadas"
             >
-              <Icon name="alert-triangle" size={12} className={needsAttentionOnly ? "text-amber-700" : "text-slate-400"} />
-              <span className="hidden sm:inline">Prioritárias</span>
+              <Icon name="camera" size={14} />
+              <span>Com fotos</span>
             </button>
-          )}
 
-          {/* Alternador de Visualização para Staff (Cards visuais / Tabela) */}
-          {isStaff && (
-            <div className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white p-0.5">
+            {isStaff && (
               <button
                 type="button"
-                onClick={() => setViewMode("cards")}
-                className={`p-1.5 rounded text-xs transition-colors ${viewMode === "cards" ? "bg-slate-100 text-[#1455FF] font-bold" : "text-slate-400 hover:text-slate-700"
-                  }`}
-                title="Visualização em Cards com Fotos"
+                onClick={() => setNeedsAttentionOnly((prev) => !prev)}
+                className={`inline-flex h-9.5 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                  needsAttentionOnly
+                    ? "border-amber-400 bg-amber-50 text-amber-800"
+                    : "border-[#E2E8F0] bg-white text-[#526079] hover:text-[#101828] hover:bg-[#F5F8FC]"
+                }`}
+                title="Filtrar ocorrências prioritárias ou sem responsável"
               >
-                <Icon name="grid" size={13} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("tabela")}
-                className={`p-1.5 rounded text-xs transition-colors ${viewMode === "tabela" ? "bg-slate-100 text-[#1455FF] font-bold" : "text-slate-400 hover:text-slate-700"
-                  }`}
-                title="Visualização em Tabela"
-              >
-                <Icon name="menu" size={13} />
-              </button>
-            </div>
-          )}
-
-          {/* Ordenação */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="h-8.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 outline-none focus:border-[#1455FF] cursor-pointer"
-          >
-            <option value="recentes">Mais recentes</option>
-            <option value="antigas">Mais antigas</option>
-            <option value="prioridade">Prioridade</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 3. VISÃO DE OCORRÊNCIAS COM DESTAQUE VISUAL NAS FOTOS (Itens 1 a 10, 36, 40, 48) */}
-      {filteredOccurrences.length === 0 ? (
-        /* Empty State */
-        <div className="rounded-lg border border-slate-200/90 bg-white p-8 text-center shadow-2xs">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-slate-50 text-slate-400 mb-3 border border-slate-200/80">
-            <Icon name="clipboard" size={20} />
-          </div>
-          <h3 className="text-sm font-bold text-[#0F172A]">Nenhuma ocorrência encontrada</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
-              ? "Nenhum resultado corresponde aos filtros aplicados. Tente limpar os filtros."
-              : "Se você encontrar algum problema ou reparo necessário no condomínio, registre agora."}
-          </p>
-          <div className="mt-4 flex items-center justify-center gap-2">
-            {(search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setSelectedCategory("todas");
-                  setSelectedSeverity("todas");
-                  setNeedsAttentionOnly(false);
-                  setOnlyWithPhotos(false);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                Limpar filtros
+                <Icon name="alert-triangle" size={14} />
+                <span className="hidden sm:inline">Prioritárias</span>
               </button>
             )}
-            <Link
-              href="/painel/ocorrencias/nova"
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#1455FF] text-white hover:bg-[#0048E8] px-3.5 py-1.5 text-xs font-semibold transition-colors"
+
+            <button
+              type="button"
+              onClick={() => setFilterModalOpen(true)}
+              className={`inline-flex h-9.5 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                selectedCategory !== "todas" || selectedSeverity !== "todas"
+                  ? "border-[#1455FF] bg-[#EAF1FF] text-[#1455FF]"
+                  : "border-[#E2E8F0] bg-white text-[#526079] hover:text-[#101828] hover:bg-[#F5F8FC]"
+              }`}
             >
-              <Icon name="plus" size={13} strokeWidth={2.5} />
-              <span>Registrar ocorrência</span>
-            </Link>
-          </div>
-        </div>
-      ) : isStaff && viewMode === "tabela" ? (
-        /* Visualização Opcional em Tabela para Gestão */
-        <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/75 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+              <Icon name="filter" size={14} />
+              <span>Filtros</span>
+            </button>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as "recentes" | "antigas" | "prioridade")}
+              aria-label="Ordenar ocorrências"
+              className="h-9.5 rounded-xl border border-[#E2E8F0] bg-white pl-3 pr-8 text-xs font-bold text-[#101828] outline-none focus:border-[#1455FF] cursor-pointer shrink-0"
+            >
+              <option value="recentes">Mais recentes</option>
+              <option value="antigas">Mais antigas</option>
+              <option value="prioridade">Maior prioridade</option>
+            </select>
+
+            <InternalViewToggle
+              value={viewMode}
+              onChange={(next) => handleChangeViewMode(next as "cards" | "tabela")}
+              options={[
+                { key: "cards", label: "Cards", icon: "grid" },
+                { key: "tabela", label: "Lista", icon: "menu" },
+              ]}
+            />
+          </>
+        }
+      />
+
+      {/* 4. LISTAGEM REFINADA DE OCORRÊNCIAS (CARDS COMPACTOS OU LISTA ESTRUTURADA) */}
+      {filteredOccurrences.length === 0 ? (
+        <InternalEmptyState
+          title="Nenhuma ocorrência encontrada"
+          description={
+            search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos
+              ? "Nenhum resultado corresponde aos filtros aplicados. Tente limpar os filtros para visualizar outros chamados."
+              : "Se você encontrar algum problema ou reparo necessário no condomínio, registre agora."
+          }
+          icon="clipboard"
+          action={
+            <>
+              {(search || selectedCategory !== "todas" || selectedSeverity !== "todas" || needsAttentionOnly || onlyWithPhotos) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setSelectedCategory("todas");
+                    setSelectedSeverity("todas");
+                    setNeedsAttentionOnly(false);
+                    setOnlyWithPhotos(false);
+                  }}
+                  className={INTERNAL_BTN_SECONDARY_CLS}
+                >
+                  Limpar filtros
+                </button>
+              )}
+              <Link href="/painel/ocorrencias/nova" className={INTERNAL_BTN_PRIMARY_CLS}>
+                <Icon name="plus" size={15} strokeWidth={2.5} />
+                <span>Registrar ocorrência</span>
+              </Link>
+            </>
+          }
+        />
+      ) : viewMode === "tabela" ? (
+        <>
+          {/* Visualização em Lista Estruturada (Desktop) */}
+          <InternalSectionCard noPadding className="hidden md:block">
+            <InternalDataTable>
+              <thead className="bg-[#F5F8FC] border-b border-[#E2E8F0] text-[#526079] font-bold uppercase text-[11px] tracking-wider">
                 <tr>
-                  <th className="px-4 py-2.5">Código</th>
-                  <th className="px-4 py-2.5">Ocorrência</th>
-                  <th className="px-4 py-2.5">Localização</th>
-                  <th className="px-4 py-2.5">Prioridade</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Responsável</th>
-                  <th className="px-4 py-2.5">Atualização</th>
-                  <th className="px-4 py-2.5 text-right">Ação</th>
+                  <th className="px-4 py-3">Código</th>
+                  <th className="px-4 py-3">Ocorrência</th>
+                  <th className="px-4 py-3">Categoria</th>
+                  <th className="px-4 py-3">Localização</th>
+                  <th className="px-4 py-3">Prioridade</th>
+                  <th className="px-4 py-3">Status</th>
+                  {isStaff && <th className="px-4 py-3">Responsável</th>}
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3 text-right">Detalhes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EDF1F7]">
                 {filteredOccurrences.map((occ) => {
                   const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
                   const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+                  const cat = formatCategory(occ.category);
                   const cleanLoc = formatCleanLocation(occ);
                   const cleanDate = formatCleanDate(occ.createdAt);
+                  const photoCount = occ.attachments?.length ?? 0;
 
                   return (
                     <tr
                       key={occ.id}
                       onClick={() => openOccurrence(occ)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      className="hover:bg-[#F5F8FC]/80 transition-colors cursor-pointer group"
                     >
-                      <td className="px-4 py-2.5 font-mono font-bold text-[#1455FF] whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono text-xs font-bold text-[#1455FF] whitespace-nowrap">
                         {occ.code}
                       </td>
-                      <td className="px-4 py-2.5 max-w-[280px]">
-                        <p className="font-bold text-[#0F172A] truncate group-hover:text-[#1455FF] transition-colors">
-                          {occ.title}
-                        </p>
-                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                          {occ.reporterName || "Morador"}
-                        </p>
+                      <td className="px-4 py-3 max-w-[300px]">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className="font-bold text-[#101828] truncate group-hover:text-[#1455FF] transition-colors">
+                            {occ.title}
+                          </p>
+                          {photoCount > 0 && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-md bg-[#EAF1FF] px-1.5 py-0.5 text-[10px] font-bold text-[#1455FF] shrink-0"
+                              title={`${photoCount} foto(s) anexada(s)`}
+                            >
+                              <Icon name="camera" size={10} />
+                              <span>{photoCount}</span>
+                            </span>
+                          )}
+                        </div>
+                        {occ.description && (
+                          <p className="text-[11px] text-[#526079] truncate mt-0.5">{occ.description}</p>
+                        )}
                       </td>
-                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                        <span className="flex items-center gap-1 font-medium text-slate-700">
-                          <Icon name="map-pin" size={12} className="text-slate-400" />
-                          <span className="truncate max-w-[160px]">{cleanLoc}</span>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-[#526079]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon name={cat.icon} size={13} className="text-[#1455FF]" />
+                          <span>{cat.label}</span>
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${sv.badgeBg} ${sv.badgeText}`}>
-                          {sv.isUrgent && <Icon name="alert-triangle" size={10} className="text-red-600" />}
+                      <td className="px-4 py-3 text-xs text-[#526079] max-w-[190px]">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Icon name="map-pin" size={12} className="text-[#8996A9] shrink-0" />
+                          <span className="truncate">{cleanLoc}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${sv.badgeBg} ${sv.badgeText}`}>
+                          {sv.isUrgent && <Icon name="alert-triangle" size={11} className="text-red-600" />}
                           {sv.label}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold ${st.badgeBg} ${st.badgeText}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${st.badgeBg} ${st.badgeText}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
                           {st.label}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap">
-                        {occ.assignedToName ? (
-                          <span className="font-semibold text-slate-800">{occ.assignedToName}</span>
-                        ) : (
-                          <span className="text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">Sem responsável</span>
-                        )}
+                      {isStaff && (
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">
+                          {occ.assignedToName ? (
+                            <span className="font-semibold text-[#101828]">{occ.assignedToName}</span>
+                          ) : (
+                            <span className="text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded-full text-[11px]">
+                              Sem responsável
+                            </span>
+                          )}
+                        </td>
+                      )}
+                      <td className="px-4 py-3 text-xs text-[#526079] whitespace-nowrap">
+                        {cleanDate.formatted}
                       </td>
-                      <td className="px-4 py-2.5 text-slate-500 whitespace-nowrap text-[11px]">
-                        {cleanDate.relative}
-                      </td>
-                      <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                        <span className="text-xs font-semibold text-[#1455FF] group-hover:translate-x-0.5 inline-flex items-center gap-1 transition-transform">
-                          Ver detalhe
-                          <Icon name="chevron-right" size={12} />
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <span className="text-xs font-bold text-[#1455FF] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                          <span>Abrir</span>
+                          <Icon name="chevron-right" size={13} />
                         </span>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
+            </InternalDataTable>
+          </InternalSectionCard>
+
+          {/* Visualização em Lista (Mobile) */}
+          <div className="space-y-2.5 md:hidden">
+            {filteredOccurrences.map((occ) => {
+              const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
+              const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
+              const cat = formatCategory(occ.category);
+              const cleanLoc = formatCleanLocation(occ);
+              const cleanDate = formatCleanDate(occ.createdAt);
+              return (
+                <button
+                  key={occ.id}
+                  type="button"
+                  onClick={() => openOccurrence(occ)}
+                  className="w-full text-left rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_2px_8px_rgba(7,26,56,0.03)] space-y-2 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] font-bold text-[#1455FF]">{occ.code}</span>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
+                      {st.label}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-extrabold text-[#101828] line-clamp-2 break-words [overflow-wrap:anywhere]">
+                    {occ.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#526079]">
+                    <span>{cat.label}</span>
+                    <span>•</span>
+                    <span className="truncate max-w-[180px]">{cleanLoc}</span>
+                    <span>•</span>
+                    <span>{cleanDate.formatted}</span>
+                    {sv.isUrgent && (
+                      <InternalStatusBadge tone="red">Urgente</InternalStatusBadge>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </>
       ) : (
-        /* Visualização Primária em Coluna Única: Cards com Destaque nas Fotos (Itens 3, 4, 5, 8, 9, 36, 40, 48) */
-        <div className="space-y-3">
+        /* Grid Responsivo em Cards Compactos (Proporções padronizadas e sem espaço morto para registros sem foto) */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredOccurrences.map((occ) => {
             const st = STATUS_CONFIG[occ.status] || STATUS_CONFIG.recebida;
             const sv = SEVERITY_CONFIG[occ.severity] || SEVERITY_CONFIG.media;
             const cat = formatCategory(occ.category);
             const occComments = comments.filter((c) => c.occurrenceId === occ.id);
-            const hasPhotos = Boolean(occ.attachments && occ.attachments.length > 0);
             const photos = occ.attachments || [];
+            const hasPhotos = photos.length > 0;
             const firstPhoto = hasPhotos ? photos[0] : null;
             const cleanLoc = formatCleanLocation(occ);
             const cleanDate = formatCleanDate(occ.createdAt);
 
-            /* CARD COM FOTO (Itens 3, 4, 5, 6, 7, 36, 48) */
-            if (hasPhotos && firstPhoto) {
-              return (
-                <div
-                  key={occ.id}
-                  className="group relative flex flex-col sm:flex-row items-stretch rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all overflow-hidden"
-                >
-                  {/* Coluna da Foto: 25% a 32% no desktop, altura 150-190px, object-cover - Clicar amplia no Lightbox */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openLightbox(photos, 0);
-                    }}
-                    className="w-full sm:w-60 md:w-68 lg:w-72 shrink-0 relative overflow-hidden bg-slate-900 h-44 sm:h-auto min-h-[150px] max-h-[190px] cursor-zoom-in"
-                    title="Clique para ampliar a foto no visualizador"
-                  >
-                    <img
-                      src={firstPhoto}
-                      alt={occ.title}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
+            return (
+              <article
+                key={occ.id}
+                onClick={() => openOccurrence(occ)}
+                className="group flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_10px_rgba(7,26,56,0.035)] hover:border-[#1455FF]/45 hover:shadow-[0_8px_22px_rgba(20,85,255,0.09)] transition-all overflow-hidden cursor-pointer"
+              >
+                <div>
+                  {/* Mídia Padronizada 16:9 somente quando existir foto real anexada */}
+                  {hasPhotos && firstPhoto && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openLightbox(photos, 0);
                       }}
-                    />
-
-                    {/* Overlay sutil ao passar o mouse sobre a foto */}
-                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 text-white text-[11px] font-semibold backdrop-blur-xs">
-                        <Icon name="search" size={12} />
-                        Ampliar
-                      </span>
-                    </div>
-
-                    {/* Indicador de Múltiplas Fotos (Item 6, 51) */}
-                    {photos.length > 1 && (
-                      <div
-                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-lg bg-slate-900/85 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-0.5 shadow-sm"
-                        title={`Galeria com ${photos.length} fotos`}
-                      >
-                        <Icon name="camera" size={12} className="text-white" />
-                        <span>+{photos.length - 1}</span>
+                      className="relative aspect-16/9 w-full overflow-hidden bg-slate-100 border-b border-[#EDF1F7] cursor-zoom-in"
+                      title="Clique para ampliar a fotografia"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={firstPhoto}
+                        alt={occ.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors flex items-center justify-center pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 rounded-full bg-[#081A37]/80 px-3 py-1 text-[11px] font-bold text-white shadow-sm">
+                          <Icon name="search" size={12} />
+                          <span>Ampliar</span>
+                        </span>
                       </div>
-                    )}
-
-                    {/* Categoria sobre a foto em mobile */}
-                    <div className="sm:hidden absolute top-2.5 left-2.5">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/75 backdrop-blur-xs text-white text-[10px] font-bold shadow-sm">
-                        <Icon name={cat.icon} size={11} className="text-white shrink-0" />
-                        <span>{cat.label}</span>
-                      </span>
+                      {photos.length > 1 && (
+                        <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 rounded-lg bg-[#081A37]/85 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                          <Icon name="camera" size={11} />
+                          <span>+{photos.length - 1}</span>
+                        </span>
+                      )}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Coluna de Conteúdo (68% a 75%) - Clicar abre o Drawer */}
-                  <div
-                    onClick={() => openOccurrence(occ)}
-                    className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between gap-2.5 cursor-pointer"
-                  >
-                    {/* Linha 1: Badges Superiores */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                  <div className="p-4 sm:p-5 space-y-3">
+                    {/* Topo: Código + Status + Categoria + Prioridade */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-mono text-[11px] font-extrabold text-[#1455FF] bg-[#EAF1FF] px-2.5 py-0.5 rounded-md">
                         {occ.code}
                       </span>
-
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${st.badgeBg} ${st.badgeText}`}
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
                         {st.label}
                       </span>
-
-                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-semibold text-slate-600 border border-slate-200/60">
-                        <Icon name={cat.icon} size={11} className="text-slate-500 shrink-0" />
-                        <span>{cat.label}</span>
-                      </span>
-
-                      {/* Prioridade Alta / Urgente (Item 32) */}
-                      {sv.isUrgent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200/60">
-                          <Icon name="alert-triangle" size={10} className="text-rose-600 shrink-0" />
-                          <span>Alta prioridade</span>
-                        </span>
-                      )}
-
-                      {/* Novas Mensagens / Atualizações (Item 33) */}
-                      {occComments.length > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#1455FF] text-[10px] font-bold border border-blue-200/50">
-                          <Icon name="mail" size={10} className="text-[#1455FF] shrink-0" />
-                          <span>
-                            {occComments.length} {occComments.length === 1 ? "mensagem" : "mensagens"}
-                          </span>
-                        </span>
-                      )}
                     </div>
 
-                    {/* Linha 2: Título Principal e Trecho da Descrição (Itens 10, 11) */}
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1455FF] transition-colors leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
+                    {/* Título truncado contextualmente + Resumo objetivo */}
+                    <div className="min-w-0 space-y-1">
+                      <h3 className="text-[15px] sm:text-base font-extrabold text-[#101828] group-hover:text-[#1455FF] transition-colors leading-snug line-clamp-2 break-words [overflow-wrap:anywhere]">
                         {occ.title}
                       </h3>
                       {occ.description && (
-                        <p className="text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mt-1 font-normal leading-relaxed break-words [overflow-wrap:anywhere]">
+                        <p className="text-xs text-[#526079] leading-relaxed line-clamp-2 break-words [overflow-wrap:anywhere]">
                           {occ.description}
                         </p>
                       )}
                     </div>
 
-                    {/* Linha 3: Metadados Estruturados (Local, Data, Responsável, Seta) */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3 text-xs text-slate-500 flex-wrap">
-                      <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
-                        {/* Local sem duplicação (Item 12) */}
-                        <span className="inline-flex items-center gap-1 font-medium text-slate-700">
-                          <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
-                          <span className="truncate max-w-[200px]">{cleanLoc}</span>
+                    {/* Tags de Categoria, Prioridade e Mensagens */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] bg-[#F5F8FC] px-2 py-0.5 text-[11px] font-semibold text-[#526079]">
+                        <Icon name={cat.icon} size={11} className="text-[#1455FF]" />
+                        <span>{cat.label}</span>
+                      </span>
+                      <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${sv.badgeBg} ${sv.badgeText}`}>
+                        {sv.isUrgent && <Icon name="alert-triangle" size={10} />}
+                        <span>{sv.label}</span>
+                      </span>
+                      {occComments.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#EAF1FF] px-2 py-0.5 text-[11px] font-bold text-[#1455FF]">
+                          <Icon name="mail" size={10} />
+                          <span>{occComments.length}</span>
                         </span>
-
-                        <span className="text-slate-300">•</span>
-
-                        {/* Data simplificada (Item 13) */}
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-normal">
-                          <Icon name="clock" size={11} className="text-slate-400 shrink-0" />
-                          <span>{cleanDate.formatted}</span>
-                          <span className="text-slate-400 hidden md:inline">({cleanDate.relative})</span>
-                        </span>
-
-                        {/* Responsável (Itens 17, 40) */}
-                        {occ.assignedToName ? (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 font-medium">
-                              <Icon name="user-check" size={11} className="text-slate-500 shrink-0" />
-                              <span>{occ.assignedToName}</span>
-                            </span>
-                          </>
-                        ) : isStaff ? (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
-                              <Icon name="alert-triangle" size={10} className="text-amber-600 shrink-0" />
-                              <span>Sem responsável</span>
-                            </span>
-                          </>
-                        ) : null}
-                      </div>
-
-                      {/* Seta indicativa no final */}
-                      <div className="flex items-center gap-1 text-slate-300 group-hover:text-[#1455FF] transition-colors ml-auto">
-                        <span className="text-xs font-semibold hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
-                          Ver detalhes
-                        </span>
-                        <Icon name="chevron-right" size={14} className="group-hover:translate-x-1 transition-transform" />
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              );
-            }
 
-            /* CARD SEM FOTO — COMPACTO (Itens 8, 37, 48) */
-            return (
-              <div
-                key={occ.id}
-                onClick={() => openOccurrence(occ)}
-                className="group relative flex items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white p-4 sm:py-3.5 sm:px-5 hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer"
-              >
-                <div className="space-y-1.5 min-w-0 flex-1">
-                  {/* Linha 1: Badges Superiores */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
-                      {occ.code}
+                {/* Rodapé com Metadados + Ação */}
+                <div className="border-t border-[#EDF1F7] bg-[#F5F8FC]/55 px-4 py-3 sm:px-5 space-y-2">
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-[#526079]">
+                    <span className="inline-flex items-center gap-1.5 font-medium truncate min-w-0">
+                      <Icon name="map-pin" size={12} className="text-[#8996A9] shrink-0" />
+                      <span className="truncate">{cleanLoc}</span>
                     </span>
-
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${st.badgeBg} ${st.badgeText}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${st.dotColor}`} />
-                      {st.label}
-                    </span>
-
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-semibold text-slate-600 border border-slate-200/60">
-                      <Icon name={cat.icon} size={11} className="text-slate-500 shrink-0" />
-                      <span>{cat.label}</span>
-                    </span>
-
-                    {sv.isUrgent && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200/60">
-                        <Icon name="alert-triangle" size={10} className="text-rose-600 shrink-0" />
-                        <span>Alta prioridade</span>
-                      </span>
-                    )}
-
-                    {occComments.length > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-[#1455FF] text-[10px] font-bold border border-blue-200/50">
-                        <Icon name="mail" size={10} className="text-[#1455FF] shrink-0" />
-                        <span>
-                          {occComments.length} {occComments.length === 1 ? "mensagem" : "mensagens"}
-                        </span>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Linha 2: Título Principal e Trecho da Descrição */}
-                  <div className="min-w-0">
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1455FF] transition-colors leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
-                      {occ.title}
-                    </h3>
-                    {occ.description && (
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-normal leading-relaxed break-words [overflow-wrap:anywhere]">
-                        {occ.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Linha 3: Metadados Estruturados */}
-                  <div className="flex items-center gap-x-3 gap-y-1 text-xs text-slate-500 flex-wrap pt-0.5">
-                    <span className="inline-flex items-center gap-1 font-medium text-slate-700">
-                      <Icon name="map-pin" size={12} className="text-slate-400 shrink-0" />
-                      <span className="truncate max-w-[200px]">{cleanLoc}</span>
-                    </span>
-
-                    <span className="text-slate-300">•</span>
-
-                    <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-normal">
-                      <Icon name="clock" size={11} className="text-slate-400 shrink-0" />
+                    <span className="inline-flex items-center gap-1 shrink-0 tabular-nums">
+                      <Icon name="clock" size={11} className="text-[#8996A9]" />
                       <span>{cleanDate.formatted}</span>
-                      <span className="text-slate-400 hidden sm:inline">({cleanDate.relative})</span>
                     </span>
+                  </div>
 
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
                     {occ.assignedToName ? (
-                      <>
-                        <span className="text-slate-300">•</span>
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 font-medium">
-                          <Icon name="user-check" size={11} className="text-slate-500 shrink-0" />
-                          <span>{occ.assignedToName}</span>
-                        </span>
-                      </>
+                      <span className="inline-flex items-center gap-1 font-semibold text-[#101828] truncate">
+                        <Icon name="user-check" size={12} className="text-[#16A34A] shrink-0" />
+                        <span className="truncate">{occ.assignedToName}</span>
+                      </span>
                     ) : isStaff ? (
-                      <>
-                        <span className="text-slate-300">•</span>
-                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
-                          <Icon name="alert-triangle" size={10} className="text-amber-600 shrink-0" />
-                          <span>Sem responsável</span>
-                        </span>
-                      </>
-                    ) : null}
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 font-bold text-amber-800">
+                        Sem responsável
+                      </span>
+                    ) : (
+                      <span className="text-[#8996A9] truncate">Toque para acompanhar</span>
+                    )}
+
+                    <span className="inline-flex items-center gap-1 font-bold text-[#1455FF] shrink-0 group-hover:translate-x-0.5 transition-transform">
+                      <span>Ver detalhes</span>
+                      <Icon name="chevron-right" size={13} />
+                    </span>
                   </div>
                 </div>
-
-                {/* Seta indicativa no final */}
-                <div className="flex items-center gap-1 text-slate-300 group-hover:text-[#1455FF] transition-colors shrink-0 self-center">
-                  <span className="text-xs font-semibold hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
-                    Ver detalhes
-                  </span>
-                  <Icon name="chevron-right" size={14} className="group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
+              </article>
             );
           })}
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 4. DRAWER LATERAL DE DETALHES (Desktop 480-520px / Mobile Full-Screen)   */}
-      {/* (Conforme Seções 17 a 25, 58)                                             */}
+      {/* 5. DRAWER DE DETALHES EM DUAS COLUNAS + TIMELINE REAL                    */}
       {/* ========================================================================= */}
-      {activeOccurrence && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop escurecido */}
-          <div
-            className="absolute inset-0 bg-black/40 transition-opacity"
-            onClick={closeOccurrence}
-            aria-hidden
-          />
-
-          <aside className="absolute inset-y-0 right-0 w-full sm:max-w-xl md:max-w-xl bg-white shadow-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* CABEÇALHO DO DRAWER (Seção 18) */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-start justify-between gap-3 bg-white shrink-0">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[#1455FF]">
-                    {activeOccurrence.code}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeBg
-                      } ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeText}`}
-                  >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).dotColor
-                        }`}
-                    />
-                    {(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).label}
-                  </span>
-                </div>
-
-                <h2 className="text-base sm:text-lg font-bold text-[#0F172A] leading-snug">
-                  {activeOccurrence.title}
-                </h2>
-
-                <p className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                  <Icon name="map-pin" size={13} className="text-slate-400" />
-                  <span>{activeOccurrence.exactLocation || "Área comum"}</span>
-                  <span>•</span>
-                  <span>{activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : "Hoje"}</span>
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={closeOccurrence}
-                className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
-                aria-label="Fechar"
+      <InternalDrawer
+        isOpen={Boolean(activeOccurrence)}
+        onClose={closeOccurrence}
+        size="2xl"
+        title={activeOccurrence?.title ?? ""}
+        badges={
+          activeOccurrence && (
+            <>
+              <span className="font-mono text-xs font-extrabold text-[#1455FF] bg-[#EAF1FF] px-2.5 py-0.5 rounded-md">
+                {activeOccurrence.code}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeBg} ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).badgeText}`}
               >
-                <Icon name="x" size={18} />
-              </button>
-            </div>
-
-            {/* CORPO DO DRAWER ROLÁVEL */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
-              {/* GALERIA DE FOTOS EM DESTAQUE NO TOPO (Itens 17, 18, 20) */}
-              {activeOccurrence.attachments && activeOccurrence.attachments.length > 0 && (
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      Registro Fotográfico ({activeOccurrence.attachments.length})
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                      <Icon name="search" size={11} />
-                      Clique para ampliar
-                    </span>
-                  </div>
-
-                  {/* Foto Principal em Destaque */}
-                  <div
-                    onClick={() => openLightbox(activeOccurrence.attachments!, 0)}
-                    className="relative aspect-video sm:aspect-16/10 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-950 group cursor-zoom-in shadow-xs"
-                    title="Clique para abrir foto em tela cheia"
-                  >
-                    <img
-                      src={activeOccurrence.attachments[0]}
-                      alt={activeOccurrence.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 text-white text-xs font-semibold backdrop-blur-xs shadow-md">
-                        <Icon name="search" size={13} />
-                        Ampliar foto em tela cheia
-                      </span>
-                    </div>
-                    {activeOccurrence.attachments.length > 1 && (
-                      <span className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-slate-900/85 text-white text-[11px] font-bold backdrop-blur-xs shadow-xs pointer-events-none">
-                        1 de {activeOccurrence.attachments.length} fotos
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Faixa de Miniaturas se houver mais de 1 foto */}
-                  {activeOccurrence.attachments.length > 1 && (
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
-                      {activeOccurrence.attachments.map((src, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => openLightbox(activeOccurrence.attachments!, idx)}
-                          className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-slate-200 hover:border-[#1455FF] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 group"
-                        >
-                          <img
-                            src={src}
-                            alt={`Miniatura ${idx + 1}`}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                            loading="lazy"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* PROGRESSO VISUAL / TIMELINE DE ESTÁGIOS (Seção 12) */}
-              <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3.5 space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Andamento da Ocorrência
-                </span>
-
-                <div className="space-y-2.5">
-                  {[
-                    {
-                      label: "Registrada pelo morador",
-                      date: activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : null,
-                      isDone: true,
-                    },
-                    {
-                      label: "Recebida pela administração",
-                      date: activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : null,
-                      isDone: true,
-                    },
-                    {
-                      label: "Em análise",
-                      date: null,
-                      isDone: ["em_analise", "em_execucao", "em_andamento", "resolvida"].includes(
-                        activeOccurrence.status
-                      ),
-                      isCurrent: activeOccurrence.status === "em_analise",
-                    },
-                    {
-                      label: "Em atendimento / Manutenção",
-                      date: null,
-                      isDone: ["em_execucao", "em_andamento", "resolvida"].includes(activeOccurrence.status),
-                      isCurrent: ["em_execucao", "em_andamento"].includes(activeOccurrence.status),
-                    },
-                    {
-                      label: "Resolvida",
-                      date: activeOccurrence.resolvedAt ? dateTimeBR(activeOccurrence.resolvedAt) : null,
-                      isDone: activeOccurrence.status === "resolvida",
-                      isCurrent: activeOccurrence.status === "resolvida",
-                    },
-                  ].map((step, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-xs">
-                      <div className="flex flex-col items-center mt-0.5">
-                        <div
-                          className={`flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold ${step.isDone
-                              ? "bg-emerald-500 text-white"
-                              : step.isCurrent
-                                ? "bg-[#1455FF] text-white ring-4 ring-blue-100"
-                                : "bg-slate-200 text-slate-500"
-                            }`}
-                        >
-                          {step.isDone ? "✓" : step.isCurrent ? "●" : "○"}
-                        </div>
-                        {idx < 4 && <div className="w-0.5 h-3 bg-slate-200 mt-1" />}
-                      </div>
-
-                      <div className="flex-1">
-                        <p
-                          className={`font-bold ${step.isDone || step.isCurrent ? "text-slate-900" : "text-slate-400"
-                            }`}
-                        >
-                          {step.label}
-                        </p>
-                        {step.date && <p className="text-[10px] text-slate-400 font-medium">{step.date}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* DESCRIÇÃO (Texto normal e limpo, sem textarea cinza - Seção 19) */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Descrição detalhada
-                </span>
-                <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word] min-w-0 overflow-hidden">
-                  {activeOccurrence.description}
-                </div>
-              </div>
-
-              {/* DADOS DE CONTEXTO (Categoria, Severidade, Unidade) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Categoria</span>
-                  <p className="font-bold text-slate-800 capitalize mt-0.5">{activeOccurrence.category}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Prioridade</span>
-                  <p className="font-bold text-slate-800 capitalize mt-0.5">{activeOccurrence.severity}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Unidade / Autor</span>
-                  <p className="font-bold text-slate-800 truncate mt-0.5">
-                    {activeOccurrence.reporterName || "Morador"}
-                    {activeOccurrence.unitNumber ? ` (${activeOccurrence.unitNumber})` : ""}
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).dotColor}`}
+                />
+                {(STATUS_CONFIG[activeOccurrence.status] || STATUS_CONFIG.recebida).label}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${(SEVERITY_CONFIG[activeOccurrence.severity] || SEVERITY_CONFIG.media).badgeBg} ${(SEVERITY_CONFIG[activeOccurrence.severity] || SEVERITY_CONFIG.media).badgeText}`}
+              >
+                {(SEVERITY_CONFIG[activeOccurrence.severity] || SEVERITY_CONFIG.media).label}
+              </span>
+            </>
+          )
+        }
+        subtitle={
+          activeOccurrence && (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <Icon name="map-pin" size={13} className="text-[#8996A9]" />
+                <span>{formatCleanLocation(activeOccurrence)}</span>
+              </span>
+              <span>•</span>
+              <span>
+                {activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : "Hoje"}
+              </span>
+            </>
+          )
+        }
+        footer={
+          <form onSubmit={handleAddComment} className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Escreva uma mensagem ou atualização para este chamado..."
+              value={newCommentText}
+              onChange={(e) => setNewCommentText(e.target.value)}
+              className="h-10 flex-1 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 text-xs sm:text-sm text-[#101828] placeholder:text-[#8996A9] outline-none focus:bg-white focus:border-[#1455FF] focus:ring-2 focus:ring-[#1455FF]/15 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isPending || !newCommentText.trim()}
+              className={INTERNAL_BTN_PRIMARY_CLS}
+            >
+              <span>Enviar</span>
+              <Icon name="arrow-right" size={14} strokeWidth={2.4} />
+            </button>
+          </form>
+        }
+      >
+        {activeOccurrence && (
+          <InternalDetailPanel
+            main={
+              <>
+                {/* Descrição completa */}
+                <InternalSectionCard title="Descrição completa" icon="file-text" tone="blue">
+                  <p className="text-xs sm:text-sm text-[#101828] leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
+                    {activeOccurrence.description}
                   </p>
-                </div>
-              </div>
+                </InternalSectionCard>
 
-
-              {/* FERRAMENTAS DO SÍNDICO / STAFF (Seções 29 a 35) */}
-              {isStaff && (
-                <div className="rounded-lg border border-slate-200/90 bg-slate-50/60 p-3.5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-[#1455FF] uppercase tracking-wider">
-                      Gestão da Ocorrência
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400">Acesso Síndico / Gestor</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Alteração Rápida de Status */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Status</label>
-                      <select
-                        value={adminStatus}
-                        onChange={(e) => setAdminStatus(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1455FF]"
-                      >
-                        <option value="recebida">Recebida</option>
-                        <option value="em_analise">Em análise</option>
-                        <option value="em_execucao">Em atendimento</option>
-                        <option value="aguardando_morador">Aguardando morador</option>
-                        <option value="resolvida">Resolvida</option>
-                        <option value="cancelada">Cancelada</option>
-                      </select>
-                    </div>
-
-                    {/* Alteração de Severidade */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Prioridade</label>
-                      <select
-                        value={adminSeverity}
-                        onChange={(e) => setAdminSeverity(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1455FF]"
-                      >
-                        <option value="baixa">Baixa</option>
-                        <option value="media">Média</option>
-                        <option value="alta">Alta</option>
-                        <option value="urgente">Urgente</option>
-                      </select>
-                    </div>
-
-                    {/* Atribuição de Responsável */}
-                    <div className="space-y-1 sm:col-span-2">
-                      <label className="text-[11px] font-bold text-slate-700">Atribuir Responsável</label>
-                      <select
-                        value={adminAssignedId}
-                        onChange={(e) => setAdminAssignedId(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-[#1455FF]"
-                      >
-                        <option value="none">— Sem responsável atribuído —</option>
-                        {staffMembers.map((m) => (
-                          <option key={m.id} value={String(m.id)}>
-                            {m.name} ({m.role.toUpperCase()})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Parecer / Ações Tomadas */}
-                    <div className="space-y-1 sm:col-span-2">
-                      <label className="text-[11px] font-bold text-slate-700">Ações Tomadas / Parecer</label>
-                      <input
-                        type="text"
-                        value={adminActionsTaken}
-                        onChange={(e) => setAdminActionsTaken(e.target.value)}
-                        placeholder="Ex: Equipe de manutenção esteve no local..."
-                        className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <Link
-                      href={`/painel/servicos?categoria=${activeOccurrence.category}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1455FF] hover:underline"
-                    >
-                      <Icon name="briefcase" size={13} />
-                      <span>Buscar prestador parceiro</span>
-                    </Link>
-
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={handleSaveAdminDetails}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
-                    >
-                      <span>Salvar alterações</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* AÇÃO DO MORADOR: CONFIRMAÇÃO DE RESOLUÇÃO (Seções 27 e 28) */}
-              {isResident && activeOccurrence.status === "resolvida" && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3.5 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <Icon name="check-circle" size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-xs font-black text-emerald-900">Esta ocorrência foi resolvida?</h4>
-                      <p className="text-[11px] text-emerald-800 mt-0.5">
-                        A administração marcou este chamado como concluído. Por favor, confirme se o problema foi
-                        realmente solucionado.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setRatingModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      <span>Sim, resolvido</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setReopenModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50 px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      <span>Ainda existe problema</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* CONVERSA CONTEXTUAL / MENSAGENS (Seções 22 a 24, 58) */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Histórico & Mensagens
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    {activeComments.length} {activeComments.length === 1 ? "mensagem" : "mensagens"}
-                  </span>
-                </div>
-
-                {/* Linha do tempo das mensagens */}
-                <div className="space-y-3">
-                  {/* Evento inicial do sistema */}
-                  <div className="text-center py-1">
-                    <span className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold">
-                      Ocorrência registrada no sistema •{" "}
-                      {activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : "Hoje"}
-                    </span>
-                  </div>
-
-                  {activeComments.map((c) => {
-                    const isCurrentUser = c.userId === currentUserId;
-
-                    return (
+                {/* Fotografias / Anexos (exibido somente quando houver mídia real) */}
+                {activeOccurrence.attachments && activeOccurrence.attachments.length > 0 && (
+                  <InternalSectionCard
+                    title={`Fotografias anexadas (${activeOccurrence.attachments.length})`}
+                    subtitle="Clique em qualquer imagem para abrir em tela cheia."
+                    icon="camera"
+                    tone="blue"
+                  >
+                    <div className="space-y-3">
                       <div
-                        key={c.id}
-                        className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+                        onClick={() => openLightbox(activeOccurrence.attachments!, 0)}
+                        className="relative aspect-video w-full overflow-hidden rounded-xl border border-[#E2E8F0] bg-slate-100 group cursor-zoom-in"
                       >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={activeOccurrence.attachments[0]}
+                          alt={activeOccurrence.title}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 rounded-full bg-[#081A37]/85 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+                            <Icon name="search" size={13} />
+                            <span>Ampliar imagem</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {activeOccurrence.attachments.length > 1 && (
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                          {activeOccurrence.attachments.map((src, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => openLightbox(activeOccurrence.attachments!, idx)}
+                              className="relative h-16 w-22 shrink-0 overflow-hidden rounded-xl border-2 border-[#E2E8F0] hover:border-[#1455FF] transition-all cursor-pointer"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={src}
+                                alt={`Miniatura ${idx + 1}`}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </InternalSectionCard>
+                )}
+
+                {/* Parecer / Ações tomadas */}
+                {activeOccurrence.actionsTaken && (
+                  <InternalSectionCard title="Ações tomadas pela equipe" icon="wrench" tone="green">
+                    <p className="text-xs sm:text-sm text-[#101828] leading-relaxed whitespace-pre-line">
+                      {activeOccurrence.actionsTaken}
+                    </p>
+                  </InternalSectionCard>
+                )}
+
+                {/* Confirmação de Resolução pelo Morador */}
+                {isResident && activeOccurrence.status === "resolvida" && (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <Icon name="check-circle" size={18} className="text-[#16A34A] shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-extrabold text-emerald-950">
+                          Esta ocorrência foi resolvida?
+                        </h4>
+                        <p className="text-xs text-emerald-900 mt-0.5">
+                          A administração marcou este chamado como concluído. Confirme se o problema foi solucionado.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setRatingModalOpen(true)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white px-3.5 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <span>Sim, resolvido</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReopenModalOpen(true)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50 px-3.5 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <span>Ainda existe problema</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comentários & Mensagens */}
+                <InternalSectionCard
+                  title="Histórico e mensagens"
+                  subtitle={`${activeComments.length} ${activeComments.length === 1 ? "mensagem registrada" : "mensagens registradas"}`}
+                  icon="mail"
+                  tone="blue"
+                >
+                  <div className="space-y-3">
+                    <div className="text-center py-1">
+                      <span className="inline-block rounded-full bg-[#F5F8FC] border border-[#E2E8F0] px-3 py-1 text-[11px] font-semibold text-[#526079]">
+                        Ocorrência registrada em{" "}
+                        {activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : "Hoje"}
+                      </span>
+                    </div>
+
+                    {activeComments.map((c) => {
+                      const isCurrentUser = c.userId === currentUserId;
+                      return (
                         <div
-                          className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-xs shadow-2xs ${isCurrentUser
-                              ? "bg-[#1455FF] text-white rounded-br-xs"
-                              : "bg-slate-100 text-slate-800 rounded-bl-xs"
-                            }`}
+                          key={c.id}
+                          className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
                         >
                           <div
-                            className={`flex items-center gap-2 text-[10px] font-bold mb-1 ${isCurrentUser ? "text-blue-100" : "text-slate-500"
-                              }`}
+                            className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm ${
+                              isCurrentUser
+                                ? "bg-[#1455FF] text-white rounded-br-xs"
+                                : "bg-[#F5F8FC] border border-[#E2E8F0] text-[#101828] rounded-bl-xs"
+                            }`}
                           >
-                            <span>{c.userName || "Usuário"}</span>
-                            <span>•</span>
-                            <span>{c.createdAt ? dateTimeBR(c.createdAt) : "Agora"}</span>
+                            <div
+                              className={`flex items-center gap-2 text-[10px] font-bold mb-1 ${
+                                isCurrentUser ? "text-blue-100" : "text-[#526079]"
+                              }`}
+                            >
+                              <span>{c.userName || "Usuário"}</span>
+                              <span>•</span>
+                              <span>{c.createdAt ? dateTimeBR(c.createdAt) : "Agora"}</span>
+                            </div>
+                            <p className="leading-relaxed whitespace-pre-line break-words">{c.body}</p>
                           </div>
-                          <p className="leading-relaxed whitespace-pre-line">{c.body}</p>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+                      );
+                    })}
+                  </div>
+                </InternalSectionCard>
+              </>
+            }
+            sidebar={
+              <>
+                {/* Resumo Estruturado na Coluna Lateral */}
+                <InternalSectionCard title="Dados do chamado" icon="info" tone="blue">
+                  <dl className="space-y-3 text-xs">
+                    <div className="flex items-center justify-between gap-2 border-b border-[#EDF1F7] pb-2">
+                      <dt className="font-semibold text-[#526079]">Categoria</dt>
+                      <dd className="font-bold text-[#101828] capitalize">
+                        {formatCategory(activeOccurrence.category).label}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-b border-[#EDF1F7] pb-2">
+                      <dt className="font-semibold text-[#526079]">Prioridade</dt>
+                      <dd className="font-bold text-[#101828]">
+                        {(SEVERITY_CONFIG[activeOccurrence.severity] || SEVERITY_CONFIG.media).label}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-b border-[#EDF1F7] pb-2">
+                      <dt className="font-semibold text-[#526079]">Local</dt>
+                      <dd className="font-bold text-[#101828] text-right">
+                        {formatCleanLocation(activeOccurrence)}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-b border-[#EDF1F7] pb-2">
+                      <dt className="font-semibold text-[#526079]">Responsável</dt>
+                      <dd className="font-bold text-[#101828] text-right">
+                        {activeOccurrence.assignedToName || "A definir"}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <dt className="font-semibold text-[#526079]">Solicitante</dt>
+                      <dd className="font-bold text-[#101828] text-right truncate">
+                        {activeOccurrence.reporterName || "Morador"}
+                        {activeOccurrence.unitNumber ? ` · ${activeOccurrence.unitNumber}` : ""}
+                      </dd>
+                    </div>
+                  </dl>
+                </InternalSectionCard>
 
-            {/* ENTRADA DE MENSAGEM FIXA INFERIOR (Seção 23) */}
-            <div className="p-3 sm:p-4 border-t border-slate-200 bg-white shrink-0">
-              <form onSubmit={handleAddComment} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Escreva uma mensagem para a administração..."
-                  value={newCommentText}
-                  onChange={(e) => setNewCommentText(e.target.value)}
-                  className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/10 transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={isPending || !newCommentText.trim()}
-                  className="h-10 px-4 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <span>Enviar</span>
-                  <Icon name="arrow-right" size={13} strokeWidth={2.4} />
-                </button>
-              </form>
-            </div>
-          </aside>
-        </div>
-      )}
+                {/* Linha do Tempo Real */}
+                <InternalSectionCard title="Linha do tempo" icon="clock" tone="navy">
+                  <InternalTimeline
+                    steps={(() => {
+                      const st = activeOccurrence.status;
+                      if (st === "cancelada") {
+                        return [
+                          {
+                            id: "reg",
+                            label: "Registrada",
+                            meta: activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : "Registrada",
+                            state: "done",
+                          },
+                          {
+                            id: "canc",
+                            label: "Cancelada",
+                            state: "warning",
+                          },
+                        ] satisfies InternalTimelineStep[];
+                      }
+                      const inAnalysis = ["em_analise", "em_execucao", "em_andamento", "aguardando_morador", "resolvida"].includes(st);
+                      const inExecution = ["em_execucao", "em_andamento", "aguardando_morador", "resolvida"].includes(st);
+                      const isDone = st === "resolvida";
+
+                      return [
+                        {
+                          id: "registrada",
+                          label: "Registrada",
+                          meta: activeOccurrence.createdAt ? dateTimeBR(activeOccurrence.createdAt) : null,
+                          state: "done",
+                        },
+                        {
+                          id: "recebida",
+                          label: "Recebida pela administração",
+                          state: inAnalysis ? "done" : "current",
+                        },
+                        {
+                          id: "em_atendimento",
+                          label: "Em atendimento",
+                          state: isDone ? "done" : inExecution || st === "em_analise" ? "current" : "pending",
+                        },
+                        {
+                          id: "concluida",
+                          label: "Concluída",
+                          meta: activeOccurrence.resolvedAt ? dateTimeBR(activeOccurrence.resolvedAt) : null,
+                          state: isDone ? "done" : "pending",
+                        },
+                      ] satisfies InternalTimelineStep[];
+                    })()}
+                  />
+                </InternalSectionCard>
+
+                {/* Controles da Administração (Preservando RBAC e regras reais) */}
+                {isStaff && (
+                  <InternalSectionCard title="Gestão do chamado" subtitle="Acesso síndico / gestor" icon="settings" tone="blue">
+                    <div className="space-y-3">
+                      <InternalFormField label="Status">
+                        <select
+                          value={adminStatus}
+                          onChange={(e) => setAdminStatus(e.target.value)}
+                          className={INTERNAL_SELECT_CLS}
+                        >
+                          <option value="recebida">Recebida</option>
+                          <option value="em_analise">Em análise</option>
+                          <option value="em_execucao">Em atendimento</option>
+                          <option value="aguardando_morador">Aguardando morador</option>
+                          <option value="resolvida">Resolvida</option>
+                          <option value="cancelada">Cancelada</option>
+                        </select>
+                      </InternalFormField>
+
+                      <InternalFormField label="Prioridade">
+                        <select
+                          value={adminSeverity}
+                          onChange={(e) => setAdminSeverity(e.target.value)}
+                          className={INTERNAL_SELECT_CLS}
+                        >
+                          <option value="baixa">Baixa</option>
+                          <option value="media">Média</option>
+                          <option value="alta">Alta</option>
+                          <option value="urgente">Urgente</option>
+                        </select>
+                      </InternalFormField>
+
+                      <InternalFormField label="Responsável">
+                        <select
+                          value={adminAssignedId}
+                          onChange={(e) => setAdminAssignedId(e.target.value)}
+                          className={INTERNAL_SELECT_CLS}
+                        >
+                          <option value="none">— Sem responsável atribuído —</option>
+                          {staffMembers.map((m) => (
+                            <option key={m.id} value={String(m.id)}>
+                              {m.name} ({m.role.toUpperCase()})
+                            </option>
+                          ))}
+                        </select>
+                      </InternalFormField>
+
+                      <InternalFormField label="Parecer / Providências">
+                        <textarea
+                          rows={2}
+                          value={adminActionsTaken}
+                          onChange={(e) => setAdminActionsTaken(e.target.value)}
+                          placeholder="Descreva as medidas executadas..."
+                          className={INTERNAL_TEXTAREA_CLS}
+                        />
+                      </InternalFormField>
+
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={handleSaveAdminDetails}
+                        className={`${INTERNAL_BTN_PRIMARY_CLS} w-full`}
+                      >
+                        <Icon name="check" size={15} />
+                        <span>Salvar alterações</span>
+                      </button>
+
+                      <Link
+                        href={`/painel/servicos?categoria=${activeOccurrence.category}`}
+                        className="inline-flex w-full items-center justify-center gap-1.5 text-xs font-bold text-[#1455FF] hover:underline pt-1"
+                      >
+                        <Icon name="briefcase" size={13} />
+                        <span>Buscar prestador parceiro</span>
+                      </Link>
+                    </div>
+                  </InternalSectionCard>
+                )}
+              </>
+            }
+          />
+        )}
+      </InternalDrawer>
 
       {/* ========================================================================= */}
       {/* 5. MODAL DE FILTROS AVANÇADOS (POPOVER / DRAWER - Seção 15)               */}
       {/* ========================================================================= */}
-      {filterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setFilterModalOpen(false)}
-            aria-hidden
-          />
-          <div className="relative w-full max-w-sm rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Filtros da Lista</h3>
-              <button
-                type="button"
-                onClick={() => setFilterModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <Icon name="x" size={16} />
-              </button>
-            </div>
+      {/* ========================================================================= */}
+      {/* 6. MODAIS PADRONIZADOS (Filtros, Reabertura, Avaliação)                   */}
+      {/* ========================================================================= */}
+      <InternalModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        title="Filtros avançados"
+        description="Refine a listagem por categoria, prioridade e anexos."
+        icon="filter"
+        maxWidth="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory("todas");
+                setSelectedSeverity("todas");
+                setNeedsAttentionOnly(false);
+                setOnlyWithPhotos(false);
+                setFilterModalOpen(false);
+              }}
+              className={INTERNAL_BTN_SECONDARY_CLS}
+            >
+              Limpar tudo
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterModalOpen(false)}
+              className={INTERNAL_BTN_PRIMARY_CLS}
+            >
+              Aplicar filtros
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <InternalFormField label="Categoria">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className={INTERNAL_SELECT_CLS}
+            >
+              <option value="todas">Todas as categorias</option>
+              {categoriesList.map((cat) => (
+                <option key={cat} value={cat}>
+                  {formatCategory(cat).label}
+                </option>
+              ))}
+            </select>
+          </InternalFormField>
 
-            <div className="space-y-3 text-xs">
-              {/* Categoria */}
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Categoria</label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 font-semibold text-slate-800"
-                >
-                  <option value="todas">Todas as categorias</option>
-                  {categoriesList.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <InternalFormField label="Prioridade">
+            <select
+              value={selectedSeverity}
+              onChange={(e) => setSelectedSeverity(e.target.value)}
+              className={INTERNAL_SELECT_CLS}
+            >
+              <option value="todas">Todas as prioridades</option>
+              <option value="baixa">Baixa</option>
+              <option value="media">Média</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </InternalFormField>
 
-              {/* Prioridade */}
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Prioridade</label>
-                <select
-                  value={selectedSeverity}
-                  onChange={(e) => setSelectedSeverity(e.target.value)}
-                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 font-semibold text-slate-800"
-                >
-                  <option value="todas">Todas as prioridades</option>
-                  <option value="baixa">Baixa</option>
-                  <option value="media">Média</option>
-                  <option value="alta">Alta</option>
-                  <option value="urgente">Urgente</option>
-                </select>
-              </div>
-
-              {/* Somente com fotos */}
-              <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={onlyWithPhotos}
-                  onChange={(e) => setOnlyWithPhotos(e.target.checked)}
-                  className="rounded border-slate-300 text-[#1455FF] focus:ring-[#1455FF] h-4 w-4 cursor-pointer"
-                />
-                <span className="font-medium text-slate-700">Somente ocorrências com fotos</span>
-              </label>
-
-              {/* Botões de Ação do Filtro */}
-              <div className="pt-2 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory("todas");
-                    setSelectedSeverity("todas");
-                    setNeedsAttentionOnly(false);
-                    setOnlyWithPhotos(false);
-                    setFilterModalOpen(false);
-                  }}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                >
-                  Limpar tudo
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterModalOpen(false)}
-                  className="rounded-md bg-[#1455FF] text-white px-4 py-2 text-xs font-semibold shadow-xs hover:bg-[#0048E8]"
-                >
-                  Aplicar filtros
-                </button>
-              </div>
-            </div>
-          </div>
+          <label className="flex items-center gap-2.5 pt-1 cursor-pointer select-none text-xs font-bold text-[#101828]">
+            <input
+              type="checkbox"
+              checked={onlyWithPhotos}
+              onChange={(e) => setOnlyWithPhotos(e.target.checked)}
+              className="rounded border-[#CBD5E1] text-[#1455FF] focus:ring-[#1455FF] h-4 w-4 cursor-pointer"
+            />
+            <span>Somente ocorrências com fotos anexadas</span>
+          </label>
         </div>
-      )}
+      </InternalModal>
 
-      {/* ========================================================================= */}
-      {/* 6. MODAL DE REABERTURA (Seção 28)                                         */}
-      {/* ========================================================================= */}
-      {reopenModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setReopenModalOpen(false)}
-            aria-hidden
+      <InternalModal
+        isOpen={reopenModalOpen}
+        onClose={() => setReopenModalOpen(false)}
+        title="Reabrir Ocorrência"
+        description="Informe o que ainda precisa de atenção para retomarmos o atendimento."
+        icon="alert-triangle"
+        maxWidth="md"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setReopenModalOpen(false)}
+              className={INTERNAL_BTN_SECONDARY_CLS}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={handleReopenOccurrence}
+              className={INTERNAL_BTN_PRIMARY_CLS}
+            >
+              Confirmar reabertura
+            </button>
+          </>
+        }
+      >
+        <InternalFormField label="Motivo da reabertura">
+          <textarea
+            rows={4}
+            value={reopenReason}
+            onChange={(e) => setReopenReason(e.target.value)}
+            placeholder="Descreva o que ainda não foi solucionado..."
+            className={INTERNAL_TEXTAREA_CLS}
           />
-          <div className="relative w-full max-w-md rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Icon name="alert-triangle" size={18} className="text-amber-600" />
-                <h3 className="text-sm font-bold text-slate-900">Reabrir Ocorrência</h3>
-              </div>
+        </InternalFormField>
+      </InternalModal>
+
+      <InternalModal
+        isOpen={ratingModalOpen}
+        onClose={() => setRatingModalOpen(false)}
+        title="Avaliar Atendimento"
+        description="Como você avalia a resolução deste chamado?"
+        icon="check-circle"
+        maxWidth="sm"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setRatingModalOpen(false)}
+              className={INTERNAL_BTN_SECONDARY_CLS}
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={handleConfirmResolution}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-xs disabled:opacity-50 cursor-pointer"
+            >
+              Enviar avaliação
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4 text-center">
+          <div className="flex items-center justify-center gap-2 py-2">
+            {[1, 2, 3, 4, 5].map((star) => (
               <button
+                key={star}
                 type="button"
-                onClick={() => setReopenModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
+                onClick={() => setRatingStars(star)}
+                className="p-1 text-[#FFD000] hover:scale-110 transition-transform cursor-pointer"
               >
-                <Icon name="x" size={16} />
+                <Icon
+                  name="star"
+                  size={28}
+                  className={star <= ratingStars ? "fill-[#FFD000] text-[#FFD000]" : "text-slate-200 fill-slate-200"}
+                />
               </button>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Informe o que ainda precisa de atenção para que a equipe administrativa e de manutenção retome o
-              atendimento.
-            </p>
-
+            ))}
+          </div>
+          <InternalFormField label="Comentário opcional">
             <textarea
               rows={3}
-              value={reopenReason}
-              onChange={(e) => setReopenReason(e.target.value)}
-              placeholder="Descreva o que ainda não foi solucionado..."
-              className="w-full rounded-md border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1455FF] focus:ring-2 focus:ring-blue-500/10"
-            />
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setReopenModalOpen(false)}
-                className="rounded-md border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleReopenOccurrence}
-                className="rounded-md bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-1.5 text-xs font-semibold shadow-xs disabled:opacity-50"
-              >
-                Confirmar reabertura
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 7. MODAL DE AVALIAÇÃO DE RESOLUÇÃO (Seção 27)                             */}
-      {/* ========================================================================= */}
-      {ratingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setRatingModalOpen(false)}
-            aria-hidden
-          />
-          <div className="relative w-full max-w-sm rounded-lg border border-slate-200/90 bg-white p-5 shadow-xl space-y-4 text-center">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
-              <Icon name="check-circle" size={20} />
-            </div>
-
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Avaliar Atendimento</h3>
-              <p className="text-xs text-slate-500 mt-1">Como você avalia a resolução deste chamado?</p>
-            </div>
-
-            {/* 1-5 Estrelas */}
-            <div className="flex items-center justify-center gap-1.5 py-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRatingStars(star)}
-                  className="p-1 text-[#FFD000] hover:scale-115 transition-transform cursor-pointer"
-                >
-                  <Icon
-                    name="star"
-                    size={26}
-                    className={star <= ratingStars ? "fill-[#FFD000] text-[#FFD000]" : "text-slate-200 fill-slate-200"}
-                  />
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              rows={2}
               value={ratingComment}
               onChange={(e) => setRatingComment(e.target.value)}
-              placeholder="Deixe um comentário opcional sobre a equipe..."
-              className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-[#1455FF]"
+              placeholder="Deixe um comentário sobre o atendimento..."
+              className={INTERNAL_TEXTAREA_CLS}
             />
-
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setRatingModalOpen(false)}
-                className="rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-              >
-                Voltar
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleConfirmResolution}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-bold shadow-xs disabled:opacity-50"
-              >
-                Enviar avaliação
-              </button>
-            </div>
-          </div>
+          </InternalFormField>
         </div>
-      )}
+      </InternalModal>
 
       {/* ========================================================================= */}
       {/* 8. LIGHTBOX / GALERIA DE FOTOS EM TELA CHEIA (Itens 6, 20, 22, 52)         */}
@@ -1843,6 +1722,6 @@ export function OcorrenciasClient({
           )}
         </div>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

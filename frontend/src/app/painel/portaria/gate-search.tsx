@@ -48,24 +48,24 @@ export function GateSearch({
   }, [visits, term, tab]);
 
   return (
-    <section className="card-flat overflow-hidden">
-      <header className="border-b border-[#dce9b3] bg-[var(--color-primary-soft)] px-5 py-4">
+    <section className="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
+      <header className="border-b border-[#E2E8F0] bg-[#EAF1FF]/55 px-5 py-4">
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-[var(--color-primary)] text-[var(--color-ink)]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1455FF] text-white">
             <Icon name="shield" size={17} />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--color-ink)]">Controle de acesso</h2>
-            <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
+            <h2 className="text-sm font-extrabold uppercase tracking-wide text-[#101828]">Controle de acesso</h2>
+            <p className="mt-0.5 text-xs leading-5 text-[#526079]">
               Leia o QR Code do convite ou busque por nome, documento, placa ou unidade.
             </p>
           </div>
         </div>
-        <label className="mt-4 flex min-h-12 items-center gap-3 rounded-[8px] border border-[#dce9b3] bg-white px-4 text-sm text-[var(--color-muted)]">
+        <label className="mt-4 flex min-h-11 items-center gap-3 rounded-xl border border-[#CBD5E1] bg-white px-4 text-sm text-[#526079] focus-within:border-[#1455FF] focus-within:ring-2 focus-within:ring-[#1455FF]/15 transition-colors">
           <Icon name="search" size={16} />
           <input
             autoFocus
-            className="w-full bg-transparent text-[var(--color-ink)] outline-none placeholder:text-[var(--color-subtle)]"
+            className="w-full bg-transparent text-[#101828] outline-none placeholder:text-[#94A3B8]"
             placeholder="QR Code, nome, documento, placa ou unidade..."
             value={term}
             onChange={(e) => setTerm(e.target.value)}
@@ -77,10 +77,10 @@ export function GateSearch({
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={`rounded-[8px] border px-3 py-2 text-xs font-semibold capitalize transition-colors ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-bold capitalize transition-colors ${
                 tab === t
-                  ? "border-[var(--color-primary-hover)] bg-[var(--color-primary)] text-[var(--color-ink)]"
-                  : "border-[var(--color-line)] bg-white text-[var(--color-muted)] hover:border-[#dce9b3]"
+                  ? "border-[#1455FF] bg-[#1455FF] text-white"
+                  : "border-[#E2E8F0] bg-white text-[#526079] hover:border-[#1455FF]/40 hover:text-[#101828]"
               }`}
             >
               {t} ({t === "todos" ? visits.length : visits.filter((v) => v.status === t).length})

@@ -2,7 +2,12 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
 import { ALL_STAFF, ROLE_LABEL, type Role } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, Stat, TableWrap } from "@/components/ui";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateBR, percent } from "@/lib/utils";
 import { unitOptions } from "@/lib/queries";
 import { BulkForm } from "@/components/client-bits";
@@ -32,11 +37,20 @@ export default async function MoradoresPage() {
   const adoption = percent(active.length, people.length);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="users"
         title="Moradores, blocos e unidades"
         subtitle="Cadastro completo, convites, ações em massa e importação validada de planilhas."
-        actions={<a href="/api/export/moradores" className="btn-ghost btn-sm" download>⬇ Exportar CSV</a>}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Moradores" },
+        ]}
+        actions={
+          <a href="/api/export/moradores" className={INTERNAL_BTN_SECONDARY_CLS} download>
+            ⬇ Exportar CSV
+          </a>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -234,6 +248,6 @@ export default async function MoradoresPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

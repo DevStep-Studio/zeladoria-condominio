@@ -2,7 +2,8 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote } from "@/components/ui";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 import { dateTimeBR } from "@/lib/utils";
 import { peopleOptions } from "@/lib/queries";
 import { closeShiftAction, openShiftAction } from "@/lib/actions/portaria";
@@ -28,10 +29,15 @@ export default async function TurnosPage() {
   const staff = await peopleOptions(condoId, ["porteiro", "zelador", "sindico"]);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="refresh"
         title="Passagem de turno"
         subtitle="Abertura e encerramento de turno com checklist de conferência, pendências e passagem de serviço entre porteiros."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Turnos" },
+        ]}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -138,6 +144,6 @@ export default async function TurnosPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

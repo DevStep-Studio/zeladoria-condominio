@@ -3,8 +3,20 @@
 import { useState, useTransition, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, TableWrap } from "@/components/ui";
-import { Icon } from "@/components/icon";
+import { Badge, Card, EmptyState, InfoNote, TableWrap } from "@/components/ui";
+import { Icon, type IconName } from "@/components/icon";
+import {
+  INTERNAL_BTN_NAVY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import {
+  InternalFilterBar,
+  InternalSearchInput,
+  InternalStatFilterCard,
+  InternalTabStrip,
+} from "@/components/internal/internal-interactive";
 import { dateTimeBR } from "@/lib/utils";
 import {
   deliverParcelAction,
@@ -95,9 +107,22 @@ export function EncomendasClient({
   // Transitions
   const [isPending, startTransition] = useTransition();
 
-  // Sincronização em tempo real
+  // Sincronização em tempo real (sem discrepância de horário entre SSR e CSR)
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [syncedTitle, setSyncedTitle] = useState("Sincronização em tempo real ativa");
+
+  useEffect(() => {
+    const initial = new Date();
+    setLastSyncedAt(initial);
+    setSyncedTitle(`Sincronização em tempo real ativa. Última atualização às ${initial.toLocaleTimeString()}`);
+  }, []);
+
+  useEffect(() => {
+    if (lastSyncedAt) {
+      setSyncedTitle(`Sincronização em tempo real ativa. Última atualização às ${lastSyncedAt.toLocaleTimeString()}`);
+    }
+  }, [lastSyncedAt]);
 
   // Modal para reatribuir / corrigir unidade da encomenda (portaria/zelador)
   const [reassignParcel, setReassignParcel] = useState<ParcelItem | null>(null);
@@ -535,257 +560,151 @@ export function EncomendasClient({
   }, []);
 
   const filterTabs = [
-    { key: "todas", label: "Todas", icon: "grid", count: rows.length },
-    { key: "pendente", label: "Aguardando retirada", icon: "package", count: pendingList.length },
-    { key: "atrasada", label: "Atrasadas", icon: "clock", count: lateList.length },
-    { key: "entregue", label: "Entregues", icon: "check-circle", count: deliveredList.length },
+    { key: "todas", label: "Todas", icon: "grid" as IconName, count: rows.length },
+    { key: "pendente", label: "Aguardando retirada", icon: "package" as IconName, count: pendingList.length },
+    { key: "atrasada", label: "Atrasadas", icon: "clock" as IconName, count: lateList.length },
+    { key: "entregue", label: "Entregues", icon: "check-circle" as IconName, count: deliveredList.length },
   ];
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader
-          title="Encomendas e correspondências"
-          subtitle="Registro na portaria, notificação automática ao morador, código/QR de retirada e confirmação digital de quem retirou."
-        />
-        <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
-          <button
-            type="button"
-            onClick={() => fetchLatestParcels(true)}
-            disabled={isRefreshing}
-            title={`Sincronização em tempo real ativa. Última atualização às ${lastSyncedAt.toLocaleTimeString()}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-all cursor-pointer"
-          >
-            <span className={`inline-block ${isRefreshing ? "animate-spin text-[#1455FF]" : "text-emerald-500"}`}>
-              <Icon name="refresh" size={14} />
-            </span>
-            <span className="hidden sm:inline">
-              {isRefreshing ? "Sincronizando..." : "Ao vivo"}
-            </span>
-          </button>
-
-          {isGate && (
+    <div className="space-y-5 min-w-0">
+      <InternalPageHeader
+        icon="package"
+        title="Encomendas e correspondências"
+        description="Registro na portaria, notificação automática ao morador, código/QR de retirada e confirmação digital."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Encomendas" },
+        ]}
+        badge={<InternalStatusBadge tone="blue">{rows.length} registros</InternalStatusBadge>}
+        actions={
+          <>
             <button
               type="button"
-              id="btn-validar-retirada"
-              onClick={() => {
-                setMatchedParcel(null);
-                setCodeOrPinInput("");
-                setLookupError(null);
-                setLookupSuccess(null);
-                setIsScannerModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
+              onClick={() => fetchLatestParcels(true)}
+              disabled={isRefreshing}
+              title={syncedTitle}
+              className={INTERNAL_BTN_SECONDARY_CLS}
             >
-              <Icon name="camera" size={16} strokeWidth={2.2} className="text-amber-400" />
-              <span>Validar Retirada (QR / Código)</span>
+              <span className={`inline-block ${isRefreshing ? "animate-spin text-[#1455FF]" : "text-[#16A34A]"}`}>
+                <Icon name="refresh" size={14} />
+              </span>
+              <span>{isRefreshing ? "Sincronizando..." : "Ao vivo"}</span>
             </button>
-          )}
-        </div>
-      </div>
+
+            {isGate && (
+              <button
+                type="button"
+                id="btn-validar-retirada"
+                onClick={() => {
+                  setMatchedParcel(null);
+                  setCodeOrPinInput("");
+                  setLookupError(null);
+                  setLookupSuccess(null);
+                  setIsScannerModalOpen(true);
+                }}
+                className={INTERNAL_BTN_NAVY_CLS}
+              >
+                <Icon name="camera" size={15} className="text-amber-300" />
+                <span>Validar Retirada (QR / Código)</span>
+              </button>
+            )}
+          </>
+        }
+      />
 
       {/* Alerta de Feedback Global */}
       {actionFeedback && (
         <div
-          className={`flex items-center justify-between gap-3 rounded-xl border p-4 text-xs font-semibold shadow-2xs transition-all ${
+          className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-xs sm:text-sm font-semibold shadow-2xs transition-all ${
             actionFeedback.tone === "green"
-              ? "border-emerald-200 bg-emerald-50/90 text-emerald-900"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-900"
               : actionFeedback.tone === "amber"
-              ? "border-amber-200 bg-amber-50/90 text-amber-900"
-              : "border-rose-200 bg-rose-50/90 text-rose-900"
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-rose-200 bg-rose-50 text-rose-900"
           }`}
         >
           <div className="flex items-center gap-2">
             <Icon
               name={actionFeedback.tone === "green" ? "check-circle" : "alert-triangle"}
               size={16}
-              className={actionFeedback.tone === "green" ? "text-emerald-600" : "text-rose-600"}
+              className={actionFeedback.tone === "green" ? "text-[#16A34A]" : "text-[#EF4444]"}
             />
             <span>{actionFeedback.message}</span>
           </div>
           <button
             type="button"
             onClick={() => setActionFeedback(null)}
-            className="text-slate-400 hover:text-slate-700"
+            className="text-[#526079] hover:text-[#101828] cursor-pointer"
           >
             <Icon name="x" size={14} />
           </button>
         </div>
       )}
 
-      {/* 3 Indicadores Principais (KPI Cards Interativos) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button
-          type="button"
+      {/* 3 Indicadores Principais Compactos (preserva grid-cols-1 sm:grid-cols-3 para suite funcional) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <InternalStatFilterCard
+          label="Aguardando retirada"
+          value={pendingList.length}
+          hint="disponíveis na portaria"
+          icon="package"
+          tone="amber"
+          active={currentStatus === "pendente"}
           onClick={() => {
             setCurrentStatus("pendente");
             router.push("/painel/encomendas?status=pendente");
           }}
-          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            currentStatus === "pendente"
-              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110">
-              <Icon name="package" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {pendingList.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
-              Aguardando retirada
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Disponíveis na portaria
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
+        />
+        <InternalStatFilterCard
+          label="Atrasadas (7+ dias)"
+          value={lateList.length}
+          hint={lateList.length > 0 ? "cobrar retirada" : "nenhuma em atraso"}
+          icon="clock"
+          tone="red"
+          active={currentStatus === "atrasada"}
           onClick={() => {
             setCurrentStatus("atrasada");
             router.push("/painel/encomendas?status=atrasada");
           }}
-          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            currentStatus === "atrasada"
-              ? "border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform group-hover:scale-110">
-              <Icon name="clock" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {lateList.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-rose-600 transition-colors">
-              Atrasadas (7+ dias)
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              {lateList.length > 0 ? "Cobrar retirada do morador" : "Nenhuma com atraso"}
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
+        />
+        <InternalStatFilterCard
+          label="Entregues"
+          value={deliveredList.length}
+          hint="com comprovação digital"
+          icon="check-circle"
+          tone="green"
+          active={currentStatus === "entregue"}
           onClick={() => {
             setCurrentStatus("entregue");
             router.push("/painel/encomendas?status=entregue");
           }}
-          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            currentStatus === "entregue"
-              ? "border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
-              <Icon name="check-circle" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {deliveredList.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-emerald-600 transition-colors">
-              Entregues
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Com confirmação digital
-            </p>
-          </div>
-        </button>
+        />
       </div>
 
       {/* Barra de Filtros e Busca Rápida */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4 mb-2">
-        {/* Filter Tabs Capsule */}
-        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] no-print overflow-x-auto max-w-full">
-          {filterTabs.map((tab) => {
-            const isActive = currentStatus === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => {
-                  setCurrentStatus(tab.key);
-                  router.push(`/painel/encomendas?status=${tab.key}`);
-                }}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
-                  isActive
-                    ? "bg-[#1455FF] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                <Icon
-                  name={tab.icon as any}
-                  size={14}
-                  strokeWidth={2.2}
-                  className={isActive ? "text-white" : "text-slate-400"}
-                />
-                <span>{tab.label}</span>
-                <span
-                  className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Campo de Busca Rápida */}
-        <div className="relative w-full md:w-72">
-          <Icon name="search" size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
+      <InternalFilterBar
+        left={
+          <div className="overflow-x-auto max-w-full">
+            <InternalTabStrip
+              tabs={filterTabs}
+              activeKey={currentStatus}
+              onChange={(key) => {
+                setCurrentStatus(key);
+                router.push(`/painel/encomendas?status=${key}`);
+              }}
+            />
+          </div>
+        }
+        right={
+          <InternalSearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
             placeholder="Buscar por código, rastreio, unidade..."
-            className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-[#1455FF] focus:outline-none focus:ring-2 focus:ring-blue-500/10 shadow-2xs transition-all"
+            className="md:w-72"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-            >
-              <Icon name="x" size={13} />
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Coluna Principal: Listagem de Encomendas */}
@@ -1607,6 +1526,6 @@ export function EncomendasClient({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

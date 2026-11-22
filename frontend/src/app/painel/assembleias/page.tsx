@@ -2,10 +2,10 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
 
-import { PageHeader } from "@/components/ui";
 import { unitOptions } from "@/lib/queries";
 import { PrintButton } from "@/components/client-bits";
 import { AssembliesClientView } from "@/components/assembly-client";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +33,15 @@ export default async function AssembleiasPage() {
   const unitList = await unitOptions(condoId);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="users"
         title="Assembleias"
-        subtitle="Convocação digital, pautas, confirmações de presença, atas, resumos e controle de versão de documentos de assembleias."
+        subtitle="Convocação digital, pautas, confirmações de presença, atas, resumos e controle de versão documental."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Assembleias" },
+        ]}
         actions={<PrintButton label="Imprimir relatórios" />}
       />
 
@@ -55,6 +60,6 @@ export default async function AssembleiasPage() {
         unitOptions={unitList}
         blocks={condoBlocks}
       />
-    </>
+    </InternalPageLayout>
   );
 }

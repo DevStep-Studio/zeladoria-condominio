@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { Icon } from "@/components/icon";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalStatGrid,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import {
+  InternalFilterBar,
+  InternalStatFilterCard,
+  InternalTabStrip,
+} from "@/components/internal/internal-interactive";
 import type { SuggestionItem, SuggestionStatus } from "@/lib/services/sugestoes-storage";
 
 const CATEGORIES = [
@@ -273,53 +284,88 @@ export function SugestoesClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
-              <Icon name="megaphone" size={16} />
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-              Sugestões & Melhorias
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Participe ativamente da gestão sugerindo ideias para o condomínio
-          </p>
-        </div>
+      <InternalPageHeader
+        icon="megaphone"
+        title="Sugestões & Melhorias"
+        description="Envie propostas para o condomínio, acompanhe respostas e vote nas iniciativas prioritárias."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Sugestões" },
+        ]}
+        badge={<InternalStatusBadge tone="blue">{suggestions.length} sugestões</InternalStatusBadge>}
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3 py-2 text-xs">
+              <span className="font-bold text-[#526079]">Visão:</span>
+              <select
+                value={activeRole}
+                onChange={(e) => setActiveRole(e.target.value)}
+                className="font-bold text-[#101828] bg-transparent outline-none cursor-pointer text-xs"
+              >
+                <option value="morador">Morador</option>
+                <option value="zelador">Zelador (Operação)</option>
+                <option value="sindico">Síndico / Admin</option>
+              </select>
+            </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          {/* Seletor Rápido de Perfil para Teste/Demonstração */}
-          <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-2xs">
-            <span className="text-[11px] font-bold text-slate-400">Visão:</span>
-            <select
-              value={activeRole}
-              onChange={(e) => setActiveRole(e.target.value)}
-              className="font-bold text-slate-700 bg-transparent outline-none cursor-pointer text-xs"
+            <button
+              type="button"
+              onClick={() => setShowNewModal(true)}
+              className={INTERNAL_BTN_PRIMARY_CLS}
             >
-              <option value="morador">Morador</option>
-              <option value="zelador">Zelador (Operação)</option>
-              <option value="sindico">Síndico / Admin</option>
-            </select>
+              <Icon name="plus" size={15} />
+              <span>Nova sugestão</span>
+            </button>
           </div>
+        }
+      />
 
-          <button
-            type="button"
-            onClick={() => setShowNewModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer"
-          >
-            <Icon name="plus" size={15} />
-            <span>Nova sugestão</span>
-          </button>
-        </div>
-      </div>
+      {/* Indicadores Compactos */}
+      <InternalStatGrid columns={4}>
+        <InternalStatFilterCard
+          label="Recebidas"
+          value={suggestions.filter((s) => s.status === "recebida").length}
+          hint="novas ideias"
+          icon="inbox"
+          tone="amber"
+          active={filterStatus === "recebida"}
+          onClick={() => setFilterStatus(filterStatus === "recebida" ? "todas" : "recebida")}
+        />
+        <InternalStatFilterCard
+          label="Em análise"
+          value={suggestions.filter((s) => s.status === "em_analise").length}
+          hint="em avaliação"
+          icon="clock"
+          tone="blue"
+          active={filterStatus === "em_analise"}
+          onClick={() => setFilterStatus(filterStatus === "em_analise" ? "todas" : "em_analise")}
+        />
+        <InternalStatFilterCard
+          label="Aceitas"
+          value={suggestions.filter((s) => s.status === "aceita").length}
+          hint="aprovadas"
+          icon="check"
+          tone="purple"
+          active={filterStatus === "aceita"}
+          onClick={() => setFilterStatus(filterStatus === "aceita" ? "todas" : "aceita")}
+        />
+        <InternalStatFilterCard
+          label="Concluídas"
+          value={suggestions.filter((s) => s.status === "concluida").length}
+          hint="implementadas"
+          icon="check-circle"
+          tone="green"
+          active={filterStatus === "concluida"}
+          onClick={() => setFilterStatus(filterStatus === "concluida" ? "todas" : "concluida")}
+        />
+      </InternalStatGrid>
 
       {feedbackMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-900 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs sm:text-sm font-semibold text-emerald-900 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white shrink-0">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#16A34A] text-white shrink-0">
               <Icon name="check" size={12} />
             </span>
             <span>{feedbackMsg.text}</span>
@@ -336,78 +382,42 @@ export function SugestoesClient({
 
       {/* Destaque para o Zelador / Síndico quando logado */}
       {isStaff && (
-        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="rounded-2xl border border-[#1455FF]/20 bg-[#EAF1FF] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1455FF] text-white shadow-xs shrink-0">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1455FF] text-white shrink-0">
               <Icon name="wrench" size={18} />
             </span>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-blue-950">
+              <p className="text-xs sm:text-sm font-extrabold text-[#101828]">
                 Painel da Zeladoria & Gestão Ativa
               </p>
-              <p className="text-[11px] sm:text-xs text-blue-700 font-medium">
-                Você tem permissão para responder, atualizar o status e planejar a execução das melhorias sugeridas pelos moradores.
+              <p className="text-[11px] sm:text-xs text-[#526079] font-medium">
+                Você pode responder, atualizar status e planejar a execução das melhorias sugeridas pelos moradores.
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-100/80 text-[11px] font-bold text-blue-800 self-start sm:self-auto">
-            <Icon name="check-circle" size={13} />
-            <span>{suggestions.filter((s) => s.status === "recebida" || s.status === "em_analise").length} aguardando análise</span>
-          </span>
+          <InternalStatusBadge tone="blue" icon="check-circle">
+            {suggestions.filter((s) => s.status === "recebida" || s.status === "em_analise").length} aguardando análise
+          </InternalStatusBadge>
         </div>
       )}
 
-      {/* Filters - Minimalista e Fluido */}
-      <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] overflow-x-auto max-w-full">
-        {[
-          { key: "todas", label: "Todas", count: suggestions.length },
-          {
-            key: "recebida",
-            label: "Recebidas",
-            count: suggestions.filter((s) => s.status === "recebida").length,
-          },
-          {
-            key: "em_analise",
-            label: "Em análise",
-            count: suggestions.filter((s) => s.status === "em_analise").length,
-          },
-          {
-            key: "aceita",
-            label: "Aceitas",
-            count: suggestions.filter((s) => s.status === "aceita").length,
-          },
-          {
-            key: "concluida",
-            label: "Concluídas",
-            count: suggestions.filter((s) => s.status === "concluida").length,
-          },
-        ].map((f) => {
-          const isActive = filterStatus === f.key;
-          return (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFilterStatus(f.key)}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? "bg-[#1455FF] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <span>{f.label}</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
-                  isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {f.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Barra de Filtros Padronizada */}
+      <InternalFilterBar
+        left={
+          <InternalTabStrip
+            activeKey={filterStatus}
+            onChange={setFilterStatus}
+            tabs={[
+              { key: "todas", label: "Todas", count: suggestions.length },
+              { key: "recebida", label: "Recebidas", count: suggestions.filter((s) => s.status === "recebida").length },
+              { key: "em_analise", label: "Em análise", count: suggestions.filter((s) => s.status === "em_analise").length },
+              { key: "aceita", label: "Aceitas", count: suggestions.filter((s) => s.status === "aceita").length },
+              { key: "concluida", label: "Concluídas", count: suggestions.filter((s) => s.status === "concluida").length },
+            ]}
+          />
+        }
+      />
 
       {/* Listagem de Sugestões */}
       <div className="space-y-3.5">

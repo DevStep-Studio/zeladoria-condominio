@@ -2,8 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
-import { StatCard } from "@/components/ui";
 import { AppModal, AppInput, AppButton } from "@/components/app-ui";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalStatGrid,
+  InternalStatCard,
+} from "@/components/internal/internal-ui";
+import { InternalSearchInput, InternalTabStrip } from "@/components/internal/internal-interactive";
 import { dateTimeBR, timeBR, isoDate } from "@/lib/utils";
 import {
   createVisitAction,
@@ -167,46 +175,44 @@ export function PortariaClient({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-ink)] flex items-center gap-2.5">
-            <Icon name="shield" size={28} className="text-[#0D9488]" />
-            Portaria & Controle de Acesso
-          </h1>
-          <p className="text-sm text-[var(--color-muted)] mt-1">
-            Liberação temporária de visitantes, registro de entradas/saídas e gestão de encomendas.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setShowAuthorizeModal(true)}
-            className="btn-primary btn-sm"
-          >
-            <Icon name="user-check" size={16} />
-            Autorizar Visitante
-          </button>
-
-          {isStaff ? (
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="shield"
+        title="Portaria & Controle de Acesso"
+        subtitle="Liberação temporária de visitantes, registro de entradas e saídas e gestão de encomendas."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Portaria" },
+        ]}
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => setShowParcelModal(true)}
-              className="btn-ghost btn-sm"
+              onClick={() => setShowAuthorizeModal(true)}
+              className={INTERNAL_BTN_PRIMARY_CLS}
             >
-              <Icon name="package" size={16} />
-              Receber Encomenda
+              <Icon name="user-check" size={16} />
+              <span>Autorizar Visitante</span>
             </button>
-          ) : null}
-        </div>
-      </div>
+
+            {isStaff ? (
+              <button
+                type="button"
+                onClick={() => setShowParcelModal(true)}
+                className={INTERNAL_BTN_SECONDARY_CLS}
+              >
+                <Icon name="package" size={16} />
+                <span>Receber Encomenda</span>
+              </button>
+            ) : null}
+          </div>
+        }
+      />
 
       {/* Feedback banner */}
       {feedback ? (
         <div
-          className={`p-4 rounded-[12px] text-sm font-semibold flex items-center justify-between ${
+          className={`p-4 rounded-xl text-sm font-semibold flex items-center justify-between ${
             feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
@@ -224,72 +230,55 @@ export function PortariaClient({
       ) : null}
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard
+      <InternalStatGrid columns={4}>
+        <InternalStatCard
           label="Dentro do Condomínio"
           value={visits.filter((v) => v.status === "dentro").length}
           icon="users"
           hint="Visitantes / Prestadores"
-          tone="yellow"
+          accent="amber"
         />
-        <StatCard
+        <InternalStatCard
           label="Aguardados / Autorizados"
           value={visits.filter((v) => v.status === "autorizado" || v.status === "aguardando").length}
           icon="user-check"
           hint="Com liberação ativa"
-          tone="blue"
+          accent="blue"
         />
-        <StatCard
+        <InternalStatCard
           label="Encomendas Pendentes"
           value={pendingParcels.length}
           icon="package"
           hint="Aguardando retirada"
-          tone="blue"
+          accent="navy"
         />
-        <StatCard
+        <InternalStatCard
           label="Total de Entradas Hoje"
           value={visits.filter((v) => v.checkinAt).length}
           icon="shield"
           hint="Movimentações no portão"
-          tone="blue"
+          accent="emerald"
         />
-      </div>
+      </InternalStatGrid>
 
       {/* Control Navigation & Search */}
-      <div className="card p-4 space-y-3">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-3.5 sm:p-4 shadow-[0_2px_10px_rgba(8,26,55,0.03)]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="tabbar">
-            <button
-              type="button"
-              onClick={() => setActiveTab("visitas")}
-              className={`tab ${activeTab === "visitas" ? "tab-active" : ""}`}
-            >
-              Visitantes Ativos ({activeVisits.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("encomendas")}
-              className={`tab ${activeTab === "encomendas" ? "tab-active" : ""}`}
-            >
-              Encomendas ({parcels.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("historico")}
-              className={`tab ${activeTab === "historico" ? "tab-active" : ""}`}
-            >
-              Histórico Completo
-            </button>
-          </div>
+          <InternalTabStrip
+            activeId={activeTab}
+            onChange={(id) => setActiveTab(id as "visitas" | "encomendas" | "historico")}
+            items={[
+              { id: "visitas", label: "Visitantes Ativos", count: activeVisits.length, icon: "users" },
+              { id: "encomendas", label: "Encomendas", count: parcels.length, icon: "package" },
+              { id: "historico", label: "Histórico Completo", icon: "clock" },
+            ]}
+          />
 
-          <div className="relative w-full md:w-72">
-            <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-subtle)]" />
-            <input
-              type="text"
-              placeholder="Buscar visitante, placa, encomenda..."
+          <div className="w-full md:w-72">
+            <InternalSearchInput
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-full rounded-[8px] border border-[var(--color-line)] bg-white pl-8 pr-3 text-xs text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:border-[#0D9488] focus:outline-none"
+              onChange={setSearch}
+              placeholder="Buscar visitante, placa, encomenda..."
             />
           </div>
         </div>
@@ -788,6 +777,6 @@ export function PortariaClient({
           </form>
         </AppModal>
       ) : null}
-    </div>
+    </InternalPageLayout>
   );
 }

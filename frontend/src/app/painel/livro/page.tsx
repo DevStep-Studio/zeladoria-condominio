@@ -2,7 +2,12 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
 import { GATE } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, Stat } from "@/components/ui";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateTimeBR } from "@/lib/utils";
 import { unitOptions } from "@/lib/queries";
 import { ackOccurrenceAction, addOccurrenceFollowUpAction, createOccurrenceAction } from "@/lib/actions/portaria";
@@ -28,17 +33,22 @@ export default async function LivroPage({ searchParams }: { searchParams: Promis
   const high = rows.filter((r) => r.severity === "alta").length;
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="book"
         title="Livro de ocorrências digital"
         subtitle="Registros por turno, classificação de sigilo, ações tomadas, ciência do síndico e histórico imutável com auditoria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Livro Digital" },
+        ]}
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <PrintButton label="Imprimir / exportar" />
-            <a className="btn-ghost btn-sm" href={`/api/export/ocorrencias`} download>
+            <a className={INTERNAL_BTN_SECONDARY_CLS} href={`/api/export/ocorrencias`} download>
               Exportar CSV
             </a>
-          </>
+          </div>
         }
       />
 
@@ -188,6 +198,6 @@ export default async function LivroPage({ searchParams }: { searchParams: Promis
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

@@ -1,7 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Icon, type IconName } from "@/components/icon";
+import { Icon } from "@/components/icon";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalStatGrid,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import {
+  InternalFilterBar,
+  InternalSearchInput,
+  InternalStatFilterCard,
+  InternalTabStrip,
+  InternalViewToggle,
+} from "@/components/internal/internal-interactive";
 import {
   CATEGORIES_LIST,
   MOCK_LOST_AND_FOUND_ITEMS,
@@ -236,260 +249,145 @@ export function AchadosPerdidosClient({
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] border border-blue-100 shadow-2xs">
-              <Icon name="tag" size={16} />
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-              Achados e Perdidos
-            </h1>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 font-medium">
-            Central integrada do {condoName} para localização e devolução de pertences
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          {/* Seletor Rápido de Perfil para Demonstração Interativa */}
-          <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-2xs">
-            <span className="text-[11px] font-bold text-slate-400">Visão:</span>
-            <select
-              value={currentRole}
-              onChange={(e) => setCurrentRole(e.target.value)}
-              className="font-bold text-slate-700 bg-transparent outline-none cursor-pointer text-xs"
-            >
-              <option value="morador">Morador</option>
-              <option value="porteiro">Portaria</option>
-              <option value="zelador">Zelador</option>
-              <option value="sindico">Síndico / Admin</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsRegisterOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer"
-          >
-            <Icon name="plus" size={15} />
-            <span>+ Registrar Item</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Cards (Resumo Rápido) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Total de Registros</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-              <Icon name="package" size={14} />
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
-            {counts.total}
-          </p>
-          <span className="text-[11px] text-slate-400 font-medium">Itens catalogados</span>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-800">Itens Encontrados</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
-              <Icon name="check-circle" size={14} />
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-black text-emerald-700 tracking-tight">
-            {counts.found}
-          </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Aguardando dono</span>
-        </div>
-
-        <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900">Itens Perdidos</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-              <Icon name="search" size={14} />
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-black text-amber-700 tracking-tight">
-            {counts.lost}
-          </p>
-          <span className="text-[11px] text-amber-600 font-medium">Moradores procurando</span>
-        </div>
-
-        <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-900">Devolvidos</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-[#1455FF]">
-              <Icon name="check" size={14} />
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-black text-[#1455FF] tracking-tight">
-            {counts.resolved}
-          </p>
-          <span className="text-[11px] text-blue-600 font-medium">Finalizados com sucesso</span>
-        </div>
-      </div>
-
-      {/* Toolbar: Abas Superiores + Barra de Busca + Filtros */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-4">
-        {/* Linha 1: Abas Principais (Todos, Encontrados, Perdidos) */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          {/* Abas com Contagem */}
-          <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/80 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab("todos")}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "todos"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>Todos</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
-                  activeTab === "todos"
-                    ? "bg-blue-50 text-[#1455FF]"
-                    : "bg-slate-200 text-slate-600"
-                }`}
+      <InternalPageHeader
+        icon="tag"
+        title="Achados e Perdidos"
+        description={`Central integrada do ${condoName} para localização, triagem e devolução de pertences.`}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Achados e Perdidos" },
+        ]}
+        badge={<InternalStatusBadge tone="blue">{counts.total} registros</InternalStatusBadge>}
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3 py-2 text-xs">
+              <span className="font-bold text-[#526079]">Visão:</span>
+              <select
+                value={currentRole}
+                onChange={(e) => setCurrentRole(e.target.value)}
+                className="font-bold text-[#101828] bg-transparent outline-none cursor-pointer text-xs"
               >
-                {counts.total}
-              </span>
-            </button>
+                <option value="morador">Morador</option>
+                <option value="porteiro">Portaria</option>
+                <option value="zelador">Zelador</option>
+                <option value="sindico">Síndico / Admin</option>
+              </select>
+            </div>
 
             <button
               type="button"
-              onClick={() => setActiveTab("FOUND")}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "FOUND"
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
+              onClick={() => setIsRegisterOpen(true)}
+              className={INTERNAL_BTN_PRIMARY_CLS}
             >
-              <Icon name="check-circle" size={13} />
-              <span>Itens Encontrados</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
-                  activeTab === "FOUND"
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 text-slate-600"
-                }`}
+              <Icon name="plus" size={15} />
+              <span>Registrar item</span>
+            </button>
+          </div>
+        }
+      />
+
+      {/* Stats Cards Compactos */}
+      <InternalStatGrid columns={4}>
+        <InternalStatFilterCard
+          label="Total de registros"
+          value={counts.total}
+          hint="catalogados"
+          icon="package"
+          tone="navy"
+          active={activeTab === "todos"}
+          onClick={() => setActiveTab("todos")}
+        />
+        <InternalStatFilterCard
+          label="Itens encontrados"
+          value={counts.found}
+          hint="aguardando dono"
+          icon="check-circle"
+          tone="green"
+          active={activeTab === "FOUND"}
+          onClick={() => setActiveTab("FOUND")}
+        />
+        <InternalStatFilterCard
+          label="Itens perdidos"
+          value={counts.lost}
+          hint="em busca"
+          icon="search"
+          tone="amber"
+          active={activeTab === "LOST"}
+          onClick={() => setActiveTab("LOST")}
+        />
+        <InternalStatFilterCard
+          label="Devolvidos"
+          value={counts.resolved}
+          hint="finalizados"
+          icon="check"
+          tone="blue"
+          active={statusFilter === "RESOLVED"}
+          onClick={() => setStatusFilter(statusFilter === "RESOLVED" ? "TODOS" : "RESOLVED")}
+        />
+      </InternalStatGrid>
+
+      {/* Toolbar: Abas + Busca + Categoria + Status + View Toggle */}
+      <InternalFilterBar
+        left={
+          <InternalTabStrip
+            activeKey={activeTab}
+            onChange={(key) => setActiveTab(key as "todos" | "FOUND" | "LOST")}
+            tabs={[
+              { key: "todos", label: "Todos", count: counts.total },
+              { key: "FOUND", label: "Encontrados", icon: "check-circle", count: counts.found },
+              { key: "LOST", label: "Perdidos", icon: "search", count: counts.lost },
+            ]}
+          />
+        }
+        right={
+          <InternalViewToggle
+            value={viewMode}
+            onChange={(v) => setViewMode(v as "grid" | "list")}
+            options={[
+              { key: "grid", label: "Cards", icon: "grid" },
+              { key: "list", label: "Lista", icon: "menu" },
+            ]}
+          />
+        }
+        bottom={
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+            <div className="sm:col-span-6">
+              <InternalSearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Buscar por objeto, local ou descrição..."
+              />
+            </div>
+
+            <div className="sm:col-span-3">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="h-9.5 w-full rounded-xl border border-[#E2E8F0] bg-white px-3 text-xs sm:text-sm font-semibold text-[#101828] outline-none focus:border-[#1455FF] cursor-pointer"
               >
-                {counts.found}
-              </span>
-            </button>
+                <option value="todas">Todas as categorias</option>
+                {CATEGORIES_LIST.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab("LOST")}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "LOST"
-                  ? "bg-amber-600 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Icon name="search" size={13} />
-              <span>Itens Perdidos</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
-                  activeTab === "LOST"
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 text-slate-600"
-                }`}
+            <div className="sm:col-span-3">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as "TODOS" | "OPEN" | "RESOLVED")}
+                className="h-9.5 w-full rounded-xl border border-[#E2E8F0] bg-white px-3 text-xs sm:text-sm font-semibold text-[#101828] outline-none focus:border-[#1455FF] cursor-pointer"
               >
-                {counts.lost}
-              </span>
-            </button>
+                <option value="TODOS">Todos os status</option>
+                <option value="OPEN">Apenas Abertos</option>
+                <option value="RESOLVED">Apenas Devolvidos</option>
+              </select>
+            </div>
           </div>
-
-          {/* Toggle de Visualização (Grid vs Lista) */}
-          <div className="flex items-center gap-1 self-end md:self-auto">
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs transition-colors cursor-pointer ${
-                viewMode === "grid"
-                  ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
-                  : "border-slate-200 text-slate-500 hover:bg-slate-50"
-              }`}
-              title="Visualização em Grade de Cards"
-            >
-              <Icon name="grid" size={15} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs transition-colors cursor-pointer ${
-                viewMode === "list"
-                  ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
-                  : "border-slate-200 text-slate-500 hover:bg-slate-50"
-              }`}
-              title="Visualização em Lista"
-            >
-              <Icon name="menu" size={15} />
-            </button>
-          </div>
-        </div>
-
-        {/* Linha 2: Barra de Busca e Filtros de Categoria e Status */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-          {/* Barra de Busca com Ícone */}
-          <div className="sm:col-span-6 relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-              <Icon name="search" size={16} />
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nome, objeto, local ou descrição..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-9 py-2.5 text-xs sm:text-sm text-slate-900 font-medium placeholder-slate-400 outline-none transition-all focus:border-[#1455FF] focus:bg-white focus:ring-2 focus:ring-blue-100"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
-                title="Limpar busca"
-              >
-                <Icon name="x" size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Filtro de Categoria */}
-          <div className="sm:col-span-3">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#1455FF] focus:bg-white cursor-pointer"
-            >
-              <option value="todas">Todas as categorias</option>
-              {CATEGORIES_LIST.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filtro de Status */}
-          <div className="sm:col-span-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 outline-none transition-all focus:border-[#1455FF] focus:bg-white cursor-pointer"
-            >
-              <option value="TODOS">Todos os status</option>
-              <option value="OPEN">Apenas Abertos</option>
-              <option value="RESOLVED">Apenas Devolvidos</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Listagem de Itens */}
       {filteredItems.length === 0 ? (

@@ -3,7 +3,12 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import {
   adminCreatePromotionPlanAction,
   adminTogglePromotionPlanAction,
@@ -110,24 +115,27 @@ export function AdminDestaquesClient({
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
         icon="sparkles"
         title="Marketplace · Destaques & Publicidade"
-        description="Gestão de planos de visibilidade interna, campanhas ativas e faturamento publicitário."
+        subtitle="Gestão de planos de visibilidade interna, campanhas ativas e faturamento publicitário."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Marketplace", href: "/painel/admin/marketplace" },
+          { label: "Destaques" },
+        ]}
         actions={
-          <div className="flex items-center gap-2">
-            <Link
-              href="/painel/servicos"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-bold transition-colors"
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/painel/servicos" className={INTERNAL_BTN_SECONDARY_CLS}>
               <Icon name="arrow-left" size={13} />
               <span>Ver Marketplace</span>
             </Link>
             <button
               type="button"
               onClick={() => setIsNewPlanModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
+              className={INTERNAL_BTN_PRIMARY_CLS}
             >
               <Icon name="plus" size={13} />
               <span>Novo Plano</span>
@@ -417,6 +425,6 @@ export function AdminDestaquesClient({
           </div>
         </div>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

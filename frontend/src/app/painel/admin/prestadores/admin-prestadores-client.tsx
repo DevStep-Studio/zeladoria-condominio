@@ -3,8 +3,12 @@
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
 import { AppModal, AppButton, AppEmptyState, AppSearch } from "@/components/app-ui";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { setVendorOnboardingStatusAction } from "@/lib/actions/admin";
 
 type Vendor = {
@@ -72,32 +76,23 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Prestadores</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Gestão de Prestadores & Parceiros
-          </h1>
-          <p className="text-xs text-slate-500">
-            Catálogo profissional de prestadores habilitados no ecossistema Zeladoria.
-          </p>
-        </div>
-
-        <Link
-          href="/painel/admin/marketplace"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors"
-        >
-          <Icon name="sparkles" size={14} />
-          <span>Marketplace & Configurações</span>
-        </Link>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="briefcase"
+        title="Gestão de Prestadores & Parceiros"
+        subtitle="Catálogo profissional de prestadores habilitados no ecossistema Zeladoria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Prestadores" },
+        ]}
+        actions={
+          <Link href="/painel/admin/marketplace" className={INTERNAL_BTN_PRIMARY_CLS}>
+            <Icon name="sparkles" size={14} />
+            <span>Marketplace & Configurações</span>
+          </Link>
+        }
+      />
 
       {feedback && (
         <div
@@ -262,6 +257,6 @@ export function AdminPrestadoresClient({ initialVendors }: { initialVendors: Ven
           </div>
         </AppModal>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

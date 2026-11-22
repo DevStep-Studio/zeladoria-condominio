@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Progress, Stat } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, Progress, Stat } from "@/components/ui";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 import { dateTimeBR, percent } from "@/lib/utils";
 import { importResidentsAction } from "@/lib/actions/gestao";
 import { saveCondoSettingsAction, updateOnboardingAction } from "@/lib/actions/admin";
@@ -51,10 +52,15 @@ export default async function ImplantacaoPage() {
   const progress = percent(condo.onboardingStep, STEPS.length);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="sparkles"
         title="Assistente de implantação"
         subtitle="Etapas guiadas com modelos de planilha, validação prévia e publicação controlada do condomínio."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Implantação" },
+        ]}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -75,14 +81,14 @@ export default async function ImplantacaoPage() {
                 return (
                   <li
                     key={step.n}
-                    className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${
-                      current ? "border-[#dce9b3] bg-[var(--color-primary-soft)]" : "border-[var(--color-line)]"
+                    className={`flex items-start justify-between gap-3 rounded-xl border p-3.5 ${
+                      current ? "border-[#1455FF]/30 bg-[#EAF1FF]" : "border-[#E2E8F0]"
                     }`}
                   >
                     <div className="flex gap-3">
                       <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs font-bold ${
-                          done ? "bg-[var(--color-success)] text-white" : current ? "bg-[var(--color-primary)] text-[var(--color-ink)]" : "bg-[var(--color-surface-muted)] text-[var(--color-muted)]"
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                          done ? "bg-emerald-600 text-white" : current ? "bg-[#1455FF] text-white" : "bg-[#F5F8FC] text-[#526079]"
                         }`}
                       >
                         {done ? <Icon name="check" size={13} strokeWidth={2.6} /> : step.n}
@@ -185,6 +191,6 @@ export default async function ImplantacaoPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

@@ -2,7 +2,12 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, TableWrap } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, Stat, TableWrap } from "@/components/ui";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateBR, daysUntil, isoDate, money } from "@/lib/utils";
 import {
   rateVendorAction,
@@ -48,11 +53,20 @@ export default async function FornecedoresPage() {
     .reduce((acc, c) => acc + c.valueCents, 0);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="briefcase"
         title="Fornecedores e contratos"
         subtitle="Cadastro, contatos, contratos vinculados, alertas de vencimento, reajustes, documentos e avaliação de serviço."
-        actions={<a href="/api/export/contratos" download className="btn-ghost btn-sm">⬇ Exportar contratos</a>}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Fornecedores" },
+        ]}
+        actions={
+          <a href="/api/export/contratos" download className={INTERNAL_BTN_SECONDARY_CLS}>
+            ⬇ Exportar contratos
+          </a>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -297,6 +311,6 @@ export default async function FornecedoresPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

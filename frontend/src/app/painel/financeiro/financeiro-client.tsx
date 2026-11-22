@@ -4,6 +4,12 @@ import { useMemo, useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { dateBR, money, percent, isoDate } from "@/lib/utils";
 import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
+import {
   payTransactionAction,
   registerChargePaymentAction,
   saveTransactionAction,
@@ -240,45 +246,35 @@ export function FinanceiroClient({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner / Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#1455FF] text-white shadow-xs shrink-0">
-              <Icon name="wallet" size={16} />
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0F172A]">
-              Gestão Financeira & DRE
-            </h1>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="wallet"
+        title="Gestão Financeira & DRE"
+        subtitle={`${condoName} · Prestação de contas do exercício ${currentYear}`}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Financeiro" },
+        ]}
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <a href="/api/export/financeiro" download className={INTERNAL_BTN_SECONDARY_CLS}>
+              <Icon name="download" size={14} />
+              <span>Exportar CSV</span>
+            </a>
+
+            {canManage && (
+              <button
+                type="button"
+                onClick={() => setIsNewTxModalOpen(true)}
+                className={INTERNAL_BTN_PRIMARY_CLS}
+              >
+                <Icon name="plus" size={14} />
+                <span>Novo Lançamento</span>
+              </button>
+            )}
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            {condoName} · Prestação de contas do exercício {currentYear}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <a
-            href="/api/export/financeiro"
-            download
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs transition-colors"
-          >
-            <Icon name="download" size={13} className="text-slate-500" />
-            <span>Exportar CSV</span>
-          </a>
-
-          {canManage && (
-            <button
-              type="button"
-              onClick={() => setIsNewTxModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
-            >
-              <Icon name="plus" size={14} />
-              <span>Novo Lançamento</span>
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Feedback message banner */}
       {feedbackMessage && (
@@ -1194,6 +1190,6 @@ export function FinanceiroClient({
           </div>
         </div>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

@@ -1,8 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Card, Drawer, InfoNote, Panel, StatCard } from "@/components/ui";
+import { Badge, Card, Drawer, InfoNote, Panel } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import {
+  INTERNAL_INPUT_CLS,
+  INTERNAL_SELECT_CLS,
+  InternalStatCard,
+  InternalStatGrid,
+} from "@/components/internal/internal-ui";
+import { InternalStatFilterCard } from "@/components/internal/internal-interactive";
 import { dateBR, dateTimeBR } from "@/lib/utils";
 import {
   saveAssemblyAction,
@@ -421,124 +428,41 @@ export function AssembliesClientView({
 
   return (
     <div className="space-y-6">
-      {/* Metrics Row — Minimalistas, Elegantes e Alinhados à Home */}
-      <section className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <button
-          type="button"
+      {/* KPIs */}
+      <InternalStatGrid columns={4}>
+        <InternalStatFilterCard
+          label="Próximas"
+          value={upcomingList.length}
+          hint="Assembleias ativas"
+          icon="scale"
+          accent="amber"
+          active={tab === "proximas"}
           onClick={() => setTab("proximas")}
-          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            tab === "proximas"
-              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110">
-              <Icon name="scale" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {upcomingList.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
-              Próximas
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Assembleias ativas
-            </p>
-          </div>
-        </button>
-
-        <div className="group relative flex flex-col justify-between text-left rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] transition-transform group-hover:scale-110">
-              <Icon name="user-check" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {confirmedAttendanceCount}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
-              Presenças
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Unidades confirmadas
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
+        />
+        <InternalStatCard
+          label="Presenças"
+          value={confirmedAttendanceCount}
+          hint="Unidades confirmadas"
+          icon="user-check"
+          accent="blue"
+        />
+        <InternalStatFilterCard
+          label="Atas publicadas"
+          value={publishedMinutesCount}
+          hint="Documentos ativos"
+          icon="file-text"
+          accent="emerald"
+          active={tab === "realizadas"}
           onClick={() => setTab("realizadas")}
-          className={`group relative flex flex-col justify-between text-left rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            tab === "realizadas"
-              ? "border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
-              <Icon name="file-text" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {publishedMinutesCount}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-emerald-600 transition-colors">
-              Atas publicadas
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Documentos ativos
-            </p>
-          </div>
-        </button>
-
-        <div className="group relative flex flex-col justify-between text-left rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-transform group-hover:scale-110">
-              <Icon name="bell" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {assemblies.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-purple-600 transition-colors">
-              Convocações
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Histórico registrado
-            </p>
-          </div>
-        </div>
-      </section>
+        />
+        <InternalStatCard
+          label="Convocações"
+          value={assemblies.length}
+          hint="Histórico registrado"
+          icon="bell"
+          accent="slate"
+        />
+      </InternalStatGrid>
 
       {/* Resident Feature Highlight */}
       {session.role === "morador" && nextAssembly ? (
@@ -709,23 +633,23 @@ export function AssembliesClientView({
       </div>
 
       {/* Search & Type Filter Bar */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-3.5 shadow-[0_2px_10px_rgba(8,26,55,0.03)] grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2 relative">
           <input
             type="text"
             placeholder="Buscar por título da assembleia, local ou pauta..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-9"
+            className={`${INTERNAL_INPUT_CLS} pl-9`}
           />
-          <span className="pointer-events-none absolute left-3 top-3.5 text-[var(--color-subtle)]">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]">
             <Icon name="search" size={16} />
           </span>
         </div>
         <select
           value={kindFilter}
           onChange={(e) => setKindFilter(e.target.value)}
-          className="input"
+          className={INTERNAL_SELECT_CLS}
         >
           <option value="todos">Todos os tipos de assembleia</option>
           <option value="ordinaria">Ordinária</option>

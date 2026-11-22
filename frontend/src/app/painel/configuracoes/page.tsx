@@ -2,9 +2,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { requireRole } from "@/lib/auth";
-import { Badge, Card, Field, PageHeader } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";
 import { saveCondoSettingsAction, updateOnboardingAction } from "@/lib/actions/admin";
+import { ROLE_LABEL, type Role } from "@/lib/rbac";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  INTERNAL_INPUT_CLS,
+  InternalFormField,
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalSectionCard,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -29,112 +39,174 @@ export default async function ConfiguracoesPage() {
   }
 
   return (
-    <>
-      <PageHeader title="Configurações" subtitle="Dados do condomínio e atalhos de administração." />
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="settings"
+        title="Configurações"
+        subtitle="Dados cadastrais do condomínio, status da implantação e atalhos administrativos."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Configurações" },
+        ]}
+        badge={
+          <InternalStatusBadge
+            label={condo.plan ? `Plano ${condo.plan}` : "Ativo"}
+            tone="blue"
+          />
+        }
+      />
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Card title="Dados do condomínio">
+      <div className="grid gap-5 lg:grid-cols-12 items-start">
+        <div className="lg:col-span-8 space-y-5">
+          <InternalSectionCard
+            title="Dados do condomínio"
+            subtitle="Identificação institucional, localização e visibilidade pública."
+          >
             <form action={saveCondoSettingsAction} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Nome">
-                  <input name="name" className="input" defaultValue={condo.name} required />
-                </Field>
-                <Field label="CNPJ">
-                  <input name="cnpj" className="input" defaultValue={condo.cnpj ?? ""} />
-                </Field>
+                <InternalFormField label="Nome" required>
+                  <input name="name" className={INTERNAL_INPUT_CLS} defaultValue={condo.name} required />
+                </InternalFormField>
+                <InternalFormField label="CNPJ">
+                  <input name="cnpj" className={INTERNAL_INPUT_CLS} defaultValue={condo.cnpj ?? ""} />
+                </InternalFormField>
               </div>
-              <Field label="Endereço">
-                <input name="address" className="input" defaultValue={condo.address ?? ""} />
-              </Field>
+              <InternalFormField label="Endereço">
+                <input name="address" className={INTERNAL_INPUT_CLS} defaultValue={condo.address ?? ""} />
+              </InternalFormField>
               <div className="grid gap-4 sm:grid-cols-3">
-                <Field label="Cidade" className="sm:col-span-2">
-                  <input name="city" className="input" defaultValue={condo.city ?? ""} />
-                </Field>
-                <Field label="UF">
-                  <input name="state" className="input" defaultValue={condo.state ?? ""} maxLength={2} />
-                </Field>
+                <div className="sm:col-span-2">
+                  <InternalFormField label="Cidade">
+                    <input name="city" className={INTERNAL_INPUT_CLS} defaultValue={condo.city ?? ""} />
+                  </InternalFormField>
+                </div>
+                <InternalFormField label="UF">
+                  <input name="state" className={INTERNAL_INPUT_CLS} defaultValue={condo.state ?? ""} maxLength={2} />
+                </InternalFormField>
               </div>
-              <Field label="Plano">
-                <input className="input opacity-70" defaultValue={condo.plan} disabled />
-              </Field>
-              <label className="flex items-center gap-2.5 text-sm text-[var(--color-ink)]">
-                <input type="checkbox" name="publicPage" defaultChecked={condo.publicPage} className="h-4 w-4 accent-[var(--color-primary)]" />
-                Exibir página pública do condomínio
+              <InternalFormField label="Plano contratado">
+                <input
+                  className={`${INTERNAL_INPUT_CLS} opacity-75 cursor-not-allowed bg-[#F5F8FC]`}
+                  defaultValue={condo.plan}
+                  disabled
+                />
+              </InternalFormField>
+              <label className="flex items-center gap-2.5 text-sm font-medium text-[#101828] pt-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="publicPage"
+                  defaultChecked={condo.publicPage}
+                  className="h-4 w-4 rounded border-[#CBD5E1] accent-[#1455FF]"
+                />
+                <span>Exibir página pública do condomínio</span>
               </label>
-              <div className="flex justify-end">
-                <button className="btn-primary"><Icon name="check" size={16} /> Salvar alterações</button>
+              <div className="flex justify-end pt-2 border-t border-[#E2E8F0]">
+                <button type="submit" className={INTERNAL_BTN_PRIMARY_CLS}>
+                  <Icon name="check" size={16} />
+                  <span>Salvar alterações</span>
+                </button>
               </div>
             </form>
-          </Card>
+          </InternalSectionCard>
 
-          <Card title="Atalhos" className="mt-5">
+          <InternalSectionCard
+            title="Atalhos administrativos"
+            subtitle="Acesso direto aos cadastros estruturais, auditoria e implantação."
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               {sections.map((s) => (
                 <Link
                   key={s.href}
                   href={s.href}
-                  className="surface-hover flex items-center gap-3 rounded-[12px] border border-[var(--color-line)] p-3.5"
+                  className="group flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-3.5 transition-all hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/45"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                    <Icon name={s.icon} size={16} />
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-[#E2E8F0] text-[#1455FF] group-hover:bg-[#1455FF] group-hover:text-white group-hover:border-[#1455FF] transition-colors">
+                    <Icon name={s.icon} size={17} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[var(--color-ink)]">{s.title}</p>
-                    <p className="truncate text-xs text-[var(--color-muted)]">{s.desc}</p>
+                    <p className="truncate text-sm font-bold text-[#101828] group-hover:text-[#1455FF] transition-colors">
+                      {s.title}
+                    </p>
+                    <p className="truncate text-xs text-[#526079]">{s.desc}</p>
                   </div>
-                  {s.badge ? <Badge tone={s.badge === "concluída" ? "green" : "amber"}>{s.badge}</Badge> : null}
+                  {s.badge ? (
+                    <InternalStatusBadge
+                      label={s.badge}
+                      tone={s.badge === "concluída" ? "green" : "amber"}
+                    />
+                  ) : (
+                    <Icon name="chevron-right" size={15} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+                  )}
                 </Link>
               ))}
             </div>
-          </Card>
+          </InternalSectionCard>
         </div>
 
-        <div className="space-y-4">
-          <Card title="Status da implantação">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">Etapa atual</span>
-                <span className="font-semibold text-[var(--color-ink)]">{condo.onboardingStep}/9</span>
+        <div className="lg:col-span-4 space-y-5">
+          <InternalSectionCard
+            title="Status da implantação"
+            subtitle="Acompanhe a etapa de ativação e uso de armazenamento."
+          >
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-2.5">
+                <span className="text-xs font-medium text-[#526079]">Etapa atual</span>
+                <span className="text-sm font-extrabold text-[#101828] tabular-nums">
+                  {condo.onboardingStep}/9
+                </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">Publicação</span>
-                <Badge tone={condo.onboardingDone ? "green" : "amber"}>{condo.onboardingDone ? "publicado" : "rascunho"}</Badge>
+              <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-2.5">
+                <span className="text-xs font-medium text-[#526079]">Publicação</span>
+                <InternalStatusBadge
+                  label={condo.onboardingDone ? "publicado" : "rascunho"}
+                  tone={condo.onboardingDone ? "green" : "amber"}
+                />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">Armazenamento</span>
-                <span className="font-semibold text-[var(--color-ink)]">{condo.storageUsedMb} MB</span>
+              <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-2.5">
+                <span className="text-xs font-medium text-[#526079]">Armazenamento</span>
+                <span className="text-sm font-extrabold text-[#101828] tabular-nums">
+                  {condo.storageUsedMb} MB
+                </span>
               </div>
             </div>
+
             <form action={updateOnboardingAction} className="mt-4">
               <input type="hidden" name="step" value={condo.onboardingStep} />
               <input type="hidden" name="done" value={condo.onboardingDone ? "off" : "on"} />
-              <button className="btn-ghost btn-sm w-full">
+              <button type="submit" className={`${INTERNAL_BTN_SECONDARY_CLS} w-full h-10 text-xs`}>
                 <Icon name="check" size={15} />
-                {condo.onboardingDone ? "Reabrir publicação" : "Concluir publicação"}
+                <span>{condo.onboardingDone ? "Reabrir publicação" : "Concluir publicação"}</span>
               </button>
             </form>
-            <Link href="/painel/implantacao" className="btn-link mt-2 text-xs">Abrir assistente</Link>
-          </Card>
+            <div className="mt-3 text-center">
+              <Link
+                href="/painel/implantacao"
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1455FF] hover:text-[#0048E8] transition-colors"
+              >
+                <span>Abrir assistente de implantação</span>
+                <Icon name="chevron-right" size={13} />
+              </Link>
+            </div>
+          </InternalSectionCard>
 
-          <Card title="Minha conta">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">Nome</span>
-                <span className="font-medium text-[var(--color-ink)]">{session.user.name}</span>
+          <InternalSectionCard title="Minha conta">
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0]">
+                <span className="text-xs font-medium text-[#526079]">Nome</span>
+                <span className="font-bold text-[#101828] text-right truncate">{session.user.name}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">E-mail</span>
-                <span className="truncate text-[var(--color-ink)]">{session.user.email}</span>
+              <div className="flex items-center justify-between gap-3 py-1 border-b border-[#E2E8F0]">
+                <span className="text-xs font-medium text-[#526079]">E-mail</span>
+                <span className="font-medium text-[#101828] text-right truncate">{session.user.email}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-muted)]">Perfil</span>
-                <span className="font-medium text-[var(--color-ink)]">{session.role}</span>
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <span className="text-xs font-medium text-[#526079]">Perfil</span>
+                <InternalStatusBadge label={ROLE_LABEL[session.role as Role] ?? session.role} tone="blue" />
               </div>
             </div>
-          </Card>
+          </InternalSectionCard>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

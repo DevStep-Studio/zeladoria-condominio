@@ -245,56 +245,61 @@ export function PorteiroDashboard({
       )}
 
       {/* 1. Top Bar: Shift & Context */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="px-2.5 py-1 bg-[#1455FF] text-white text-xs font-black rounded-lg uppercase tracking-wider">
-              Portaria
-            </span>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {condoName}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            Bom dia, {userName}
-          </h1>
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600 flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <span className={`h-2 w-2 rounded-full ${activeShift ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
-              <strong>{activeShift ? `Turno Ativo (${activeShift.period})` : "Nenhum turno aberto"}</strong>
-            </span>
-            {activeShift && (
-              <>
-                <span>·</span>
-                <span>Iniciado às {new Date(activeShift.startedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-              </>
-            )}
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-6 shadow-[0_2px_12px_rgba(8,26,55,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
+            <Icon name="shield" size={21} />
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-0.5 bg-[#1455FF] text-white text-[11px] font-extrabold rounded-full uppercase tracking-wider">
+                Portaria
+              </span>
+              <span className="text-xs font-bold text-[#526079] uppercase tracking-wider truncate">
+                {condoName}
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#101828] tracking-tight mt-1">
+              Bom dia, {userName}
+            </h1>
+            <div className="flex items-center gap-3 mt-1 text-xs text-[#526079] flex-wrap">
+              <span className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${activeShift ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                <strong className="text-[#101828]">{activeShift ? `Turno Ativo (${activeShift.period})` : "Nenhum turno aberto"}</strong>
+              </span>
+              {activeShift && (
+                <>
+                  <span>·</span>
+                  <span>Iniciado às {new Date(activeShift.startedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           {activeShift ? (
             <button
               id="btn-encerrar-turno"
               onClick={() => setModal("turno_fechar")}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-colors flex items-center gap-2"
+              className="px-4 h-10 bg-[#F5F8FC] hover:bg-[#EAF1FF] text-[#101828] border border-[#E2E8F0] hover:border-[#1455FF]/35 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <Icon name="refresh" size={16} />
-              Encerrar Turno & Passagem
+              <Icon name="refresh" size={15} className="text-[#1455FF]" />
+              <span>Encerrar Turno & Passagem</span>
             </button>
           ) : (
             <button
               id="btn-abrir-turno"
               onClick={() => setModal("turno_abrir")}
-              className="px-4 py-2.5 bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-xs"
+              className="px-4 h-10 bg-[#1455FF] hover:bg-[#0048E8] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
             >
-              <Icon name="check" size={16} />
-              Iniciar Turno
+              <Icon name="check" size={15} />
+              <span>Iniciar Turno</span>
             </button>
           )}
           <Link
             href="/painel/turnos"
-            className="px-3 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-colors"
+            className="inline-flex h-10 items-center px-4 border border-[#E2E8F0] bg-white hover:border-[#1455FF]/40 hover:bg-[#F5F8FC] text-[#101828] text-xs font-bold rounded-xl transition-colors"
           >
             Histórico de Turnos
           </Link>
@@ -384,67 +389,69 @@ export function PorteiroDashboard({
       </div>
 
       {/* 3. Section “AGORA NA PORTARIA” (Compact Operational Summary) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_10px_rgba(8,26,55,0.03)]">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="clock" size={18} className="text-[#1455FF]" />
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EAF1FF] text-[#1455FF]">
+              <Icon name="clock" size={15} />
+            </span>
+            <h2 className="text-xs font-extrabold text-[#101828] uppercase tracking-wider">
               Agora na Portaria
             </h2>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Situações operacionais em tempo real</span>
+          <span className="text-xs text-[#526079] font-medium">Situações operacionais em tempo real</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <button
             onClick={() => setActiveTab("dentro")}
-            className={`p-3.5 rounded-xl border text-left transition-all ${
+            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
               activeTab === "dentro"
-                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
-                : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                ? "bg-[#EAF1FF] border-[#1455FF] text-[#1455FF] ring-2 ring-[#1455FF]/15"
+                : "bg-[#F5F8FC] border-[#E2E8F0] text-[#101828] hover:border-[#1455FF]/35"
             }`}
           >
-            <p className="text-2xl font-black">{overview.insideCount}</p>
+            <p className="text-2xl font-extrabold tabular-nums">{overview.insideCount}</p>
             <p className="text-xs font-bold mt-0.5">Dentro do condomínio</p>
             <p className="text-[11px] opacity-75">Visitantes & prestadores</p>
           </button>
 
           <button
             onClick={() => setActiveTab("esperados")}
-            className={`p-3.5 rounded-xl border text-left transition-all ${
+            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
               activeTab === "esperados"
-                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
-                : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                ? "bg-[#EAF1FF] border-[#1455FF] text-[#1455FF] ring-2 ring-[#1455FF]/15"
+                : "bg-[#F5F8FC] border-[#E2E8F0] text-[#101828] hover:border-[#1455FF]/35"
             }`}
           >
-            <p className="text-2xl font-black">{overview.expectedCount}</p>
+            <p className="text-2xl font-extrabold tabular-nums">{overview.expectedCount}</p>
             <p className="text-xs font-bold mt-0.5">Visitantes previstos</p>
             <p className="text-[11px] opacity-75">Autorizados hoje</p>
           </button>
 
           <button
             onClick={() => setActiveTab("encomendas")}
-            className={`p-3.5 rounded-xl border text-left transition-all ${
+            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
               activeTab === "encomendas"
-                ? "bg-blue-50 border-[#1455FF] text-[#1455FF]"
-                : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                ? "bg-[#EAF1FF] border-[#1455FF] text-[#1455FF] ring-2 ring-[#1455FF]/15"
+                : "bg-[#F5F8FC] border-[#E2E8F0] text-[#101828] hover:border-[#1455FF]/35"
             }`}
           >
-            <p className="text-2xl font-black">{overview.pendingParcelsCount}</p>
+            <p className="text-2xl font-extrabold tabular-nums">{overview.pendingParcelsCount}</p>
             <p className="text-xs font-bold mt-0.5">Encomendas na portaria</p>
             <p className="text-[11px] opacity-75">Aguardando retirada</p>
           </button>
 
-          <div className="p-3.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-700">
-            <p className="text-2xl font-black">{overview.todayReservationsCount}</p>
+          <div className="p-3.5 rounded-xl border bg-[#F5F8FC] border-[#E2E8F0] text-[#101828]">
+            <p className="text-2xl font-extrabold tabular-nums">{overview.todayReservationsCount}</p>
             <p className="text-xs font-bold mt-0.5">Reservas de hoje</p>
-            <p className="text-[11px] opacity-75">Salão, churrasqueira, etc.</p>
+            <p className="text-[11px] text-[#526079]">Salão, churrasqueira, etc.</p>
           </div>
 
-          <div className="p-3.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-700">
-            <p className="text-2xl font-black">{overview.todayProvidersCount}</p>
+          <div className="p-3.5 rounded-xl border bg-[#F5F8FC] border-[#E2E8F0] text-[#101828]">
+            <p className="text-2xl font-extrabold tabular-nums">{overview.todayProvidersCount}</p>
             <p className="text-xs font-bold mt-0.5">Prestadores autorizados</p>
-            <p className="text-[11px] opacity-75">Obras & serviços</p>
+            <p className="text-[11px] text-[#526079]">Obras & serviços</p>
           </div>
         </div>
       </div>

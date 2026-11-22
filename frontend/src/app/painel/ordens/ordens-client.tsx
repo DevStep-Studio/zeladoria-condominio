@@ -3,8 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
 import { AppEmptyState, AppModal, AppButton } from "@/components/app-ui";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 
 function formatMoney(centsVal: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centsVal / 100);
@@ -81,18 +85,19 @@ export function OrdensClient({
   }, [initialOrders, filter, search, assetMap]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
         icon="wrench"
         title="Ordens de Serviço"
-        description="Gestão de intervenções preventivas, corretivas e contratos de manutenção predial."
+        subtitle="Gestão de intervenções preventivas, corretivas e contratos de manutenção predial."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Ordens de Serviço" },
+        ]}
         actions={
-          <Link
-            href="/painel/manutencao?tab=planos"
-            className="inline-flex items-center gap-2 rounded-[8px] bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
-          >
+          <Link href="/painel/manutencao?tab=planos" className={INTERNAL_BTN_PRIMARY_CLS}>
             <Icon name="plus" size={15} />
-            Nova Ordem / Plano
+            <span>Nova Ordem / Plano</span>
           </Link>
         }
       />
@@ -287,6 +292,6 @@ export function OrdensClient({
           </div>
         </AppModal>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

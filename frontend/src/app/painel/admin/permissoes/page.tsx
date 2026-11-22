@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { ROLE_PERMISSIONS_MAP, type Permission } from "@/lib/permissions";
 import { ROLE_LABEL, type Role } from "@/lib/rbac";
-import { Icon } from "@/components/icon";
+import { InternalPageHeader, InternalPageLayout, InternalStatusBadge } from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -47,26 +46,20 @@ export default async function AdminPermissoesPage() {
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Permissões</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Matriz de Permissões (RBAC)
-          </h1>
-          <p className="text-xs text-slate-500">
-            Mapeamento canônico das permissões de segurança ativas por perfil no Zeladoria.
-          </p>
-        </div>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="lock"
+        title="Matriz de Permissões (RBAC)"
+        subtitle="Mapeamento canônico das permissões de segurança ativas por perfil no Zeladoria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Permissões" },
+        ]}
+        badge={<InternalStatusBadge label={`${allPermissions.length} permissões`} tone="blue" />}
+      />
 
-      <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
@@ -107,6 +100,6 @@ export default async function AdminPermissoesPage() {
           </table>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

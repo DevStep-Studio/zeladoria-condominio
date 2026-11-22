@@ -2,7 +2,15 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, StatCard, TableWrap, statusLabel, statusTone } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, StatCard, TableWrap, statusLabel, statusTone } from "@/components/ui";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  INTERNAL_INPUT_CLS,
+  INTERNAL_SELECT_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { Icon } from "@/components/icon";
 import { dateBR, dateTimeBR } from "@/lib/utils";
 import { peopleOptions, unitOptions } from "@/lib/queries";
@@ -199,8 +207,9 @@ export default async function ChamadosPage({
   };
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="wrench"
         title={session.role === "morador" ? "Minhas Contratações" : "Chamados"}
         subtitle={
           session.role === "morador"
@@ -209,11 +218,15 @@ export default async function ChamadosPage({
             ? "Visão global de todos os chamados dos condomínios da plataforma Zeladoria."
             : "Acompanhe solicitações, prazos, responsáveis e interações com moradores em uma fila clara de atendimento."
         }
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: session.role === "morador" ? "Contratações" : "Chamados" },
+        ]}
         actions={
           <details className="relative no-print">
-            <summary className="btn-primary list-none">
+            <summary className={`${INTERNAL_BTN_PRIMARY_CLS} list-none cursor-pointer`}>
               <Icon name="plus" size={16} />
-              Abrir chamado
+              <span>Abrir chamado</span>
             </summary>
             <div className="drawer-scrim" />
             <aside className="drawer-panel">
@@ -332,46 +345,46 @@ export default async function ChamadosPage({
         <StatCard label="Satisfação média" value={satisfaction} icon="check" hint={`${rated.length} avaliações`} tone="blue" />
       </section>
 
-      <section className="section-shell mt-6 no-print">
-        <div className="mb-4 rounded-[10px] border border-[#dce9b3] bg-[var(--color-primary-soft)] p-4">
+      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-4 sm:p-5 shadow-[0_2px_10px_rgba(8,26,55,0.03)] no-print space-y-4">
+        <div className="rounded-xl border border-[#1455FF]/15 bg-[#EAF1FF]/55 p-4">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-[var(--color-primary)] text-[var(--color-ink)]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1455FF] text-white">
               <Icon name="filter" size={17} />
             </span>
             <div>
-              <h2 className="text-base font-semibold text-[var(--color-ink)]">Fila de atendimento</h2>
-              <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
+              <h2 className="text-sm sm:text-base font-bold text-[#101828]">Fila de atendimento</h2>
+              <p className="mt-0.5 text-xs sm:text-sm leading-relaxed text-[#526079]">
                 Priorize atrasos, acompanhe responsáveis e filtre solicitações por status, categoria ou protocolo.
               </p>
             </div>
           </div>
         </div>
         <form className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center" action="/painel/chamados">
-          <label className="flex min-h-12 flex-1 items-center gap-3 rounded-[8px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-4 text-sm text-[var(--color-muted)]">
+          <label className="flex h-11 flex-1 items-center gap-3 rounded-xl border border-[#CBD5E1] bg-[#F5F8FC] px-4 text-sm text-[#526079] focus-within:border-[#1455FF] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#1455FF]/15 transition-colors">
             <Icon name="search" size={16} />
             <input
               type="search"
               name="q"
               defaultValue={search}
               placeholder="Buscar por protocolo, título ou descrição"
-              className="w-full bg-transparent text-[var(--color-ink)] outline-none placeholder:text-[var(--color-subtle)]"
+              className="w-full bg-transparent text-[#101828] outline-none placeholder:text-[#94A3B8]"
             />
           </label>
           <input type="hidden" name="view" value={activeView} />
-          <button className="btn-primary" type="submit">
+          <button className={INTERNAL_BTN_PRIMARY_CLS} type="submit">
             <Icon name="search" size={16} />
-            Buscar
+            <span>Buscar</span>
           </button>
           <details className="relative">
-            <summary className="btn-ghost list-none">
+            <summary className={`${INTERNAL_BTN_SECONDARY_CLS} list-none cursor-pointer`}>
               <Icon name="filter" size={16} />
-              Mais filtros
+              <span>Mais filtros</span>
             </summary>
-            <div className="menu-surface absolute right-0 z-50 mt-2 w-72 p-4">
+            <div className="absolute right-0 z-50 mt-2 w-72 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-xl">
               <div className="space-y-3">
                 <label className="block">
-                  <span className="label">Status</span>
-                  <select name="s" className="input" defaultValue={activeStatus === "todos" ? "" : activeStatus}>
+                  <span className="block text-xs font-bold uppercase tracking-wider text-[#526079] mb-1">Status</span>
+                  <select name="s" className={INTERNAL_SELECT_CLS} defaultValue={activeStatus === "todos" ? "" : activeStatus}>
                     {STATUS_OPTIONS.map((option) => (
                       <option key={option.key} value={option.key === "todos" ? "" : option.key}>
                         {option.label}
@@ -380,8 +393,8 @@ export default async function ChamadosPage({
                   </select>
                 </label>
                 <label className="block">
-                  <span className="label">Prioridade</span>
-                  <select name="p" className="input" defaultValue={p}>
+                  <span className="block text-xs font-bold uppercase tracking-wider text-[#526079] mb-1">Prioridade</span>
+                  <select name="p" className={INTERNAL_SELECT_CLS} defaultValue={p}>
                     <option value="">Todas</option>
                     {PRIORITIES.map((priority) => (
                       <option key={priority} value={priority}>
@@ -391,8 +404,8 @@ export default async function ChamadosPage({
                   </select>
                 </label>
                 <label className="block">
-                  <span className="label">Categoria</span>
-                  <select name="c" className="input" defaultValue={c}>
+                  <span className="block text-xs font-bold uppercase tracking-wider text-[#526079] mb-1">Categoria</span>
+                  <select name="c" className={INTERNAL_SELECT_CLS} defaultValue={c}>
                     <option value="">Todas</option>
                     {CATEGORIES.map((category) => (
                       <option key={category} value={category}>
@@ -401,7 +414,7 @@ export default async function ChamadosPage({
                     ))}
                   </select>
                 </label>
-                <button className="btn-primary btn-sm w-full" type="submit">
+                <button className={`${INTERNAL_BTN_PRIMARY_CLS} w-full h-10 text-xs`} type="submit">
                   Aplicar filtros
                 </button>
               </div>
@@ -409,30 +422,48 @@ export default async function ChamadosPage({
           </details>
         </form>
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-          <div className="tabbar">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center pt-1">
+          <div className="inline-flex items-center gap-1 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-1 overflow-x-auto max-w-full [scrollbar-width:thin]">
             {STATUS_OPTIONS.map((option) => (
               <a
                 key={option.key}
                 href={hrefFor({ s: option.key })}
-                className={`tab flex-1 sm:flex-none ${activeStatus === option.key ? "tab-active" : ""}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors ${
+                  activeStatus === option.key
+                    ? "bg-[#1455FF] text-white shadow-xs"
+                    : "text-[#526079] hover:text-[#101828] hover:bg-white"
+                }`}
               >
                 {option.label}
               </a>
             ))}
           </div>
-          <div className="tabbar justify-self-start xl:justify-self-end">
-            <a href={hrefFor({ view: "cards" })} className={`tab ${activeView === "cards" ? "tab-active" : ""}`}>
+          <div className="inline-flex items-center gap-1 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-1 justify-self-start xl:justify-self-end">
+            <a
+              href={hrefFor({ view: "cards" })}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                activeView === "cards"
+                  ? "bg-[#081A37] text-white"
+                  : "text-[#526079] hover:text-[#101828] hover:bg-white"
+              }`}
+            >
               Cards
             </a>
-            <a href={hrefFor({ view: "table" })} className={`tab ${activeView === "table" ? "tab-active" : ""}`}>
+            <a
+              href={hrefFor({ view: "table" })}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                activeView === "table"
+                  ? "bg-[#081A37] text-white"
+                  : "text-[#526079] hover:text-[#101828] hover:bg-white"
+              }`}
+            >
               Tabela
             </a>
           </div>
         </div>
       </section>
 
-      <div className="mt-6">
+      <div>
         {fetchError ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center space-y-2">
             <p className="text-sm font-bold text-red-900">Não foi possível carregar os chamados</p>
@@ -504,28 +535,28 @@ export default async function ChamadosPage({
               {ticketsWithMeta.map((ticket) => (
                 <details
                   key={ticket.id}
-                  className={`group relative overflow-hidden rounded-[12px] border bg-white shadow-[0_1px_2px_rgba(16,17,20,0.04)] transition-[border-color,box-shadow] hover:border-[#dce9b3] hover:shadow-[0_10px_28px_rgba(16,17,20,0.05)] open:border-[var(--color-primary-hover)] ${
-                    ticket.late ? "border-[#efc9c9]" : "border-[var(--color-line)]"
+                  className={`group relative overflow-hidden rounded-2xl border bg-white shadow-[0_2px_10px_rgba(8,26,55,0.03)] transition-[border-color,box-shadow] hover:border-[#1455FF]/35 hover:shadow-[0_10px_28px_rgba(20,85,255,0.06)] open:border-[#1455FF] ${
+                    ticket.late ? "border-rose-200" : "border-[#E2E8F0]"
                   }`}
                 >
                   <span
                     aria-hidden
                     className={`absolute inset-y-0 left-0 w-1 ${
-                      ticket.late ? "bg-[var(--color-danger)]" : ticket.status === "concluido" ? "bg-[var(--color-success)]" : "bg-[var(--color-primary)]"
+                      ticket.late ? "bg-rose-600" : ticket.status === "concluido" ? "bg-emerald-600" : "bg-[#1455FF]"
                     }`}
                   />
-                  <summary className="cursor-pointer list-none p-5 pl-6 transition-colors hover:bg-[var(--color-canvas)] sm:p-6 sm:pl-7">
+                  <summary className="cursor-pointer list-none p-5 pl-6 transition-colors hover:bg-[#F5F8FC]/60 sm:p-6 sm:pl-7">
                     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-stretch">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-[6px] border border-[#dce9b3] bg-[var(--color-primary-soft)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--color-primary-dark)]">{ticket.code}</span>
+                            <span className="rounded-md border border-[#1455FF]/20 bg-[#EAF1FF] px-2.5 py-1 font-mono text-xs font-bold text-[#1455FF]">{ticket.code}</span>
                             {ticket.condoName ? <Badge tone="blue">{ticket.condoName}</Badge> : null}
                             <Badge tone={ticket.late ? "red" : safeStatusTone(ticket.status)}>{ticket.late ? "Atrasado" : labelFor(ticket.status, STATUS_LABELS)}</Badge>
                             <Badge tone={ticket.priority === "alta" ? "red" : ticket.priority === "media" ? "amber" : "neutral"}>{labelFor(ticket.priority, PRIORITY_LABELS)}</Badge>
                             <Badge tone="primary">{labelFor(ticket.category, CATEGORY_LABELS)}</Badge>
                           </div>
-                          <span className="hidden items-center gap-2 rounded-full border border-[var(--color-line)] bg-white px-3 py-1 text-xs font-medium text-[var(--color-muted)] sm:inline-flex">
+                          <span className="hidden items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-3 py-1 text-xs font-medium text-[#526079] sm:inline-flex">
                             <Icon name="clock" size={13} />
                             Atualizado {dateTimeBR(ticket.lastInteractionAt)}
                           </span>
@@ -533,57 +564,57 @@ export default async function ChamadosPage({
 
                         <div className="mt-5 flex gap-4">
                           <span
-                            className={`mt-1 hidden h-12 w-12 shrink-0 items-center justify-center rounded-[10px] border sm:flex ${
+                            className={`mt-1 hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl border sm:flex ${
                               ticket.late
-                                ? "border-[#efc9c9] bg-[var(--color-danger-soft)] text-[var(--color-danger)]"
+                                ? "border-rose-200 bg-rose-50 text-rose-600"
                                 : ticket.status === "concluido"
-                                  ? "border-[#cdebd9] bg-[var(--color-success-soft)] text-[var(--color-success)]"
-                                  : "border-[#dce9b3] bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]"
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : "border-[#1455FF]/20 bg-[#EAF1FF] text-[#1455FF]"
                             }`}
                           >
                             <Icon name={ticket.late ? "alert" : ticket.status === "concluido" ? "check" : "wrench"} size={18} />
                           </span>
                           <div className="min-w-0">
-                            <h2 className="text-[21px] font-semibold leading-tight tracking-tight text-[var(--color-ink)]">{ticket.title}</h2>
-                            <p className="mt-2 line-clamp-2 max-w-4xl text-[15px] leading-6 text-[var(--color-muted)]">{ticket.lastInteraction}</p>
+                            <h2 className="text-lg sm:text-xl font-bold leading-tight tracking-tight text-[#101828]">{ticket.title}</h2>
+                            <p className="mt-2 line-clamp-2 max-w-4xl text-sm leading-6 text-[#526079]">{ticket.lastInteraction}</p>
                           </div>
                         </div>
 
                         <dl className="mt-5 grid gap-2 sm:grid-cols-3">
-                          <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3.5 py-3">
-                            <dt className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                          <div className="rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-3">
+                            <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#526079]">
                               <Icon name="building" size={13} />
                               Local
                             </dt>
-                            <dd className="mt-1.5 truncate text-sm font-semibold text-[var(--color-ink)]">{ticket.block || ticket.unit ? `${ticket.block ?? ""} ${ticket.unit ?? ""}` : "Área comum"}</dd>
+                            <dd className="mt-1.5 truncate text-sm font-semibold text-[#101828]">{ticket.block || ticket.unit ? `${ticket.block ?? ""} ${ticket.unit ?? ""}` : "Área comum"}</dd>
                           </div>
-                          <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3.5 py-3">
-                            <dt className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                          <div className="rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-3">
+                            <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#526079]">
                               <Icon name="users" size={13} />
                               Morador
                             </dt>
-                            <dd className="mt-1.5 truncate text-sm font-semibold text-[var(--color-ink)]">{ticket.openedBy ?? "—"}</dd>
+                            <dd className="mt-1.5 truncate text-sm font-semibold text-[#101828]">{ticket.openedBy ?? "—"}</dd>
                           </div>
-                          <div className="rounded-[10px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3.5 py-3">
-                            <dt className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                          <div className="rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] px-3.5 py-3">
+                            <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#526079]">
                               <Icon name="user-check" size={13} />
                               Responsável
                             </dt>
-                            <dd className="mt-1.5 truncate text-sm font-semibold text-[var(--color-ink)]">{ticket.assignedTo ?? "Sem responsável"}</dd>
+                            <dd className="mt-1.5 truncate text-sm font-semibold text-[#101828]">{ticket.assignedTo ?? "Sem responsável"}</dd>
                           </div>
                         </dl>
                       </div>
 
-                      <aside className="flex flex-col justify-between rounded-[12px] border border-[#dce9b3] bg-[var(--color-primary-soft)] p-4">
+                      <aside className="flex flex-col justify-between rounded-xl border border-[#1455FF]/20 bg-[#EAF1FF]/55 p-4">
                         <div>
                           <div className="flex items-start gap-3">
-                            <span className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-white text-[var(--color-primary-dark)]">
+                            <span className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white border border-[#E2E8F0] text-[#1455FF]">
                               <Icon name={ticket.late ? "alert" : ticket.status === "concluido" ? "check" : "clock"} size={16} />
                             </span>
                             <div className="min-w-0">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary-dark)]">Próxima ação</p>
-                              <p className={`mt-1 text-lg font-semibold leading-tight ${ticket.late ? "text-[var(--color-danger)]" : "text-[var(--color-ink)]"}`}>{ticket.dueSummary}</p>
-                              <p className="mt-1 text-xs font-medium text-[var(--color-muted)]">Prazo {dateBR(ticket.dueAt)}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wide text-[#1455FF]">Próxima ação</p>
+                              <p className={`mt-1 text-lg font-bold leading-tight ${ticket.late ? "text-rose-600" : "text-[#101828]"}`}>{ticket.dueSummary}</p>
+                              <p className="mt-1 text-xs font-medium text-[#526079]">Prazo {dateBR(ticket.dueAt)}</p>
                             </div>
                           </div>
 
@@ -740,6 +771,6 @@ export default async function ChamadosPage({
           </>
         )}
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

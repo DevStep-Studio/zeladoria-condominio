@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/icon";
 import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+} from "@/components/internal/internal-ui";
+import { InternalTabStrip } from "@/components/internal/internal-interactive";
+import {
   adminUpdateMarketplaceSettingsAction,
   adminResolveDisputeAction,
 } from "@/lib/actions/zeladoria-pay";
@@ -204,51 +209,32 @@ export function ZeladoriaPayAdminClient({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-[#1455FF] text-white flex items-center justify-center font-black shadow-xs">
-              <Icon name="shield" size={18} />
-            </span>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Zeladoria Pay
-              </h1>
-              <p className="text-xs text-slate-500 font-medium">
-                Gestão financeira completa de serviços, split, taxas, repasses e contestação.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs">
-          <Link
-            href="/painel/servicos"
-            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold"
-          >
-            ← Painel de Chamados
+      <InternalPageHeader
+        icon="wallet"
+        title="Zeladoria Pay"
+        subtitle="Gestão financeira completa de serviços, split, taxas, repasses e contestação."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Zeladoria Pay" },
+        ]}
+        actions={
+          <Link href="/painel/servicos" className={INTERNAL_BTN_SECONDARY_CLS}>
+            <Icon name="arrow-left" size={14} />
+            <span>Painel de Serviços</span>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pb-2 text-xs font-bold text-slate-600">
-        {navTabs.map((t) => {
-          const isActive = activeTab === t.id;
-          return (
-            <Link
-              key={t.id}
-              href={t.href}
-              className={`px-3 py-1.5 rounded-lg whitespace-nowrap cursor-pointer transition-all ${
-                isActive ? "bg-[#1455FF] text-white shadow-xs" : "hover:bg-slate-100 text-slate-600"
-              }`}
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </div>
+      <InternalTabStrip
+        activeKey={activeTab}
+        tabs={navTabs.map((t: any) => ({
+          key: t.id,
+          label: t.label,
+          href: t.href,
+        }))}
+      />
 
       {/* TAB 1: VISÃO GERAL (DASHBOARD REAL - Cláusula 56) */}
       {activeTab === "overview" && (

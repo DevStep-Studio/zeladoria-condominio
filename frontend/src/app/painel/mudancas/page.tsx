@@ -2,7 +2,8 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, Stat, statusTone } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, Stat, statusTone } from "@/components/ui";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 import { dateBR, isoDate } from "@/lib/utils";
 import { unitOptions } from "@/lib/queries";
 import { createMoveRequestAction, decideMoveRequestAction } from "@/lib/actions/admin";
@@ -20,10 +21,15 @@ export default async function MudancasPage() {
   const unitList = await unitOptions(condoId);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="truck"
         title="Mudanças, obras e entregas grandes"
         subtitle="Reserva de elevador, janelas de horário, transportadora, termo de responsabilidade, ART/RRT e trabalhadores autorizados."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Mudanças e Obras" },
+        ]}
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -132,6 +138,6 @@ export default async function MudancasPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

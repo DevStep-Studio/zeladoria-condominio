@@ -4,6 +4,15 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { Icon, type IconName } from "@/components/icon";
 import { dateTimeBR, money } from "@/lib/utils";
+import {
+  INTERNAL_BTN_NAVY_CLS,
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalSectionCard,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -52,46 +61,33 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header do Dashboard da Plataforma */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#1455FF] text-[11px] font-bold mb-1">
-            <Icon name="shield" size={13} />
-            <span>Ecossistema Zeladoria</span>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="shield"
+        title="Dashboard da Plataforma"
+        subtitle="Métricas de negócio, receita, operação do marketplace e governança multi-condomínio."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração" },
+        ]}
+        badge={<InternalStatusBadge label="Ecossistema Zeladoria" tone="blue" />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/painel/admin/integracoes" className={INTERNAL_BTN_SECONDARY_CLS}>
+              <Icon name="settings" size={14} className="text-[#1455FF]" />
+              <span>APIs & Integrações</span>
+            </Link>
+            <Link href="/painel/admin/zeladoria-pay" className={INTERNAL_BTN_PRIMARY_CLS}>
+              <Icon name="wallet" size={14} />
+              <span>Zeladoria Pay</span>
+            </Link>
+            <Link href="/painel/admin/marketplace" className={INTERNAL_BTN_NAVY_CLS}>
+              <Icon name="briefcase" size={14} />
+              <span>Marketplace</span>
+            </Link>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Dashboard da Plataforma
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Métricas de negócio, receita, operação do marketplace e governança multi-condomínio.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/painel/admin/integracoes"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] border border-blue-200 bg-blue-50 text-[#1455FF] hover:bg-blue-100 text-xs font-bold transition-colors shadow-2xs"
-          >
-            <Icon name="settings" size={14} />
-            <span>APIs & Integrações</span>
-          </Link>
-          <Link
-            href="/painel/admin/zeladoria-pay"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#1455FF] text-white text-xs font-bold hover:bg-[#0048E8] transition-colors shadow-2xs"
-          >
-            <Icon name="wallet" size={14} />
-            <span>Zeladoria Pay</span>
-          </Link>
-          <Link
-            href="/painel/admin/marketplace"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[8px] border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors shadow-2xs"
-          >
-            <Icon name="briefcase" size={14} />
-            <span>Marketplace</span>
-          </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Grid de KPIs da Plataforma */}
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -99,144 +95,157 @@ export default async function AdminDashboardPage() {
           <Link
             key={kpi.label}
             href={kpi.href}
-            className={`p-4 rounded-[12px] bg-white border transition-all hover:border-slate-300 shadow-2xs group ${
-              kpi.alert ? "border-amber-300 bg-amber-50/20" : "border-slate-200"
+            className={`group flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-white border transition-all shadow-[0_2px_10px_rgba(8,26,55,0.03)] hover:border-[#1455FF]/40 hover:shadow-[0_6px_18px_rgba(20,85,255,0.08)] ${
+              kpi.alert ? "border-amber-300 bg-amber-50/30" : "border-[#E2E8F0]"
             }`}
           >
-            <div className="flex items-center justify-between text-slate-400 group-hover:text-slate-600 mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 truncate">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#526079] truncate">
                 {kpi.label}
               </span>
-              <span className="p-1.5 rounded-[6px] bg-slate-50 group-hover:bg-blue-50 group-hover:text-[#1455FF] transition-colors">
-                <Icon name={kpi.icon} size={15} />
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                kpi.alert
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-[#EAF1FF] text-[#1455FF] group-hover:bg-[#1455FF] group-hover:text-white"
+              }`}>
+                <Icon name={kpi.icon} size={16} />
               </span>
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              {kpi.value}
-            </p>
+            <div className="flex items-end justify-between gap-2">
+              <p className="text-xl sm:text-2xl font-extrabold text-[#101828] tracking-tight tabular-nums">
+                {kpi.value}
+              </p>
+              <Icon name="arrow-up-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+            </div>
           </Link>
         ))}
       </div>
 
       {/* Seção Operacional e Auditoria Recente */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Módulos de Gestão Rápida */}
-        <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
-            Gestão Estratégica
-          </h2>
-          <div className="space-y-2">
-            <Link
-              href="/painel/admin/condominios"
-              className="flex items-center justify-between p-3.5 rounded-[10px] bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="p-2 rounded-[8px] bg-blue-50 text-[#1455FF]">
-                  <Icon name="building" size={16} />
-                </span>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Condomínios</p>
-                  <p className="text-[11px] text-slate-500">Planos, limites e novos cadastros</p>
+        <div className="lg:col-span-1">
+          <InternalSectionCard
+            title="Gestão Estratégica"
+            subtitle="Acesso direto aos controles da plataforma"
+          >
+            <div className="space-y-2.5">
+              <Link
+                href="/painel/admin/condominios"
+                className="flex items-center justify-between p-3.5 rounded-xl bg-[#F5F8FC] border border-[#E2E8F0] hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/40 transition-all group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-[#E2E8F0] text-[#1455FF]">
+                    <Icon name="building" size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#101828] truncate">Condomínios</p>
+                    <p className="text-[11px] text-[#526079] truncate">Planos, limites e novos cadastros</p>
+                  </div>
                 </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-slate-700" />
-            </Link>
+                <Icon name="chevron-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+              </Link>
 
-            <Link
-              href="/painel/admin/marketplace"
-              className="flex items-center justify-between p-3.5 rounded-[10px] bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="p-2 rounded-[8px] bg-amber-50 text-amber-700">
-                  <Icon name="sparkles" size={16} />
-                </span>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Marketplace de Serviços</p>
-                  <p className="text-[11px] text-slate-500">Aprovações, categorias e destaques</p>
+              <Link
+                href="/painel/admin/marketplace"
+                className="flex items-center justify-between p-3.5 rounded-xl bg-[#F5F8FC] border border-[#E2E8F0] hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/40 transition-all group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 border border-amber-200/70 text-amber-700">
+                    <Icon name="sparkles" size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#101828] truncate">Marketplace de Serviços</p>
+                    <p className="text-[11px] text-[#526079] truncate">Aprovações, categorias e destaques</p>
+                  </div>
                 </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-slate-700" />
-            </Link>
+                <Icon name="chevron-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+              </Link>
 
-            <Link
-              href="/painel/admin/zeladoria-pay"
-              className="flex items-center justify-between p-3.5 rounded-[10px] bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="p-2 rounded-[8px] bg-emerald-50 text-emerald-700">
-                  <Icon name="wallet" size={16} />
-                </span>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Zeladoria Pay & Split</p>
-                  <p className="text-[11px] text-slate-500">Comissões, repasses e contestações</p>
+              <Link
+                href="/painel/admin/zeladoria-pay"
+                className="flex items-center justify-between p-3.5 rounded-xl bg-[#F5F8FC] border border-[#E2E8F0] hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/40 transition-all group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200/70 text-emerald-700">
+                    <Icon name="wallet" size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#101828] truncate">Zeladoria Pay & Split</p>
+                    <p className="text-[11px] text-[#526079] truncate">Comissões, repasses e contestações</p>
+                  </div>
                 </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-slate-700" />
-            </Link>
+                <Icon name="chevron-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+              </Link>
 
-            <Link
-              href="/painel/admin/permissoes"
-              className="flex items-center justify-between p-3.5 rounded-[10px] bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <span className="p-2 rounded-[8px] bg-purple-50 text-purple-700">
-                  <Icon name="key" size={16} />
-                </span>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Permissões & RBAC</p>
-                  <p className="text-[11px] text-slate-500">Matriz de acesso por papel</p>
+              <Link
+                href="/painel/admin/permissoes"
+                className="flex items-center justify-between p-3.5 rounded-xl bg-[#F5F8FC] border border-[#E2E8F0] hover:border-[#1455FF]/35 hover:bg-[#EAF1FF]/40 transition-all group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-[#E2E8F0] text-[#081A37]">
+                    <Icon name="key" size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#101828] truncate">Permissões & RBAC</p>
+                    <p className="text-[11px] text-[#526079] truncate">Matriz de acesso por papel</p>
+                  </div>
                 </div>
-              </div>
-              <Icon name="chevron-right" size={14} className="text-slate-400 group-hover:text-slate-700" />
-            </Link>
-          </div>
+                <Icon name="chevron-right" size={14} className="text-[#94A3B8] group-hover:text-[#1455FF] shrink-0" />
+              </Link>
+            </div>
+          </InternalSectionCard>
         </div>
 
         {/* Trilha de Auditoria Recente */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Auditoria em Tempo Real
-            </h2>
-            <Link
-              href="/painel/auditoria"
-              className="text-[11px] font-bold text-[#1455FF] hover:underline"
-            >
-              Ver todos os logs
-            </Link>
-          </div>
-
-          <div className="rounded-[12px] bg-white border border-slate-200 divide-y divide-slate-100 shadow-2xs overflow-hidden">
-            {recentLogs.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-400">
-                Nenhum log registrado recentemente.
-              </div>
-            ) : (
-              recentLogs.map((log) => (
-                <div key={log.id} className="p-3.5 flex items-start gap-3 hover:bg-slate-50/60 transition-colors">
-                  <span className={`p-1.5 rounded-[6px] shrink-0 mt-0.5 ${
-                    log.critical ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-600"
-                  }`}>
-                    <Icon name={log.critical ? "alert" : "activity"} size={13} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">
-                      {log.summary || log.action}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">
-                      {log.userName ? `Usuário: ${log.userName} · ` : ""}
-                      Entidade: {log.entity} #{log.entityId ?? "N/A"}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-mono shrink-0">
-                    {dateTimeBR(log.createdAt)}
-                  </span>
+        <div className="lg:col-span-2">
+          <InternalSectionCard
+            title="Auditoria em Tempo Real"
+            subtitle="Últimos eventos críticos registrados no sistema"
+            actions={
+              <Link
+                href="/painel/auditoria"
+                className="text-xs font-bold text-[#1455FF] hover:underline flex items-center gap-1"
+              >
+                <span>Ver todos os logs</span>
+                <Icon name="chevron-right" size={13} />
+              </Link>
+            }
+          >
+            <div className="divide-y divide-[#E2E8F0] -mx-5 -mb-5">
+              {recentLogs.length === 0 ? (
+                <div className="p-8 text-center text-xs text-[#526079]">
+                  Nenhum log registrado recentemente.
                 </div>
-              ))
-            )}
-          </div>
+              ) : (
+                recentLogs.map((log) => (
+                  <div key={log.id} className="px-5 py-3.5 flex items-start gap-3 hover:bg-[#F5F8FC] transition-colors">
+                    <span className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                      log.critical
+                        ? "bg-rose-50 text-rose-600 border border-rose-200"
+                        : "bg-[#EAF1FF] text-[#1455FF]"
+                    }`}>
+                      <Icon name={log.critical ? "alert" : "activity"} size={14} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[#101828] leading-snug">
+                        {log.summary || log.action}
+                      </p>
+                      <p className="text-[11px] text-[#526079] mt-0.5 truncate">
+                        {log.userName ? `Usuário: ${log.userName} · ` : ""}
+                        Entidade: {log.entity} #{log.entityId ?? "N/A"}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-[#64748B] font-mono shrink-0">
+                      {dateTimeBR(log.createdAt)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </InternalSectionCard>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

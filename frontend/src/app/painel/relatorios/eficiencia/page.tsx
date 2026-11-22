@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { requireCondo } from "@/lib/auth";
 import { getOperationalEfficiencyMetrics } from "@/lib/services/metrics/efficiency-metrics";
-import { Badge, Card, PageHeader, StatCard } from "@/components/ui";
+import { Badge, Card, StatCard } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -11,16 +16,21 @@ export default async function EficienciaOperacionalPage() {
   const metrics = await getOperationalEfficiencyMetrics(condoId);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="star"
         title="Eficiência Operacional"
         subtitle="Métricas de tempo de resposta, satisfação dos moradores (CSAT) e SLA de prestadores."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Relatórios", href: "/painel/relatorios" },
+          { label: "Eficiência" },
+        ]}
         actions={
-          <div className="flex items-center gap-2">
-            <Link href="/painel/relatorios" className="btn-secondary btn-sm">
-              <Icon name="arrow-left" size={14} /> Voltar para Relatórios
-            </Link>
-          </div>
+          <Link href="/painel/relatorios" className={INTERNAL_BTN_SECONDARY_CLS}>
+            <Icon name="arrow-left" size={14} />
+            <span>Voltar para Relatórios</span>
+          </Link>
         }
       />
 
@@ -183,7 +193,7 @@ export default async function EficienciaOperacionalPage() {
           </Card>
 
           {/* Acesso rápido ao Marketplace */}
-          <Card className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50/40 border-blue-100">
+          <Card className="p-5 bg-[#EAF1FF] border-[#1455FF]/20">
             <div className="flex items-start gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shrink-0">
                 <Icon name="briefcase" size={18} />
@@ -206,6 +216,6 @@ export default async function EficienciaOperacionalPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

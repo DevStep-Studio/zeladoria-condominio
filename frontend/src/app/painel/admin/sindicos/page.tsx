@@ -1,9 +1,8 @@
 import { domainRequest } from "@/lib/api/server";
-import Link from "next/link";
 
 import { requireSession } from "@/lib/auth";
-import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
+import { InternalPageHeader, InternalPageLayout, InternalStatusBadge } from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -18,29 +17,23 @@ export default async function AdminSindicosPage() {
   const sindicosList = await domainRequest<any[]>("/painel/admin/sindicos");
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Síndicos</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Síndicos e Gestores
-          </h1>
-          <p className="text-xs text-slate-500">
-            Acompanhamento dos administradores locais responsáveis por cada condomínio.
-          </p>
-        </div>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="shield"
+        title="Síndicos e Gestores"
+        subtitle="Acompanhamento dos administradores locais responsáveis por cada condomínio."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Síndicos" },
+        ]}
+        badge={<InternalStatusBadge label={`${sindicosList.length} gestores`} tone="blue" />}
+      />
 
-      <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-[#F5F8FC] border-b border-[#E2E8F0] text-[#526079] font-bold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-3 px-4">Síndico</th>
                 <th className="py-3 px-4">Condomínio Vinculado</th>
@@ -49,33 +42,31 @@ export default async function AdminSindicosPage() {
                 <th className="py-3 px-4">Vínculo Criado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-[#E2E8F0] text-[#101828]">
               {sindicosList.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                  <td colSpan={5} className="py-8 text-center text-[#526079]">
                     Nenhum síndico cadastrado no momento.
                   </td>
                 </tr>
               ) : (
                 sindicosList.map((s, idx) => (
-                  <tr key={`${s.id}-${idx}`} className="hover:bg-slate-50/60 transition-colors">
+                  <tr key={`${s.id}-${idx}`} className="hover:bg-[#F5F8FC] transition-colors">
                     <td className="py-3 px-4">
-                      <p className="font-bold text-slate-900">{s.name}</p>
-                      <p className="text-[11px] text-slate-500">{s.email}</p>
+                      <p className="font-bold text-[#101828]">{s.name}</p>
+                      <p className="text-[11px] text-[#526079]">{s.email}</p>
                     </td>
                     <td className="py-3 px-4">
-                      <p className="font-semibold text-slate-800">{s.condoName}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">/{s.condoSlug}</p>
+                      <p className="font-semibold text-[#101828]">{s.condoName}</p>
+                      <p className="text-[10px] text-[#64748B] font-mono">/{s.condoSlug}</p>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">
+                    <td className="py-3 px-4 text-[#526079]">
                       {s.phone || "—"}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] capitalize">
-                        {s.status || "ativo"}
-                      </span>
+                      <InternalStatusBadge label={s.status || "ativo"} tone="green" />
                     </td>
-                    <td className="py-3 px-4 text-slate-400 text-[11px]">
+                    <td className="py-3 px-4 text-[#526079] text-[11px]">
                       {dateTimeBR(s.assignedAt)}
                     </td>
                   </tr>
@@ -85,6 +76,6 @@ export default async function AdminSindicosPage() {
           </table>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

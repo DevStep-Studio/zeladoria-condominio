@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Badge, Card, EmptyState, PageHeader, StatCard } from "@/components/ui";
+import { Badge, Card, EmptyState, StatCard } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateBR, daysUntil, isoDate, money } from "@/lib/utils";
 import {
   completeOrderAction,
@@ -209,37 +215,41 @@ export function ManutencaoClient({
   }, [initialAssets]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="wrench"
         title="Manutenção Preventiva & Ativos"
-        subtitle="Controle completo de equipamentos, planos preventivos periódicos, ordens de serviço e indicadores técnicos."
+        subtitle="Controle de equipamentos, planos preventivos periódicos, ordens de serviço e indicadores técnicos."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Manutenção" },
+        ]}
         actions={
           isStaff ? (
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setOrderModal({ open: true, item: null })}
-                className="btn-primary inline-flex items-center gap-2 shadow-sm"
+                className={INTERNAL_BTN_PRIMARY_CLS}
               >
                 <Icon name="plus" className="h-4 w-4" />
-                Nova Ordem de Serviço
+                <span>Nova Ordem de Serviço</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPlanModal({ open: true, item: null })}
-                className="btn-secondary inline-flex items-center gap-2"
+                className={INTERNAL_BTN_SECONDARY_CLS}
               >
-                <Icon name="calendar" className="h-4 w-4" />
-                Criar Plano
+                <Icon name="calendar" className="h-4 w-4 text-[#1455FF]" />
+                <span>Criar Plano</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAssetModal({ open: true, item: null })}
-                className="btn-secondary inline-flex items-center gap-2"
+                className={INTERNAL_BTN_SECONDARY_CLS}
               >
-                <Icon name="wrench" className="h-4 w-4" />
-                Cadastrar Equipamento
+                <Icon name="wrench" className="h-4 w-4 text-[#1455FF]" />
+                <span>Cadastrar Equipamento</span>
               </button>
             </div>
           ) : undefined
@@ -1463,6 +1473,6 @@ export function ManutencaoClient({
           </div>
         </div>
       )}
-    </div>
+    </InternalPageLayout>
   );
 }

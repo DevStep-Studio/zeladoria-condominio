@@ -2,7 +2,8 @@ import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Progress } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Progress } from "@/components/ui";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 import { dateTimeBR, percent } from "@/lib/utils";
 import { closePollAction, createPollAction, votePollAction } from "@/lib/actions/gestao";
 
@@ -19,10 +20,15 @@ export default async function EnquetesPage() {
   }>("/painel/enquetes", { query: { condoId, role: session.role } });
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="vote"
         title="Enquetes"
         subtitle="Consultas rápidas e não deliberativas. Decisões com efeito jurídico devem ocorrer em assembleia."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Enquetes" },
+        ]}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -119,6 +125,6 @@ export default async function EnquetesPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

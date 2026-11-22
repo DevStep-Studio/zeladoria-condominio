@@ -1,9 +1,8 @@
 import { domainRequest } from "@/lib/api/server";
-import Link from "next/link";
 
 import { requireSession } from "@/lib/auth";
-import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
+import { InternalPageHeader, InternalPageLayout, InternalStatusBadge } from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -18,29 +17,23 @@ export default async function AdminAdministradoresPage() {
   const adminsList = await domainRequest<any[]>("/painel/admin/administradores");
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Administradores</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Administradores da Plataforma
-          </h1>
-          <p className="text-xs text-slate-500">
-            Usuários com acesso total e governança do produto Zeladoria.
-          </p>
-        </div>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="lock"
+        title="Administradores da Plataforma"
+        subtitle="Usuários com acesso total e governança do produto Zeladoria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Administradores" },
+        ]}
+        badge={<InternalStatusBadge label={`${adminsList.length} superadmins`} tone="blue" />}
+      />
 
-      <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-[#F5F8FC] border-b border-[#E2E8F0] text-[#526079] font-bold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-3 px-4">Nome</th>
                 <th className="py-3 px-4">E-mail</th>
@@ -49,25 +42,23 @@ export default async function AdminAdministradoresPage() {
                 <th className="py-3 px-4">Último Acesso</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-[#E2E8F0] text-[#101828]">
               {adminsList.map((a) => (
-                <tr key={a.id} className="hover:bg-slate-50/60 transition-colors">
+                <tr key={a.id} className="hover:bg-[#F5F8FC] transition-colors">
                   <td className="py-3 px-4">
-                    <p className="font-bold text-slate-900">{a.name}</p>
-                    <p className="text-[10px] text-slate-400 font-mono">ID #{a.id}</p>
+                    <p className="font-bold text-[#101828]">{a.name}</p>
+                    <p className="text-[10px] text-[#64748B] font-mono">ID #{a.id}</p>
                   </td>
-                  <td className="py-3 px-4 font-mono text-[11px] text-slate-600">
+                  <td className="py-3 px-4 font-mono text-[11px] text-[#526079]">
                     {a.email}
                   </td>
-                  <td className="py-3 px-4 text-slate-600">
+                  <td className="py-3 px-4 text-[#526079]">
                     {a.phone || "—"}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold text-[10px]">
-                      Superadmin Total
-                    </span>
+                    <InternalStatusBadge label="Superadmin Total" tone="blue" />
                   </td>
-                  <td className="py-3 px-4 text-slate-400 text-[11px]">
+                  <td className="py-3 px-4 text-[#526079] text-[11px]">
                     {a.lastLoginAt ? dateTimeBR(a.lastLoginAt) : "Nunca acessou"}
                   </td>
                 </tr>
@@ -76,6 +67,6 @@ export default async function AdminAdministradoresPage() {
           </table>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

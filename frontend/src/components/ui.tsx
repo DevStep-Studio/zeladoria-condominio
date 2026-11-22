@@ -66,37 +66,37 @@ export function PageHeader({
   const textDescription = description || subtitle;
 
   return (
-    <header className={`border-b border-[#E1E8F2] pb-4 mb-6 ${className}`}>
-      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-        {/* Lado Esquerdo: Ícone + Título + Badge */}
-        <div className="flex items-center gap-3 min-w-0">
+    <header className={`rounded-2xl border border-[#E2E8F0] bg-white px-5 py-4 sm:px-6 sm:py-5 shadow-[0_2px_10px_rgba(7,26,56,0.035)] mb-5 ${className}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Lado Esquerdo: Ícone + Título + Badge + Descrição */}
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
           {resolvedIcon && (
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF] shrink-0 border border-[#1455FF]/20 shadow-xs">
-              <Icon name={resolvedIcon} size={18} strokeWidth={2} />
+            <span className="flex h-11 w-11 items-center justify-center rounded-[13px] bg-[#EAF1FF] text-[#1455FF] shrink-0 border border-[#1455FF]/15">
+              <Icon name={resolvedIcon} size={20} strokeWidth={2.1} />
             </span>
           )}
-          <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight leading-tight">
-              {title}
-            </h1>
-            {badge}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-[24px] font-extrabold text-[#101828] tracking-[-0.015em] leading-tight">
+                {title}
+              </h1>
+              {badge}
+            </div>
+            {textDescription && (
+              <p className="text-xs sm:text-sm text-[#526079] font-normal leading-relaxed mt-1 max-w-3xl">
+                {textDescription}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Lado Direito: Ações */}
         {actions && (
-          <div className="flex shrink-0 items-center gap-2 no-print self-center">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 no-print">
             {actions}
           </div>
         )}
       </div>
-
-      {/* Subtítulo / Descrição */}
-      {textDescription && (
-        <p className="text-xs sm:text-sm text-[#526079] font-normal leading-relaxed mt-1.5 max-w-3xl">
-          {textDescription}
-        </p>
-      )}
     </header>
   );
 }
@@ -117,35 +117,35 @@ export function Card({
   accent?: boolean;
 }) {
   return (
-    <section className={`rounded-2xl border border-[#E1E8F2] bg-white shadow-[0_2px_8px_rgba(7,26,56,0.04)] ${accent ? "border-l-4 border-l-[#1455FF]" : ""} ${className}`}>
+    <section className={`rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_10px_rgba(7,26,56,0.035)] ${accent ? "border-l-4 border-l-[#1455FF]" : ""} ${className}`}>
       {title ? (
-        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[#E1E8F2]">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 sm:px-6 border-b border-[#EDF1F7]">
           <div className="min-w-0">
-            <h2 className="text-sm font-bold tracking-tight text-[#101828]">{title}</h2>
+            <h2 className="text-sm sm:text-base font-extrabold tracking-tight text-[#101828]">{title}</h2>
             {description ? <p className="mt-0.5 max-w-3xl text-xs text-[#526079]">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
-      <div className={title ? "p-5" : "p-5"}>{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </section>
   );
 }
 
 const TONES: Record<string, string> = {
-  zinc: "border-slate-200 bg-slate-100 text-slate-700",
-  neutral: "border-slate-200 bg-slate-100 text-slate-700",
-  primary: "border-blue-200 bg-blue-50 text-blue-700",
-  blue: "border-blue-200 bg-blue-50 text-blue-700",
+  zinc: "border-[#E2E8F0] bg-slate-100 text-[#526079]",
+  neutral: "border-[#E2E8F0] bg-slate-100 text-[#526079]",
+  primary: "border-[#1455FF]/20 bg-[#EAF1FF] text-[#0D47FF]",
+  blue: "border-[#1455FF]/20 bg-[#EAF1FF] text-[#0D47FF]",
   yellow: "border-amber-200 bg-amber-50 text-amber-800",
   amber: "border-amber-200 bg-amber-50 text-amber-800",
   purple: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  green: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  red: "border-rose-200 bg-rose-50 text-rose-700",
+  green: "border-emerald-200 bg-emerald-50 text-[#16A34A]",
+  red: "border-rose-200 bg-[#FDECEC] text-[#D92D20]",
 };
 
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: keyof typeof TONES | string }) {
-  return <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4 ${TONES[tone] ?? TONES.neutral}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold leading-4 whitespace-nowrap ${TONES[tone] ?? TONES.neutral}`}>{children}</span>;
 }
 
 export function statusTone(status?: string | null) {
@@ -182,24 +182,26 @@ export function StatCard({
 }) {
   const iconBox =
     tone === "yellow"
-      ? "bg-amber-50 text-amber-700"
+      ? "bg-amber-50 text-amber-700 border border-amber-200/80"
       : tone === "green"
-        ? "bg-emerald-50 text-[#16A34A]"
+        ? "bg-emerald-50 text-[#16A34A] border border-emerald-200/70"
         : tone === "purple"
-          ? "bg-indigo-50 text-indigo-700"
-          : "bg-[#EAF1FF] text-[#1455FF]";
+          ? "bg-indigo-50 text-indigo-700 border border-indigo-200/75"
+          : "bg-[#EAF1FF] text-[#1455FF] border border-[#1455FF]/15";
 
   const body = (
-    <div className="flex h-full min-h-[84px] items-start gap-3 rounded-2xl border border-[#E1E8F2] bg-white p-4 shadow-[0_2px_8px_rgba(7,26,56,0.04)] transition-all hover:shadow-md hover:border-[#1455FF]/40">
+    <div className="flex h-full items-center gap-3.5 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3.5 shadow-[0_2px_8px_rgba(7,26,56,0.03)] transition-all hover:shadow-[0_4px_12px_rgba(7,26,56,0.06)] hover:border-[#1455FF]/40">
       {icon ? (
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBox}`}>
-          <Icon name={icon} size={16} strokeWidth={2} />
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${iconBox}`}>
+          <Icon name={icon} size={18} strokeWidth={2.1} />
         </span>
       ) : null}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[#526079]">{label}</p>
-        <p className="mt-1 text-2xl font-black tabular-nums tracking-tight text-[#101828]">{value}</p>
-        {hint ? <p className="mt-0.5 text-[11px] font-normal text-slate-400 truncate">{hint}</p> : null}
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#526079] truncate">{label}</p>
+        <div className="mt-0.5 flex items-baseline gap-2 flex-wrap">
+          <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight leading-none text-[#101828]">{value}</p>
+          {hint ? <p className="text-[11px] font-medium text-[#8996A9] truncate">{hint}</p> : null}
+        </div>
       </div>
     </div>
   );
@@ -274,20 +276,20 @@ export function EmptyState({
 }) {
   const known = typeof icon === "string" && isIconName(icon);
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
-      <span className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-500">
-        <Icon name={known ? (icon as IconName) : "inbox"} size={18} />
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#CBD5E1] bg-white px-6 py-10 text-center">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF] border border-[#1455FF]/15">
+        <Icon name={known ? (icon as IconName) : "inbox"} size={20} />
       </span>
-      <p className="mt-3 text-sm font-semibold text-slate-900">{title}</p>
-      {description ? <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-500">{description}</p> : null}
-      {action ? <div className="mt-3.5">{action}</div> : null}
+      <p className="mt-3 text-sm font-extrabold text-[#101828]">{title}</p>
+      {description ? <p className="mt-1 max-w-sm text-xs leading-relaxed text-[#526079]">{description}</p> : null}
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }
 
 export function TableWrap({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`overflow-x-auto rounded-[8px] border border-[var(--color-line)] -webkit-overflow-scrolling-touch ${className}`}>
+    <div className={`overflow-x-auto rounded-2xl border border-[#E2E8F0] bg-white -webkit-overflow-scrolling-touch ${className}`}>
       <table className="table min-w-full">{children}</table>
     </div>
   );

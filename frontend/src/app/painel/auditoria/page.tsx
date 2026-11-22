@@ -1,7 +1,12 @@
 import { domainRequest } from "@/lib/api/server";
 
 import { requirePermission } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Stat, TableWrap } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Stat, TableWrap } from "@/components/ui";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateTimeBR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -17,11 +22,20 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
   const denied = rows.filter((r) => r.action.includes("negado")).length;
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="lock"
         title="Trilha de auditoria"
         subtitle="Quem fez, quando, de onde, com valores anterior e novo. Registros críticos não podem ser apagados por administradores comuns."
-        actions={<a href="/api/export/auditoria" download className="btn-ghost btn-sm">⬇ Exportar CSV</a>}
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Auditoria" },
+        ]}
+        actions={
+          <a href="/api/export/auditoria" download className={INTERNAL_BTN_SECONDARY_CLS}>
+            ⬇ Exportar CSV
+          </a>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -97,6 +111,6 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
           de registros operacionais exigem perfil de super administrador e ficam registradas nesta trilha.
         </InfoNote>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

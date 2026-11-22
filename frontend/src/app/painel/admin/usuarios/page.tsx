@@ -1,9 +1,8 @@
 import { domainRequest } from "@/lib/api/server";
-import Link from "next/link";
 
 import { requireSession } from "@/lib/auth";
-import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
+import { InternalPageHeader, InternalPageLayout, InternalStatusBadge } from "@/components/internal/internal-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -18,26 +17,20 @@ export default async function AdminUsuariosPage() {
   const userList = await domainRequest<any[]>("/painel/admin/usuarios");
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Usuários</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Usuários da Plataforma
-          </h1>
-          <p className="text-xs text-slate-500">
-            Base central de cadastros e acessos do sistema.
-          </p>
-        </div>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="users"
+        title="Usuários da Plataforma"
+        subtitle="Base central de cadastros, privilégios e histórico de acessos."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Usuários" },
+        ]}
+        badge={<InternalStatusBadge label={`${userList.length} contas`} tone="blue" />}
+      />
 
-      <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
@@ -92,6 +85,6 @@ export default async function AdminUsuariosPage() {
           </table>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }

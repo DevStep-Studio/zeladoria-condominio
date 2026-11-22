@@ -3,8 +3,23 @@ import Link from "next/link";
 
 import { requireCondo } from "@/lib/auth";
 import { ALL_STAFF } from "@/lib/rbac";
-import { Badge, EmptyState, PageHeader, StatCard } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icon";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  INTERNAL_INPUT_CLS,
+  INTERNAL_SELECT_CLS,
+  INTERNAL_TEXTAREA_CLS,
+  InternalEmptyState,
+  InternalFormField,
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalSectionCard,
+  InternalStatCard,
+  InternalStatGrid,
+  InternalStatusBadge,
+  type InternalTone,
+} from "@/components/internal/internal-ui";
 import { dateBR } from "@/lib/utils";
 import { createDocumentAction } from "@/lib/actions/gestao";
 import { rankByQuery, summarize } from "@/lib/ai";
@@ -23,10 +38,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ICONS: Record<string, IconName> = {
   juridico: "scale",
   financeiro: "wallet",
-  assembleia: "vote",
+  assembleia: "users",
   tecnico: "wrench",
   contrato: "briefcase",
-  geral: "file",
+  geral: "file-text",
 };
 
 const VISIBILITY_LABELS: Record<string, string> = {
@@ -41,13 +56,13 @@ function labelFor(labels: Record<string, string>, value: string | null) {
 }
 
 function categoryIcon(category: string | null): IconName {
-  return category ? (CATEGORY_ICONS[category] ?? "file") : "file";
+  return category ? (CATEGORY_ICONS[category] ?? "file-text") : "file-text";
 }
 
-function visibilityTone(visibility: string) {
+function visibilityTone(visibility: string): InternalTone {
   if (visibility === "administrativo") return "red";
   if (visibility === "publico") return "green";
-  return "primary";
+  return "blue";
 }
 
 function formatSize(sizeKb: number | null) {
@@ -95,330 +110,284 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
   ];
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      {/* 1. Cabeçalho Padrão Biblioteca Condominial */}
+      <InternalPageHeader
+        icon="folder"
         title="Documentos"
-        subtitle="Convenção, regimento, atas, laudos e prestações de contas com controle de visibilidade e versão."
+        description="Biblioteca oficial do condomínio com convenção, regimento, atas, laudos e prestações de contas."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Documentos" },
+        ]}
+        badge={<InternalStatusBadge tone="blue">{visible.length} arquivos</InternalStatusBadge>}
         actions={
           canUpload ? (
-            <a href="#publicar-documento" className="inline-flex items-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-3.5 py-2 text-xs font-bold transition-all shadow-xs">
+            <a href="#publicar-documento" className={INTERNAL_BTN_PRIMARY_CLS}>
               <Icon name="plus" size={15} />
-              Novo documento
+              <span>Publicar documento</span>
             </a>
           ) : null
         }
       />
 
-      {/* 4 Cards de Resumo Minimalistas e Alinhados à Home */}
-      <section className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-        <Link
+      {/* 2. Indicadores Compactos */}
+      <InternalStatGrid columns={4}>
+        <InternalStatCard
+          label="Documentos"
+          value={visible.length}
+          hint="no acervo"
+          icon="folder"
+          tone="blue"
           href="/painel/documentos?categoria=todos"
-          className={`group relative flex flex-col justify-between rounded-[22px] border p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-            currentCategory === "todos"
-              ? "border-[#1455FF] bg-blue-50/20 ring-2 ring-blue-500/10"
-              : "border-slate-200/80 bg-white hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-transform group-hover:scale-110">
-              <Icon name="folder" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {visible.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
-              Documentos
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Na biblioteca
-            </p>
-          </div>
-        </Link>
+          active={currentCategory === "todos"}
+        />
+        <InternalStatCard
+          label="Categorias"
+          value={categories.length}
+          hint="organizadas"
+          icon="layers"
+          tone="navy"
+        />
+        <InternalStatCard
+          label="Restritos"
+          value={administrativeCount}
+          hint="acesso gestão"
+          icon="lock"
+          tone="red"
+        />
+        <InternalStatCard
+          label="Armazenamento"
+          value={formatSize(totalSizeKb)}
+          hint="indexado"
+          icon="file-text"
+          tone="green"
+        />
+      </InternalStatGrid>
 
-        <div className="group relative flex flex-col justify-between rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform group-hover:scale-110">
-              <Icon name="lock" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
+      {/* 3. Barra de Busca e Filtros por Categoria */}
+      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-3.5 sm:p-4 shadow-[0_2px_8px_rgba(7,26,56,0.03)] space-y-3 no-print">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="inline-flex items-center gap-1 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-1 overflow-x-auto max-w-full">
+            {filterTabs.map((tab) => {
+              const isActive = currentCategory === tab.key;
+              return (
+                <Link
+                  key={tab.key}
+                  href={`/painel/documentos?categoria=${tab.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+                    isActive
+                      ? "bg-[#1455FF] text-white shadow-2xs"
+                      : "text-[#526079] hover:text-[#101828] hover:bg-white/80"
+                  }`}
+                >
+                  <Icon
+                    name={tab.icon}
+                    size={14}
+                    className={isActive ? "text-white shrink-0" : "text-[#526079] shrink-0"}
+                  />
+                  <span>{tab.label}</span>
+                  <span
+                    className={`inline-flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-extrabold tabular-nums ${
+                      isActive ? "bg-white/20 text-white" : "bg-white text-[#526079] border border-[#E2E8F0]"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {administrativeCount}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-rose-600 transition-colors">
-              Restritos
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Acesso administrativo
-            </p>
-          </div>
+
+          <form className="flex items-center gap-2 w-full lg:w-auto">
+            {currentCategory !== "todos" && (
+              <input type="hidden" name="categoria" value={currentCategory} />
+            )}
+            <div className="relative flex-1 lg:w-72">
+              <Icon name="search" size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8996A9]" />
+              <input
+                id="document-search"
+                name="q"
+                defaultValue={q ?? ""}
+                placeholder="Buscar ata, regimento, arquivo..."
+                className="h-9.5 w-full rounded-xl border border-[#E2E8F0] bg-white pl-9 pr-3 text-xs sm:text-sm text-[#101828] placeholder:text-[#8996A9] outline-none focus:border-[#1455FF]"
+              />
+            </div>
+            <button type="submit" className={INTERNAL_BTN_PRIMARY_CLS}>
+              <span>Buscar</span>
+            </button>
+          </form>
         </div>
 
-        <div className="group relative flex flex-col justify-between rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF] transition-transform group-hover:scale-110">
-              <Icon name="grid" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {categories.length}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-[#1455FF] transition-colors">
-              Categorias
+        {q && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#1455FF]/20 bg-[#EAF1FF] px-4 py-2.5 text-xs text-[#081A37]">
+            <p className="font-medium leading-relaxed">
+              {list.length > 0
+                ? `Encontrei ${list.length} documento(s) relacionados a "${q}". Resumo: ${summarize(list[0].title + " - " + (list[0].description ?? "documento oficial do condomínio"), 140)}`
+                : `Nenhum documento corresponde a "${q}". Tente termos mais amplos ou limpe a busca.`}
             </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Organizadas no acervo
-            </p>
+            <Link
+              href={`/painel/documentos?categoria=${currentCategory}`}
+              className="font-bold text-[#1455FF] hover:underline shrink-0"
+            >
+              Limpar busca
+            </Link>
           </div>
-        </div>
-
-        <div className="group relative flex flex-col justify-between rounded-[22px] border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
-              <Icon name="file" size={18} strokeWidth={2.2} />
-            </span>
-            <Icon
-              name="arrow-up-right"
-              size={15}
-              strokeWidth={2.4}
-              className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-            />
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 tabular-nums">
-              {formatSize(totalSizeKb)}
-            </span>
-            <p className="text-xs font-bold text-slate-800 mt-1 group-hover:text-emerald-600 transition-colors">
-              Tamanho total
-            </p>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-              Indexado na biblioteca
-            </p>
-          </div>
-        </div>
+        )}
       </section>
 
-      {/* Category Filter Tabs Capsule - Minimalista e Fluido */}
-      <div className="mt-6 mb-4 inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] no-print overflow-x-auto max-w-full">
-        {filterTabs.map((tab) => {
-          const isActive = currentCategory === tab.key;
-          return (
-            <Link
-              key={tab.key}
-              href={`/painel/documentos?categoria=${tab.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
-                isActive
-                  ? "bg-[#1455FF] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <Icon
-                name={tab.icon as any}
-                size={14}
-                strokeWidth={2.2}
-                className={isActive ? "text-white" : "text-slate-400"}
-              />
-              <span>{tab.label}</span>
-              <span
-                className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
-                  isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {tab.count}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+      {/* 4. Biblioteca de Arquivos + Upload / Governança */}
+      <div className="grid gap-5 items-start xl:grid-cols-[minmax(0,1fr)_390px]">
+        <InternalSectionCard
+          title="Acervo de documentos"
+          subtitle={`${list.length} arquivos visíveis para este perfil${latest ? ` · Última publicação: ${latest.title}` : ""}`}
+          icon="folder"
+          tone="blue"
+          actions={<InternalStatusBadge tone="blue">{residentCount} para moradores</InternalStatusBadge>}
+        >
+          {list.length === 0 ? (
+            <InternalEmptyState
+              title="Nenhum documento encontrado"
+              description="Ajuste a categoria selecionada ou os termos de busca para localizar arquivos do condomínio."
+              icon="folder"
+              action={
+                (q || currentCategory !== "todos") ? (
+                  <Link href="/painel/documentos" className={INTERNAL_BTN_SECONDARY_CLS}>
+                    Ver toda a biblioteca
+                  </Link>
+                ) : null
+              }
+            />
+          ) : (
+            <div className="grid gap-3.5 md:grid-cols-2">
+              {list.map((d) => {
+                const ext = d.fileName ? String(d.fileName).split(".").pop()?.toUpperCase() : "PDF";
+                const downloadHref =
+                  d.fileUrl ||
+                  `data:text/plain;charset=utf-8,${encodeURIComponent(
+                    `Documento: ${d.title}\nCategoria: ${d.category}\nVersão: ${d.version}\nData: ${dateBR(d.createdAt)}\nDescrição: ${d.description || "Documento oficial do condomínio."}`
+                  )}`;
+                const fileNameDownload =
+                  d.fileName || `${d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.txt`;
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_410px]">
-        <div className="space-y-5">
-          <section className="rounded-[20px] border border-slate-200/80 bg-white shadow-xs overflow-hidden">
-            <div className="border-b border-slate-100 p-5 sm:flex sm:items-start sm:justify-between sm:gap-5">
-              <div className="flex items-start gap-3.5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1455FF]">
-                  <Icon name="search" size={18} />
-                </span>
-                <div>
-                  <h2 className="text-base font-bold tracking-tight text-slate-900">Busca assistida</h2>
-                  <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">
-                    Encontre documentos por palavra-chave, categoria, arquivo ou descrição e receba um resumo do melhor resultado.
-                  </p>
-                </div>
-              </div>
-              {latest ? (
-                <div className="mt-3 sm:mt-0 rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs text-slate-700 sm:w-56 shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#1455FF]">Última publicação</p>
-                  <p className="mt-0.5 font-bold text-slate-900 truncate">{latest.title}</p>
-                </div>
-              ) : null}
-            </div>
-            <div className="p-5">
-              <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                <label htmlFor="document-search" className="sr-only">Buscar documentos</label>
-                <input
-                  id="document-search"
-                  name="q"
-                  defaultValue={q ?? ""}
-                  className="input"
-                  placeholder="ex.: ata assembleia fachada"
-                />
-                <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1455FF] hover:bg-[#0048E8] text-white px-5 py-2.5 text-xs font-bold shadow-xs transition-all">
-                  <Icon name="search" size={15} />
-                  Buscar
-                </button>
-              </form>
-              {q ? (
-                <p className="mt-3 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5 text-xs font-medium leading-relaxed text-slate-700">
-                  {list.length > 0
-                    ? `Encontrei ${list.length} documento(s) relacionados a "${q}". Sugestão: ${summarize(list[0].title + " - " + (list[0].description ?? "documento oficial do condomínio"), 150)}`
-                    : `Nenhum documento corresponde a "${q}". Refine os termos ou peça ajuda ao suporte.`}
-                </p>
-              ) : null}
-              {categories.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <Link
-                      key={category}
-                      href={`/painel/documentos?categoria=${category}`}
-                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
-                        currentCategory === category
-                          ? "border-[#1455FF] bg-blue-50 text-[#1455FF]"
-                          : "border-slate-200/80 bg-slate-50/60 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
-                    >
-                      <Icon name={categoryIcon(category)} size={13} />
-                      {labelFor(CATEGORY_LABELS, category)}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="card-flat overflow-hidden">
-            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--color-line)] px-5 py-4">
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight text-[var(--color-ink)]">Biblioteca</h2>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">{list.length} documentos disponíveis para este perfil.</p>
-              </div>
-              <Badge tone="primary">{residentCount} para moradores</Badge>
-            </header>
-            <div className="p-4 sm:p-5">
-              {list.length === 0 ? (
-                <EmptyState title="Nenhum documento" icon="folder" />
-              ) : (
-                <div className="grid gap-3">
-                  {list.map((d) => (
-                    <article key={d.id} className="surface-hover rounded-[12px] border border-[var(--color-line)] bg-white p-4">
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[9px] bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
-                            <Icon name={categoryIcon(d.category)} size={18} />
-                          </span>
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge>{labelFor(CATEGORY_LABELS, d.category)}</Badge>
-                              <Badge tone={visibilityTone(d.visibility)}>{labelFor(VISIBILITY_LABELS, d.visibility)}</Badge>
-                            </div>
-                            <h3 className="mt-3 text-lg font-semibold leading-tight text-[var(--color-ink)]">{d.title}</h3>
-                            <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">{d.description ?? "Documento oficial do condomínio."}</p>
-                            <p className="mt-2 font-mono text-xs text-[var(--color-subtle)]">
-                              {d.fileName} - {formatSize(d.sizeKb)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 md:w-44 md:shrink-0">
-                          <div className="rounded-[8px] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3 py-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Versão</p>
-                            <p className="mt-1 text-sm font-semibold text-[var(--color-ink)]">{d.version}</p>
-                          </div>
-                          <div className="rounded-[8px] border border-[#dce9b3] bg-[var(--color-primary-soft)] px-3 py-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary-dark)]">Status</p>
-                            <p className="mt-1 text-sm font-semibold text-[var(--color-primary-dark)]">Atual</p>
-                          </div>
+                return (
+                  <article
+                    key={d.id}
+                    className="flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white p-4 sm:p-5 hover:border-[#1455FF]/40 hover:shadow-[0_6px_16px_rgba(7,26,56,0.05)] transition-all"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
+                          <Icon name={categoryIcon(d.category)} size={18} />
+                        </span>
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                          <InternalStatusBadge tone="neutral">
+                            {labelFor(CATEGORY_LABELS, d.category)}
+                          </InternalStatusBadge>
+                          <InternalStatusBadge tone={visibilityTone(d.visibility)}>
+                            {labelFor(VISIBILITY_LABELS, d.visibility)}
+                          </InternalStatusBadge>
                         </div>
                       </div>
 
-                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[var(--color-line)] pt-4">
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
-                          <span className="flex items-center gap-1.5 font-medium">
-                            <Icon name="calendar" size={13} />
-                            {dateBR(d.createdAt)}
-                          </span>
-                          <span className="flex items-center gap-1.5 font-medium">
-                            <Icon name="users" size={13} />
-                            {d.author ?? "Administração"}
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-snug line-clamp-2">
+                          {d.title}
+                        </h3>
+                        <p className="mt-1 text-xs text-[#526079] leading-relaxed line-clamp-2">
+                          {d.description ?? "Documento oficial arquivado para consulta condominial."}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 rounded-xl border border-[#EDF1F7] bg-[#F5F8FC] p-2.5 text-[11px]">
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-bold uppercase text-[#8996A9]">Arquivo</span>
+                          <span className="font-mono font-semibold text-[#101828] truncate block">
+                            {d.fileName || "documento.pdf"}
                           </span>
                         </div>
+                        <div>
+                          <span className="block text-[10px] font-bold uppercase text-[#8996A9]">Versão</span>
+                          <span className="font-bold text-[#101828]">v{d.version || "1.0"}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] font-bold uppercase text-[#8996A9]">Tamanho</span>
+                          <span className="font-bold text-[#101828]">{formatSize(d.sizeKb)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-[#EDF1F7] flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[11px] text-[#526079] space-y-0.5">
+                        <span className="flex items-center gap-1 font-medium">
+                          <Icon name="calendar" size={12} className="text-[#8996A9]" />
+                          <span>{dateBR(d.createdAt)}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-[#8996A9]">
+                          <Icon name="user" size={12} />
+                          <span>{d.author ?? "Administração"}</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
                         <a
-                          href={d.fileUrl || `data:text/plain;charset=utf-8,${encodeURIComponent(`Documento: ${d.title}\nCategoria: ${d.category}\nVersão: ${d.version}\nData: ${dateBR(d.createdAt)}\nDescrição: ${d.description || "Documento oficial do condomínio."}`)}`}
-                          download={d.fileName || `${d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.txt`}
-                          className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-blue-50 border border-blue-200 text-[#1455FF] hover:bg-blue-100/60 px-3 py-1.5 text-xs font-bold transition-colors"
+                          href={downloadHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-8.5 items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F5F8FC] px-3 text-xs font-bold text-[#101828] transition-colors"
+                          title="Visualizar arquivo"
                         >
-                          <Icon name="download" size={14} />
-                          <span>Baixar {d.fileName ? d.fileName.split(".").pop()?.toUpperCase() : "Documento"}</span>
+                          <Icon name="eye" size={13} />
+                          <span>Abrir</span>
+                        </a>
+                        <a
+                          href={downloadHref}
+                          download={fileNameDownload}
+                          className="inline-flex h-8.5 items-center gap-1.5 rounded-xl bg-[#EAF1FF] hover:bg-[#1455FF] text-[#1455FF] hover:text-white px-3 text-xs font-bold transition-colors"
+                        >
+                          <Icon name="download" size={13} />
+                          <span>Baixar {ext}</span>
                         </a>
                       </div>
-                    </article>
-                  ))}
-                </div>
-              )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          </section>
-        </div>
+          )}
+        </InternalSectionCard>
 
         <aside className="space-y-4">
-          {canUpload ? (
-            <section id="publicar-documento" className="card-flat h-fit overflow-hidden xl:sticky xl:top-6">
-              <div className="border-b border-[var(--color-primary-hover)] bg-[var(--color-primary)] p-5 text-[var(--color-ink)]">
-                <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-white/85 text-[var(--color-primary-dark)]">
-                    <Icon name="file" size={18} />
-                  </span>
-                  <div>
-                    <h2 className="text-lg font-semibold tracking-tight">Publicar documento</h2>
-                    <p className="mt-1 text-sm leading-6">Cadastre versões, visibilidade e rastreabilidade para a biblioteca.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-5">
+          {canUpload && (
+            <div id="publicar-documento">
+              <InternalSectionCard
+                title="Publicar documento"
+                subtitle="Cadastre versões e visibilidade na biblioteca oficial."
+                icon="plus-circle"
+                tone="blue"
+              >
                 <form action={createDocumentAction} className="space-y-4">
-                  <label className="block">
-                    <span className="label">Título</span>
-                    <input name="title" className="input" required />
-                  </label>
-                  <label className="block">
-                    <span className="label">Descrição</span>
-                    <textarea name="description" rows={3} className="input" />
-                  </label>
+                  <InternalFormField label="Título" required>
+                    <input
+                      name="title"
+                      placeholder="Ex.: Ata da Assembleia Geral 2026"
+                      className={INTERNAL_INPUT_CLS}
+                      required
+                    />
+                  </InternalFormField>
+
+                  <InternalFormField label="Descrição">
+                    <textarea
+                      name="description"
+                      rows={3}
+                      placeholder="Resumo do conteúdo do arquivo..."
+                      className={INTERNAL_TEXTAREA_CLS}
+                    />
+                  </InternalFormField>
+
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="label">Categoria</span>
-                      <select name="category" className="input">
+                    <InternalFormField label="Categoria">
+                      <select name="category" className={INTERNAL_SELECT_CLS}>
                         <option value="juridico">Jurídico</option>
                         <option value="financeiro">Financeiro</option>
                         <option value="assembleia">Assembleia</option>
@@ -426,64 +395,64 @@ export default async function DocumentosPage({ searchParams }: { searchParams: P
                         <option value="contrato">Contrato</option>
                         <option value="geral">Geral</option>
                       </select>
-                    </label>
-                    <label className="block">
-                      <span className="label">Visibilidade</span>
-                      <select name="visibility" className="input">
+                    </InternalFormField>
+
+                    <InternalFormField label="Visibilidade">
+                      <select name="visibility" className={INTERNAL_SELECT_CLS}>
                         <option value="moradores">Moradores</option>
                         <option value="publico">Público</option>
                         <option value="administrativo">Administrativo</option>
                       </select>
-                    </label>
+                    </InternalFormField>
                   </div>
+
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="label">Arquivo</span>
-                      <input name="fileName" className="input" placeholder="ata-2026.pdf" />
-                    </label>
-                    <label className="block">
-                      <span className="label">Versão</span>
-                      <input name="version" className="input" defaultValue="1.0" />
-                    </label>
+                    <InternalFormField label="Nome do arquivo">
+                      <input name="fileName" className={INTERNAL_INPUT_CLS} placeholder="ata-2026.pdf" />
+                    </InternalFormField>
+
+                    <InternalFormField label="Versão">
+                      <input name="version" className={INTERNAL_INPUT_CLS} defaultValue="1.0" />
+                    </InternalFormField>
                   </div>
-                  <button className="btn-primary w-full">
-                    <Icon name="send" size={16} />
-                    Publicar
+
+                  <button type="submit" className={`${INTERNAL_BTN_PRIMARY_CLS} w-full`}>
+                    <Icon name="send" size={15} />
+                    <span>Publicar na biblioteca</span>
                   </button>
                 </form>
-              </div>
-            </section>
-          ) : null}
+              </InternalSectionCard>
+            </div>
+          )}
 
-          <section className="rounded-[12px] border border-[#dce9b3] bg-[var(--color-primary-soft)] p-5">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-[var(--color-primary)] text-[var(--color-ink)]">
-                <Icon name="shield" size={18} />
-              </span>
-              <div>
-                <h2 className="text-base font-semibold text-[var(--color-ink)]">Governança documental</h2>
-                <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
-                  Documentos administrativos ficam restritos a síndico, conselho e super administrador.
-                </p>
+          <InternalSectionCard
+            title="Governança documental"
+            subtitle="Regras de controle de acesso e rastreabilidade"
+            icon="shield"
+            tone="navy"
+          >
+            <div className="space-y-2.5 text-xs text-[#526079]">
+              <p className="leading-relaxed">
+                Arquivos marcados como <strong className="text-[#101828]">Administrativo</strong> ficam visíveis somente para síndico, conselho e gestão autorizada.
+              </p>
+              <div className="grid gap-2 pt-1">
+                <div className="flex items-center gap-2 rounded-xl border border-[#EDF1F7] bg-[#F5F8FC] px-3 py-2 font-semibold text-[#101828]">
+                  <Icon name="lock" size={14} className="text-[#1455FF]" />
+                  <span>Acesso segmentado por perfil</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl border border-[#EDF1F7] bg-[#F5F8FC] px-3 py-2 font-semibold text-[#101828]">
+                  <Icon name="download" size={14} className="text-[#1455FF]" />
+                  <span>Downloads auditados por data</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl border border-[#EDF1F7] bg-[#F5F8FC] px-3 py-2 font-semibold text-[#101828]">
+                  <Icon name="refresh" size={14} className="text-[#1455FF]" />
+                  <span>Histórico de versões preservado</span>
+                </div>
               </div>
             </div>
-            <div className="mt-4 grid gap-2 text-sm text-[var(--color-muted)]">
-              <div className="flex items-center gap-2 rounded-[8px] bg-white px-3 py-2">
-                <Icon name="lock" size={14} />
-                Acesso controlado por perfil
-              </div>
-              <div className="flex items-center gap-2 rounded-[8px] bg-white px-3 py-2">
-                <Icon name="download" size={14} />
-                Downloads registrados na auditoria
-              </div>
-              <div className="flex items-center gap-2 rounded-[8px] bg-white px-3 py-2">
-                <Icon name="refresh" size={14} />
-                Versões preservadas na biblioteca
-              </div>
-            </div>
-          </section>
+          </InternalSectionCard>
         </aside>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

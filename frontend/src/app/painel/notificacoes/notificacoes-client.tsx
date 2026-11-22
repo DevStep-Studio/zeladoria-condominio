@@ -10,6 +10,12 @@ import {
   AppPagination,
   AppEmptyState,
 } from "@/components/app-ui";
+import {
+  InternalPageHeader,
+  InternalPageLayout,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import { InternalTabStrip } from "@/components/internal/internal-interactive";
 import { dateTimeBR } from "@/lib/utils";
 import {
   markNotificationReadAction,
@@ -179,96 +185,57 @@ export function NotificacoesClient({
   }, [filteredNotifications, currentPage, pageSize]);
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto">
-      {/* Header com ações principais */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>Central de Notificações</span>
-            {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-[#1455FF] text-white text-xs font-black">
-                {unreadCount} nova{unreadCount === 1 ? "" : "s"}
-              </span>
-            )}
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Avisos de portaria, encomendas, chamados, contratos, assembleias e comunicados em tempo real.
-          </p>
-        </div>
-
-        {unreadCount > 0 && (
-          <AppButton
-            variant="outline"
-            size="sm"
-            onClick={handleMarkAllAsRead}
-            isLoading={isPending}
-            icon="check-circle"
-            className="border-slate-300 text-slate-700 hover:bg-slate-50 shrink-0"
-          >
-            Marcar todas como lidas ({unreadCount})
-          </AppButton>
-        )}
-      </div>
+    <InternalPageLayout className="max-w-5xl mx-auto">
+      <InternalPageHeader
+        icon="bell"
+        title="Central de Notificações"
+        subtitle="Avisos de portaria, encomendas, chamados, contratos, assembleias e comunicados em tempo real."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Notificações" },
+        ]}
+        badge={
+          unreadCount > 0 ? (
+            <InternalStatusBadge
+              label={`${unreadCount} nova${unreadCount === 1 ? "" : "s"}`}
+              tone="blue"
+            />
+          ) : (
+            <InternalStatusBadge label="Tudo em dia" tone="green" />
+          )
+        }
+        actions={
+          unreadCount > 0 ? (
+            <AppButton
+              variant="outline"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              isLoading={isPending}
+              icon="check-circle"
+              className="border-[#E2E8F0] bg-white text-[#101828] hover:border-[#1455FF] hover:text-[#1455FF] shrink-0"
+            >
+              Marcar todas como lidas ({unreadCount})
+            </AppButton>
+          ) : undefined
+        }
+      />
 
       {/* Tabs de Status: Todas | Não lidas | Lidas */}
-      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2 overflow-x-auto [scrollbar-width:thin]">
-        <button
-          type="button"
-          onClick={() => {
-            setStatusTab("todas");
-            setCurrentPage(1);
-          }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-            statusTab === "todas"
-              ? "bg-[#1455FF] text-white shadow-xs"
-              : "text-slate-600 hover:bg-slate-100"
-          }`}
-        >
-          <span>Todas</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusTab === "todas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
-            {items.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setStatusTab("nao_lidas");
-            setCurrentPage(1);
-          }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-            statusTab === "nao_lidas"
-              ? "bg-[#1455FF] text-white shadow-xs"
-              : "text-slate-600 hover:bg-slate-100"
-          }`}
-        >
-          <span>Não lidas</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusTab === "nao_lidas" ? "bg-white/20 text-white" : "bg-blue-50 text-[#1455FF] font-black"}`}>
-            {unreadCount}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setStatusTab("lidas");
-            setCurrentPage(1);
-          }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-            statusTab === "lidas"
-              ? "bg-[#1455FF] text-white shadow-xs"
-              : "text-slate-600 hover:bg-slate-100"
-          }`}
-        >
-          <span>Lidas</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusTab === "lidas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
-            {readCount}
-          </span>
-        </button>
-      </div>
+      <InternalTabStrip
+        activeId={statusTab}
+        onChange={(id) => {
+          setStatusTab(id as "todas" | "nao_lidas" | "lidas");
+          setCurrentPage(1);
+        }}
+        items={[
+          { id: "todas", label: "Todas", count: items.length, icon: "bell" },
+          { id: "nao_lidas", label: "Não lidas", count: unreadCount, icon: "alert" },
+          { id: "lidas", label: "Lidas", count: readCount, icon: "check-circle" },
+        ]}
+      />
 
       {/* Controles de Busca e Filtros */}
-      <div className="space-y-3">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_2px_10px_rgba(8,26,55,0.03)] space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
             <AppSearch
@@ -282,7 +249,7 @@ export function NotificacoesClient({
           </div>
 
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
+            <span className="text-[11px] font-bold text-[#526079] uppercase tracking-wider shrink-0 mr-1">
               Período:
             </span>
             {[
@@ -298,10 +265,10 @@ export function NotificacoesClient({
                   setSelectedPeriod(p.id as PeriodFilter);
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                   selectedPeriod === p.id
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-[#081A37] text-white"
+                    : "bg-[#F5F8FC] text-[#526079] hover:bg-[#EAF1FF] hover:text-[#1455FF]"
                 }`}
               >
                 {p.label}
@@ -361,16 +328,16 @@ export function NotificacoesClient({
                 key={n.id}
                 className={`rounded-2xl border p-4 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                   isUnread
-                    ? "border-blue-200 bg-blue-50/40 shadow-xs"
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    ? "border-[#1455FF]/30 bg-[#EAF1FF]/45 shadow-[0_2px_10px_rgba(20,85,255,0.05)]"
+                    : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
                 }`}
               >
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <div
-                    className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
                       isUnread
                         ? "bg-[#1455FF] text-white shadow-xs"
-                        : "bg-slate-100 text-slate-500"
+                        : "bg-[#F5F8FC] text-[#526079] border border-[#E2E8F0]"
                     }`}
                   >
                     <Icon name={meta.icon} size={18} />
@@ -380,7 +347,7 @@ export function NotificacoesClient({
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4
                         className={`text-sm tracking-tight ${
-                          isUnread ? "font-bold text-slate-900" : "font-semibold text-slate-700"
+                          isUnread ? "font-bold text-[#101828]" : "font-semibold text-[#334155]"
                         }`}
                       >
                         {n.title}
@@ -390,7 +357,7 @@ export function NotificacoesClient({
                         <span className="h-2 w-2 rounded-full bg-[#1455FF] shrink-0" title="Nova notificação" />
                       )}
 
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-[#F5F8FC] border border-[#E2E8F0] text-[#526079] text-[10px] font-bold">
                         {meta.label}
                       </span>
 
@@ -402,26 +369,26 @@ export function NotificacoesClient({
                     </div>
 
                     {n.body && (
-                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-[#526079] leading-relaxed line-clamp-2">
                         {n.body}
                       </p>
                     )}
 
-                    <p className="text-[11px] text-slate-400 font-medium">
+                    <p className="text-[11px] text-[#64748B] font-medium">
                       {dateTimeBR(n.createdAt)}
                     </p>
                   </div>
                 </div>
 
                 {/* Ações contextuais */}
-                <div className="flex items-center gap-2 shrink-0 sm:self-center border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0">
+                <div className="flex items-center gap-2 shrink-0 sm:self-center border-t sm:border-t-0 border-[#E2E8F0] pt-2.5 sm:pt-0">
                   {n.link && (
                     <Link
                       href={n.link}
                       onClick={() => {
                         if (isUnread) handleMarkAsRead(n.id);
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#1455FF] hover:text-[#1455FF] text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#1455FF] hover:text-[#1455FF] text-[#101828] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
                     >
                       <span>{meta.actionLabel}</span>
                       <Icon name="arrow-right" size={12} />
@@ -433,7 +400,7 @@ export function NotificacoesClient({
                       type="button"
                       onClick={() => handleMarkAsRead(n.id)}
                       disabled={isPending}
-                      className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                      className="p-1.5 rounded-xl text-[#526079] hover:text-[#1455FF] hover:bg-white transition-colors"
                       title="Marcar como lida"
                       aria-label="Marcar como lida"
                     >
@@ -455,7 +422,7 @@ export function NotificacoesClient({
         totalItems={filteredNotifications.length}
         pageSize={pageSize}
       />
-    </div>
+    </InternalPageLayout>
   );
 }
 

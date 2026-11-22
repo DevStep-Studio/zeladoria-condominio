@@ -1,7 +1,12 @@
 import { domainRequest } from "@/lib/api/server";
 
 import { requireRole } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Progress, Stat, TableWrap } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Progress, Stat, TableWrap } from "@/components/ui";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { dateTimeBR, percent } from "@/lib/utils";
 import { seedDemoCondoAction } from "@/lib/actions/admin";
 import { Icon } from "@/components/icon";
@@ -45,13 +50,22 @@ export default async function AdocaoPage() {
   const totalActive = rows.reduce((a, r) => a + r.activeWeek, 0);
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="chart"
         title="Painel do SaaS · implantação e adoção"
         subtitle="Acompanhe implantação, convites, primeiro acesso, uso por módulo, erros de importação, armazenamento e suporte."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Adoção SaaS" },
+        ]}
         actions={
           <form action={seedDemoCondoAction}>
-            <button className="btn-primary btn-sm"><Icon name="plus" size={15} />Novo condomínio</button>
+            <button className={INTERNAL_BTN_PRIMARY_CLS}>
+              <Icon name="plus" size={15} />
+              <span>Novo condomínio</span>
+            </button>
           </form>
         }
       />
@@ -195,6 +209,6 @@ export default async function AdocaoPage() {
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

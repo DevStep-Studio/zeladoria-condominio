@@ -37,8 +37,8 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200/70 p-4 text-slate-400">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xs border border-slate-200/80 text-slate-500">
+            <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F8FC] p-4 text-[#526079]">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xs border border-[#E2E8F0] text-[#1455FF]">
                 <Icon name={categoryIcon} size={28} />
               </span>
               <span className="mt-2 text-[11px] font-bold tracking-wider uppercase text-slate-500">

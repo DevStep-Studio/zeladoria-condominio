@@ -4,6 +4,12 @@ import { useState, useTransition } from "react";
 import { Icon, type IconName } from "@/components/icon";
 import { dateBR, dateTimeBR, isoDate } from "@/lib/utils";
 import { createAgendaEventAction, deleteAgendaEventAction } from "@/lib/actions/agenda";
+import {
+  INTERNAL_BTN_PRIMARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
+import { InternalTabStrip } from "@/components/internal/internal-interactive";
 
 type AgendaEvent = {
   id: number;
@@ -106,35 +112,31 @@ export function AgendaClient({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-ink)] flex items-center gap-2.5">
-            <Icon name="calendar" size={28} className="text-[#0D9488]" />
-            Agenda Condominial
-          </h1>
-          <p className="text-sm text-[var(--color-muted)] mt-1">
-            Calendário oficial de reuniões, assembleias, vistorias, manutenções e eventos.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="calendar"
+        title="Agenda Condominial"
+        subtitle="Calendário oficial de reuniões, assembleias, vistorias, manutenções e eventos."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Agenda" },
+        ]}
+        actions={
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary btn-sm"
+            className={INTERNAL_BTN_PRIMARY_CLS}
           >
             <Icon name="plus" size={16} />
-            Novo Compromisso
+            <span>Novo Compromisso</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Feedback banner */}
       {feedback ? (
         <div
-          className={`p-4 rounded-[12px] text-sm font-semibold flex items-center justify-between ${
+          className={`p-4 rounded-xl text-sm font-semibold flex items-center justify-between ${
             feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
@@ -152,51 +154,31 @@ export function AgendaClient({
       ) : null}
 
       {/* Control bar: Views & Category Pills */}
-      <div className="card p-4 space-y-4">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-3.5 sm:p-4 shadow-[0_2px_10px_rgba(8,26,55,0.03)] space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* View switchers */}
-          <div className="tabbar">
-            <button
-              type="button"
-              onClick={() => setViewMode("mes")}
-              className={`tab ${viewMode === "mes" ? "tab-active" : ""}`}
-            >
-              Mês
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("semana")}
-              className={`tab ${viewMode === "semana" ? "tab-active" : ""}`}
-            >
-              Semana
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("dia")}
-              className={`tab ${viewMode === "dia" ? "tab-active" : ""}`}
-            >
-              Dia
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("lista")}
-              className={`tab ${viewMode === "lista" ? "tab-active" : ""}`}
-            >
-              Lista Completa
-            </button>
-          </div>
+          <InternalTabStrip
+            activeKey={viewMode}
+            onChange={(key) => setViewMode(key as "mes" | "semana" | "dia" | "lista")}
+            tabs={[
+              { key: "mes", label: "Mês", icon: "calendar" },
+              { key: "semana", label: "Semana", icon: "clock" },
+              { key: "dia", label: "Dia", icon: "clock" },
+              { key: "lista", label: "Lista Completa", icon: "grid" },
+            ]}
+          />
 
           {/* Categories */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 max-w-full">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
                 type="button"
                 onClick={() => setSelectedCategory(cat.key)}
-                className={`chip cursor-pointer text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`rounded-full border px-3 py-1.5 cursor-pointer text-xs font-bold whitespace-nowrap transition-all ${
                   selectedCategory === cat.key
-                    ? "bg-[#0D9488] text-white shadow-xs"
-                    : "bg-[var(--color-surface-muted)] text-[var(--color-muted)] hover:bg-slate-200"
+                    ? "border-[#1455FF] bg-[#1455FF] text-white shadow-xs"
+                    : "border-[#E2E8F0] bg-[#F5F8FC] text-[#526079] hover:border-[#1455FF]/35 hover:text-[#101828]"
                 }`}
               >
                 {cat.label}
@@ -518,6 +500,6 @@ export function AgendaClient({
           </div>
         </div>
       ) : null}
-    </div>
+    </InternalPageLayout>
   );
 }

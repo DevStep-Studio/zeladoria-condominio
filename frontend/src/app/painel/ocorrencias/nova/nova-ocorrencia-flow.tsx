@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Icon } from "@/components/icon";
-import { PageHeader } from "@/components/page-header";
+import {
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalPageLayout,
+} from "@/components/internal/internal-ui";
 import { createOccurrenceAction } from "@/lib/actions/ocorrencias";
 import {
   CATEGORIES_CATALOG,
@@ -266,18 +270,20 @@ export function NovaOcorrenciaFlow({
     : locationString;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-12">
+    <InternalPageLayout className="max-w-3xl mx-auto pb-12">
       {/* Header Padronizado */}
-      <PageHeader
+      <InternalPageHeader
         icon="plus"
         title="Registrar Ocorrência"
-        description="Conte o que aconteceu. O Zeladoria organiza o restante para você."
+        description="Conte o que aconteceu. A Zeladoria organiza os detalhes e o encaminhamento."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Ocorrências", href: "/painel/ocorrencias" },
+          { label: "Nova ocorrência" },
+        ]}
         actions={
-          <Link
-            href="/painel/ocorrencias"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-bold transition-colors shadow-2xs"
-          >
-            <Icon name="arrow-left" size={13} />
+          <Link href="/painel/ocorrencias" className={INTERNAL_BTN_SECONDARY_CLS}>
+            <Icon name="arrow-left" size={14} />
             <span>Voltar para ocorrências</span>
           </Link>
         }
@@ -448,6 +454,6 @@ export function NovaOcorrenciaFlow({
         onClose={() => setIsEmergencyModalOpen(false)}
         reason={emergencySignal.reason}
       />
-    </div>
+    </InternalPageLayout>
   );
 }

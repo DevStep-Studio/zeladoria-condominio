@@ -2,7 +2,8 @@ import Link from "next/link";
 import { domainRequest } from "@/lib/api/server";
 
 import { requireCondo } from "@/lib/auth";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, StatCard, statusTone } from "@/components/ui";
+import { Badge, Card, EmptyState, InfoNote, Panel, StatCard, statusTone } from "@/components/ui";
+import { InternalPageHeader, InternalPageLayout } from "@/components/internal/internal-ui";
 import { dateTimeBR } from "@/lib/utils";
 import { answerSupportTicketAction, createSupportTicketAction, rateSupportAction } from "@/lib/actions/admin";
 import { rankByQuery } from "@/lib/ai";
@@ -136,14 +137,19 @@ export default async function AjudaPage({
   });
 
   return (
-    <>
-      <PageHeader
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="help"
         title={isSupport ? "Suporte & Atendimento da Plataforma" : "Central de ajuda"}
         subtitle={
           isSupport
             ? "Fila global de chamados de suporte dos condomínios, acompanhamento de satisfação e resolução rápida de incidentes."
             : "Base de conhecimento pesquisável, tutoriais por tela, vídeos de treinamento e abertura de suporte com histórico."
         }
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: isSupport ? "Suporte" : "Ajuda" },
+        ]}
       />
 
       {isSupport ? (
@@ -187,7 +193,7 @@ export default async function AjudaPage({
               ) : (
                 <ul className="space-y-3">
                   {filteredTickets.map((t) => (
-                    <li key={t.id} className="rounded-lg border border-[var(--color-line)] p-4 transition-colors hover:border-[#dce9b3]">
+                    <li key={t.id} className="rounded-xl border border-[#E2E8F0] p-4 transition-colors hover:border-[#1455FF]/35">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold text-[var(--color-ink)]">{t.subject}</p>
@@ -359,6 +365,6 @@ export default async function AjudaPage({
           </InfoNote>
         </div>
       </div>
-    </>
+    </InternalPageLayout>
   );
 }

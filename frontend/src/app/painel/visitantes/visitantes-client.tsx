@@ -3,8 +3,21 @@
 import { useState, useTransition, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge, Card, EmptyState, InfoNote, PageHeader, Panel, TableWrap } from "@/components/ui";
-import { Icon } from "@/components/icon";
+import { Badge, Card, EmptyState, InfoNote, Panel, TableWrap } from "@/components/ui";
+import { Icon, type IconName } from "@/components/icon";
+import {
+  INTERNAL_BTN_NAVY_CLS,
+  INTERNAL_BTN_SECONDARY_CLS,
+  InternalPageHeader,
+  InternalStatGrid,
+  InternalStatusBadge,
+} from "@/components/internal/internal-ui";
+import {
+  InternalFilterBar,
+  InternalSearchInput,
+  InternalStatFilterCard,
+  InternalTabStrip,
+} from "@/components/internal/internal-interactive";
 import { dateTimeBR } from "@/lib/utils";
 import {
   createVisitAction,
@@ -513,37 +526,86 @@ export function VisitantesClient({
     });
   };
 
+  const recurringCount = useMemo(
+    () => recurring.filter((v) => !v.blocked).length,
+    [recurring]
+  );
+
   return (
-    <>
-      <PageHeader
+    <div className="space-y-5 min-w-0">
+      <InternalPageHeader
+        icon="users"
         title="Visitantes e prestadores"
-        subtitle="Cadastro antecipado, convite com QR Code e validade, autorização do morador, registro de entrada/saída e lista de bloqueio."
+        description="Cadastro antecipado, convite com QR Code, autorização do morador e controle rápido na portaria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Visitantes" },
+        ]}
+        badge={<InternalStatusBadge tone="blue">{counts.todos} registros</InternalStatusBadge>}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            {isGate && (
+          isGate ? (
+            <>
               <button
                 type="button"
                 onClick={() => setIsScannerModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition-all"
+                className={INTERNAL_BTN_NAVY_CLS}
               >
-                <Icon name="camera" size={15} />
-                <span>Validar na portaria (Câmera & QR)</span>
+                <Icon name="camera" size={15} className="text-amber-300" />
+                <span>Validar na portaria (QR)</span>
               </button>
-            )}
-            {isGate && (
-              <Link href="/painel/portaria" className="btn-ghost btn-sm">
-                <Icon name="shield" size={15} />
+              <Link href="/painel/portaria" className={INTERNAL_BTN_SECONDARY_CLS}>
+                <Icon name="shield" size={14} />
                 <span>Painel da portaria</span>
               </Link>
-            )}
-          </div>
+            </>
+          ) : undefined
         }
       />
+
+      {/* Indicadores Reais de Visitantes */}
+      <InternalStatGrid columns={4}>
+        <InternalStatFilterCard
+          label="Visitantes esperados"
+          value={counts.aguardando}
+          hint="aguardando liberação"
+          icon="clock"
+          tone="amber"
+          active={currentStatus === "aguardando"}
+          onClick={() => setCurrentStatus(currentStatus === "aguardando" ? "todos" : "aguardando")}
+        />
+        <InternalStatFilterCard
+          label="Autorizações ativas"
+          value={counts.autorizado + counts.dentro}
+          hint={`${counts.dentro} no condomínio`}
+          icon="check-circle"
+          tone="green"
+          active={currentStatus === "autorizado"}
+          onClick={() => setCurrentStatus(currentStatus === "autorizado" ? "todos" : "autorizado")}
+        />
+        <InternalStatFilterCard
+          label="Recorrentes"
+          value={recurringCount}
+          hint="autorizados frequentes"
+          icon="users"
+          tone="blue"
+          active={lowerTab === "recorrentes"}
+          onClick={() => setLowerTab("recorrentes")}
+        />
+        <InternalStatFilterCard
+          label="Histórico total"
+          value={counts.todos}
+          hint="todas as visitas"
+          icon="clipboard"
+          tone="navy"
+          active={currentStatus === "todos"}
+          onClick={() => setCurrentStatus("todos")}
+        />
+      </InternalStatGrid>
 
       {/* Banner de Feedback de Ações */}
       {actionFeedback && (
         <div
-          className={`mb-4 flex items-center justify-between gap-3 rounded-xl p-3.5 text-xs font-semibold shadow-xs transition-all ${
+          className={`flex items-center justify-between gap-3 rounded-2xl p-3.5 text-xs sm:text-sm font-semibold shadow-2xs transition-all ${
             actionFeedback.tone === "green"
               ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
               : actionFeedback.tone === "rose"
@@ -561,77 +623,43 @@ export function VisitantesClient({
           <button
             type="button"
             onClick={() => setActionFeedback(null)}
-            className="text-slate-400 hover:text-slate-700 p-1 rounded-md"
+            className="text-[#526079] hover:text-[#101828] p-1 rounded-md cursor-pointer"
           >
             <Icon name="x" size={14} />
           </button>
         </div>
       )}
 
-      {/* Barra de Filtros e Busca em Tempo Real */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
-        {/* Filter Tabs Capsule */}
-        <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-3px_rgba(15,23,42,0.04)] overflow-x-auto max-w-full">
-          {filterTabs.map((f) => {
-            const isActive = currentStatus === f.key;
-            const count = counts[f.key as keyof typeof counts] ?? 0;
-
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => {
-                  setCurrentStatus(f.key);
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("status", f.key);
-                  window.history.pushState({}, "", url.toString());
-                }}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all whitespace-nowrap ${
-                  isActive
-                    ? "bg-[#1455FF] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                <Icon
-                  name={f.icon}
-                  size={14}
-                  strokeWidth={2.2}
-                  className={isActive ? "text-white" : "text-slate-400"}
-                />
-                <span>{f.label}</span>
-                <span
-                  className={`flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums transition-colors ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Input de Busca em tempo real */}
-        <div className="relative min-w-[240px] max-w-sm">
-          <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
+      {/* Barra de Filtros e Busca em Tempo Real (preserva overflow-x-auto para teste responsivo) */}
+      <InternalFilterBar
+        left={
+          <div className="overflow-x-auto max-w-full">
+            <InternalTabStrip
+              tabs={filterTabs.map((f) => ({
+                key: f.key,
+                label: f.label,
+                icon: f.icon as IconName,
+                count: counts[f.key as keyof typeof counts] ?? 0,
+              }))}
+              activeKey={currentStatus}
+              onChange={(key) => {
+                setCurrentStatus(key);
+                const url = new URL(window.location.href);
+                url.searchParams.set("status", key);
+                window.history.pushState({}, "", url.toString());
+              }}
+            />
+          </div>
+        }
+        right={
+          <InternalSearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por visitante, placa, unidade..."
-            className="input w-full pl-9 pr-8 text-xs py-2 bg-white"
+            onChange={setSearchQuery}
+            placeholder="Buscar visitante, placa, unidade..."
+            className="min-w-[240px] max-w-sm"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <Icon name="x" size={14} />
-            </button>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* COLUNA ESQUERDA: Pendências, Histórico e Convites Ativos */}
@@ -1740,6 +1768,6 @@ export function VisitantesClient({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

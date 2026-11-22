@@ -1,9 +1,8 @@
 import { domainRequest } from "@/lib/api/server";
-import Link from "next/link";
 
 import { requireSession } from "@/lib/auth";
-import { Icon } from "@/components/icon";
 import { dateTimeBR } from "@/lib/utils";
+import { InternalPageHeader, InternalPageLayout, InternalStatusBadge } from "@/components/internal/internal-ui";
 
 import { CreateCondoModal } from "./create-condo-modal";
 
@@ -25,29 +24,21 @@ export default async function AdminCondominiosPage() {
   const unitsMap = new Map(unitCounts.map((u) => [u.condoId, u.totalUnits]));
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/painel/admin" className="text-slate-400 hover:text-slate-600 text-xs font-semibold">
-              Dashboard
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Condomínios</span>
-          </div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-            Condomínios na Plataforma
-          </h1>
-          <p className="text-xs text-slate-500">
-            Gerenciamento global de empreendimentos atendidos pelo Zeladoria.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <CreateCondoModal />
-        </div>
-      </div>
+    <InternalPageLayout>
+      <InternalPageHeader
+        icon="building"
+        title="Condomínios na Plataforma"
+        subtitle="Gerenciamento global de empreendimentos atendidos pelo Zeladoria."
+        breadcrumbs={[
+          { label: "Início", href: "/painel" },
+          { label: "Administração", href: "/painel/admin" },
+          { label: "Condomínios" },
+        ]}
+        badge={<InternalStatusBadge label={`${condosList.length} ativos`} tone="blue" />}
+        actions={<CreateCondoModal />}
+      />
 
-      <div className="rounded-[12px] bg-white border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_2px_10px_rgba(8,26,55,0.03)] overflow-hidden">
         {/* Mobile Cards (< md) */}
         <div className="md:hidden space-y-3 p-4">
           {condosList.map((c) => {
@@ -128,6 +119,6 @@ export default async function AdminCondominiosPage() {
           </table>
         </div>
       </div>
-    </div>
+    </InternalPageLayout>
   );
 }
