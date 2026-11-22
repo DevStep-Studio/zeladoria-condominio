@@ -634,31 +634,37 @@ export function DashboardClient({
                 Registre ocorrências, acompanhe solicitações e facilite a rotina condominial.
               </p>
 
-              {/* Botões Principais Fiéis à Referência 2 */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4 mt-5 lg:mt-[18px] w-full max-w-[380px] min-[440px]:max-w-[420px] lg:max-w-none">
+              {/* Botões Principais Fiéis à Referência 2 — Lado a lado e compactos no mobile */}
+              <div className="flex flex-row items-center gap-1.5 min-[360px]:gap-2 sm:gap-3.5 lg:gap-4 mt-3.5 sm:mt-5 lg:mt-[18px] w-full max-w-[460px] lg:max-w-none">
                 <Link
                   href="/painel/ocorrencias?nova=1"
-                  className="inline-flex items-center justify-center gap-3.5 h-[46px] sm:h-[54px] px-5 sm:px-6.5 rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[14px] sm:text-[16.5px] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap w-full lg:w-auto"
+                  className="flex-1 min-w-0 sm:flex-initial inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 sm:gap-2.5 lg:gap-3.5 h-[36px] min-[360px]:h-[38px] sm:h-[46px] lg:h-[54px] px-2 min-[360px]:px-2.5 sm:px-5 lg:px-6.5 rounded-[9px] sm:rounded-[12px] bg-white hover:bg-slate-50 text-[#0A2563] text-[10.5px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] min-[430px]:text-[12.5px] sm:text-[14px] lg:text-[16.5px] font-bold shadow-[0_3px_10px_rgba(0,0,0,0.16)] lg:shadow-[0_6px_18px_rgba(0,0,0,0.22)] transition-all active:scale-95 group whitespace-nowrap lg:w-auto"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
-                    <Icon name="plus" size={14} strokeWidth={3} />
+                  <span className="flex h-4 w-4 min-[360px]:h-4.5 min-[360px]:w-4.5 lg:h-6 lg:w-6 items-center justify-center rounded-full bg-[#0052F5] text-white shrink-0">
+                    <Icon name="plus" size={9} className="min-[360px]:hidden" strokeWidth={3} />
+                    <Icon name="plus" size={10} className="hidden min-[360px]:inline sm:hidden" strokeWidth={3} />
+                    <Icon name="plus" size={12} className="hidden sm:inline lg:hidden" strokeWidth={3} />
+                    <Icon name="plus" size={14} className="hidden lg:inline" strokeWidth={3} />
                   </span>
-                  <span>Registrar ocorrência</span>
+                  <span className="truncate tracking-tight">Registrar ocorrência</span>
                   <Icon
                     name="chevron-right"
                     size={16}
                     strokeWidth={2.6}
-                    className="text-[#0A2563] transition-transform group-hover:translate-x-0.5 shrink-0"
+                    className="text-[#0A2563] transition-transform group-hover:translate-x-0.5 shrink-0 hidden lg:inline"
                   />
                 </Link>
 
                 <button
                   type="button"
                   onClick={handleFocusProtocol}
-                  className="inline-flex items-center justify-center gap-2.5 h-[46px] sm:h-[54px] px-5 sm:px-7 rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[14px] sm:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap w-full lg:w-auto"
+                  className="flex-1 min-w-0 sm:flex-initial inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 sm:gap-2 lg:gap-2.5 h-[36px] min-[360px]:h-[38px] sm:h-[46px] lg:h-[54px] px-2 min-[360px]:px-2.5 sm:px-5 lg:px-7 rounded-[9px] sm:rounded-[12px] bg-[#08152A]/70 hover:bg-[#0C1E3C] border-[1.5px] border-white/65 text-white text-[10.5px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] min-[430px]:text-[12.5px] sm:text-[14px] lg:text-[16px] font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap lg:w-auto"
                 >
-                  <Icon name="search" size={18} strokeWidth={2.1} />
-                  <span>Acompanhar solicitação</span>
+                  <Icon name="search" size={11} className="min-[360px]:hidden shrink-0" strokeWidth={2.1} />
+                  <Icon name="search" size={12} className="hidden min-[360px]:inline sm:hidden shrink-0" strokeWidth={2.1} />
+                  <Icon name="search" size={14} className="hidden sm:inline lg:hidden shrink-0" strokeWidth={2.1} />
+                  <Icon name="search" size={18} className="hidden lg:inline shrink-0" strokeWidth={2.1} />
+                  <span className="truncate tracking-tight">Acompanhar solicitação</span>
                 </button>
               </div>
             </div>
