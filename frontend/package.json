@@ -29,6 +29,7 @@
     "autocommit:logs": "./scripts/auto-commit-daemon.sh logs",
     "test:backend": "composer --working-dir=backend test",
     "setup:api": "node scripts/setup-api.mjs",
+    "reset:all": "node scripts/reset-all.mjs",
     "dev:backend": "composer --working-dir=backend dev"
   },
   "dependencies": {

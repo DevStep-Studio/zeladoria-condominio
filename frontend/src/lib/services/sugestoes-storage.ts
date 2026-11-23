@@ -20,44 +20,7 @@ export interface SuggestionItem {
   createdAt?: string;
 }
 
-export const INITIAL_SUGGESTIONS: SuggestionItem[] = [
-  {
-    id: 1,
-    title: "Instalação de ponto de recarga para carros elétricos",
-    category: "Sustentabilidade",
-    description: "Proponho a instalação de 2 estações de recarga compartilhada na garagem do subsolo com medição individualizada por tag.",
-    status: "em_analise",
-    date: "28/08/2026",
-    unit: "Torre A · Apto 302",
-    upvotes: 24,
-    feedbackAdmin: "Orçamento preliminar solicitado para a assembleia de outubro. A equipe de zeladoria já realizou o levantamento elétrico no subsolo.",
-    feedbackAuthor: "Zeladoria & Administração",
-  },
-  {
-    id: 2,
-    title: "Lixeira seletiva orgânica na praça central",
-    category: "Melhorias",
-    description: "Colocar lixeiras diferenciadas próximas aos bancos da praça central para incentivar o descarte correto.",
-    status: "aceita",
-    date: "15/08/2026",
-    unit: "Torre B · Apto 104",
-    upvotes: 18,
-    feedbackAdmin: "Aprovado pela administração. Pedido em processo de compra sob supervisão da zeladoria.",
-    feedbackAuthor: "Administração",
-  },
-  {
-    id: 3,
-    title: "Horta comunitária com composteira",
-    category: "Áreas Comuns",
-    description: "Aproveitar o canteiro desocupado ao lado do parquinho para criar uma horta com ervas e temperos para os moradores.",
-    status: "concluida",
-    date: "02/08/2026",
-    unit: "Torre A · Apto 501",
-    upvotes: 35,
-    feedbackAdmin: "Horta implantada com auxílio da equipe de zeladoria e jardinagem!",
-    feedbackAuthor: "Zeladoria",
-  },
-];
+export const INITIAL_SUGGESTIONS: SuggestionItem[] = [];
 
 const STORAGE_DIR = path.join(process.cwd(), ".storage");
 const STORAGE_FILE = path.join(STORAGE_DIR, "sugestoes-store.json");
