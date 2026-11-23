@@ -21,6 +21,9 @@ export interface LostAndFoundItem {
   claimMessage?: string; // Mensagem de quem reivindicou o item
   claimedBy?: string; // Nome de quem reivindicou
   claimDate?: string; // Data da reivindicação
+  condoId?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const CATEGORIES_LIST: ItemCategory[] = [

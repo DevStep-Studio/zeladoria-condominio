@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
 import {
   INTERNAL_BTN_PRIMARY_CLS,
@@ -17,27 +17,81 @@ import {
 } from "@/components/internal/internal-interactive";
 import {
   CATEGORIES_LIST,
-  MOCK_LOST_AND_FOUND_ITEMS,
-  type ItemCategory,
   type LostAndFoundItem,
 } from "@/types/lost-and-found";
 import { ItemCard } from "./components/item-card";
 import { RegisterItemModal } from "./components/register-item-modal";
 import { ItemDetailsDrawer } from "./components/item-details-drawer";
 
+const LOCAL_STORAGE_KEY = "zc_achados_perdidos_items";
+
 interface AchadosPerdidosClientProps {
+  initialItems?: LostAndFoundItem[];
   initialRole?: string;
   userName?: string;
+  currentUserUnit?: string;
   condoName?: string;
+  condoId?: number | null;
 }
 
 export function AchadosPerdidosClient({
+  initialItems = [],
   initialRole = "morador",
   userName = "Eduarda Lima",
+  currentUserUnit = "Unidade 302",
   condoName = "Residencial Parque das Águas",
+  condoId,
 }: AchadosPerdidosClientProps) {
-  // Lista de itens reativa em memória com dados iniciais ricos
-  const [items, setItems] = useState<LostAndFoundItem[]>(MOCK_LOST_AND_FOUND_ITEMS);
+  // Lista de itens reativa persistida
+  const [items, setItems] = useState<LostAndFoundItem[]>(() => {
+    if (initialItems && initialItems.length > 0) {
+      return initialItems;
+    }
+    return [];
+  });
+
+  // Carregamento e sincronização com LocalStorage e API
+  useEffect(() => {
+    // 1. Se recebemos itens do SSR, salvamos no localStorage como cache
+    if (initialItems && initialItems.length > 0) {
+      setItems(initialItems);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialItems));
+      } catch {
+        // Ignora quota de localStorage
+      }
+    } else {
+      // 2. Se SSR veio vazio, tenta ler cache do localStorage
+      try {
+        const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setItems(parsed);
+          }
+        }
+      } catch {
+        // Ignora erro de JSON
+      }
+    }
+
+    // 3. Sincroniza em segundo plano com a API para obter a lista mais recente
+    fetch("/api/achados-e-perdidos")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => {
+        if (payload?.data && Array.isArray(payload.data)) {
+          setItems(payload.data);
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload.data));
+          } catch {
+            // Ignora erro
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn("Aviso na sincronização de achados e perdidos:", err);
+      });
+  }, [initialItems]);
 
   // Tabs: "todos" | "FOUND" | "LOST"
   const [activeTab, setActiveTab] = useState<"todos" | "FOUND" | "LOST">("todos");
@@ -72,6 +126,19 @@ export function AchadosPerdidosClient({
     setTimeout(() => {
       setFeedback(null);
     }, 4500);
+  };
+
+  // Helper para salvar estado e espelhar em localStorage
+  const syncItemsState = (updater: (prev: LostAndFoundItem[]) => LostAndFoundItem[]) => {
+    setItems((prev) => {
+      const next = updater(prev);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Ignora estouro de cota
+      }
+      return next;
+    });
   };
 
   // Contadores para abas e métricas
@@ -112,32 +179,60 @@ export function AchadosPerdidosClient({
     });
   }, [items, activeTab, selectedCategory, statusFilter, searchQuery]);
 
-  // Manipulação de cadastro de novo item
-  const handleRegisterItem = (newItemData: Omit<LostAndFoundItem, "id" | "status">) => {
-    const newItem: LostAndFoundItem = {
+  // Manipulação de cadastro de novo item (salva no servidor e no localStorage)
+  const handleRegisterItem = async (newItemData: Omit<LostAndFoundItem, "id" | "status">) => {
+    const tempId = `item-${Date.now()}`;
+    const optimisticItem: LostAndFoundItem = {
       ...newItemData,
-      id: `item-${Date.now()}`,
+      id: tempId,
       status: "OPEN",
+      createdAt: new Date().toISOString(),
     };
 
-    setItems((prev) => [newItem, ...prev]);
+    // Atualização otimista imediata no cliente
+    syncItemsState((prev) => [optimisticItem, ...prev]);
+
     showFeedback(
-      newItem.type === "FOUND"
+      optimisticItem.type === "FOUND"
         ? "Item encontrado registrado com sucesso! Obrigado por colaborar com o condomínio."
         : "Item perdido registrado! A comunidade e a portaria foram notificadas."
     );
+
+    // Persistência na API
+    try {
+      const res = await fetch("/api/achados-e-perdidos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newItemData,
+          condoId,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          syncItemsState((prev) => prev.map((item) => (item.id === tempId ? json.data : item)));
+        }
+      }
+    } catch (error) {
+      console.warn("Aviso ao sincronizar novo item com a API:", error);
+    }
   };
 
   // Reivindicação: "Este item é meu"
-  const handleClaimItem = (itemId: string | number, message: string) => {
-    setItems((prev) =>
+  const handleClaimItem = async (itemId: string | number, message: string) => {
+    const claimDate = new Date().toLocaleDateString("pt-BR");
+
+    // Atualização otimista
+    syncItemsState((prev) =>
       prev.map((item) => {
-        if (item.id === itemId) {
+        if (String(item.id) === String(itemId)) {
           return {
             ...item,
             claimedBy: userName,
             claimMessage: message,
-            claimDate: new Date().toLocaleDateString("pt-BR"),
+            claimDate,
           };
         }
         return item;
@@ -146,27 +241,56 @@ export function AchadosPerdidosClient({
 
     // Se estiver com drawer aberto para o mesmo item, atualiza a referência local
     setSelectedItem((prev) =>
-      prev && prev.id === itemId
+      prev && String(prev.id) === String(itemId)
         ? {
             ...prev,
             claimedBy: userName,
             claimMessage: message,
-            claimDate: new Date().toLocaleDateString("pt-BR"),
+            claimDate,
           }
         : prev
     );
 
     showFeedback("Aviso enviado à portaria e zeladoria! Compareça à portaria com documento para conferência e retirada.");
+
+    // Persistência na API
+    try {
+      const res = await fetch("/api/achados-e-perdidos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: itemId,
+          action: "claim",
+          claimedBy: userName,
+          claimMessage: message,
+          claimDate,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          syncItemsState((prev) =>
+            prev.map((item) => (String(item.id) === String(itemId) ? json.data : item))
+          );
+          setSelectedItem((prev) => (prev && String(prev.id) === String(itemId) ? json.data : prev));
+        }
+      }
+    } catch (error) {
+      console.warn("Aviso ao persistir reivindicação de item:", error);
+    }
   };
 
   // Ação: "Eu encontrei este item"
-  const handleReportFound = (itemId: string | number, message: string) => {
-    setItems((prev) =>
+  const handleReportFound = async (itemId: string | number, message: string) => {
+    const claimMsg = `Morador informou localização: "${message}"`;
+
+    syncItemsState((prev) =>
       prev.map((item) => {
-        if (item.id === itemId) {
+        if (String(item.id) === String(itemId)) {
           return {
             ...item,
-            claimMessage: `Morador informou localização: "${message}"`,
+            claimMessage: claimMsg,
             claimedBy: userName,
           };
         }
@@ -175,35 +299,61 @@ export function AchadosPerdidosClient({
     );
 
     setSelectedItem((prev) =>
-      prev && prev.id === itemId
+      prev && String(prev.id) === String(itemId)
         ? {
             ...prev,
-            claimMessage: `Morador informou localização: "${message}"`,
+            claimMessage: claimMsg,
             claimedBy: userName,
           }
         : prev
     );
 
     showFeedback("Aviso registrado com sucesso! O morador que perdeu o item foi notificado.");
+
+    try {
+      const res = await fetch("/api/achados-e-perdidos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: itemId,
+          action: "report_found",
+          reporterName: userName,
+          locationNotes: message,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          syncItemsState((prev) =>
+            prev.map((item) => (String(item.id) === String(itemId) ? json.data : item))
+          );
+          setSelectedItem((prev) => (prev && String(prev.id) === String(itemId) ? json.data : prev));
+        }
+      }
+    } catch (error) {
+      console.warn("Aviso ao persistir aviso de item encontrado:", error);
+    }
   };
 
   // Ação de Staff: "Marcar como Devolvido"
-  const handleMarkResolved = (
+  const handleMarkResolved = async (
     itemId: string | number,
     recipientName: string,
     notes: string
   ) => {
     const now = new Date();
     const resolvedAtString = `${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+    const resolvedByString = `Devolvido para ${recipientName} (${notes})`;
 
-    setItems((prev) =>
+    syncItemsState((prev) =>
       prev.map((item) => {
-        if (item.id === itemId) {
+        if (String(item.id) === String(itemId)) {
           return {
             ...item,
             status: "RESOLVED",
             resolvedAt: resolvedAtString,
-            resolvedBy: `Devolvido para ${recipientName} (${notes})`,
+            resolvedBy: resolvedByString,
           };
         }
         return item;
@@ -211,17 +361,42 @@ export function AchadosPerdidosClient({
     );
 
     setSelectedItem((prev) =>
-      prev && prev.id === itemId
+      prev && String(prev.id) === String(itemId)
         ? {
             ...prev,
             status: "RESOLVED",
             resolvedAt: resolvedAtString,
-            resolvedBy: `Devolvido para ${recipientName} (${notes})`,
+            resolvedBy: resolvedByString,
           }
         : prev
     );
 
     showFeedback(`Item marcado como devolvido para ${recipientName}!`);
+
+    try {
+      const res = await fetch("/api/achados-e-perdidos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: itemId,
+          action: "resolve",
+          recipientName,
+          notes,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          syncItemsState((prev) =>
+            prev.map((item) => (String(item.id) === String(itemId) ? json.data : item))
+          );
+          setSelectedItem((prev) => (prev && String(prev.id) === String(itemId) ? json.data : prev));
+        }
+      }
+    } catch (error) {
+      console.warn("Aviso ao marcar item como devolvido:", error);
+    }
   };
 
   return (
@@ -532,7 +707,7 @@ export function AchadosPerdidosClient({
         onClose={() => setIsRegisterOpen(false)}
         onSubmit={handleRegisterItem}
         currentUserName={userName}
-        currentUserUnit="Unidade 302"
+        currentUserUnit={currentUserUnit || "Condomínio"}
       />
 
       {/* Drawer de Detalhes e Ações Interativas */}
@@ -548,4 +723,3 @@ export function AchadosPerdidosClient({
     </div>
   );
 }
-
