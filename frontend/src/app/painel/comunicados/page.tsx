@@ -218,14 +218,14 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
                 {pinnedRows.map((a) => (
                   <article
                     key={`pinned-${a.id}`}
-                    className="rounded-2xl border border-[#1455FF]/25 bg-white p-4 sm:p-5 shadow-[0_2px_10px_rgba(20,85,255,0.06)]"
+                    className="rounded-2xl border border-[#1455FF]/25 bg-white p-4 sm:p-5 shadow-[0_2px_10px_rgba(20,85,255,0.06)] min-w-0 overflow-hidden"
                   >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex items-start gap-3.5 min-w-0">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
+                      <div className="flex items-start gap-3.5 min-w-0 flex-1 overflow-hidden">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
                           <Icon name={categoryIcon(a.category)} size={18} />
                         </span>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 overflow-hidden">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <InternalStatusBadge tone="blue" icon="pin">
                               Fixado
@@ -243,10 +243,10 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
                             </InternalStatusBadge>
                           </div>
 
-                          <h3 className="mt-2.5 text-base sm:text-lg font-extrabold text-[#101828] leading-snug">
+                          <h3 className="mt-2.5 text-base sm:text-lg font-extrabold text-[#101828] leading-snug break-words [overflow-wrap:anywhere]">
                             {a.title}
                           </h3>
-                          <p className="mt-1.5 text-xs sm:text-sm text-[#526079] leading-relaxed line-clamp-3">
+                          <p className="mt-1.5 text-xs sm:text-sm text-[#526079] leading-relaxed line-clamp-3 break-words [overflow-wrap:anywhere]">
                             {a.body}
                           </p>
                         </div>
@@ -285,7 +285,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
                         <summary className="cursor-pointer font-bold text-[#1455FF] hover:underline select-none">
                           Ler comunicado completo
                         </summary>
-                        <div className="mt-2.5 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-3.5 text-xs sm:text-sm text-[#101828] whitespace-pre-line leading-relaxed">
+                        <div className="mt-2.5 rounded-xl border border-[#E2E8F0] bg-[#F5F8FC] p-3.5 text-xs sm:text-sm text-[#101828] whitespace-pre-line leading-relaxed break-words [overflow-wrap:anywhere]">
                           {a.body}
                         </div>
                       </details>
@@ -296,7 +296,7 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
             </section>
           )}
 
-          {/* Lista Principal de Comunicados */}
+          {/* Lista Principal de Comunicados Enquadrada */}
           {displayRows.length === 0 ? (
             <InternalEmptyState
               title="Nenhum comunicado encontrado nesta visualização"
@@ -311,73 +311,93 @@ export default async function ComunicadosPage({ searchParams }: { searchParams: 
               }
             />
           ) : regularRows.length > 0 ? (
-            <div className="space-y-3">
-              {regularRows.map((a) => (
-                <article
-                  key={a.id}
-                  className="rounded-2xl border border-[#E2E8F0] bg-white p-4 sm:p-5 shadow-[0_2px_8px_rgba(7,26,56,0.03)] hover:border-[#1455FF]/35 hover:shadow-[0_6px_16px_rgba(7,26,56,0.05)] transition-all"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
-                        <Icon name={categoryIcon(a.category)} size={18} />
-                      </span>
+            <section className="space-y-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC]/75 p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white">
+                    <Icon name="megaphone" size={14} />
+                  </span>
+                  <h2 className="text-sm font-extrabold text-[#101828]">
+                    {showPinnedHighlight ? "Demais comunicados" : "Comunicados publicados"}
+                  </h2>
+                </div>
+                <span className="text-[11px] font-bold text-[#526079]">
+                  {regularRows.length} {regularRows.length === 1 ? "publicação" : "publicações"}
+                </span>
+              </div>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {a.pinned && (
-                            <InternalStatusBadge tone="blue" icon="pin">
-                              Fixado
+              <div className="space-y-3">
+                {regularRows.map((a) => (
+                  <article
+                    key={a.id}
+                    className="rounded-2xl border border-[#E2E8F0] bg-white p-4 sm:p-5 shadow-[0_2px_8px_rgba(7,26,56,0.03)] hover:border-[#1455FF]/35 hover:shadow-[0_6px_16px_rgba(7,26,56,0.05)] transition-all min-w-0 overflow-hidden"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
+                      <div className="flex items-start gap-3.5 min-w-0 flex-1 overflow-hidden">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF1FF] text-[#1455FF]">
+                          <Icon name={categoryIcon(a.category)} size={18} />
+                        </span>
+
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {a.pinned && (
+                              <InternalStatusBadge tone="blue" icon="pin">
+                                Fixado
+                              </InternalStatusBadge>
+                            )}
+                            <InternalStatusBadge tone={a.priority === "alta" ? "red" : "neutral"}>
+                              {a.priority === "alta" ? "Alta prioridade" : "Normal"}
                             </InternalStatusBadge>
-                          )}
-                          <InternalStatusBadge tone={a.priority === "alta" ? "red" : "neutral"}>
-                            {a.priority === "alta" ? "Alta prioridade" : "Normal"}
-                          </InternalStatusBadge>
-                          <InternalStatusBadge tone="blue">
-                            {labelFor(CATEGORY_LABELS, a.category)}
-                          </InternalStatusBadge>
-                          <InternalStatusBadge tone={a.audience === "bloco" ? "purple" : "neutral"}>
-                            {a.audience === "bloco" ? `Bloco ${a.block ?? ""}` : "Todos"}
-                          </InternalStatusBadge>
-                        </div>
+                            <InternalStatusBadge tone="blue">
+                              {labelFor(CATEGORY_LABELS, a.category)}
+                            </InternalStatusBadge>
+                            <InternalStatusBadge tone={a.audience === "bloco" ? "purple" : "neutral"}>
+                              {a.audience === "bloco" ? `Bloco ${a.block ?? ""}` : "Todos"}
+                            </InternalStatusBadge>
+                          </div>
 
-                        <h3 className="mt-2.5 text-base sm:text-lg font-extrabold text-[#101828] leading-snug tracking-tight">
-                          {a.title}
-                        </h3>
-                        <p className="mt-1.5 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-[#526079]">
-                          {a.body}
-                        </p>
+                          <h3 className="mt-2.5 text-base sm:text-lg font-extrabold text-[#101828] leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
+                            {a.title}
+                          </h3>
+                          <p className="mt-1.5 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-[#526079] break-words [overflow-wrap:anywhere]">
+                            {a.body}
+                          </p>
+                        </div>
                       </div>
+
+                      {canDelete && (
+                        <form action={deleteAnnouncementAction} className="no-print shrink-0">
+                          <input type="hidden" name="id" value={a.id} />
+                          <button type="submit" className={INTERNAL_BTN_SECONDARY_CLS}>
+                            <Icon name="trash" size={14} className="text-[#EF4444]" />
+                            <span>Remover</span>
+                          </button>
+                        </form>
+                      )}
                     </div>
 
-                    {canDelete && (
-                      <form action={deleteAnnouncementAction} className="no-print shrink-0">
-                        <input type="hidden" name="id" value={a.id} />
-                        <button type="submit" className={INTERNAL_BTN_SECONDARY_CLS}>
-                          <Icon name="trash" size={14} className="text-[#EF4444]" />
-                          <span>Remover</span>
-                        </button>
-                      </form>
-                    )}
-                  </div>
-
-                  <div className="mt-3.5 pt-3 border-t border-[#EDF1F7] flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#526079]">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Icon name="clock" size={13} className="text-[#8996A9]" />
-                      <span>Publicado em {dateBR(a.publishedAt)}</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Icon name="user" size={13} className="text-[#8996A9]" />
-                      <span>{a.author ?? "Administração"}</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Icon name="calendar" size={13} className="text-[#8996A9]" />
-                      <span>{a.expiresAt ? `Válido até ${dateBR(a.expiresAt)}` : "Sem validade definida"}</span>
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    <div className="mt-3.5 pt-3 border-t border-[#EDF1F7] flex flex-wrap items-center justify-between gap-2 text-xs text-[#526079]">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon name="clock" size={13} className="text-[#8996A9]" />
+                          <span>Publicado em {dateBR(a.publishedAt)}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon name="user" size={13} className="text-[#8996A9]" />
+                          <span>{a.author ?? "Administração"}</span>
+                        </span>
+                        {a.expiresAt && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon name="calendar" size={13} className="text-[#8996A9]" />
+                            <span>Válido até {dateBR(a.expiresAt)}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
           ) : null}
         </div>
 

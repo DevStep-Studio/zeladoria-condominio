@@ -639,14 +639,14 @@ export function Shell({
       {/* Top Navbar: Horizontal Dark Navy (#09162B), altura ~70px fiel à imagem aprovada */}
       <header className="sticky top-0 z-40 w-full bg-[#09162B] text-white border-b border-white/10 select-none">
         <div className="w-full max-w-[1760px] mx-auto h-16 lg:h-[70px] px-3 sm:px-6 lg:px-6 xl:px-7 min-[1440px]:px-[44px] min-[1600px]:px-[48px] flex items-center justify-between gap-2 sm:gap-3">
-          {/* Esquerda: Hamburger (apenas mobile/tablet) + Logotipo Branca */}
+          {/* Esquerda: Mini ícone do menu lateral (visível em todos os tamanhos de tela) + Logotipo */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 min-w-0">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
-              title="Menu completo de serviços"
-              aria-label="Abrir menu"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-white/85 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              title="Abrir menu lateral"
+              aria-label="Abrir menu lateral"
             >
               <Icon name="menu" size={20} />
             </button>
